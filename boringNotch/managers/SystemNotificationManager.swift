@@ -75,6 +75,12 @@ final class SystemNotificationManager: ObservableObject {
     /// The notification the notch is currently showing, if any.
     @Published var activeNotification: SystemNotification?
 
+    /// The notification currently being mirrored by the peek marquee (peek-
+    /// mode never makes it "active"). Promoted into the interactive surface
+    /// when the notch opens or the peek is tapped.
+    @Published private(set) var mirrored: SystemNotification?
+    private var mirroredExpiryTask: Task<Void, Never>?
+
     /// Notifications that arrived while the user was mid-reply, held back
     /// rather than shown. Promoted one at a time once they're done.
     @Published private(set) var queued: [SystemNotification] = []
@@ -201,6 +207,13 @@ final class SystemNotificationManager: ObservableObject {
                 }
                 return notification.subtitle ?? notification.body
             }()
+            mirroredExpiryTask?.cancel()
+            mirrored = notification
+            mirroredExpiryTask = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .seconds(12))
+                guard !Task.isCancelled, let self, self.mirrored?.id == notification.id else { return }
+                self.mirrored = nil
+            }
             NotchUIEventBus.events.send(
                 .sneakPeek(
                     type: .notification,
@@ -276,6 +289,22 @@ final class SystemNotificationManager: ObservableObject {
 
     func clearDraft(for id: String) {
         replyDrafts.removeValue(forKey: id)
+    }
+
+    // MARK: - Mirrored peek promotion
+
+    /// Promotes the currently mirrored peek into the interactive surface.
+    /// Called when the notch opens or the peek is tapped — the user has
+    /// engaged, so the (possibly still live) banner is held for replying.
+    /// If the banner already died, the expanded view simply offers the
+    /// non-reply actions (open app, etc.).
+    @MainActor
+    func promoteMirroredIfPresent() {
+        guard let mirrored, activeNotification == nil, !isComposingReply else { return }
+        mirroredExpiryTask?.cancel()
+        show(mirrored)
+        holdSystemBanner(mirrored)
+        self.mirrored = nil
     }
 
     /// Shows the oldest queued notification, if any. Oldest first so a burst

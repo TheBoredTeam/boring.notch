@@ -170,12 +170,10 @@ struct ContentView: View {
                 chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
             case .music:
                 chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
-                // The inline song-change peek widens the pill itself, so the
-                // chin has to grow with it — otherwise the hover region is
-                // narrower than what's on screen.
-                if showingInlineMusicPeek {
-                    chinWidth += 2 * inlineMusicPeekLabelWidth
-                }
+                // NB: the chin deliberately does NOT widen during the inline
+                // song-change peek — the marquee scrolls within the existing
+                // pill width instead of expanding the scrub area (user-facing
+                // call: expanding bars read as junky).
             }
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
@@ -291,6 +289,12 @@ struct ContentView: View {
                             withAnimation {
                                 isHovering = false
                             }
+                        }
+                        // A mirrored peek waiting under the notch gets promoted
+                        // into the interactive surface the moment the user
+                        // opens the notch — engagement, not surprise.
+                        if newState == .open {
+                            notificationManager.promoteMirroredIfPresent()
                         }
                     }
                     // A new notification always takes the front of the stack,
@@ -589,14 +593,13 @@ struct ContentView: View {
     /// closedNotchSize keeps a fixed label budget either side whatever the
     /// hardware is, and keeps liveActivityEdgeMargin in play so content
     /// clears the bezel — the inline path had dropped it entirely.
+    ///
+    /// The center no longer widens during the inline song-change peek: the
+    /// marquee scrolls inside the normal bounds, keeping the closed pill's
+    /// footprint stable.
     private var musicActivityCenterWidth: CGFloat {
-        let margin = vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin)
-        guard showingInlineMusicPeek else { return margin }
-        return margin + (2 * inlineMusicPeekLabelWidth)
+        return vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin)
     }
-
-    /// Space reserved for the title (left of the cutout) and artist (right).
-    private let inlineMusicPeekLabelWidth: CGFloat = 110
 
     @ViewBuilder
     func MusicLiveActivity() -> some View {
@@ -634,42 +637,26 @@ struct ContentView: View {
             Rectangle()
                 .fill(.black)
                 .overlay(
-                    // .center, not .top: the album art beside this is
-                    // vertically centered, so top-aligned labels sat visibly
-                    // high against it.
                     HStack(alignment: .center) {
                         if coordinator.expandingView.show
                             && coordinator.expandingView.type == .music
                         {
+                            // Inline song-change peek: the new title + artist
+                            // marquee-scroll INSIDE the pill's normal bounds
+                            // — the chin stays at its resting width instead of
+                            // expanding around the labels.
                             MarqueeText(
-                                musicManager.songTitle,
+                                musicManager.songTitle + " — " + musicManager.artistName,
                                 color: Defaults[.coloredSpectrogram]
                                     ? Color(nsColor: musicManager.avgColor) : Color.gray,
                                 delayDuration: 0.4,
-                                frameWidth: inlineMusicPeekLabelWidth
+                                frameWidth: max(40, musicActivityCenterWidth - 16)
                             )
                             .opacity(
                                 (coordinator.expandingView.show
                                     && Defaults[.sneakPeekStyles] == .inline)
                                     ? 1 : 0
                             )
-                            Spacer(minLength: vm.closedNotchSize.width)
-                            // Song Artist
-                            Text(musicManager.artistName)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .frame(width: inlineMusicPeekLabelWidth, alignment: .trailing)
-                                .foregroundStyle(
-                                    Defaults[.coloredSpectrogram]
-                                        ? Color(nsColor: musicManager.avgColor)
-                                        : Color.gray
-                                )
-                                .opacity(
-                                    (coordinator.expandingView.show
-                                        && coordinator.expandingView.type == .music
-                                        && Defaults[.sneakPeekStyles] == .inline)
-                                        ? 1 : 0
-                                )
                         }
                     }
                     .padding(.horizontal, 8)

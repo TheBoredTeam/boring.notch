@@ -12,6 +12,9 @@ import SwiftUI
 struct NotificationSneakPeekView: View {
     let payload: NotificationPeekPayload
 
+    @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject private var notificationManager = SystemNotificationManager.shared
+
     var body: some View {
         HStack(spacing: 6) {
             if let bundleID = payload.bundleID,
@@ -48,6 +51,14 @@ struct NotificationSneakPeekView: View {
         }
         .frame(width: 320)
         .padding(.bottom, 10)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            // macOS-banner semantics: tapping the mirror opens the content —
+            // here, in the expanded notification panel inside the notch.
+            if vm.open() {
+                notificationManager.promoteMirroredIfPresent()
+            }
+        }
     }
 
     private var bodyText: String {

@@ -3234,6 +3234,9 @@
         }
       }
     },
+    "Briefly mirrors an incoming notification in a scrolling marquee below the notch, then dismisses it. No banner holding, no keyboard focus — purely a glance." : {
+
+    },
     "Brightness" : {
       "localizations" : {
         "de" : {
@@ -23615,6 +23618,9 @@
           }
         }
       }
+    },
+    "Sneak peek on new notifications" : {
+
     },
     "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
       "localizations" : {
