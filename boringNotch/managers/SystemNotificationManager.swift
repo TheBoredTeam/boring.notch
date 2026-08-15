@@ -200,7 +200,11 @@ final class SystemNotificationManager: ObservableObject {
         // and get out of the way. No banner holding (it dismisses naturally),
         // no key-focus involvement, no expansion — replying stays a
         // click-through action on the user's terms.
-        if Defaults[.notificationSneakPeek], !isComposingReply {
+        //
+        // Only when nothing is showing: if a notification is already active
+        // (panel open, or queue suspended mid-reply), arrivals must flow
+        // into the normal show/queue path so the +N badge stays alive.
+        if Defaults[.notificationSneakPeek], !isComposingReply, activeNotification == nil {
             let message: String? = {
                 if let subtitle = notification.subtitle, let body = notification.body {
                     return subtitle + " — " + body
