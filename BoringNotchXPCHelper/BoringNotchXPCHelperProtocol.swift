@@ -52,7 +52,9 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     func displayIDForBrightness(with reply: @escaping (NSNumber?) -> Void)
     func currentScreenBrightness(with reply: @escaping (NSNumber?) -> Void)
     func setScreenBrightness(_ value: Float, with reply: @escaping (Bool) -> Void)
-    func adjustScreenBrightness(by value: Float, with reply: @escaping (Bool) -> Void)
+    /// Replies the resulting brightness in 0...1, or nil on failure.
+    /// Returning the value collapses the old adjust→read two-RPC dance into one call.
+    func adjustScreenBrightness(by value: Float, with reply: @escaping (NSNumber?) -> Void)
     // Lunar brightness events (performed by the helper)
     func isLunarAvailable(with reply: @escaping (Bool) -> Void)
     func startLunarEventStream(with reply: @escaping (Bool) -> Void)
@@ -87,22 +89,3 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
 /// object conforming to both.
 @objc protocol BoringNotchXPCAppDelegate: BoringNotchXPCHelperLunarListener, BoringNotchXPCHelperDelegate {}
 
-/*
- To use the service from an application or other process, use NSXPCConnection to establish a connection to the service by doing something like this:
-
-     connectionToService = NSXPCConnection(serviceName: "theboringteam.boringnotch.BoringNotchXPCHelper")
-     connectionToService.remoteObjectInterface = NSXPCInterface(with: (any BoringNotchXPCHelperProtocol).self)
-     connectionToService.resume()
-
- Once you have a connection to the service, you can use it like this:
-
-     if let proxy = connectionToService.remoteObjectProxy as? BoringNotchXPCHelperProtocol {
-         proxy.performCalculation(firstNumber: 23, secondNumber: 19) { result in
-             NSLog("Result of calculation is: \(result)")
-         }
-     }
-
- And, when you are finished with the service, clean up the connection like this:
-
-     connectionToService.invalidate()
-*/

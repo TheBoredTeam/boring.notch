@@ -53,9 +53,14 @@ final class NotificationWatcher {
     /// missed tick can't let a held banner slip away.
     private let refreshInterval: TimeInterval = 2.5
 
-    /// Banners live ~5s, so this catches every one with room to spare while
-    /// staying cheap — each tick is a shallow AX tree walk.
-    private let pollInterval: TimeInterval = 0.35
+    /// Poll cadence adapts to activity: fast while a banner is live (they
+    /// dismiss in ~5s, so 0.35s catches every one), slow while idle. An
+    /// always-on 0.35s poll costs ~250k AX tree walks per day for a feature
+    /// that is used a handful of times; idling at 2s keeps first-detection
+    /// latency under a banner's lifetime while cutting that by ~85%.
+    private let activePollInterval: TimeInterval = 0.35
+    private let idlePollInterval: TimeInterval = 2.0
+    private var currentPollInterval: TimeInterval = 0
 
     var isRunning: Bool { appElement != nil }
 
@@ -86,10 +91,11 @@ final class NotificationWatcher {
         // state stays on the main queue, which is also where the helper
         // dispatches reply/action calls, so there's no locking to get wrong.
         let timer = DispatchSource.makeTimerSource(queue: .main)
-        timer.schedule(deadline: .now() + pollInterval, repeating: pollInterval)
+        timer.schedule(deadline: .now() + activePollInterval, repeating: activePollInterval)
         timer.setEventHandler { [weak self] in self?.scan() }
         timer.resume()
         pollTimer = timer
+        currentPollInterval = activePollInterval
 
         scan()
         return true
@@ -134,6 +140,17 @@ final class NotificationWatcher {
         }
 
         refreshHeldBanners()
+        updatePollCadence()
+    }
+
+    /// Drops the poll rate once nothing is on screen anymore; a slow idle
+    /// tick still catches the first banner of the next burst, at which
+    /// point the fast cadence resumes.
+    private func updatePollCadence() {
+        let wanted = (live.isEmpty && held.isEmpty) ? idlePollInterval : activePollInterval
+        guard wanted != currentPollInterval, let pollTimer else { return }
+        currentPollInterval = wanted
+        pollTimer.schedule(deadline: .now() + wanted, repeating: wanted)
     }
 
     /// Keeps held banners from timing out.

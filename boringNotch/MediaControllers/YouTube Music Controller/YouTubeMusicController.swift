@@ -276,10 +276,14 @@ final class YouTubeMusicController: MediaControllerProtocol {
             }
             guard let newPosition = position else { return }
 
+            // Threshold position updates: the websocket pushes ~1/s (often
+            // more), and an always-new lastUpdated defeated the Equatable
+            // check so every tick republished the whole playback state.
+            guard abs(newPosition - playbackState.currentTime) > 0.25 else { return }
             var copied = playbackState
             copied.currentTime = newPosition
             copied.lastUpdated = Date()
-            if copied != playbackState { playbackState = copied }
+            playbackState = copied
 
         case .repeatChanged:
             guard let data = message.extractData() else { return }

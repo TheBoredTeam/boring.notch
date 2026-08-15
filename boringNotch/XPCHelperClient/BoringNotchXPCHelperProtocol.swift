@@ -52,7 +52,9 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     func displayIDForBrightness(with reply: @escaping (NSNumber?) -> Void)
     func currentScreenBrightness(with reply: @escaping (NSNumber?) -> Void)
     func setScreenBrightness(_ value: Float, with reply: @escaping (Bool) -> Void)
-    func adjustScreenBrightness(by value: Float, with reply: @escaping (Bool) -> Void)
+    /// Replies the resulting brightness in 0...1, or nil on failure.
+    /// Returning the value collapses the old adjust→read two-RPC dance into one call.
+    func adjustScreenBrightness(by value: Float, with reply: @escaping (NSNumber?) -> Void)
     // Lunar brightness events (performed by the helper)
     func isLunarAvailable(with reply: @escaping (Bool) -> Void)
     func startLunarEventStream(with reply: @escaping (Bool) -> Void)
@@ -76,7 +78,8 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
 /// this as its connection's `exportedObject`.
 @objc protocol BoringNotchXPCHelperDelegate {
     /// Keys: token, appName, bundleID, title, subtitle, body, actions
-    /// (`actions` is newline-joined).
+    /// (`actions` is newline-joined). A plain string dictionary keeps the XPC
+    /// interface free of custom coded types.
     func notificationDidAppear(_ payload: [String: String])
     func notificationDidDisappear(_ token: String)
 }
@@ -85,3 +88,4 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
 /// both Lunar events and notification banners — so the app vends a single
 /// object conforming to both.
 @objc protocol BoringNotchXPCAppDelegate: BoringNotchXPCHelperLunarListener, BoringNotchXPCHelperDelegate {}
+

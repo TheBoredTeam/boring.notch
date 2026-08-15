@@ -138,7 +138,8 @@ struct CompactHomeView: View {
     // MARK: - Progress
 
     private var progressRow: some View {
-        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) { timeline in
+        // See NotchHomeView.musicSlider — 0.5s ticks are imperceptible here.
+        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.5 : nil)) { timeline in
             MusicSliderView(
                 sliderValue: $sliderValue,
                 duration: $musicManager.songDuration,

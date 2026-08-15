@@ -22,7 +22,6 @@ struct MusicPlayerView: View {
         HStack {
             AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).frame(width: 120).padding(.all, 5 * (vm.notchSize.height / 190))
             MusicControlsView(horizontalMediaGestureFeedback: horizontalMediaGestureFeedback)
-                .drawingGroup()
                 .compositingGroup()
         }
         .contentShape(Rectangle())
@@ -202,7 +201,10 @@ struct MusicControlsView: View {
     }
 
     private var musicSlider: some View {
-        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) { timeline in
+        // 0.5s ticks are imperceptible on a minutes-long track (~1px steps)
+        // and the time labels only display whole seconds; the old 10Hz
+        // cadence re-rendered the slider 10x more than needed.
+        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.5 : nil)) { timeline in
             MusicSliderView(
                 sliderValue: $sliderValue,
                 duration: $musicManager.songDuration,

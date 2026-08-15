@@ -250,8 +250,13 @@ final class MediaKeyInterceptor {
     }
 
     private func playFeedbackSound() {
-        guard let feedback = UserDefaults.standard.persistentDomain(forName: "NSGlobalDomain")?["com.apple.sound.beep.feedback"] as? Int,
-              feedback == 1 else { return }
+        // Single-key lookup — persistentDomain(forName:) materialized the
+        // entire NSGlobalDomain on every volume key press.
+        let feedback = CFPreferencesCopyAppValue(
+            "com.apple.sound.beep.feedback" as CFString,
+            kCFPreferencesAnyApplication
+        ) as? Int
+        guard feedback == 1 else { return }
 
         prepareAudioPlayerIfNeeded()
         guard let player = audioPlayer else {
@@ -319,10 +324,8 @@ final class MediaKeyInterceptor {
                     BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .backlight, value: CGFloat(v))
                 } else {
                     let v = BrightnessManager.shared.rawBrightness
-                    Task { @MainActor in
-                        let target = await BrightnessManager.shared.brightnessTargetUUID()
-                        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(v), targetScreenUUID: target)
-                    }
+                    let target = await BrightnessManager.shared.brightnessTargetUUID()
+                    BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(v), targetScreenUUID: target)
                 }
             case .keyboardBrightnessUp, .keyboardBrightnessDown:
                 let v = KeyboardBacklightManager.shared.rawBrightness
