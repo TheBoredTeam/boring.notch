@@ -294,6 +294,12 @@ struct ContentView: View {
                                 isHovering = false
                             }
                         }
+                        // Temporary trace for the empty-open-panel report.
+                        if newState == .open {
+                            Log.notifications.debug(
+                                "notch opened; activeNotification=\(SystemNotificationManager.shared.activeNotification?.id ?? "nil"), compactMode=\(Defaults[.compactMode])"
+                            )
+                        }
                     }
                     // A new notification always takes the front of the stack,
                     // even if the user had swiped away to music.
