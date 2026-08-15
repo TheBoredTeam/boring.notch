@@ -116,6 +116,9 @@ struct NotificationExpandedView: View {
     @State private var hostWindow: BoringNotchSkyLightWindow?
     @State private var suggestions: [String] = []
     @State private var isComposing = false
+    /// User-visible delivery failure — the draft is kept, the notch stays
+    /// open, and the user can retry or handle the message themselves.
+    @State private var sendError: String?
 
     private var kind: NotificationKind { .init(notification) }
 
@@ -399,6 +402,13 @@ struct NotificationExpandedView: View {
                 suggestionChips
             }
             replyField
+            if let sendError {
+                Text(sendError)
+                    .font(.caption2)
+                    .foregroundStyle(.red)
+                    .lineLimit(2)
+                    .transition(.opacity)
+            }
         }
         .task(id: notification.id) {
             guard Defaults[.smartRepliesEnabled], let body = notification.body else { return }
@@ -539,9 +549,20 @@ struct NotificationExpandedView: View {
         guard canSend else { return }
         let text = replyText
         isSending = true
+        sendError = nil
         Task {
             let outcome = await manager.reply(to: notification, text: text)
             isSending = false
+
+            if outcome == .failed {
+                // Don't pretend. Keep the draft, keep the notch open, and
+                // tell the user plainly what happened.
+                withAnimation(.smooth) {
+                    sendError = String(localized: "Message couldn't be sent. Your draft is still here — try again or open Messages.")
+                }
+                return
+            }
+
             replyText = ""
             // A hand-off is not a delivery — showing the same checkmark for
             // both would tell the user their message went out when it's
