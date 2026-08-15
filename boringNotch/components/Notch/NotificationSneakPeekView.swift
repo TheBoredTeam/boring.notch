@@ -49,6 +49,12 @@ struct NotificationSneakPeekView: View {
             }
         }
         .frame(width: 320)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        // The pill floats over the wallpaper now — it needs its own backdrop
+        // or the title melts into whatever's below (white/gray text on a
+        // light background, gray-on-black over the notch shape).
+        .background(.black.opacity(0.8), in: Capsule())
         .padding(.bottom, 10)
         .contentShape(Rectangle())
         .onTapGesture {

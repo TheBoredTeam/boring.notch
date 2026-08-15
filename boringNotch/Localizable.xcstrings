@@ -14058,6 +14058,9 @@
         }
       }
     },
+    "Message couldn't be sent. Your draft is still here — try again or open Messages." : {
+
+    },
     "Mic" : {
       "localizations" : {
         "cs" : {
