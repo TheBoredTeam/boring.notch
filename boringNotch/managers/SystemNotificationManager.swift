@@ -201,10 +201,14 @@ final class SystemNotificationManager: ObservableObject {
         // no key-focus involvement, no expansion — replying stays a
         // click-through action on the user's terms.
         //
-        // Only when nothing is showing: if a notification is already active
-        // (panel open, or queue suspended mid-reply), arrivals must flow
-        // into the normal show/queue path so the +N badge stays alive.
-        if Defaults[.notificationSneakPeek], !isComposingReply, activeNotification == nil {
+        // Two carve-outs:
+        // - OTP/code notifications keep the interactive path (the copy
+        //   affordance lives in the live activity, not the passive mirror).
+        // - If a notification is already active (panel open, or queue
+        //   suspended mid-reply), arrivals must flow into the normal
+        //   show/queue path so the +N badge stays alive.
+        if Defaults[.notificationSneakPeek], !isComposingReply, activeNotification == nil,
+           notification.detectedCode == nil {
             let message: String? = {
                 if let subtitle = notification.subtitle, let body = notification.body {
                     return subtitle + " — " + body
@@ -222,7 +226,7 @@ final class SystemNotificationManager: ObservableObject {
                 .sneakPeek(
                     type: .notification,
                     value: 0,
-                    duration: 5.0,
+                    duration: 8.0,
                     payload: NotificationPeekPayload(
                         appName: notification.appName,
                         title: notification.title,
