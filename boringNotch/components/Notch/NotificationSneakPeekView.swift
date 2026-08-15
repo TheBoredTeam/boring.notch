@@ -38,15 +38,17 @@ struct NotificationSneakPeekView: View {
                     .layoutPriority(1)
             }
 
-            GeometryReader { geo in
-                MarqueeText(
-                    bodyText,
-                    font: .caption,
-                    color: .gray,
-                    delayDuration: 0.8,
-                    frameWidth: geo.size.width
-                )
-            }
+            // Fixed width, never a GeometryReader: a greedy reader inflates
+            // vertically inside the notch's VStack and stretches the whole
+            // capsule (that's what turned the pill into a giant black box).
+            MarqueeText(
+                bodyText,
+                font: .caption,
+                color: .gray,
+                delayDuration: 0.8,
+                frameWidth: 240
+            )
+            .font(.caption)
         }
         .frame(width: 320)
         .padding(.horizontal, 10)

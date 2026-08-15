@@ -509,10 +509,10 @@ struct ContentView: View {
                        }
                         }
 
-                        // Notification peek: render BELOW every other row in
-                        // closed state — this is the position the pill was
-                        // visually confirmed in (the float-overlay variant
-                        // rendered off-surface and was invisible).
+                        // Notification peek: its lane is independent from the
+                        // type-exclusive sneakPeekStates (a volume/music peek
+                        // can be up at the same time); it renders simply
+                        // below them, inside the shape like every other peek.
                         if vm.notchState == .closed {
                             let peek = coordinator.notificationPeekState(for: vm.screenUUID)
                             if peek.show, let payload = peek.payload {
