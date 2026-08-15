@@ -11,8 +11,6 @@ class BatteryStatusViewModel: ObservableObject {
     private var powerSourceChangedCallback: IOPowerSourceCallbackType?
     private var runLoopSource: Unmanaged<CFRunLoopSource>?
 
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
-
     @Published private(set) var levelBattery: Float = 0.0
     @Published private(set) var maxCapacity: Float?
     @Published private(set) var isPluggedIn: Bool = false
@@ -160,9 +158,9 @@ class BatteryStatusViewModel: ObservableObject {
     /// Notifies important changes in the battery status with an optional delay
     /// - Parameter delay: The delay before notifying the change, default is 0.0
     private func notifyImportanChangeStatus(delay: Double = 0.0) {
-        Task {
+        Task { [delay] in
             try? await Task.sleep(for: .seconds(delay))
-            self.coordinator.toggleExpandingView(status: true, type: .battery)
+            NotchUIEventBus.events.send(.expandingView(type: .battery))
         }
     }
 

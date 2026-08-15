@@ -93,6 +93,7 @@ class BoringViewCoordinator: ObservableObject {
     private var boringShelfCancellable: AnyCancellable?
     private var osdSourceCancellables: [AnyCancellable] = []
     private var notificationLiveActivityCancellable: AnyCancellable?
+    private var uiEventCancellable: AnyCancellable?
 
     private init() {
         // Perform migration from name-based to UUID-based storage
@@ -129,6 +130,24 @@ class BoringViewCoordinator: ObservableObject {
         }
 
         XPCHelperClient.shared.startMonitoringAccessibilityAuthorization()
+
+        // Managers publish presentation events through the bus instead of
+        // calling into the coordinator directly; the coordinator is the
+        // single presenter (and keeps all show/hide policy in one place).
+        uiEventCancellable = NotchUIEventBus.events
+            .sink { [weak self] event in
+                Task { @MainActor in
+                    guard let self else { return }
+                    switch event {
+                    case .sneakPeek(let type, let value, let icon, let accent, let uuid):
+                        self.toggleSneakPeek(
+                            status: true, type: type, value: value,
+                            icon: icon, accent: accent, targetScreenUUID: uuid)
+                    case .expandingView(let type):
+                        self.toggleExpandingView(status: true, type: type)
+                    }
+                }
+            }
 
         // Observe changes to osdReplacement
         osdReplacementCancellable = Defaults.publisher(.osdReplacement)

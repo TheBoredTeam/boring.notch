@@ -78,7 +78,7 @@ final class BrightnessManager: ObservableObject {
 				publish(brightness: current, touchDate: true)
 
 				let uuid = await brightnessTargetUUID()
-				BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(current), targetScreenUUID: uuid)
+				NotchUIEventBus.events.send(.sneakPeek(type: .brightness, value: CGFloat(current), targetScreenUUID: uuid))
 			}
 		}
 	}
@@ -91,7 +91,7 @@ final class BrightnessManager: ObservableObject {
 				publish(brightness: clamped, touchDate: true)
                 // optionally show peek when user uses slider/controls
                 let targetUUID = await brightnessTargetUUID()
-                BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(clamped), targetScreenUUID: targetUUID)
+                NotchUIEventBus.events.send(.sneakPeek(type: .brightness, value: CGFloat(clamped), targetScreenUUID: targetUUID))
 			} else {
 				refresh()
 			}
@@ -156,11 +156,7 @@ final class KeyboardBacklightManager: ObservableObject {
 					refresh()
 					return
 				}
-				BoringViewCoordinator.shared.toggleSneakPeek(
-					status: true,
-					type: .backlight,
-					value: CGFloat(target)
-				)
+				NotchUIEventBus.events.send(.sneakPeek(type: .backlight, value: CGFloat(target)))
 			}
 		}
 	}
