@@ -554,17 +554,15 @@ struct ContentView: View {
                 .allowsHitTesting(vm.notchState == .open)
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
-        }
-        // Notification peek floats BELOW the chin as window-space decoration.
-        // It never joins the clipped notch shape, so the notch never expands
-        // for it horizontally or vertically — the pill is an overlay at a
-        // fixed offset under the closed notch.
-        .overlay(alignment: .top) {
+            // Notification pill: a plain second child of the top ZStack,
+            // offset below the chin. NOT an overlay and NOT in the VStack —
+            // so it can't stretch shape metrics but also can't be skipped
+            // by overlay decoration semantics.
             if vm.notchState == .closed {
                 let peek = coordinator.notificationPeekState(for: vm.screenUUID)
                 if peek.show, let payload = peek.payload {
                     NotificationSneakPeekView(payload: payload)
-                        .padding(.top, displayClosedNotchHeight + 24)
+                        .offset(y: displayClosedNotchHeight + 24)
                         .transition(.opacity)
                 }
             }
