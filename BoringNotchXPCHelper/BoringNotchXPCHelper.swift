@@ -293,10 +293,17 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         reply(false)
     }
     
-    @objc func adjustScreenBrightness(by value: Float, with reply: @escaping (Bool) -> Void) {
+    @objc func adjustScreenBrightness(by value: Float, with reply: @escaping (NSNumber?) -> Void) {
         let displayID = brightnessDisplayID()
         if displayServicesSetBrightnessSmooth(displayID: displayID, value: value) {
-            reply(true)
+            // Read back inside the helper so the client pays for one RPC
+            // instead of two (adjust + currentScreenBrightness).
+            var b: Float = 0
+            if displayServicesGetBrightness(displayID: displayID, out: &b) {
+                reply(NSNumber(value: b))
+                return
+            }
+            reply(nil)
             return
         }
         if let io = ioServiceFor(displayID: displayID) {
@@ -305,12 +312,12 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
                 let target = max(0, min(1, ioCurrent + value))
                 let ok = IODisplaySetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, target) == kIOReturnSuccess
                 IOObjectRelease(io)
-                reply(ok)
+                reply(ok ? NSNumber(value: target) : nil)
                 return
             }
             IOObjectRelease(io)
         }
-        reply(false)
+        reply(nil)
     }
 
     // MARK: - Lunar Events
