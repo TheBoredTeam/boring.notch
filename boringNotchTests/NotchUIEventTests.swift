@@ -26,7 +26,7 @@ final class NotchUIEventTests: XCTestCase {
         let expectation = expectation(description: "event delivered")
         NotchUIEventBus.events
             .sink { event in
-                guard case .sneakPeek(let type, let value, let icon, _, let uuid) = event else {
+                guard case .sneakPeek(let type, let value, let icon, _, let uuid, _, _) = event else {
                     XCTFail("unexpected event")
                     return
                 }
@@ -57,6 +57,49 @@ final class NotchUIEventTests: XCTestCase {
 
         NotchUIEventBus.events.send(.expandingView(type: .battery))
         waitForExpectations(timeout: 1.0)
+    }
+
+    func testNotificationPeekLandsInLaneWithPayload() {
+        let expectation = expectation(description: "notification peek event carries payload")
+        NotchUIEventBus.events
+            .sink { event in
+                if case .sneakPeek(let type, _, _, _, _, _, let payload) = event,
+                   type == .notification {
+                    XCTAssertEqual(payload?.title ?? "", "Sender")
+                    expectation.fulfill()
+                }
+            }
+            .store(in: &cancellables)
+
+        NotchUIEventBus.events.send(.sneakPeek(
+            type: .notification, value: 0,
+            payload: NotificationPeekPayload(
+                appName: "WhatsApp", title: "Sender", body: "hello",
+                bundleID: "net.whatsapp.WhatsApp")))
+
+        waitForExpectations(timeout: 1.0)
+    }
+
+    /// Full chain: peek event -> toggleSneakPeek routing -> dedicated lane state.
+    func testNotificationPeekEndsInLane() async throws {
+        NotchUIEventBus.events.send(.sneakPeek(
+            type: .notification, value: 0, duration: 3.0,
+            payload: NotificationPeekPayload(
+                appName: "WhatsApp", title: "Sender", body: "hello",
+                bundleID: "net.whatsapp.WhatsApp")))
+
+        try await Task.sleep(for: .milliseconds(500))
+
+        let visible = await MainActor.run {
+            BoringViewCoordinator.shared.notificationPeekStates.values.first { $0.show }
+        }
+        XCTAssertNotNil(visible, "notification peek should be visible in its lane")
+        XCTAssertEqual(visible?.payload?.title ?? "", "Sender")
+        if let uuid = visible?.targetScreenUUID {
+            await MainActor.run {
+                BoringViewCoordinator.shared.notificationPeekStates[uuid]?.show = false
+            }
+        }
     }
 }
 

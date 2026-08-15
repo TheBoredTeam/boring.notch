@@ -507,13 +507,25 @@ struct ContentView: View {
                                }
                            }
                        }
-                  }
-              }
-              .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (vm.notchState == .closed))) { view in
-                  view
-                      .fixedSize()
-              }
-              .zIndex(1)
+                        }
+
+                        // Notification peek: render BELOW every other row in
+                        // closed state — this is the position the pill was
+                        // visually confirmed in (the float-overlay variant
+                        // rendered off-surface and was invisible).
+                        if vm.notchState == .closed {
+                            let peek = coordinator.notificationPeekState(for: vm.screenUUID)
+                            if peek.show, let payload = peek.payload {
+                                NotificationSneakPeekView(payload: payload)
+                                    .transition(.opacity)
+                            }
+                        }
+                      }
+                      .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (vm.notchState == .closed))) { view in
+                          view
+                              .fixedSize()
+                      }
+                      .zIndex(1)
             if vm.notchState == .open {
                 VStack {
                     // An open notch with a live notification is showing the
@@ -553,20 +565,6 @@ struct ContentView: View {
                 .zIndex(1)
                 .allowsHitTesting(vm.notchState == .open)
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
-            }
-        }
-        // Notification peek floats BELOW the chin as window-space decoration.
-        // It never lives inside the clipped notch shape, so it can neither
-        // stretch the panel vertically nor be pushed around by open/
-        // greeting/inline states — it mirrors, then fades away.
-        .overlay(alignment: .top) {
-            if vm.notchState == .closed {
-                let peek = coordinator.notificationPeekState(for: vm.screenUUID)
-                if peek.show, let payload = peek.payload {
-                    NotificationSneakPeekView(payload: payload)
-                        .padding(.top, displayClosedNotchHeight + 24)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                }
             }
         }
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))
