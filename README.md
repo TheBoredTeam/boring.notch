@@ -54,7 +54,7 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 Once downloaded, open the `.dmg` and move **Boring Notch** to your `/Applications` folder.
 
 > [!IMPORTANT]
-> We don't have an Apple Developer account (yet 👀), so macOS will warn you that Boring Notch is from an unidentified developer on first launch. This is expected behavior.
+> Release builds are not notarized with Apple (macOS will warn you that Boring Notch is from an unidentified developer on first launch). This is expected behavior.
 >
 > You'll need to bypass this before the app will open. You only need to do this once. Use one of the methods below.
 

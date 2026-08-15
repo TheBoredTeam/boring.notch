@@ -1,0 +1,13 @@
+# Code owners for boring.notch
+# Reviewers are automatically requested on PRs that touch owned paths.
+# Add active maintainers here as the team grows.
+
+# Default owner for the whole repo
+* @Alexander5015
+
+# Area-specific expertise
+/boringNotch/MediaControllers/ @Alexander5015
+/boringNotch/components/OSD/ @Alexander5015
+/BoringNotchXPCHelper/ @Alexander5015
+/Shared/ @Alexander5015
+/.github/workflows/ @Alexander5015
