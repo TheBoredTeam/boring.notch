@@ -2,6 +2,8 @@
 //  Log.swift
 //  boringNotch
 //
+//  SPDX-License-Identifier: GPL-3.0-only
+//
 //  os.Logger backbone. One subsystem, per-feature categories — filterable
 //  in Console.app and persisted appropriately by level (debug is
 //  memory-only; notice+ hits the log store).

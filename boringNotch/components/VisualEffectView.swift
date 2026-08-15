@@ -2,6 +2,8 @@
 //  VisualEffectView.swift
 //  boringNotch
 //
+//  SPDX-License-Identifier: GPL-3.0-only
+//
 //  Created by Richard Kunkli on 31/08/2024.
 //
 

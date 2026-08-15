@@ -2,6 +2,8 @@
 //  NotchWindowManager.swift
 //  boringNotch
 //
+//  SPDX-License-Identifier: GPL-3.0-only
+//
 //  Extracted from AppDelegate: all notch-window, per-screen view-model and
 //  drag-detector lifecycle in one place. AppDelegate keeps app-lifecycle
 //  glue (shortcuts, onboarding, termination) and forwards to this manager.

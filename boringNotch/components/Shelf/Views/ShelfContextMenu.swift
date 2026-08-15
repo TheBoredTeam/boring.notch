@@ -2,6 +2,8 @@
 //  ShelfContextMenu.swift
 //  boringNotch
 //
+//  SPDX-License-Identifier: GPL-3.0-only
+//
 //  AppKit context-menu construction and action dispatch for shelf items.
 //  Extracted from ShelfItemViewModel: the VM keeps item state and routes
 //  clicks here. Behavior preserved verbatim.

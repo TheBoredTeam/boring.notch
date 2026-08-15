@@ -2,6 +2,8 @@
 //  AppleScriptControllerSupport.swift
 //  boringNotch
 //
+//  SPDX-License-Identifier: GPL-3.0-only
+//
 //  Shared scaffolding for AppleScript-driven media controllers.
 //
 
