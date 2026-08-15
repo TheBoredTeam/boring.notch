@@ -51,7 +51,7 @@ Please submit all translations to [Crowdin](https://crowdin.com/project/boring-n
    ```
    All code contributions must be based on the `dev` branch, not `main`. Documentation changes should be based on `main` instead.
 
-5. **Create a new feature branch**:
+4. **Create a new feature branch**:
    ```bash
    git checkout -b feature/{your-feature-name}
    ```
