@@ -15,49 +15,57 @@ struct NotificationSneakPeekView: View {
     @EnvironmentObject var vm: BoringViewModel
 
     var body: some View {
-        HStack(spacing: 6) {
-            if let bundleID = payload.bundleID,
-               let icon = appIconAsNSImage(for: bundleID) {
-                Image(nsImage: icon)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 16, height: 16)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-            } else {
-                Image(systemName: "bell.badge.fill")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.gray)
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 6) {
+                if let bundleID = payload.bundleID,
+                   let icon = appIconAsNSImage(for: bundleID) {
+                    Image(nsImage: icon)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 16, height: 16)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                } else {
+                    Image(systemName: "bell.badge.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.gray)
+                }
+
+                if let title = payload.title, !title.isEmpty {
+                    Text(title)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                }
+
+                if let appName = payload.appName, !appName.isEmpty, payload.title == nil {
+                    Text(appName)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                }
             }
 
-            if let title = payload.title, !title.isEmpty {
-                Text(title)
+            // Message goes UNDER the name, single line, stripped — long
+            // messages are silently truncated rather than scrolled, exactly
+            // like a macOS banner.
+            if let message = strippedMessage, !message.isEmpty {
+                Text(message)
                     .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.gray)
                     .lineLimit(1)
-                    .layoutPriority(1)
+                    .truncationMode(.tail)
             }
-
-            // Fixed width, never a GeometryReader: a greedy reader inflates
-            // vertically inside the notch's VStack and stretches the whole
-            // capsule (that's what turned the pill into a giant black box).
-            MarqueeText(
-                bodyText,
-                font: .caption,
-                color: .gray,
-                delayDuration: 0.8,
-                frameWidth: 240
-            )
-            .font(.caption)
         }
-        .frame(width: 320)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         // The pill floats over the wallpaper now — it needs its own backdrop
         // or the title melts into whatever's below (white/gray text on a
         // light background, gray-on-black over the notch shape).
-        .background(.black.opacity(0.8), in: Capsule())
-        .padding(.bottom, 10)
+        .background(.black.opacity(0.8), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        // Cap: single stripped line, so anything longer than ~380 truncates.
+        .frame(maxWidth: 380)
         .contentShape(Rectangle())
         .onTapGesture {
             // macOS-banner semantics: tapping the mirror opens the content —
@@ -68,16 +76,13 @@ struct NotificationSneakPeekView: View {
         }
     }
 
-    private var bodyText: String {
-        var parts: [String] = []
-        if payload.title == nil, let appName = payload.appName, !appName.isEmpty {
-            parts.append(appName)
-        }
-        if let body = payload.body, !body.isEmpty {
-            parts.append(body)
-        }
-        // Nothing but a title? Marquee the app name so the pill isn't empty.
-        if parts.isEmpty, let appName = payload.appName { parts.append(appName) }
-        return parts.joined(separator: " — ")
+    /// Flattened display message stripped to the essential body.
+    private var strippedMessage: String? {
+        guard let body = payload.body else { return nil }
+        let cleaned = body
+            .components(separatedBy: .newlines)
+            .joined(separator: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return cleaned.isEmpty ? nil : cleaned
     }
 }

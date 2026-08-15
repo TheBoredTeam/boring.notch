@@ -512,12 +512,16 @@ struct ContentView: View {
                         // Notification peek: its lane is independent from the
                         // type-exclusive sneakPeekStates (a volume/music peek
                         // can be up at the same time); it renders simply
-                        // below them, inside the shape like every other peek.
+                        // below them, centered under the physical notch.
                         if vm.notchState == .closed {
                             let peek = coordinator.notificationPeekState(for: vm.screenUUID)
                             if peek.show, let payload = peek.payload {
-                                NotificationSneakPeekView(payload: payload)
-                                    .transition(.opacity)
+                                HStack {
+                                    Spacer()
+                                    NotificationSneakPeekView(payload: payload)
+                                        .transition(.opacity)
+                                    Spacer()
+                                }
                             }
                         }
                       }
