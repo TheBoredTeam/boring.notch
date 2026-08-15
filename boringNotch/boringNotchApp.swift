@@ -281,6 +281,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 .environmentObject(viewModel)
         )
 
+        // Keep the open notch above other menu bar extras' expanded panels
+        window.observeNotchState(of: viewModel)
+
         window.orderFrontRegardless()
         NotchSpaceManager.shared.notchSpace.windows.insert(window)
 
