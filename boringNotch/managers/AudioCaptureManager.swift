@@ -57,7 +57,9 @@ final class AudioCaptureManager: ObservableObject {
     private let levelsConsumers = NSHashTable<AnyObject>.weakObjects()
     private var latestLevels: [Float]?
 
-    private let fft: vDSP.FFT<DSPSplitComplex>
+    /// If setup fails (essentially impossible on real hardware) the FFT path
+    /// degrades to flat bars instead of taking down the whole app.
+    private let fft: vDSP.FFT<DSPSplitComplex>?
     private let hannWindow: [Float]
     private let windowPowerScalar: Float
     private var samplesBuf: [Float]
@@ -80,10 +82,7 @@ final class AudioCaptureManager: ObservableObject {
         ringBuffer = UnsafeMutablePointer<Float>.allocate(capacity: Self.ringCapacity)
         ringBuffer.initialize(repeating: 0, count: Self.ringCapacity)
 
-        guard let setup = vDSP.FFT(log2n: Self.log2n, radix: .radix2, ofType: DSPSplitComplex.self) else {
-            fatalError("Failed to create vDSP.FFT setup")
-        }
-        fft = setup
+        fft = vDSP.FFT(log2n: Self.log2n, radix: .radix2, ofType: DSPSplitComplex.self)
         let window = vDSP.window(
             ofType: Float.self,
             usingSequence: .hanningDenormalized,
@@ -691,6 +690,7 @@ final class AudioCaptureManager: ObservableObject {
     }
 
     private func processFFT() {
+        guard let fft else { return }
         let n = Self.fftSize
         copyLatestSamples(count: n)
 

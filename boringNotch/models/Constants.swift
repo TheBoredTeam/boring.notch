@@ -9,14 +9,13 @@ import SwiftUI
 import Defaults
 
 // MARK: - File System Paths
-private let availableDirectories = FileManager
-    .default
-    .urls(for: .documentDirectory, in: .userDomainMask)
-let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-let bundleIdentifier = Bundle.main.bundleIdentifier!
+let documentsDirectory: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+    ?? URL(fileURLWithPath: NSTemporaryDirectory())
+let bundleIdentifier: String = Bundle.main.bundleIdentifier ?? "theboringteam.boringnotch"
 let appVersion = "\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""))"
 
-let temporaryDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+let temporaryDirectory: URL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
+    ?? URL(fileURLWithPath: NSTemporaryDirectory())
 let spacing: CGFloat = 16
 
 enum CalendarSelectionState: Codable, Defaults.Serializable {
