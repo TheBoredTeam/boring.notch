@@ -163,9 +163,11 @@ struct ContentView: View {
             // notification's width.
             switch activity {
             case .notification(let notification) where notification.detectedCode != nil:
-                // Wide enough for the code itself plus a copy affordance,
-                // without going as far as the battery pill's 640.
-                chinWidth = 420
+                // The code + copy button live on the wing right of the
+                // physical notch; a flat 420 assumes a narrow cutout, and on
+                // standard-notch displays the wing fell short so the code
+                // clipped under the hardware bezel.
+                chinWidth = max(420, vm.closedNotchSize.width + 2 * 112)
             case .notification:
                 chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
             case .music:
