@@ -9,7 +9,7 @@ import Combine
 import Defaults
 import SwiftUI
 
-class BoringViewModel: NSObject, ObservableObject {
+final class BoringViewModel: NSObject, ObservableObject {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var detector = FullscreenMediaDetector.shared
 

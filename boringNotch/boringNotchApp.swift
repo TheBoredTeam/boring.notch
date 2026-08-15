@@ -78,7 +78,7 @@ final class BoringSparkleUpdaterDelegate: NSObject, SPUUpdaterDelegate {
 /// App-lifecycle glue: shortcuts, onboarding, termination, observer wiring.
 /// All notch-window / per-screen view-model / drag-detector lifecycle lives
 /// in `NotchWindowManager` (see managers/NotchWindowManager.swift).
-class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     var quickShareService = QuickShareService.shared

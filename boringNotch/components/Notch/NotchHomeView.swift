@@ -103,7 +103,7 @@ struct AlbumArtView: View {
     @ViewBuilder
     private var appIconOverlay: some View {
         if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
-            AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.Music")
+            appIcon(for: musicManager.bundleIdentifier ?? MediaAppBundleID.appleMusic)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 30, height: 30)
@@ -460,7 +460,7 @@ struct NotchHomeView: View {
             }
 
             if shouldShowCamera {
-                CameraPreviewView(webcamManager: webcamManager)
+                WebcamPreview(webcamManager: webcamManager)
                     .scaledToFit()
                     .opacity(vm.notchState == .closed ? 0 : 1)
                     .blur(radius: vm.notchState == .closed ? 20 : 0)

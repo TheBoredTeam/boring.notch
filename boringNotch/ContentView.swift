@@ -460,7 +460,7 @@ struct ContentView: View {
                           )
                               .transition(.opacity)
                       } else if !liveActivities.isEmpty && vm.notchState == .closed && !vm.hideOnClosed {
-                          LiveActivityStackView(items: liveActivities, index: $activityIndex) { item in
+                          LiveActivityStack(items: liveActivities, index: $activityIndex) { item in
                               switch item {
                               case .notification(let notification):
                                   NotificationLiveActivity(notification: notification)
@@ -627,7 +627,7 @@ struct ContentView: View {
                 .fill(.black)
                 .frame(width: vm.closedNotchSize.width + 20)
             let faceScale = min(1.0, displayClosedNotchHeight / 30.0)
-            MinimalFaceFeatures(height: 24.0 * faceScale, width: 30.0 * faceScale)
+            AnimatedFace(height: 24.0 * faceScale, width: 30.0 * faceScale)
         }.frame(
             height: displayClosedNotchHeight,
             alignment: .center
@@ -739,7 +739,7 @@ struct ContentView: View {
                 .frame(width: musicActivityCenterWidth)
 
             HStack {
-                AudioSpectrumView(
+                MusicVisualizer(
                     isPlaying: musicManager.isPlaying,
                     tintColor: Defaults[.coloredSpectrogram]
                     ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)

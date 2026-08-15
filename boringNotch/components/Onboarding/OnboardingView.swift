@@ -42,7 +42,7 @@ struct OnboardingView: View {
                 .transition(.opacity)
 
             case .cameraPermission:
-                PermissionRequestView(
+                PermissionsRequestView(
                     icon: Image(systemName: "camera.fill"),
                     title: "Enable Camera Access",
                     description: "Boring Notch includes a mirror feature that lets you quickly check your appearance using your camera, right from the notch. Camera access is required only to show this live preview. You can turn the mirror feature on or off at any time in the app.",
@@ -64,7 +64,7 @@ struct OnboardingView: View {
                 .transition(.opacity)
 
             case .calendarPermission:
-                PermissionRequestView(
+                PermissionsRequestView(
                     icon: Image(systemName: "calendar"),
                     title: "Enable Calendar Access",
                     description: "Boring Notch can show all your upcoming events in one place. Access to your calendar is needed to display your schedule.",
@@ -86,7 +86,7 @@ struct OnboardingView: View {
                 .transition(.opacity)
 
                 case .remindersPermission:
-                    PermissionRequestView(
+                    PermissionsRequestView(
                         icon: Image(systemName: "checklist"),
                         title: "Enable Reminders Access",
                         description: "Boring Notch can show your scheduled reminders alongside your calendar events. Access to Reminders is needed to display your reminders.",
@@ -108,7 +108,7 @@ struct OnboardingView: View {
                     .transition(.opacity)
 
             case .audioCapturePermission:
-                PermissionRequestView(
+                PermissionsRequestView(
                     icon: Image(systemName: "waveform"),
                     title: "Enable Real-Time Audio",
                     description: "Boring Notch can analyze the audio playing from your music app to draw a live FFT waveform in the notch, with only a minimal impact on CPU usage.",
@@ -133,7 +133,7 @@ struct OnboardingView: View {
                 .transition(.opacity)
                 
             case .accessibilityPermission:
-                PermissionRequestView(
+                PermissionsRequestView(
                     icon: Image(systemName: "hand.raised.fill"),
                     title: "Enable Accessibility Access",
                     description: "Accessibility access is only needed when using built-in macOS control sources for OSD replacement. External sources like BetterDisplay or Lunar do not require Accessibility. You can enable it later in OSD settings if needed.",

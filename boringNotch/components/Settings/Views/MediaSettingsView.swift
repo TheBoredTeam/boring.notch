@@ -8,7 +8,7 @@
 import Defaults
 import SwiftUI
 
-struct Media: View {
+struct MediaSettingsView: View {
     @Default(.waitInterval) var waitInterval
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.hideNotchOption) var hideNotchOption

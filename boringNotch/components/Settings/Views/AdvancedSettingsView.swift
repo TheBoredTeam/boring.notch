@@ -8,7 +8,7 @@
 import Defaults
 import SwiftUI
 
-struct Advanced: View {
+struct AdvancedSettingsView: View {
     @Default(.useCustomAccentColor) var useCustomAccentColor
     @Default(.customAccentColorData) var customAccentColorData
     @Default(.extendHoverArea) var extendHoverArea

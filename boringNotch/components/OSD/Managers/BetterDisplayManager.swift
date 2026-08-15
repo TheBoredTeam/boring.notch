@@ -217,7 +217,7 @@ final class BetterDisplayManager {
                 )
             }
         } catch {
-            print("Failed to encode integration request: \(error)")
+            Log.osd.error("Failed to encode integration request: \(error)")
         }
     }
 
