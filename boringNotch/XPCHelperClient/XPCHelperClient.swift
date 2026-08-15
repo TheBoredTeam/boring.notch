@@ -16,7 +16,7 @@ final class XPCHelperClient: NSObject {
     private var connection: NSXPCConnection?
     private var lastKnownAuthorization: Bool?
     private let notificationDelegate = NotificationXPCDelegate()
-    private var monitoringTask: Task<Void, Never>?
+    @MainActor private var activationObserver: (any NSObjectProtocol)?
     private var lunarListener: BoringNotchXPCHelperLunarListener?
     private var hasLunarListener: Bool = false
     
@@ -101,29 +101,32 @@ final class XPCHelperClient: NSObject {
     }
 
     // MARK: - Monitoring
-    func startMonitoringAccessibilityAuthorization(every interval: TimeInterval = 3.0) {
-        // Ensure only one monitor exists
+
+    /// AX trust has no public change notification. Polling the helper every
+    /// few seconds costs ~29k XPC round-trips per day for a boolean that
+    /// changes maybe twice a year, so instead we check once at start and
+    /// then on every app activation — the natural moment a user comes back
+    /// from System Settings after toggling the switch. Every AX-needing
+    /// call (isAccessibilityAuthorized/ensureAccessibilityAuthorization)
+    /// also re-posts changes itself via notifyAuthorizationChange.
+    func startMonitoringAccessibilityAuthorization() {
         stopMonitoringAccessibilityAuthorization()
-        monitoringTask = Task { [weak self] in
-            guard let self = self else { return }
-            while !Task.isCancelled {
-                // Call the helper method periodically which will notify on change
-                _ = await self.isAccessibilityAuthorized()
-                do {
-                    try await Task.sleep(for: .seconds(interval))
-                } catch { break }
-            }
+        activationObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { _ = await self?.isAccessibilityAuthorized() }
         }
+        // Initial probe so observers get the current state without waiting
+        // for the first activation.
+        Task { _ = await isAccessibilityAuthorized() }
     }
 
     func stopMonitoringAccessibilityAuthorization() {
-        monitoringTask?.cancel()
-        monitoringTask = nil
-    }
-
-    // Expose whether the client is actively monitoring (useful for tests/debug)
-    var isMonitoring: Bool {
-        return monitoringTask != nil
+        guard let activationObserver else { return }
+        NotificationCenter.default.removeObserver(activationObserver)
+        self.activationObserver = nil
     }
     
     // MARK: - Accessibility
@@ -267,16 +270,17 @@ final class XPCHelperClient: NSObject {
             return false
         }
     }
-    func adjustScreenBrightness(by value: Float) async -> Bool {
+    /// Returns the resulting brightness, or nil on failure.
+    func adjustScreenBrightness(by value: Float) async -> Float? {
         do {
             let service = ensureRemoteService()
             return try await service.withContinuation { service, continuation in
-                service.adjustScreenBrightness(by: value) { success in
-                    continuation.resume(returning: success)
+                service.adjustScreenBrightness(by: value) { result in
+                    continuation.resume(returning: result?.floatValue)
                 }
             }
         } catch {
-            return false
+            return nil
         }
     }
 

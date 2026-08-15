@@ -476,7 +476,8 @@ final class MusicManager: ObservableObject {
         }
 
         // Check for playback state changes (playing/paused)
-        if state.isPlaying != self.isPlaying {
+        let playingStateChanged = state.isPlaying != self.isPlaying
+        if playingStateChanged {
             NSLog("Playback state changed: \(state.isPlaying ? "Playing" : "Paused")")
             withAnimation(.smooth) {
                 self.isPlaying = state.isPlaying
@@ -589,8 +590,15 @@ final class MusicManager: ObservableObject {
         if volumeChanged {
             self.volume = state.volume
         }
-        
-        self.timestampDate = state.lastUpdated
+
+        // The slider extrapolates from (elapsedTime, timestampDate); only
+        // republish when an extrapolation input actually changed — otherwise
+        // every no-op stream event invalidates the whole view tree. A pause/
+        // resume must rebase it too, or the estimate overshoots by the pause
+        // duration.
+        if timeChanged || playbackRateChanged || playingStateChanged {
+            self.timestampDate = state.lastUpdated
+        }
     }
 
     func toggleFavoriteTrack() {
