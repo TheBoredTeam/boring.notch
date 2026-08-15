@@ -466,8 +466,13 @@ struct ContentView: View {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        }
 
-                      if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
-                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
+                       if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
+                           if coordinator.sneakPeekState(for: vm.screenUUID).type == .notification && vm.notchState == .closed {
+                               if let payload = coordinator.sneakPeekState(for: vm.screenUUID).notification {
+                                   NotificationSneakPeekView(payload: payload)
+                               }
+                           }
+                           else if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
                                   eventType: coordinator.binding(for: vm.screenUUID).type,
                                   value: coordinator.binding(for: vm.screenUUID).value,

@@ -18,6 +18,8 @@ enum SneakContentType {
     case mic
     case battery
     case download
+    /// Passive marquee mirror of a system notification.
+    case notification
 }
 
 struct SneakPeekState {
@@ -27,6 +29,8 @@ struct SneakPeekState {
     var icon: String = ""
     var accent: Color? = nil
     var targetScreenUUID: String? = nil
+    /// Content for `.notification` peeks; nil for every other type.
+    var notification: NotificationPeekPayload? = nil
 }
 
 enum BrowserType {
@@ -93,6 +97,7 @@ final class BoringViewCoordinator: ObservableObject {
     private var boringShelfCancellable: AnyCancellable?
     private var osdSourceCancellables: [AnyCancellable] = []
     private var notificationLiveActivityCancellable: AnyCancellable?
+    private var notificationSneakPeekCancellable: AnyCancellable?
     private var uiEventCancellable: AnyCancellable?
 
     private init() {
@@ -139,10 +144,10 @@ final class BoringViewCoordinator: ObservableObject {
                 Task { @MainActor in
                     guard let self else { return }
                     switch event {
-                    case .sneakPeek(let type, let value, let icon, let accent, let uuid):
+                    case .sneakPeek(let type, let value, let icon, let accent, let uuid, let duration, let payload):
                         self.toggleSneakPeek(
-                            status: true, type: type, value: value,
-                            icon: icon, accent: accent, targetScreenUUID: uuid)
+                            status: true, type: type, duration: duration, value: value,
+                            icon: icon, accent: accent, targetScreenUUID: uuid, payload: payload)
                     case .expandingView(let type):
                         self.toggleExpandingView(status: true, type: type)
                     }
@@ -184,7 +189,8 @@ final class BoringViewCoordinator: ObservableObject {
                 }
             }
 
-        // Observe changes to the notification live activity
+        // Observe changes to the notification features (live activity AND
+        // mirrored sneak peek share one watcher; both must start it).
         notificationLiveActivityCancellable = Defaults.publisher(.notificationLiveActivity)
             .sink { change in
                 Task { @MainActor in
@@ -193,7 +199,18 @@ final class BoringViewCoordinator: ObservableObject {
                         if !SystemNotificationManager.shared.isWatching {
                             Defaults[.notificationLiveActivity] = false
                         }
-                    } else {
+                    } else if !Defaults[.notificationSneakPeek] {
+                        SystemNotificationManager.shared.stop()
+                    }
+                }
+            }
+
+        notificationSneakPeekCancellable = Defaults.publisher(.notificationSneakPeek)
+            .sink { change in
+                Task { @MainActor in
+                    if change.newValue {
+                        await SystemNotificationManager.shared.start()
+                    } else if !Defaults[.notificationLiveActivity] {
                         SystemNotificationManager.shared.stop()
                     }
                 }
@@ -206,7 +223,7 @@ final class BoringViewCoordinator: ObservableObject {
                 await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
             }
 
-            if Defaults[.notificationLiveActivity] {
+            if Defaults[.notificationLiveActivity] || Defaults[.notificationSneakPeek] {
                 await SystemNotificationManager.shared.start()
             }
             self.applyOSDSources()
@@ -223,9 +240,12 @@ final class BoringViewCoordinator: ObservableObject {
 
     func toggleSneakPeek(
         status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0,
-        icon: String = "", accent: Color? = nil, targetScreenUUID: String? = nil
+        icon: String = "", accent: Color? = nil, targetScreenUUID: String? = nil,
+        payload: NotificationPeekPayload? = nil
     ) {
-        if type != .music {
+        // Mirrored notification peeks ride their own setting and are not
+        // part of the OSD replacement feature, so they're exempt from its gate.
+        if type != .music && type != .notification {
             // close()
             if !Defaults[.osdReplacement] {
                 return
@@ -246,6 +266,7 @@ final class BoringViewCoordinator: ObservableObject {
                     state.icon = icon
                     state.accent = accent
                     state.targetScreenUUID = uuid // Ensure UUID is set
+                    state.notification = type == .notification ? payload : nil
                     self.sneakPeekStates[uuid] = state
                 }
                 

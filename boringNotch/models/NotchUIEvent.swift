@@ -10,6 +10,16 @@
 import SwiftUI
 import Combine
 
+/// Payload for `.notification` sneak peeks: the passive marquee mirror of
+/// a banner's content — icon/title/body travel with the event so peek
+/// rendering never needs to reach back into the notification queue.
+struct NotificationPeekPayload {
+    var appName: String?
+    var title: String?
+    var body: String?
+    var bundleID: String?
+}
+
 /// UI-presentation events emitted by hardware/OS-facing managers.
 ///
 /// Inverts the old "manager calls `BoringViewCoordinator.shared`" direction:
@@ -24,7 +34,9 @@ enum NotchUIEvent {
         value: CGFloat,
         icon: String = "",
         accent: Color? = nil,
-        targetScreenUUID: String? = nil
+        targetScreenUUID: String? = nil,
+        duration: TimeInterval = 1.5,
+        payload: NotificationPeekPayload? = nil
     )
     case expandingView(type: SneakContentType)
 }

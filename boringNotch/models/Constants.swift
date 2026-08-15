@@ -302,6 +302,9 @@ extension Defaults.Keys {
     // MARK: Notifications
     /// Off by default: mirroring banners needs Accessibility access.
     static let notificationLiveActivity = Key<Bool>("notificationLiveActivity", default: false)
+    /// Passive marquee peek below the notch on notification arrival —
+    /// mirrors the banner briefly without holding it, focusing, or opening UI.
+    static let notificationSneakPeek = Key<Bool>("notificationSneakPeek", default: false)
     static let notificationsFromAllApps = Key<Bool>("notificationsFromAllApps", default: false)
     static let notificationAllowedApps = Key<Set<String>>(
         "notificationAllowedApps",

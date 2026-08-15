@@ -157,7 +157,10 @@ struct NotificationExpandedView: View {
             // notification (.id below), so a half-typed reply only survives
             // if it's restored from the manager rather than kept in @State.
             replyText = manager.draft(for: notification.id)
-            if kind == .reply { replyFocused = true }
+            // Deliberately no auto-focus: mounting this view (hover, arrival,
+            // cycle) used to grab key-window status and pre-focus the field,
+            // which read as focus hijacking. Focus is pull-only — tapping the
+            // field or a suggestion chip sets replyFocused explicitly.
         }
         // The single teardown point for both the key-window grant and the
         // compose hold. Focus changes are too noisy to release on (see

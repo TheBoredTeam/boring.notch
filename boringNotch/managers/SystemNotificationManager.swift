@@ -186,7 +186,34 @@ final class SystemNotificationManager: ObservableObject {
         }
 
         guard isAllowed(notification) else {
-            NSLog("[boringNotch] filtered out: \(notification.appName ?? "-") bundle=\(notification.bundleID ?? "nil")")
+            Log.notifications.debug("[boringNotch] filtered out: \(notification.appName ?? "-") bundle=\(notification.bundleID ?? "nil")")
+            return
+        }
+
+        // Passive path (mirrored sneak peek): show a marquee below the notch
+        // and get out of the way. No banner holding (it dismisses naturally),
+        // no key-focus involvement, no expansion — replying stays a
+        // click-through action on the user's terms.
+        if Defaults[.notificationSneakPeek], !isComposingReply {
+            let message: String? = {
+                if let subtitle = notification.subtitle, let body = notification.body {
+                    return subtitle + " — " + body
+                }
+                return notification.subtitle ?? notification.body
+            }()
+            NotchUIEventBus.events.send(
+                .sneakPeek(
+                    type: .notification,
+                    value: 0,
+                    duration: 5.0,
+                    payload: NotificationPeekPayload(
+                        appName: notification.appName,
+                        title: notification.title,
+                        body: message,
+                        bundleID: notification.bundleID
+                    )
+                )
+            )
             return
         }
 
