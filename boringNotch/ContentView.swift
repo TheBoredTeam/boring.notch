@@ -292,12 +292,6 @@ struct ContentView: View {
                                 isHovering = false
                             }
                         }
-                        // A mirrored peek waiting under the notch gets promoted
-                        // into the interactive surface the moment the user
-                        // opens the notch — engagement, not surprise.
-                        if newState == .open {
-                            notificationManager.promoteMirroredIfPresent()
-                        }
                     }
                     // A new notification always takes the front of the stack,
                     // even if the user had swiped away to music.

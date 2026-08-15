@@ -13,7 +13,6 @@ struct NotificationSneakPeekView: View {
     let payload: NotificationPeekPayload
 
     @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject private var notificationManager = SystemNotificationManager.shared
 
     var body: some View {
         HStack(spacing: 6) {
@@ -54,10 +53,10 @@ struct NotificationSneakPeekView: View {
         .contentShape(Rectangle())
         .onTapGesture {
             // macOS-banner semantics: tapping the mirror opens the content —
-            // here, in the expanded notification panel inside the notch.
-            if vm.open() {
-                notificationManager.promoteMirroredIfPresent()
-            }
+            // the expanded notification panel inside the notch. The arrival
+            // already registered the notification as the active live
+            // activity, so opening the notch surfaces it directly.
+            _ = vm.open()
         }
     }
 

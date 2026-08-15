@@ -75,12 +75,6 @@ final class SystemNotificationManager: ObservableObject {
     /// The notification the notch is currently showing, if any.
     @Published var activeNotification: SystemNotification?
 
-    /// The notification currently being mirrored by the peek marquee (peek-
-    /// mode never makes it "active"). Promoted into the interactive surface
-    /// when the notch opens or the peek is tapped.
-    @Published private(set) var mirrored: SystemNotification?
-    private var mirroredExpiryTask: Task<Void, Never>?
-
     /// Notifications that arrived while the user was mid-reply, held back
     /// rather than shown. Promoted one at a time once they're done.
     @Published private(set) var queued: [SystemNotification] = []
@@ -196,18 +190,16 @@ final class SystemNotificationManager: ObservableObject {
             return
         }
 
-        // Passive path (mirrored sneak peek): show a marquee below the notch
-        // and get out of the way. No banner holding (it dismisses naturally),
-        // no key-focus involvement, no expansion — replying stays a
-        // click-through action on the user's terms.
+        // Passive path (mirrored sneak peek + compact dot):
+        // - scroll a marquee pill below the notch immediately,
+        // - show the compact dot/app-icon in the chin (the existing
+        //   live-activity slot — the gesture surface for tap/hover),
+        // - hold NOTHING: no banner parking, no key focus, ever.
         //
-        // Two carve-outs:
-        // - OTP/code notifications keep the interactive path (the copy
-        //   affordance lives in the live activity, not the passive mirror).
-        // - If a notification is already active (panel open, or queue
-        //   suspended mid-reply), arrivals must flow into the normal
-        //   show/queue path so the +N badge stays alive.
-        if Defaults[.notificationSneakPeek], !isComposingReply, activeNotification == nil,
+        // OTP/code notifications keep the interactive path (the copy
+        // affordance lives in the live activity, not the passive mirror),
+        // and mid-reply arrivals keep queueing so the +N badge lives.
+        if Defaults[.notificationSneakPeek], !isComposingReply,
            notification.detectedCode == nil {
             let message: String? = {
                 if let subtitle = notification.subtitle, let body = notification.body {
@@ -215,13 +207,6 @@ final class SystemNotificationManager: ObservableObject {
                 }
                 return notification.subtitle ?? notification.body
             }()
-            mirroredExpiryTask?.cancel()
-            mirrored = notification
-            mirroredExpiryTask = Task { @MainActor [weak self] in
-                try? await Task.sleep(for: .seconds(12))
-                guard !Task.isCancelled, let self, self.mirrored?.id == notification.id else { return }
-                self.mirrored = nil
-            }
             NotchUIEventBus.events.send(
                 .sneakPeek(
                     type: .notification,
@@ -235,6 +220,8 @@ final class SystemNotificationManager: ObservableObject {
                     )
                 )
             )
+            // Compact indicator in the chin without holding the banner.
+            show(notification, holdingBanner: false)
             return
         }
 
@@ -299,22 +286,6 @@ final class SystemNotificationManager: ObservableObject {
         replyDrafts.removeValue(forKey: id)
     }
 
-    // MARK: - Mirrored peek promotion
-
-    /// Promotes the currently mirrored peek into the interactive surface.
-    /// Called when the notch opens or the peek is tapped — the user has
-    /// engaged, so the (possibly still live) banner is held for replying.
-    /// If the banner already died, the expanded view simply offers the
-    /// non-reply actions (open app, etc.).
-    @MainActor
-    func promoteMirroredIfPresent() {
-        guard let mirrored, activeNotification == nil, !isComposingReply else { return }
-        mirroredExpiryTask?.cancel()
-        show(mirrored)
-        holdSystemBanner(mirrored)
-        self.mirrored = nil
-    }
-
     /// Shows the oldest queued notification, if any. Oldest first so a burst
     /// is read in the order it arrived.
     private func promoteNextQueued() {
@@ -363,7 +334,7 @@ final class SystemNotificationManager: ObservableObject {
     /// outgoing notification goes back into the queue rather than away, and
     /// it needs to keep its held banner or it won't be replyable when it
     /// comes back around.
-    private func show(_ notification: SystemNotification, releasingPrevious: Bool = true) {
+    private func show(_ notification: SystemNotification, releasingPrevious: Bool = true, holdingBanner: Bool = true) {
         // A newer notification replaces the active one directly here rather
         // than going through dismissActive, so its hold was never being
         // released: dismissActive only releases whatever activeNotification
@@ -376,6 +347,9 @@ final class SystemNotificationManager: ObservableObject {
         // system clock stopped visibly doing anything.
         if releasingPrevious, let previous = activeNotification, previous.id != notification.id {
             XPCHelperClient.shared.releaseNotification(token: previous.id)
+        }
+        if holdingBanner {
+            holdSystemBanner(notification)
         }
         withAnimation(.smooth) { activeNotification = notification }
         dismissTask?.cancel()
