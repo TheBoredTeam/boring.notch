@@ -7,7 +7,7 @@
 
 import Foundation
 
-class NotchSpaceManager {
+final class NotchSpaceManager {
     static let shared = NotchSpaceManager()
     let notchSpace: CGSSpace
 

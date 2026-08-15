@@ -42,7 +42,7 @@ class ShareServiceFinder: NSObject, NSSharingServicePickerDelegate {
                 guard !didResume else { return }
                 didResume = true
                 picker.close()  // Ensure picker is closed even on timeout
-                print("Warning: timed out waiting for sharing services")
+                Log.shelf.debug("Warning: timed out waiting for sharing services")
                 continuation.resume(returning: [])
             }
         }

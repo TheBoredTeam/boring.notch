@@ -14,14 +14,15 @@ struct SystemEventIndicatorModifier: View {
     @Binding var value: CGFloat
     @Binding var icon: String
     @Binding var accent: Color?
-    let showSlider: Bool = false
+    /// Routed to hardware (volume/brightness) when the bar is dragged —
+    /// without this, the closed-notch OSD slider was display-only.
     var sendEventBack: (CGFloat) -> Void
 
     var body: some View {
         HStack(spacing: 14) {
             OSDIconView(eventType: eventType, icon: icon, value: value, accent: accent)
-            if (eventType != .mic) {
-                DraggableProgressBar(value: $value, accentColor: accent)
+            if eventType != .mic {
+                DraggableProgressBar(value: $value, onChange: sendEventBack, accentColor: accent)
                 if Defaults[.showClosedNotchOSDPercentage] {
                     Text(value, format: .percent.precision(.fractionLength(0)))
                         .font(.system(size: 12, weight: .medium))

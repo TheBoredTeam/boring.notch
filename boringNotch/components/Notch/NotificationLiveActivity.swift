@@ -240,7 +240,7 @@ struct NotificationExpandedView: View {
            Self.personAvatarBundleIDs.contains(bundleID) {
             ZStack(alignment: .bottomTrailing) {
                 PersonAvatarView(name: sender, size: 46)
-                AppIcon(for: bundleID)
+                appIcon(for: bundleID)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 20, height: 20)
@@ -294,7 +294,7 @@ struct NotificationExpandedView: View {
             } label: {
                 HStack(spacing: 3) {
                     if let bundleID = singleQueuedAppBundleID {
-                        AppIcon(for: bundleID)
+                        appIcon(for: bundleID)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 11, height: 11)
@@ -653,7 +653,7 @@ private struct NotificationAppIcon: View {
     var body: some View {
         Group {
             if let bundleID {
-                AppIcon(for: bundleID)
+                appIcon(for: bundleID)
                     .resizable()
             } else {
                 Image(systemName: "bell.fill")

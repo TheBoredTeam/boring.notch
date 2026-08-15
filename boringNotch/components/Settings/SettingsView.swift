@@ -88,9 +88,9 @@ struct SettingsView: View {
                 case .general:
                     GeneralSettings()
                 case .appearance:
-                    Appearance()
+                    AppearanceSettingsView()
                 case .media:
-                    Media()
+                    MediaSettingsView()
                 case .notifications:
                     NotificationSettingsView()
                 case .calendar:
@@ -98,21 +98,21 @@ struct SettingsView: View {
                 case .osd:
                     OSDSettings()
                 case .battery:
-                    Charge()
+                    BatterySettingsView()
                 case .shelf:
-                    Shelf()
+                    ShelfSettingsView()
                 case .mirror:
-                    MirrorSettings()
+                    WebcamSettingsView()
                 case .shortcuts:
-                    Shortcuts()
+                    ShortcutsSettingsView()
                 case .advanced:
-                    Advanced()
+                    AdvancedSettingsView()
                 case .about:
                     if let controller = updaterController {
-                        About(updaterController: controller)
+                        AboutView(updaterController: controller)
                     } else {
                         // Fallback with a default controller
-                        About(
+                        AboutView(
                             updaterController: SPUStandardUpdaterController(
                                 startingUpdater: false, updaterDelegate: nil,
                                 userDriverDelegate: nil))

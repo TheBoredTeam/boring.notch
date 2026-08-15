@@ -44,7 +44,7 @@ enum StandardAnimations {
     static let timingCurve = Animation.timingCurve(0.16, 1, 0.3, 1, duration: 0.7)
 }
 
-public class BoringAnimations {
+final class BoringAnimations {
     @Published var notchStyle: Style = .notch
         
     var animation: Animation {

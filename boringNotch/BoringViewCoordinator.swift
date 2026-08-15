@@ -20,7 +20,7 @@ enum SneakContentType {
     case download
 }
 
-struct sneakPeek {
+struct SneakPeekState {
     var show: Bool = false
     var type: SneakContentType = .music
     var value: CGFloat = 0
@@ -42,7 +42,7 @@ struct ExpandedItem {
 }
 
 @MainActor
-class BoringViewCoordinator: ObservableObject {
+final class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
 
     @Published var currentView: NotchViews = .home
@@ -216,7 +216,7 @@ class BoringViewCoordinator: ObservableObject {
     // MARK: - Per-Screen Sneak Peek Management
 
     // Dictionary to hold sneak peek state for each screen UUID
-    @Published var sneakPeekStates: [String: sneakPeek] = [:]
+    @Published var sneakPeekStates: [String: SneakPeekState] = [:]
     
     // Dictionary to hold hide tasks for each screen UUID
     private var sneakPeekTasks: [String: Task<Void, Never>] = [:]
@@ -237,7 +237,7 @@ class BoringViewCoordinator: ObservableObject {
             @MainActor
             func updateState(for uuid: String) {
                 // If we don't have a state for this screen yet, initialize it
-                var state = self.sneakPeekStates[uuid] ?? sneakPeek(targetScreenUUID: uuid)
+                var state = self.sneakPeekStates[uuid] ?? SneakPeekState(targetScreenUUID: uuid)
                 
                 withAnimation(.smooth) {
                     state.show = status
@@ -332,17 +332,17 @@ class BoringViewCoordinator: ObservableObject {
     }
     
     // Helper to get state safely for binding/reading
-    func sneakPeekState(for screenUUID: String?) -> sneakPeek {
-        guard let uuid = screenUUID else { return sneakPeek() }
-        return sneakPeekStates[uuid] ?? sneakPeek(targetScreenUUID: uuid)
+    func sneakPeekState(for screenUUID: String?) -> SneakPeekState {
+        guard let uuid = screenUUID else { return SneakPeekState() }
+        return sneakPeekStates[uuid] ?? SneakPeekState(targetScreenUUID: uuid)
     }
     
     // Helper to get binding for SwiftUI views
-    func binding(for screenUUID: String?) -> Binding<sneakPeek> {
+    func binding(for screenUUID: String?) -> Binding<SneakPeekState> {
         Binding(
             get: { [weak self] in
-                guard let self = self, let uuid = screenUUID else { return sneakPeek() }
-                return self.sneakPeekStates[uuid] ?? sneakPeek(targetScreenUUID: uuid)
+                guard let self = self, let uuid = screenUUID else { return SneakPeekState() }
+                return self.sneakPeekStates[uuid] ?? SneakPeekState(targetScreenUUID: uuid)
             },
             set: { [weak self] newValue in
                 guard let self = self, let uuid = screenUUID else { return }

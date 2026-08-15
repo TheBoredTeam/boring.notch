@@ -8,7 +8,7 @@
 import Defaults
 import SwiftUI
 
-struct Shelf: View {
+struct ShelfSettingsView: View {
     
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
     @Default(.quickShareProvider) var quickShareProvider

@@ -102,7 +102,7 @@ struct CompactHomeView: View {
                 .frame(width: textWidth, alignment: .leading)
 
                 ZStack {
-                    AudioSpectrumView(
+                    MusicVisualizer(
                         isPlaying: musicManager.isPlaying,
                         tintColor: coloredSpectrogram
                             ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6)
@@ -271,7 +271,7 @@ struct CompactHomeView: View {
             // a +10/+10 offset, sized for the 120pt art in the full layout —
             // on 50pt art it spills outside the corner.
             if !musicManager.usingAppIconForArtwork {
-                AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.Music")
+                appIcon(for: musicManager.bundleIdentifier ?? MediaAppBundleID.appleMusic)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 18, height: 18)

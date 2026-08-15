@@ -12,12 +12,12 @@ import Defaults
 struct ShelfView: View {
     let dropInteraction: DropInteractionState
     let animation: Animation?
-    @StateObject var tvm = ShelfStateViewModel.shared
+    @StateObject var shelfState = ShelfStateViewModel.shared
 
     private let spacing: CGFloat = 8
 
     private var displayedItems: [ShelfItem] {
-        Defaults[.reverseShelfOrdering] ? Array(tvm.items.reversed()) : tvm.items
+        Defaults[.reverseShelfOrdering] ? Array(shelfState.items.reversed()) : shelfState.items
     }
 
     var body: some View {
@@ -38,7 +38,7 @@ struct ShelfView: View {
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
         guard !ShelfSelectionModel.shared.isDragging else { return false }
         dropInteraction.dropEvent = true
-        tvm.load(providers)
+        shelfState.load(providers)
         return true
     }
     
@@ -66,7 +66,7 @@ struct ShelfView: View {
         @Bindable var interaction = dropInteraction
 
         return Group {
-            if tvm.isEmpty {
+            if shelfState.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "tray.and.arrow.down")
                         .symbolVariant(.fill)
@@ -99,7 +99,7 @@ struct ShelfView: View {
             }
         }
         .onAppear {
-            tvm.cleanupInvalidItems()
+            shelfState.cleanupInvalidItems()
         }
     }
 }

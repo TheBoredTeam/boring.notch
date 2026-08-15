@@ -16,7 +16,7 @@ struct YouTubeMusicConfiguration: Sendable {
     
     static let `default` = YouTubeMusicConfiguration(
         baseURL: "http://localhost:26538",
-        bundleIdentifier: "com.github.th-ch.youtube-music",
+        bundleIdentifier: MediaAppBundleID.youTubeMusic,
         reconnectDelay: 1...60,
         updateInterval: 2.0
     )

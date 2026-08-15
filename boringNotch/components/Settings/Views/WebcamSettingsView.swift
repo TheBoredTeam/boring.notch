@@ -9,7 +9,7 @@ import AVFoundation
 import SwiftUI
 import Defaults
 
-struct MirrorSettings: View {
+struct WebcamSettingsView: View {
     @Default(.showMirror) private var showMirror
     @Default(.isMirrored) private var isMirrored
     @Default(.mirrorShape) private var mirrorShape

@@ -10,15 +10,24 @@ import Foundation
 
 /// Service responsible for fetching and parsing lyrics for the currently playing track.
 @MainActor
-class LyricsService: ObservableObject {
+final class LyricsService: ObservableObject {
     static let shared = LyricsService()
     
     @Published var currentLyrics: String = ""
     @Published var isFetchingLyrics: Bool = false
     @Published var syncedLyrics: [(time: Double, text: String)] = []
     
-    // Cache to avoid redundant fetches
-    private var lyricsCache: [String: (plain: String, synced: [(time: Double, text: String)])] = [:]
+    // Cache to avoid redundant fetches; NSCache evicts under memory pressure
+    // instead of growing for the whole session.
+    private final class LyricsEntry {
+        let plain: String
+        let synced: [(time: Double, text: String)]
+        init(plain: String, synced: [(time: Double, text: String)]) {
+            self.plain = plain
+            self.synced = synced
+        }
+    }
+    private let lyricsCache = NSCache<NSString, LyricsEntry>()
     private var currentFetchTask: Task<Void, Never>?
     
     private init() {}
@@ -37,7 +46,7 @@ class LyricsService: ObservableObject {
         
         // Check cache first
         let cacheKey = cacheKey(title: title, artist: artist)
-        if let cached = lyricsCache[cacheKey] {
+        if let cached = lyricsCache.object(forKey: cacheKey as NSString) {
             currentLyrics = cached.plain
             syncedLyrics = cached.synced
             isFetchingLyrics = false
@@ -52,14 +61,14 @@ class LyricsService: ObservableObject {
             guard let self = self else { return }
             
             // Try Apple Music first if applicable
-            if let bundleIdentifier = bundleIdentifier, bundleIdentifier.contains("com.apple.Music") {
+            if let bundleIdentifier = bundleIdentifier, bundleIdentifier.contains(MediaAppBundleID.appleMusic) {
                 if let lyrics = await self.fetchAppleMusicLyrics() {
                     guard !Task.isCancelled else { return }
                     await MainActor.run {
                         self.currentLyrics = lyrics
                         self.syncedLyrics = []
                         self.isFetchingLyrics = false
-                        self.lyricsCache[cacheKey] = (plain: lyrics, synced: [])
+                        self.lyricsCache.setObject(LyricsEntry(plain: lyrics, synced: []), forKey: cacheKey as NSString)
                     }
                     return
                 }
@@ -75,7 +84,7 @@ class LyricsService: ObservableObject {
                 self.syncedLyrics = webResult.synced
                 self.isFetchingLyrics = false
                 if !webResult.plain.isEmpty {
-                    self.lyricsCache[cacheKey] = webResult
+                    self.lyricsCache.setObject(LyricsEntry(plain: webResult.plain, synced: webResult.synced), forKey: cacheKey as NSString)
                 }
             }
         }
@@ -128,7 +137,7 @@ class LyricsService: ObservableObject {
     }
     
     private func fetchAppleMusicLyrics() async -> String? {
-        let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music")
+        let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: MediaAppBundleID.appleMusic)
         guard !runningApps.isEmpty else { return nil }
         
         let script = """

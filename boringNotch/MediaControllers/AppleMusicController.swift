@@ -10,10 +10,10 @@ import Combine
 import SwiftUI
 
 @MainActor
-class AppleMusicController: MediaControllerProtocol {
+final class AppleMusicController: MediaControllerProtocol {
     // MARK: - Properties
     @Published private var playbackState: PlaybackState = PlaybackState(
-        bundleIdentifier: "com.apple.Music",
+        bundleIdentifier: MediaAppBundleID.appleMusic,
         playbackRate: 1
     )
     
@@ -43,11 +43,7 @@ class AppleMusicController: MediaControllerProtocol {
     
     private func setupPlaybackStateChangeObserver() {
         notificationTask = Task { @Sendable [weak self] in
-            let notifications = DistributedNotificationCenter.default().notifications(
-                named: NSNotification.Name("com.apple.Music.playerInfo")
-            )
-            
-            for await _ in notifications {
+            for await _ in AppleScriptControllerSupport.playerInfoNotifications(named: "com.apple.Music.playerInfo") {
                 await self?.updatePlaybackInfo()
             }
         }
@@ -113,7 +109,7 @@ class AppleMusicController: MediaControllerProtocol {
     
     func isActive() -> Bool {
         let runningApps = NSWorkspace.shared.runningApplications
-        return runningApps.contains { $0.bundleIdentifier == "com.apple.Music" }
+        return runningApps.contains { $0.bundleIdentifier == MediaAppBundleID.appleMusic }
     }
 
     func setFavorite(_ favorite: Bool) async {
@@ -155,8 +151,7 @@ class AppleMusicController: MediaControllerProtocol {
     // MARK: - Private Methods
     
     private func executeCommand(_ command: String) async {
-        let script = "tell application \"Music\" to \(command)"
-        try? await AppleScriptHelper.executeVoid(script)
+        await AppleScriptControllerSupport.executeCommand(command, appName: "Music")
     }
     
     private func fetchPlaybackInfoAsync() async throws -> NSAppleEventDescriptor? {

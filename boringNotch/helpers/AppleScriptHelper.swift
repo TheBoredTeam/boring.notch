@@ -7,7 +7,7 @@
 
 import Foundation
 
-class AppleScriptHelper {
+final class AppleScriptHelper {
     @discardableResult
     class func execute(_ scriptText: String) async throws -> NSAppleEventDescriptor? {
         try await withCheckedThrowingContinuation { continuation in
