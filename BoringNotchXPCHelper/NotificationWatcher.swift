@@ -54,10 +54,13 @@ final class NotificationWatcher {
     private let refreshInterval: TimeInterval = 2.5
 
     /// Banners live ~5s, so 0.35s catches every one with room to spare.
-    /// (An adaptive cadence with a 2s idle tick was tried and regressed
-    /// UX: mirrored peeks felt delayed-to-ignored. Latency beats idle power
-    /// here — notification mirroring is opt-in.)
-    private let pollInterval: TimeInterval = 0.35
+    /// Idle drops to 0.5s as a compromise: first-detection cadence stays
+    /// perceptibly snappy while the AX walk rate halves versus flat 0.35s
+    /// (memory-debugging shows the scan path is the helper's
+    /// allocation-heavy path, so idle trimming also bounds its pressure).
+    private let activePollInterval: TimeInterval = 0.35
+    private let idlePollInterval: TimeInterval = 0.5
+    private var currentPollInterval: TimeInterval = 0
 
     var isRunning: Bool { appElement != nil }
 
@@ -88,10 +91,11 @@ final class NotificationWatcher {
         // state stays on the main queue, which is also where the helper
         // dispatches reply/action calls, so there's no locking to get wrong.
         let timer = DispatchSource.makeTimerSource(queue: .main)
-        timer.schedule(deadline: .now() + pollInterval, repeating: pollInterval)
+        timer.schedule(deadline: .now() + activePollInterval, repeating: activePollInterval)
         timer.setEventHandler { [weak self] in self?.scan() }
         timer.resume()
         pollTimer = timer
+        currentPollInterval = activePollInterval
 
         scan()
         return true
@@ -115,6 +119,13 @@ final class NotificationWatcher {
     // MARK: - Scanning
 
     private func scan() {
+        // Every AX-bridged object copied in a walk lands in the run queue's
+        // autorelease pool; wrap the walk explicitly so pool lifetime never
+        // depends on the dispatch-main scheduler's drain behavior.
+        autoreleasepool { scanImpl() }
+    }
+
+    private func scanImpl() {
         guard let appElement else { return }
         var seen: Set<String> = []
 
@@ -136,6 +147,16 @@ final class NotificationWatcher {
         }
 
         refreshHeldBanners()
+        updatePollCadence()
+    }
+
+    /// Drops the poll rate once nothing is on screen anymore; walking at
+    /// half rate while idle halves the allocation pressure of the scan path.
+    private func updatePollCadence() {
+        let wanted = (live.isEmpty && held.isEmpty) ? idlePollInterval : activePollInterval
+        guard wanted != currentPollInterval, let pollTimer else { return }
+        currentPollInterval = wanted
+        pollTimer.schedule(deadline: .now() + wanted, repeating: wanted)
     }
 
     /// Keeps held banners from timing out.
