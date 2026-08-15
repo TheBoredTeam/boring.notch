@@ -366,8 +366,8 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             process.executableURL = self.lunarExecutableURL
             process.arguments = ["@", "listen", "--only-user-adjustments", "-j"]
 
-            let pipeHandler = JSONLinesPipeHandler(decoder: JSONDecoder())
-            process.standardOutput = pipeHandler.getPipe()
+            let pipeHandler = JSONLinesPipeHandler()
+            process.standardOutput = pipeHandler.outputPipe
             process.standardError = FileHandle.nullDevice
 
             process.terminationHandler = { [weak self] _ in
@@ -412,7 +412,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             self.lunarProcess = nil
 
             if let pipeHandler = self.lunarPipeHandler {
-                Task { await pipeHandler.close() }
+                pipeHandler.close()
             }
 
             self.lunarPipeHandler = nil
@@ -516,88 +516,8 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
 // MARK: - Lunar Parsing
 
-private struct LunarBrightnessEvent: Decodable {
+private struct LunarBrightnessEvent: Decodable, Sendable {
     let brightness: Double
     let display: Int
-
-    init(from decoder: NSCoder) {
-        display = decoder.decodeInteger(forKey: "display")
-        brightness = decoder.decodeDouble(forKey: "brightness")
-    }
 }
 
-private actor JSONLinesPipeHandler {
-    nonisolated let pipe: Pipe
-    private let fileHandle: FileHandle
-    private var buffer = ""
-    private let decoder: JSONDecoder
-
-    init(decoder: JSONDecoder = JSONDecoder()) {
-        let pipe = Pipe()
-        self.pipe = pipe
-        self.fileHandle = pipe.fileHandleForReading
-        self.decoder = decoder
-    }
-
-    nonisolated func getPipe() -> Pipe {
-        return pipe
-    }
-
-    func readJSONLines<T: Decodable>(as type: T.Type, onLine: @escaping (T) -> Void) async {
-        do {
-            try await processLines(as: type) { decodedObject in
-                onLine(decodedObject)
-            }
-        } catch {
-            // Ignore stream errors to keep the helper lightweight.
-        }
-    }
-
-    private func processLines<T: Decodable>(as type: T.Type, onLine: @escaping (T) -> Void) async throws {
-        while true {
-            let data = try await readData()
-            guard !data.isEmpty else { break }
-
-            if let chunk = String(data: data, encoding: .utf8) {
-                buffer.append(chunk)
-
-                while let range = buffer.range(of: "\n") {
-                    let line = String(buffer[..<range.lowerBound])
-                    buffer = String(buffer[range.upperBound...])
-
-                    if !line.isEmpty {
-                        processJSONLine(line, as: type, onLine: onLine)
-                    }
-                }
-            }
-        }
-    }
-
-    private func processJSONLine<T: Decodable>(_ line: String, as type: T.Type, onLine: @escaping (T) -> Void) {
-        guard let data = line.data(using: .utf8) else { return }
-        if let decodedObject = try? decoder.decode(T.self, from: data) {
-            onLine(decodedObject)
-        }
-    }
-
-    private func readData() async throws -> Data {
-        return try await withCheckedThrowingContinuation { continuation in
-            fileHandle.readabilityHandler = { handle in
-                let data = handle.availableData
-                handle.readabilityHandler = nil
-                continuation.resume(returning: data)
-            }
-        }
-    }
-
-    func close() async {
-        do {
-            fileHandle.readabilityHandler = nil
-
-            try fileHandle.close()
-            try pipe.fileHandleForWriting.close()
-        } catch {
-            // Ignore close errors.
-        }
-    }
-}

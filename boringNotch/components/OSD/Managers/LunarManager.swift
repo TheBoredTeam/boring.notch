@@ -106,14 +106,13 @@ final class LunarManager {
         }
 
         Task { @MainActor in
-            BoringViewCoordinator.shared.toggleSneakPeek(
-                status: true,
+            NotchUIEventBus.events.send(.sneakPeek(
                 type: .brightness,
                 value: CGFloat(normalizedBrightness),
                 icon: iconString,
                 accent: accentColor,
                 targetScreenUUID: targetScreenUUID
-            )
+            ))
         }
     }
     

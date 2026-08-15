@@ -11,42 +11,18 @@ import SwiftUI
 class WebcamManager: NSObject, ObservableObject {
     static let shared = WebcamManager()
     
-    @Published var previewLayer: AVCaptureVideoPreviewLayer? {
-        didSet {
-            objectWillChange.send()
-        }
-    }
+    @Published var previewLayer: AVCaptureVideoPreviewLayer?
     
     private var captureSession: AVCaptureSession?
-    @Published var isSessionRunning: Bool = false {
-        didSet {
-            objectWillChange.send()
-        }
-    }
+    @Published var isSessionRunning: Bool = false
     
-    @Published var authorizationStatus: AVAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video) {
-        didSet {
-            objectWillChange.send()
-        }
-    }
+    @Published var authorizationStatus: AVAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
     
-    @Published var cameraAvailable: Bool = false {
-        didSet {
-            objectWillChange.send()
-        }
-    }
+    @Published var cameraAvailable: Bool = false
 
-    @Published var availableCameras: [AVCaptureDevice] = [] {
-        didSet {
-            objectWillChange.send()
-        }
-    }
+    @Published var availableCameras: [AVCaptureDevice] = []
 
-    @Published var selectedCameraID: String? {
-        didSet {
-            objectWillChange.send()
-        }
-    }
+    @Published var selectedCameraID: String?
 
     private let sessionQueue = DispatchQueue(label: "BoringNotch.WebcamManager.SessionQueue", qos: .userInitiated)
     

@@ -98,7 +98,6 @@ final class MusicManager: ObservableObject {
     @Published var repeatMode: RepeatMode = .off
     @Published var volume: Double = 0.5
     @Published var volumeControlSupported: Bool = true
-    private let coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
     @Published var canFavoriteTrack: Bool = false
     
@@ -715,12 +714,11 @@ final class MusicManager: ObservableObject {
     }
 
     private func updateSneakPeek() {
-        if isPlaying && Defaults[.enableSneakPeek] {
-            if Defaults[.sneakPeekStyles] == .standard {
-                coordinator.toggleSneakPeek(status: true, type: .music)
-            } else {
-                coordinator.toggleExpandingView(status: true, type: .music)
-            }
+        guard isPlaying && Defaults[.enableSneakPeek] else { return }
+        if Defaults[.sneakPeekStyles] == .standard {
+            NotchUIEventBus.events.send(.sneakPeek(type: .music, value: 0))
+        } else {
+            NotchUIEventBus.events.send(.expandingView(type: .music))
         }
     }
 
