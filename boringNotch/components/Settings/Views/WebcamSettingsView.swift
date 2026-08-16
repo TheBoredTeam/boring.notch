@@ -24,11 +24,11 @@ struct MirrorSettings: View {
                 .disabled(!checkVideoInput())
 
                 Defaults.Toggle(key: .isMirrored) {
-                    Text("Mirror video")
+                    Text("Flip video")
                 }
                 .disabled(!showMirror || !checkVideoInput())
 
-                Picker("Mirror camera", selection: Binding(
+                Picker("Camera", selection: Binding(
                     get: { webcamManager.selectedCameraID },
                     set: { webcamManager.setSelectedCamera(id: $0) }
                 )) {
@@ -41,7 +41,7 @@ struct MirrorSettings: View {
                 }
                 .disabled(!showMirror || !checkVideoInput())
 
-                Picker("Mirror shape", selection: $mirrorShape) {
+                Picker("Frame shape", selection: $mirrorShape) {
                     Text("Circle")
                         .tag(MirrorShapeEnum.circle)
                     Text("Square")
