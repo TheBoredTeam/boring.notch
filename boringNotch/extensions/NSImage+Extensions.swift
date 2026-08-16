@@ -25,10 +25,19 @@ extension NSImage {
                 return
             }
             
-            let width = cgImage.width
-            let height = cgImage.height
+            // Downsample before averaging. Album artwork is routinely 1000x1000
+            // or larger, which means allocating a multi-megabyte scratch buffer
+            // and running a million-iteration loop to produce a single colour.
+            // CoreGraphics area-averages while scaling, so a small box yields
+            // the same average to well within a single 8-bit colour step.
+            let maxDimension = 64
+            let srcWidth = max(1, cgImage.width)
+            let srcHeight = max(1, cgImage.height)
+            let scale = min(1.0, Double(maxDimension) / Double(max(srcWidth, srcHeight)))
+            let width = max(1, Int((Double(srcWidth) * scale).rounded()))
+            let height = max(1, Int((Double(srcHeight) * scale).rounded()))
             let totalPixels = width * height
-            
+
             guard let context = CGContext(data: nil,
                                           width: width,
                                           height: height,
