@@ -318,7 +318,7 @@ extension Defaults.Keys {
         default: SliderColorEnum.white
     )
     static let playerColorTinting = Key<Bool>("playerColorTinting", default: true)
-    static let aiChatEnabled = Key<Bool>("aiChatEnabled", default: true)
+    static let aiChatEnabled = Key<Bool>("aiChatEnabled", default: false)
     static let aiServiceBaseURL = Key<String>("aiServiceBaseURL", default: "https://api.openai.com")
     static let aiServiceModel = Key<String>("aiServiceModel", default: "gpt-4o-mini")
     // Legacy migration source only. New credentials are stored in macOS Keychain.
@@ -327,11 +327,11 @@ extension Defaults.Keys {
         "aiSystemPrompt",
         default: "You are a concise assistant inside a macOS notch utility."
     )
-    static let aiCalendarContextEnabled = Key<Bool>("aiCalendarContextEnabled", default: true)
-    static let aiCalendarWriteEnabled = Key<Bool>("aiCalendarWriteEnabled", default: true)
+    static let aiCalendarContextEnabled = Key<Bool>("aiCalendarContextEnabled", default: false)
+    static let aiCalendarWriteEnabled = Key<Bool>("aiCalendarWriteEnabled", default: false)
     static let aiChatPanelWidth = Key<CGFloat>("aiChatPanelWidth", default: aiChatPanelDefaultSize.width)
     static let aiChatPanelHeight = Key<CGFloat>("aiChatPanelHeight", default: aiChatPanelDefaultSize.height)
-    static let weatherFeatureEnabled = Key<Bool>("weatherFeatureEnabled", default: true)
+    static let weatherFeatureEnabled = Key<Bool>("weatherFeatureEnabled", default: false)
     static let weatherLocationMode = Key<WeatherLocationMode>(
         "weatherLocationMode",
         default: .automatic
@@ -341,7 +341,7 @@ extension Defaults.Keys {
         "weatherTemperatureUnit",
         default: .celsius
     )
-    static let pomodoroEnabled = Key<Bool>("pomodoroEnabled", default: true)
+    static let pomodoroEnabled = Key<Bool>("pomodoroEnabled", default: false)
     static let pomodoroFocusMinutes = Key<Int>("pomodoroFocusMinutes", default: 25)
     static let pomodoroShortBreakMinutes = Key<Int>("pomodoroShortBreakMinutes", default: 5)
     static let pomodoroLongBreakMinutes = Key<Int>("pomodoroLongBreakMinutes", default: 15)
