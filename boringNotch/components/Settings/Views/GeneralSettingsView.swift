@@ -268,5 +268,15 @@ struct GeneralSettings: View {
         } header: {
             Text("Notch behavior")
         }
+
+        Section {
+            Defaults.Toggle(key: .compactMode) {
+                Text("Compact mode")
+            }
+        } footer: {
+            Text("Shows a smaller opened notch with just the music player — no tabs, calendar or mirror.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
     }
 }

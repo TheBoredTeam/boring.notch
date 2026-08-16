@@ -78,6 +78,93 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         }
     }
     
+    // MARK: - Notification Center banners
+
+    /// One watcher for the whole helper: `BoringNotchXPCHelper` is created per
+    /// connection, the AX observer must not be.
+    private static let watcher = NotificationWatcher()
+
+    @objc func startNotificationWatching(with reply: @escaping (Bool) -> Void) {
+        // Capture the delegate for this connection before hopping queues —
+        // NSXPCConnection.current() is only valid inside the incoming call.
+        //
+        // Cast to BoringNotchXPCAppDelegate, not its parent protocol: the
+        // proxy's conformance is built from the exact interface the
+        // connection was configured with, so casting to the parent can
+        // return nil and silently swallow every callback.
+        let connection = NSXPCConnection.current()
+        let proxy = connection?.remoteObjectProxyWithErrorHandler { error in
+            NSLog("[boringNotch] notification callback failed: \(error.localizedDescription)")
+        }
+        let delegate = proxy as? BoringNotchXPCAppDelegate
+
+        if delegate == nil {
+            NSLog("[boringNotch] could not obtain notification delegate proxy — banners will not reach the app")
+        }
+
+        // The AX observer needs a live run loop; the helper's is on main.
+        DispatchQueue.main.async {
+            let watcher = Self.watcher
+            watcher.onBanner = { notification in
+                NSLog("[boringNotch] captured banner: app=\(notification.appName ?? "-") bundle=\(notification.bundleID ?? "-") title=\(notification.title ?? "-") delegate=\(delegate == nil ? "nil" : "ok")")
+                delegate?.notificationDidAppear([
+                    "token": notification.token,
+                    "appName": notification.appName ?? "",
+                    "bundleID": notification.bundleID ?? "",
+                    "title": notification.title ?? "",
+                    "subtitle": notification.subtitle ?? "",
+                    "body": notification.body ?? "",
+                    "actions": notification.actions.joined(separator: "\n")
+                ])
+            }
+            watcher.onBannerGone = { delegate?.notificationDidDisappear($0) }
+            let started = watcher.start()
+            NSLog("[boringNotch] notification watcher start -> \(started), AX trusted: \(AXIsProcessTrusted())")
+            reply(started)
+        }
+    }
+
+    @objc func stopNotificationWatching() {
+        DispatchQueue.main.async { Self.watcher.stop() }
+    }
+
+    @objc func replyToNotification(_ token: String, text: String, with reply: @escaping (Bool) -> Void) {
+        DispatchQueue.main.async { reply(Self.watcher.reply(token: token, text: text)) }
+    }
+
+    /// Sends an iMessage directly through the Messages scripting
+    /// dictionary, bypassing the notification entirely. The app falls back
+    /// to this when the AX reply above fails because the banner has faded —
+    /// for Messages that recovers a real send instead of a clipboard
+    /// hand-off. No other supported app offers an equivalent.
+    @objc func sendIMessage(_ text: String, toChatNamed name: String, with reply: @escaping (Bool) -> Void) {
+        DispatchQueue.main.async { reply(MessagesSender.send(text, toChatNamed: name)) }
+    }
+
+    @objc func performNotificationAction(_ token: String, name: String, with reply: @escaping (Bool) -> Void) {
+        DispatchQueue.main.async { reply(Self.watcher.performAction(token: token, name: name)) }
+    }
+
+    @objc func openNotification(_ token: String, with reply: @escaping (Bool) -> Void) {
+        DispatchQueue.main.async { reply(Self.watcher.open(token: token)) }
+    }
+
+    @objc func notificationDebugDump(with reply: @escaping (String) -> Void) {
+        DispatchQueue.main.async { reply(Self.watcher.debugDump()) }
+    }
+
+    @objc func dismissNotification(_ token: String, with reply: @escaping (Bool) -> Void) {
+        DispatchQueue.main.async { reply(Self.watcher.dismiss(token: token)) }
+    }
+
+    @objc func holdNotification(_ token: String) {
+        DispatchQueue.main.async { Self.watcher.hold(token: token) }
+    }
+
+    @objc func releaseNotification(_ token: String) {
+        DispatchQueue.main.async { Self.watcher.release(token: token) }
+    }
+
     private class KeyboardBrightnessClient {
         private static let keyboardID: UInt64 = 1
         private var clientInstance: NSObject?

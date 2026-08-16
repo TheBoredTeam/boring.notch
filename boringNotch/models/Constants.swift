@@ -293,6 +293,36 @@ extension Defaults.Keys {
     // MARK: OSD
     static let osdReplacement = Key<Bool>("osdReplacement", default: false)
     static let inlineOSD = Key<Bool>("inlineOSD", default: false)
+
+    // MARK: Layout
+    /// Swaps the opened notch for a smaller, player-only layout: no tab
+    /// bar, calendar or mirror. Off by default so existing users keep the
+    /// layout they already have.
+    static let compactMode = Key<Bool>("compactMode", default: false)
+
+    // MARK: Notifications
+    /// Off by default: mirroring banners needs Accessibility access.
+    static let notificationLiveActivity = Key<Bool>("notificationLiveActivity", default: false)
+    static let notificationsFromAllApps = Key<Bool>("notificationsFromAllApps", default: false)
+    static let notificationAllowedApps = Key<Set<String>>(
+        "notificationAllowedApps",
+        default: [
+            "com.apple.MobileSMS",       // Messages
+            "com.apple.FaceTime",
+            "com.apple.mail",
+            "com.microsoft.Outlook",
+            "net.whatsapp.WhatsApp",
+            "ru.keepcoder.Telegram",     // Telegram Desktop (App Store build)
+            "com.tdesktop.Telegram",
+            "com.hnc.Discord",
+            "com.anthropic.claudefordesktop"
+        ]
+    )
+    /// Off by default: a new capability, even though it runs entirely
+    /// on-device with no network calls. Only takes effect on macOS 26+ with
+    /// Apple Intelligence enabled — see SmartReplyManager.
+    static let smartRepliesEnabled = Key<Bool>("smartRepliesEnabled", default: false)
+
     static let enableGradient = Key<Bool>("enableGradient", default: false)
     static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
     static let systemEventIndicatorUseAccent = Key<Bool>("systemEventIndicatorUseAccent", default: false)
