@@ -55,7 +55,11 @@ struct Media: View {
                     .font(.caption)
                 }
             }
-            
+
+            if mediaController == .youtubeMusicPWA {
+                BrowserBridgeSettingsSection()
+            }
+
             Section {
                 Toggle(
                     "Show music live activity",

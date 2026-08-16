@@ -101,6 +101,13 @@ struct ControllerOptionView: View {
                         .font(.subheadline)
                         .padding(.top, 2)
                 }
+
+                if controller == .youtubeMusicPWA,
+                   let url = URL(string: "https://github.com/TheBoredTeam/boring.notch/tree/dev/chrome-extension") {
+                    Link("Get the browser extension", destination: url)
+                        .font(.subheadline)
+                        .padding(.top, 2)
+                }
             }
             
             Spacer()
@@ -130,6 +137,8 @@ extension MediaControllerType {
             return "Connects directly to the Apple Music app."
         case .youtubeMusic:
             return "Requires a third-party client with API plugin enabled."
+        case .youtubeMusicPWA:
+            return "Uses the official YouTube Music website in your browser. Requires the Boring Notch browser extension."
         }
     }
 }

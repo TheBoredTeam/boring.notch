@@ -1,0 +1,296 @@
+/**
+ * MAIN-world adapter for the YouTube Music web player.
+ *
+ * Runs in the page's own JavaScript context (manifest `world: "MAIN"`) because the
+ * `#movie_player` API object is a page global and is not reachable from an isolated
+ * content script. Talks to content.js exclusively over window.postMessage.
+ *
+ * Every source used here was verified against the live site; see README.md for the
+ * table of what is reliable and what is not. The short version:
+ *   - navigator.mediaSession.playbackState is the source of truth for play/pause.
+ *     movie_player.getPlayerState() reports "buffering"/"unstarted" during normal
+ *     playback, and #play-pause-button's title attribute goes stale.
+ *   - movie_player.getDuration() must be used for duration; video.duration is NaN
+ *     for a moment after every track change.
+ */
+
+(() => {
+  'use strict';
+
+  const PAGE = 'bn-ytm-page'; // messages we send
+  const EXT = 'bn-ytm-ext'; // messages we accept
+  const TICK_MS = 1000;
+
+  /** Centralised so a YouTube Music redesign is a one-place fix. */
+  const SEL = {
+    playerBar: 'ytmusic-player-bar',
+    title: '.title',
+    byline: '.byline',
+    repeat: '.repeat',
+    shuffle: '.shuffle',
+    like: 'ytmusic-like-button-renderer',
+  };
+
+  const player = () => document.getElementById('movie_player');
+  const bar = () => document.querySelector(SEL.playerBar);
+  const video = () => document.querySelector('video');
+
+  const call = (name, ...args) => {
+    const p = player();
+    if (!p || typeof p[name] !== 'function') return undefined;
+    try {
+      return p[name](...args);
+    } catch (err) {
+      console.warn('[BoringNotch] player.' + name + ' failed:', err);
+      return undefined;
+    }
+  };
+
+  /**
+   * Album art. mediaSession lists artwork smallest-first, so the last entry is the
+   * best available. googleusercontent URLs carry a size suffix we can bump up to get
+   * something worth showing at notch resolution.
+   */
+  function artworkUrl(metadata) {
+    if (!metadata || !metadata.artwork || !metadata.artwork.length) return null;
+    const src = metadata.artwork[metadata.artwork.length - 1].src;
+    if (!src) return null;
+    if (src.includes('googleusercontent.com')) {
+      return src.replace(/=w\d+-h\d+.*$/, '=w544-h544-l90-rj');
+    }
+    return src;
+  }
+
+  function repeatMode() {
+    const b = bar();
+    // Attribute is `repeat-mode` (no trailing underscore) and reads NONE|ALL|ONE.
+    const raw = b && b.getAttribute('repeat-mode');
+    switch (raw) {
+      case 'ALL':
+        return 'all';
+      case 'ONE':
+        return 'one';
+      case 'NONE':
+        return 'off';
+      default:
+        return 'off';
+    }
+  }
+
+  function isFavorite() {
+    const like = document.querySelector(SEL.like);
+    return like ? like.getAttribute('like-status') === 'LIKE' : false;
+  }
+
+  function readState() {
+    const ms = navigator.mediaSession;
+    const meta = ms && ms.metadata;
+    const v = video();
+    const duration = Number(call('getDuration')) || 0;
+    const position = v ? v.currentTime : Number(call('getCurrentTime')) || 0;
+    const rawVolume = call('getVolume');
+
+    // mediaSession.playbackState is authoritative; fall back to the media element
+    // only if the site hasn't populated it yet.
+    let isPlaying;
+    if (ms && (ms.playbackState === 'playing' || ms.playbackState === 'paused')) {
+      isPlaying = ms.playbackState === 'playing';
+    } else {
+      isPlaying = v ? !v.paused : false;
+    }
+
+    const barEl = bar();
+    const domTitle = barEl && barEl.querySelector(SEL.title);
+    const domByline = barEl && barEl.querySelector(SEL.byline);
+
+    return {
+      hasTrack: Boolean((meta && meta.title) || (domTitle && domTitle.textContent.trim())),
+      isPlaying,
+      title: (meta && meta.title) || (domTitle && domTitle.textContent.trim()) || '',
+      artist: (meta && meta.artist) || (domByline && domByline.textContent.trim()) || '',
+      album: (meta && meta.album) || '',
+      artworkUrl: artworkUrl(meta),
+      duration: Number.isFinite(duration) ? duration : 0,
+      position: Number.isFinite(position) ? position : 0,
+      volume: typeof rawVolume === 'number' ? Math.max(0, Math.min(1, rawVolume / 100)) : null,
+      isMuted: Boolean(call('isMuted')),
+      repeatMode: repeatMode(),
+      isFavorite: isFavorite(),
+    };
+  }
+
+  // ---------------------------------------------------------------- emit
+
+  let lastSerialized = null;
+  let lastSentAt = 0;
+
+  /** Fields whose change always warrants an immediate push. */
+  function identity(s) {
+    // JSON rather than a delimiter join: a track title can contain any character,
+    // and a delimiter that appears in the data would make two different states
+    // compare equal and suppress a real update.
+    return JSON.stringify([
+      s.hasTrack,
+      s.isPlaying,
+      s.title,
+      s.artist,
+      s.album,
+      s.artworkUrl,
+      Math.round(s.duration),
+      s.volume,
+      s.isMuted,
+      s.repeatMode,
+      s.isFavorite,
+    ]);
+  }
+
+  function emit(force) {
+    let state;
+    try {
+      state = readState();
+    } catch (err) {
+      console.warn('[BoringNotch] failed to read player state:', err);
+      return;
+    }
+
+    const now = Date.now();
+    const changed = identity(state) !== lastSerialized;
+    // Position moves constantly; rate-limit it to one message per tick while playing
+    // so we don't spam the bridge, but never let the app's progress bar go stale.
+    const positionDue = state.isPlaying && now - lastSentAt >= TICK_MS - 50;
+
+    if (!force && !changed && !positionDue) return;
+
+    lastSerialized = identity(state);
+    lastSentAt = now;
+    window.postMessage({ source: PAGE, type: 'state', state }, window.location.origin);
+  }
+
+  // ---------------------------------------------------------------- commands
+
+  function clickIn(container, selector) {
+    const root = container || bar();
+    const el = root && root.querySelector(selector);
+    if (!el) return false;
+    el.click();
+    return true;
+  }
+
+  function setFavorite(shouldBeFavorite) {
+    const like = document.querySelector(SEL.like);
+    if (!like) return;
+    const current = like.getAttribute('like-status') === 'LIKE';
+    if (current === shouldBeFavorite) return;
+    // Both "like" and "un-like" are the same toggle button.
+    const btn = [...like.querySelectorAll('button')].find(
+      (b) => (b.getAttribute('aria-label') || '').toLowerCase() === 'like'
+    );
+    if (btn) btn.click();
+  }
+
+  function execute(action, value) {
+    switch (action) {
+      case 'play':
+        call('playVideo');
+        break;
+      case 'pause':
+        call('pauseVideo');
+        break;
+      case 'toggle': {
+        const ms = navigator.mediaSession;
+        const v = video();
+        const playing =
+          ms && (ms.playbackState === 'playing' || ms.playbackState === 'paused')
+            ? ms.playbackState === 'playing'
+            : v
+              ? !v.paused
+              : false;
+        call(playing ? 'pauseVideo' : 'playVideo');
+        break;
+      }
+      case 'next':
+        call('nextVideo');
+        break;
+      case 'previous':
+        call('previousVideo');
+        break;
+      case 'seek':
+        if (typeof value === 'number' && Number.isFinite(value)) call('seekTo', value, true);
+        break;
+      case 'setVolume':
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          call('setVolume', Math.round(Math.max(0, Math.min(1, value)) * 100));
+        }
+        break;
+      case 'toggleShuffle':
+        clickIn(null, SEL.shuffle);
+        break;
+      case 'toggleRepeat':
+        clickIn(null, SEL.repeat);
+        break;
+      case 'setFavorite':
+        setFavorite(Boolean(value));
+        break;
+      default:
+        console.warn('[BoringNotch] unknown action:', action);
+        return;
+    }
+    // Let the site settle, then report the result rather than guessing at it.
+    setTimeout(() => emit(true), 250);
+    setTimeout(() => emit(true), 900);
+  }
+
+  // ---------------------------------------------------------------- wiring
+
+  window.addEventListener('message', (event) => {
+    if (event.source !== window) return;
+    const data = event.data;
+    if (!data || data.source !== EXT) return;
+    if (data.type === 'command') execute(data.action, data.value);
+    else if (data.type === 'resync') emit(true);
+  });
+
+  // Media-element events give us sub-tick latency on the transitions users notice.
+  function attachVideo(v) {
+    if (!v || v.__bnAttached) return;
+    v.__bnAttached = true;
+    ['play', 'pause', 'loadedmetadata', 'durationchange', 'volumechange', 'ended', 'seeked'].forEach(
+      (evt) => v.addEventListener(evt, () => emit(true))
+    );
+  }
+
+  const tick = setInterval(() => {
+    attachVideo(video());
+    emit(false);
+  }, TICK_MS);
+
+  // Track changes and like/repeat toggles mutate the player bar rather than firing
+  // media events, so watch it too.
+  const observer = new MutationObserver(() => emit(false));
+  function observeBar() {
+    const b = bar();
+    if (!b || b.__bnObserved) return;
+    b.__bnObserved = true;
+    observer.observe(b, {
+      subtree: true,
+      attributes: true,
+      childList: true,
+      attributeFilter: ['repeat-mode', 'like-status', 'title', 'aria-label'],
+    });
+  }
+
+  const bootstrap = setInterval(() => {
+    observeBar();
+    attachVideo(video());
+    if (bar() && player()) clearInterval(bootstrap);
+  }, 500);
+
+  window.addEventListener('pagehide', () => {
+    clearInterval(tick);
+    clearInterval(bootstrap);
+    observer.disconnect();
+  });
+
+  emit(true);
+  console.info('[BoringNotch] YouTube Music page adapter ready');
+})();
