@@ -23,7 +23,7 @@ struct SystemEventIndicatorModifier: View {
             if (eventType != .mic) {
                 DraggableProgressBar(value: $value, accentColor: accent)
                 if Defaults[.showClosedNotchOSDPercentage] {
-                    Text("\(Int(value * 100))%")
+                    Text(value, format: .percent.precision(.fractionLength(0)))
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.white)
                         .monospacedDigit()
@@ -40,4 +40,3 @@ struct SystemEventIndicatorModifier: View {
         .imageScale(.large)
     }
 }
-

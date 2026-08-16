@@ -137,14 +137,20 @@ struct BatteryMenuView: View {
                     .font(.headline)
                     .fontWeight(.semibold)
                 Spacer()
-                Text("\(Int(levelBattery))%")
+                Text(
+                    levelBattery / 100,
+                    format: .percent.precision(.fractionLength(0))
+                )
                     .font(.headline)
                     .fontWeight(.semibold)
             }
             
             VStack(alignment: .leading, spacing: 8) {
                 if let maxCapacity {
-                    Text("Max Capacity: \(Int(maxCapacity))%")
+                    Text(
+                        "Max Capacity: \(maxCapacity / 100, format: .percent.precision(.fractionLength(0)))",
+                        comment: "Battery maximum capacity."
+                    )
                         .font(.subheadline)
                         .fontWeight(.regular)
                 } else {
@@ -243,7 +249,10 @@ struct BoringBatteryView: View {
         }) {
             HStack {
                 if Defaults[.showBatteryPercentage] {
-                    Text("\(Int32(levelBattery))%")
+                    Text(
+                        levelBattery / 100,
+                        format: .percent.precision(.fractionLength(0))
+                    )
                         .font(.callout)
                         .foregroundStyle(.white)
                 }
