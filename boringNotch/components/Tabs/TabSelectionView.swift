@@ -7,43 +7,68 @@
 
 import SwiftUI
 
-struct TabModel: Identifiable {
-    let id = UUID()
+struct NotchDestinationDescriptor: Identifiable {
+    var id: NotchViews { destination }
+
+    let destination: NotchViews
     let label: String
     let icon: String
-    let view: NotchViews
+    let order: Int
+    let isAvailable: Bool
 }
 
-let tabs = [
-    TabModel(label: "Home", icon: "house.fill", view: .home),
-    TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)
-]
+extension NotchDestinationDescriptor {
+    static let builtIn: [Self] = [
+        .init(
+            destination: .home,
+            label: "Home",
+            icon: "house.fill",
+            order: 0,
+            isAvailable: true
+        ),
+        .init(
+            destination: .shelf,
+            label: "Shelf",
+            icon: "tray.fill",
+            order: 1,
+            isAvailable: true
+        )
+    ]
+
+    static let availableBuiltIn: [Self] = {
+        builtIn
+            .filter(\.isAvailable)
+            .sorted { $0.order < $1.order }
+    }()
+}
 
 struct TabSelectionView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Namespace var animation
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(tabs) { tab in
-                    TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view) {
-                        withAnimation(.smooth) {
-                            coordinator.currentView = tab.view
-                        }
+            ForEach(NotchDestinationDescriptor.availableBuiltIn) { destination in
+                let isSelected = coordinator.currentView == destination.destination
+
+                TabButton(label: destination.label, icon: destination.icon) {
+                    withAnimation(.smooth) {
+                        coordinator.currentView = destination.destination
                     }
-                    .frame(height: 26)
-                    .foregroundStyle(tab.view == coordinator.currentView ? .white : .gray)
-                    .background {
-                        if tab.view == coordinator.currentView {
-                            Capsule()
-                                .fill(coordinator.currentView == tab.view ? Color(nsColor: .secondarySystemFill) : Color.clear)
-                                .matchedGeometryEffect(id: "capsule", in: animation)
-                        } else {
-                            Capsule()
-                                .fill(coordinator.currentView == tab.view ? Color(nsColor: .secondarySystemFill) : Color.clear)
-                                .matchedGeometryEffect(id: "capsule", in: animation)
-                                .hidden()
-                        }
+                }
+                .frame(height: 26)
+                .foregroundStyle(isSelected ? .white : .gray)
+                .background {
+                    if isSelected {
+                        Capsule()
+                            .fill(Color(nsColor: .secondarySystemFill))
+                            .matchedGeometryEffect(id: "capsule", in: animation)
+                    } else {
+                        Capsule()
+                            .fill(Color.clear)
+                            .matchedGeometryEffect(id: "capsule", in: animation)
+                            .hidden()
                     }
+                }
             }
         }
         .clipShape(Capsule())
