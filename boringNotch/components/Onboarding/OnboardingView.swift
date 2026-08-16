@@ -8,6 +8,7 @@
 import SwiftUI
 import AVFoundation
 import Defaults
+import LaunchAtLogin
 import Sparkle
 
 enum OnboardingStep {
@@ -19,6 +20,7 @@ enum OnboardingStep {
     case accessibilityPermission
     case musicPermission
     case softwareUpdatePermission
+    case startupPreference
     case finished
 }
 
@@ -170,10 +172,24 @@ struct OnboardingView: View {
                     updater: updater,
                     onContinue: {
                         withAnimation(.easeInOut(duration: 0.6)) {
-                            BoringViewCoordinator.shared.firstLaunch = false
-                            step = .finished
+                            step = .startupPreference
                         }
                     }
+                )
+                .transition(.opacity)
+
+            case .startupPreference:
+                PermissionRequestView(
+                    icon: Image(systemName: "arrow.clockwise.circle.fill"),
+                    title: "Start Boring Notch at Login?",
+                    description: "Boring Notch lives in your menu bar. Start it automatically when you sign in so it is ready after every restart.",
+                    privacyNote: "Recommended. You can change this at any time in Settings → General.",
+                    allowButtonTitle: "Start at Login",
+                    onAllow: {
+                        LaunchAtLogin.isEnabled = true
+                        finishOnboarding()
+                    },
+                    onSkip: finishOnboarding
                 )
                 .transition(.opacity)
 
@@ -207,6 +223,13 @@ struct OnboardingView: View {
             return .audioCapturePermission
         }
         return .accessibilityPermission
+    }
+
+    func finishOnboarding() {
+        BoringViewCoordinator.shared.firstLaunch = false
+        withAnimation(.easeInOut(duration: 0.6)) {
+            step = .finished
+        }
     }
     
 }
