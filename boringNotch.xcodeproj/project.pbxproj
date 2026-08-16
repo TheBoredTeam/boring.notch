@@ -123,6 +123,8 @@
 		14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */; };
 		14FC6E502C7DED5600C7BEA5 /* DataTypes+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */; };
 		201C3E071A104384B8629328 /* AudioOutputRouteResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFAD1670A870402D88BFFE47 /* AudioOutputRouteResolver.swift */; };
+		425B22C630017E3400D7787B /* Todo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 425B22C530017E3100D7787B /* Todo.swift */; };
+		425B22C830017E5800D7787B /* TodoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 425B22C730017E5300D7787B /* TodoStore.swift */; };
 		507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507266DA2C908E2E00A2D00D /* HoverButton.swift */; };
 		5917FD112E57891600E87F1C /* MediaKeyInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */; };
 		5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */; };
@@ -307,6 +309,8 @@
 		14E9FEA92C70BF610062E83F /* DownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadView.swift; sourceTree = "<group>"; };
 		14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Button+Bouncing.swift"; sourceTree = "<group>"; };
 		14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataTypes+Extensions.swift"; sourceTree = "<group>"; };
+		425B22C530017E3100D7787B /* Todo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Todo.swift; sourceTree = "<group>"; };
+		425B22C730017E5300D7787B /* TodoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoStore.swift; sourceTree = "<group>"; };
 		507266DA2C908E2E00A2D00D /* HoverButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverButton.swift; sourceTree = "<group>"; };
 		5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKeyInterceptor.swift; sourceTree = "<group>"; };
 		5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationRelauncher.swift; sourceTree = "<group>"; };
@@ -354,6 +358,7 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		112FB72F2CCF12CC0015238C /* private */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = private; sourceTree = "<group>"; };
 		11F748502EC9AABA00F841DB /* BoringNotchXPCHelper */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (11F7485C2EC9AABA00F841DB /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = BoringNotchXPCHelper; sourceTree = "<group>"; };
+		425B22C130017DDF00D7787B /* Todo */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Todo; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -585,6 +590,7 @@
 		1471639B2C5D362F0068B555 /* components */ = {
 			isa = PBXGroup;
 			children = (
+				425B22C130017DDF00D7787B /* Todo */,
 				11985BDF2F37A3C800F81585 /* OSD */,
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
 				14C08BB72C8DE49E000F8AA0 /* Calendar */,
@@ -606,6 +612,7 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				425B22C730017E5300D7787B /* TodoStore.swift */,
 				11DB26652EDD0BE1001EA0CF /* LyricsService.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
@@ -722,6 +729,7 @@
 		14D570C72C5F38760011E668 /* models */ = {
 			isa = PBXGroup;
 			children = (
+				425B22C530017E3100D7787B /* Todo.swift */,
 				11F748812ECB07A400F841DB /* MusicControlButton.swift */,
 				118D1FD02E98FF5F00A2FF63 /* SharingStateManager.swift */,
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
@@ -884,6 +892,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				112FB72F2CCF12CC0015238C /* private */,
+				425B22C130017DDF00D7787B /* Todo */,
 			);
 			name = boringNotch;
 			packageProductDependencies = (
@@ -997,6 +1006,7 @@
 				147163982C5D35B70068B555 /* MusicVisualizer.swift in Sources */,
 				11CC44A22CEE614100C7244B /* BoringViewCoordinator.swift in Sources */,
 				B186543C2C6F49AE000B926A /* ShortcutConstants.swift in Sources */,
+				425B22C630017E3400D7787B /* Todo.swift in Sources */,
 				11A45C792E34E63100CEB175 /* MediaChecker.swift in Sources */,
 				B1D365CE2C6A979C0047BDBC /* LiveActivityModifier.swift in Sources */,
 				1113ABD02E80E6BB00EC13B2 /* ThumbnailService.swift in Sources */,
@@ -1030,6 +1040,7 @@
 				1113ABC82E80E27000EC13B2 /* ShelfItem.swift in Sources */,
 				1113ABCA2E80E27000EC13B2 /* ShelfSelectionModel.swift in Sources */,
 				1113ABCB2E80E27000EC13B2 /* QuickLookService.swift in Sources */,
+				425B22C830017E5800D7787B /* TodoStore.swift in Sources */,
 				1113ABCC2E80E27000EC13B2 /* ShelfDropService.swift in Sources */,
 				1100292E2E86940F00035A57 /* QuickShareService.swift in Sources */,
 				1113ABCE2E80E27000EC13B2 /* ShelfActionService.swift in Sources */,

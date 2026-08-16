@@ -315,6 +315,11 @@ extension Defaults.Keys {
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
     static let reverseShelfOrdering = Key<Bool>("reverseShelfOrdering", default: false)
     
+    // MARK: Todos
+    static let showTodosTab = Key<Bool>("showTodosTab", default: true)
+    static let todosCheckboxColor = Key<Color>("todosCheckboxColor", default: .white)
+    static let todosAutoRemoveDelay = Key<Double>("todosAutoRemoveDelay", default: 1.5)
+    
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
