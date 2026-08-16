@@ -72,7 +72,19 @@ struct Media: View {
                         HStack {
                             Text("Media inactivity timeout")
                             Spacer()
-                            Text("\(Defaults[.waitInterval], specifier: "%.0f") seconds")
+                            Text(
+                                Measurement(
+                                    value: Defaults[.waitInterval],
+                                    unit: UnitDuration.seconds
+                                ),
+                                format: .measurement(
+                                    width: .wide,
+                                    usage: .asProvided,
+                                    numberFormatStyle: .number.precision(
+                                        .fractionLength(0)
+                                    )
+                                )
+                            )
                                 .foregroundStyle(.secondary)
                         }
                     }

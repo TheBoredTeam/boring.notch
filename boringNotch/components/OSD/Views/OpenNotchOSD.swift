@@ -39,7 +39,7 @@ struct OpenNotchOSD: View {
             
             // Percentage Text
             if type != .mic && showPercentage {
-                Text("\(Int(value * 100))%")
+                Text(value, format: .percent.precision(.fractionLength(0)))
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.gray)
                     .monospacedDigit()

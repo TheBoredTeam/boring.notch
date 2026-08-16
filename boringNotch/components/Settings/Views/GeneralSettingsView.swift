@@ -115,7 +115,10 @@ struct GeneralSettings: View {
                 }
                 if notchHeightMode == .custom {
                     Slider(value: $notchHeight, in: 15...45, step: 1) {
-                        Text("Custom notch size - \(notchHeight, specifier: "%.0f")")
+                        Text(
+                            "Custom notch size - \(notchHeight, format: .number.precision(.fractionLength(0)))",
+                            comment: "Slider label showing the custom notch height."
+                        )
                     }
                     .onChange(of: notchHeight) {
                         NotificationCenter.default.post(
@@ -155,7 +158,10 @@ struct GeneralSettings: View {
                     )
                     
                     Slider(value: sliderValue, in: 0...26, step: 1) {
-                        Text("Custom notch size - \(nonNotchHeight, specifier: "%.0f")")
+                        Text(
+                            "Custom notch size - \(nonNotchHeight, format: .number.precision(.fractionLength(0)))",
+                            comment: "Slider label showing the custom notch height."
+                        )
                     }
                 }
             } header: {
@@ -245,7 +251,19 @@ struct GeneralSettings: View {
                     HStack {
                         Text("Hover delay")
                         Spacer()
-                        Text("\(minimumHoverDuration, specifier: "%.1f")s")
+                        Text(
+                            Measurement(
+                                value: minimumHoverDuration,
+                                unit: UnitDuration.seconds
+                            ),
+                            format: .measurement(
+                                width: .narrow,
+                                usage: .asProvided,
+                                numberFormatStyle: .number.precision(
+                                    .fractionLength(1)
+                                )
+                            )
+                        )
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -260,7 +278,10 @@ struct GeneralSettings: View {
                     HStack {
                         Text("Animation speed")
                         Spacer()
-                        Text("\(animationSpeedMultiplier, specifier: "%.1f")x")
+                        Text(
+                            "\(animationSpeedMultiplier, format: .number.precision(.fractionLength(1)))x",
+                            comment: "Animation speed multiplier."
+                        )
                             .foregroundStyle(.secondary)
                     }
                 }

@@ -52,7 +52,7 @@ struct ProgressIndicator: View {
                 CircularProgressView(progress: progress, color: color).frame(
                 width: 20, height: 20)
             case .text:
-                Text("\(Int(progress * 100))%")
+                Text(progress, format: .percent.precision(.fractionLength(0)))
         }
     }
 }
