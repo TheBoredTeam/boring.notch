@@ -321,6 +321,7 @@ extension Defaults.Keys {
     static let aiChatEnabled = Key<Bool>("aiChatEnabled", default: true)
     static let aiServiceBaseURL = Key<String>("aiServiceBaseURL", default: "https://api.openai.com")
     static let aiServiceModel = Key<String>("aiServiceModel", default: "gpt-4o-mini")
+    // Legacy migration source only. New credentials are stored in macOS Keychain.
     static let aiServiceAPIKey = Key<String>("aiServiceAPIKey", default: "")
     static let aiSystemPrompt = Key<String>(
         "aiSystemPrompt",

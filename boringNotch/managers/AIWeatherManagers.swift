@@ -10,6 +10,154 @@ import Combine
 import CoreLocation
 import Defaults
 import Foundation
+import LocalAuthentication
+import Security
+
+private struct AICredentialStoreError: LocalizedError {
+    let errorDescription: String?
+
+    init(_ message: String) {
+        errorDescription = message
+    }
+}
+
+enum AIProviderCredentialStore {
+    private static let service = "\(Bundle.main.bundleIdentifier ?? "theboringteam.boringnotch").ai-provider-v2"
+    private static let account = "openai-compatible-api-key"
+    private static let accessCoordinator = CredentialAccessCoordinator()
+
+    private actor CredentialAccessCoordinator {
+        private var cachedAPIKey: String?
+        private var loadTask: Task<String, Never>?
+
+        func loadAPIKey() async -> String {
+            if let cachedAPIKey {
+                return cachedAPIKey
+            }
+            if let loadTask {
+                return await loadTask.value
+            }
+
+            let task = Task.detached(priority: .userInitiated) {
+                AIProviderCredentialStore.loadAPIKeySynchronously()
+            }
+            loadTask = task
+            let value = await task.value
+            cachedAPIKey = value
+            loadTask = nil
+            return value
+        }
+
+        func saveAPIKey(_ rawValue: String) async throws {
+            let normalizedValue = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            try await Task.detached(priority: .userInitiated) {
+                try AIProviderCredentialStore.saveAPIKeySynchronously(normalizedValue)
+            }.value
+            cachedAPIKey = normalizedValue
+            loadTask = nil
+        }
+    }
+
+    static func loadAPIKey() async -> String {
+        await accessCoordinator.loadAPIKey()
+    }
+
+    static func saveAPIKey(_ rawValue: String) async throws {
+        try await accessCoordinator.saveAPIKey(rawValue)
+    }
+
+    private static func loadAPIKeySynchronously() -> String {
+        if let value = try? readKeychainValue(), !value.isEmpty {
+            return value
+        }
+
+        let legacyValue = Defaults[.aiServiceAPIKey]
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !legacyValue.isEmpty else { return "" }
+
+        if (try? saveAPIKeySynchronously(legacyValue)) != nil {
+            Defaults[.aiServiceAPIKey] = ""
+        }
+        return legacyValue
+    }
+
+    private static func saveAPIKeySynchronously(_ rawValue: String) throws {
+        let value = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        let query = baseQuery
+
+        if value.isEmpty {
+            var deleteQuery = query
+            deleteQuery[kSecUseAuthenticationContext] = nonInteractiveContext()
+            let status = SecItemDelete(deleteQuery as CFDictionary)
+            guard status == errSecSuccess || status == errSecItemNotFound else {
+                throw credentialError(status)
+            }
+            Defaults[.aiServiceAPIKey] = ""
+            return
+        }
+
+        let attributes: [CFString: Any] = [
+            kSecValueData: Data(value.utf8),
+            kSecAttrLabel: "Boring Notch AI API Key",
+        ]
+        var updateQuery = query
+        updateQuery[kSecUseAuthenticationContext] = nonInteractiveContext()
+        var status = SecItemUpdate(updateQuery as CFDictionary, attributes as CFDictionary)
+        if status == errSecItemNotFound {
+            var item = query
+            for (key, value) in attributes {
+                item[key] = value
+            }
+            status = SecItemAdd(item as CFDictionary, nil)
+        }
+
+        guard status == errSecSuccess else {
+            throw credentialError(status)
+        }
+        Defaults[.aiServiceAPIKey] = ""
+    }
+
+    private static var baseQuery: [CFString: Any] {
+        [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrService: service,
+            kSecAttrAccount: account,
+        ]
+    }
+
+    private static func readKeychainValue() throws -> String {
+        var query = baseQuery
+        query[kSecReturnData] = true
+        query[kSecMatchLimit] = kSecMatchLimitOne
+        query[kSecUseAuthenticationContext] = nonInteractiveContext()
+
+        var result: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        if status == errSecItemNotFound {
+            return ""
+        }
+        guard status == errSecSuccess else {
+            throw credentialError(status)
+        }
+        guard let data = result as? Data,
+              let value = String(data: data, encoding: .utf8)
+        else {
+            throw credentialError(errSecDecode)
+        }
+        return value.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func nonInteractiveContext() -> LAContext {
+        let context = LAContext()
+        context.interactionNotAllowed = true
+        return context
+    }
+
+    private static func credentialError(_ status: OSStatus) -> AICredentialStoreError {
+        let message = SecCopyErrorMessageString(status, nil) as String?
+        return AICredentialStoreError("Unable to access macOS Keychain: \(message ?? "error \(status)")")
+    }
+}
 
 struct AIChatMessage: Identifiable, Equatable, Codable {
     enum Role: String, Codable {
@@ -2499,7 +2647,7 @@ final class AIChatManager: ObservableObject {
     ]
 
     private func requestReply(for prompt: String, agentRun: AgentPreparedRun) async throws -> AIReply {
-        let config = try resolveServiceConfig()
+        let config = try await resolveServiceConfig()
         let decoded = try await performChatCompletion(
             config: config,
             messages: buildPayloadMessages(
@@ -2544,7 +2692,7 @@ final class AIChatManager: ObservableObject {
             throw FeatureError("Calendar access is unavailable. Enable it in Settings > Calendar before asking AI to write plans.")
         }
 
-        let config = try resolveServiceConfig()
+        let config = try await resolveServiceConfig()
         let decoded = try await performChatCompletion(
             config: config,
             messages: buildPayloadMessages(
@@ -2661,9 +2809,9 @@ final class AIChatManager: ObservableObject {
         return trimmed.isEmpty ? nil : trimmed
     }
 
-    private func resolveServiceConfig() throws -> AIServiceConfig {
+    private func resolveServiceConfig() async throws -> AIServiceConfig {
         let baseURL = Defaults[.aiServiceBaseURL].trimmingCharacters(in: .whitespacesAndNewlines)
-        let apiKey = Defaults[.aiServiceAPIKey].trimmingCharacters(in: .whitespacesAndNewlines)
+        let apiKey = await AIProviderCredentialStore.loadAPIKey()
         let requestedModel = Defaults[.aiServiceModel].trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard Defaults[.aiChatEnabled] else {

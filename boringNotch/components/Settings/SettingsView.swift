@@ -154,13 +154,15 @@ struct SettingsView: View {
 
 struct AISettings: View {
     @ObservedObject private var aiManager = AIChatManager.shared
+    @State private var aiServiceAPIKey = ""
+    @State private var aiCredentialError: String?
+    @State private var hasLoadedAICredential = false
 
     @Default(.aiChatEnabled) var aiChatEnabled
     @Default(.aiCalendarContextEnabled) var aiCalendarContextEnabled
     @Default(.aiCalendarWriteEnabled) var aiCalendarWriteEnabled
     @Default(.aiServiceBaseURL) var aiServiceBaseURL
     @Default(.aiServiceModel) var aiServiceModel
-    @Default(.aiServiceAPIKey) var aiServiceAPIKey
     @Default(.aiSystemPrompt) var aiSystemPrompt
     @Default(.aiChatPanelWidth) var aiChatPanelWidth
     @Default(.aiChatPanelHeight) var aiChatPanelHeight
@@ -178,6 +180,11 @@ struct AISettings: View {
                     .textFieldStyle(.roundedBorder)
                 SecureField("API Key", text: $aiServiceAPIKey)
                     .textFieldStyle(.roundedBorder)
+                if let aiCredentialError {
+                    Text(aiCredentialError)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
             } header: {
                 Text("OpenAI-compatible API")
             } footer: {
@@ -283,6 +290,29 @@ struct AISettings: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("AI")
+        .onAppear {
+            guard !hasLoadedAICredential else { return }
+            Task {
+                let storedAPIKey = await AIProviderCredentialStore.loadAPIKey()
+                guard !Task.isCancelled else { return }
+                aiServiceAPIKey = storedAPIKey
+                await Task.yield()
+                hasLoadedAICredential = true
+            }
+        }
+        .task(id: aiServiceAPIKey) {
+            guard hasLoadedAICredential else { return }
+            do {
+                try await Task.sleep(for: .milliseconds(350))
+                try Task.checkCancellation()
+                try await AIProviderCredentialStore.saveAPIKey(aiServiceAPIKey)
+                aiCredentialError = nil
+            } catch is CancellationError {
+                return
+            } catch {
+                aiCredentialError = error.localizedDescription
+            }
+        }
     }
 }
 
