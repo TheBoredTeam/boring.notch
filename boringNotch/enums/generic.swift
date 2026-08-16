@@ -23,6 +23,17 @@ public enum NotchViews {
     case shelf
 }
 
+public enum HomeTabs {
+    case none
+    case clock
+    case player
+}
+
+public enum TabSelectionType {
+    case main
+    case home
+}
+
 enum DownloadIndicatorStyle: String, Defaults.Serializable {
     case progress = "Progress"
     case percentage = "Percentage"
