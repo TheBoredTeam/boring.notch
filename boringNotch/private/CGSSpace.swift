@@ -47,18 +47,18 @@ public final class CGSSpace {
 fileprivate typealias CGSConnectionID = UInt
 fileprivate typealias CGSSpaceID = UInt64
 @_silgen_name("_CGSDefaultConnection")
-fileprivate func _CGSDefaultConnection() -> CGSConnectionID
+nonisolated fileprivate func _CGSDefaultConnection() -> CGSConnectionID
 @_silgen_name("CGSSpaceCreate")
-fileprivate func CGSSpaceCreate(_ cid: CGSConnectionID, _ unknown: Int, _ options: NSDictionary?) -> CGSSpaceID
+nonisolated fileprivate func CGSSpaceCreate(_ cid: CGSConnectionID, _ unknown: Int, _ options: NSDictionary?) -> CGSSpaceID
 @_silgen_name("CGSSpaceDestroy")
-fileprivate func CGSSpaceDestroy(_ cid: CGSConnectionID, _ space: CGSSpaceID)
+nonisolated fileprivate func CGSSpaceDestroy(_ cid: CGSConnectionID, _ space: CGSSpaceID)
 @_silgen_name("CGSSpaceSetAbsoluteLevel")
-fileprivate func CGSSpaceSetAbsoluteLevel(_ cid: CGSConnectionID, _ space: CGSSpaceID, _ level: Int)
+nonisolated fileprivate func CGSSpaceSetAbsoluteLevel(_ cid: CGSConnectionID, _ space: CGSSpaceID, _ level: Int)
 @_silgen_name("CGSAddWindowsToSpaces")
-fileprivate func CGSAddWindowsToSpaces(_ cid: CGSConnectionID, _ windows: NSArray, _ spaces: NSArray)
+nonisolated fileprivate func CGSAddWindowsToSpaces(_ cid: CGSConnectionID, _ windows: NSArray, _ spaces: NSArray)
 @_silgen_name("CGSRemoveWindowsFromSpaces")
-fileprivate func CGSRemoveWindowsFromSpaces(_ cid: CGSConnectionID, _ windows: NSArray, _ spaces: NSArray)
+nonisolated fileprivate func CGSRemoveWindowsFromSpaces(_ cid: CGSConnectionID, _ windows: NSArray, _ spaces: NSArray)
 @_silgen_name("CGSHideSpaces")
-fileprivate func CGSHideSpaces(_ cid: CGSConnectionID, _ spaces: NSArray)
+nonisolated fileprivate func CGSHideSpaces(_ cid: CGSConnectionID, _ spaces: NSArray)
 @_silgen_name("CGSShowSpaces")
-fileprivate func CGSShowSpaces(_ cid: CGSConnectionID, _ spaces: NSArray)
+nonisolated fileprivate func CGSShowSpaces(_ cid: CGSConnectionID, _ spaces: NSArray)

@@ -17,6 +17,23 @@ enum TempFileType {
 
 class TemporaryFileStorageService {
     static let shared = TemporaryFileStorageService()
+
+    private let rootDirectory: URL
+
+    private init() {
+        rootDirectory = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .appendingPathComponent("theboringteam.boringnotch", isDirectory: true)
+
+        do {
+            try FileManager.default.createDirectory(
+                at: rootDirectory,
+                withIntermediateDirectories: true,
+                attributes: [.posixPermissions: 0o700]
+            )
+        } catch {
+            NSLog("❌ Failed to create managed temporary directory: %@", error.localizedDescription)
+        }
+    }
     
     // MARK: - Public Interface
     
@@ -29,9 +46,7 @@ class TemporaryFileStorageService {
     }
     
     func removeTemporaryFileIfNeeded(at url: URL) {
-        let tempDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
-
-        guard url.path.hasPrefix(tempDirectory.path) else {
+        guard isManagedTemporaryURL(url) else {
             print("Attempted to remove temporary file outside temp directory: \(url.path)")
             return
         }
@@ -58,18 +73,17 @@ class TemporaryFileStorageService {
     // MARK: - Private Implementation
     
     private func createTempFile(for type: TempFileType) -> URL? {
-        let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
         let uuid = UUID().uuidString
         
         switch type {
         case .data(let data, let suggestedName):
-            let filename = suggestedName ?? ".dat"
-            let dirURL = tempDir.appendingPathComponent(uuid, isDirectory: true)
+            let filename = sanitizedFilename(suggestedName, fallback: "untitled.dat")
+            let dirURL = rootDirectory.appendingPathComponent(uuid, isDirectory: true)
             let fileURL = dirURL.appendingPathComponent(filename)
             
             do {
-                try FileManager.default.createDirectory(at: dirURL, withIntermediateDirectories: true)
-                try data.write(to: fileURL)
+                try createPrivateDirectory(at: dirURL)
+                try data.write(to: fileURL, options: .atomic)
                 return fileURL
             } catch {
                 print("Error: \(error)")
@@ -78,7 +92,7 @@ class TemporaryFileStorageService {
             
         case .text(let string):
             let filename = "\(uuid).txt"
-            let dirURL = tempDir.appendingPathComponent(uuid, isDirectory: true)
+            let dirURL = rootDirectory.appendingPathComponent(uuid, isDirectory: true)
             let fileURL = dirURL.appendingPathComponent(filename)
             
             guard let data = string.data(using: .utf8) else {
@@ -87,8 +101,8 @@ class TemporaryFileStorageService {
             }
             
             do {
-                try FileManager.default.createDirectory(at: dirURL, withIntermediateDirectories: true)
-                try data.write(to: fileURL)
+                try createPrivateDirectory(at: dirURL)
+                try data.write(to: fileURL, options: .atomic)
                 return fileURL
             } catch {
                 print("Error: \(error)")
@@ -96,19 +110,21 @@ class TemporaryFileStorageService {
             }
             
         case .url(let url):
-            let filename = "\(url.host ?? uuid).webloc"
-            let dirURL = tempDir.appendingPathComponent(uuid, isDirectory: true)
+            let filename = sanitizedFilename(
+                url.host.map { "\($0).webloc" },
+                fallback: "\(uuid).webloc"
+            )
+            let dirURL = rootDirectory.appendingPathComponent(uuid, isDirectory: true)
             let fileURL = dirURL.appendingPathComponent(filename)
             
-            let weblocContent = createWeblocContent(for: url)
-            guard let data = weblocContent.data(using: String.Encoding.utf8) else {
+            guard let data = createWeblocData(for: url) else {
                 print("❌ Failed to create webloc data")
                 return nil
             }
             
             do {
-                try FileManager.default.createDirectory(at: dirURL, withIntermediateDirectories: true)
-                try data.write(to: fileURL)
+                try createPrivateDirectory(at: dirURL)
+                try data.write(to: fileURL, options: .atomic)
                 return fileURL
             } catch {
                 print("Error: \(error)")
@@ -127,12 +143,11 @@ class TemporaryFileStorageService {
         }
     }
     func createZip(from urls: [URL], suggestedName: String? = nil) async -> URL? {
-        let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
         let uuid = UUID().uuidString
-        let workingDir = tempDir.appendingPathComponent("zip_\(uuid)", isDirectory: true)
+        let workingDir = rootDirectory.appendingPathComponent("zip_\(uuid)", isDirectory: true)
 
         do {
-            try FileManager.default.createDirectory(at: workingDir, withIntermediateDirectories: true)
+            try createPrivateDirectory(at: workingDir)
         } catch {
             print("❌ Failed to create zip working directory: \(error)")
             return nil
@@ -165,7 +180,7 @@ class TemporaryFileStorageService {
                 let archiveURL = workingDir.appendingPathComponent(archiveName)
                 // Run zip from the parent directory so the folder is stored as top-level entry
                 let parent = src.deletingLastPathComponent()
-                let args = ["-r", "-q", archiveURL.path, baseName]
+                let args = ["-r", "-q", archiveURL.path, "./\(baseName)"]
                 let ok = runZip(arguments: args, currentDirectory: parent)
                 if ok {
                     return archiveURL
@@ -178,7 +193,7 @@ class TemporaryFileStorageService {
                 let archiveURL = workingDir.appendingPathComponent(archiveName)
                 let parent = src.deletingLastPathComponent()
                 // -j to junk paths and store only the file
-                let args = ["-j", "-q", archiveURL.path, baseName]
+                let args = ["-j", "-q", archiveURL.path, "./\(baseName)"]
                 let ok = runZip(arguments: args, currentDirectory: parent)
                 if ok {
                     return archiveURL
@@ -204,7 +219,7 @@ class TemporaryFileStorageService {
             }
         }
 
-        let archiveName = suggestedName ?? "Archive.zip"
+        let archiveName = zipFilename(from: suggestedName)
         let archiveURL = workingDir.appendingPathComponent(archiveName)
         let args = ["-r", "-q", archiveURL.path, "."]
         let ok = runZip(arguments: args, currentDirectory: workingDir)
@@ -229,16 +244,43 @@ class TemporaryFileStorageService {
     // MARK: - Content Creation Helpers
     
     
-    private func createWeblocContent(for url: URL) -> String {
-        return """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-        <dict>
-            <key>URL</key>
-            <string>\(url.absoluteString)</string>
-        </dict>
-        </plist>
-        """
+    private func createWeblocData(for url: URL) -> Data? {
+        try? PropertyListSerialization.data(
+            fromPropertyList: ["URL": url.absoluteString],
+            format: .xml,
+            options: 0
+        )
+    }
+
+    private func createPrivateDirectory(at url: URL) throws {
+        try FileManager.default.createDirectory(
+            at: url,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: 0o700]
+        )
+    }
+
+    private func sanitizedFilename(_ proposedName: String?, fallback: String) -> String {
+        guard let proposedName else { return fallback }
+
+        let filename = URL(fileURLWithPath: proposedName).lastPathComponent
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !filename.isEmpty, filename != ".", filename != ".." else { return fallback }
+        return filename
+    }
+
+    private func zipFilename(from proposedName: String?) -> String {
+        let filename = sanitizedFilename(proposedName, fallback: "Archive.zip")
+        return filename.lowercased().hasSuffix(".zip") ? filename : "\(filename).zip"
+    }
+
+    private func isManagedTemporaryURL(_ url: URL) -> Bool {
+        let root = rootDirectory.resolvingSymlinksInPath().standardizedFileURL
+        let candidate = url.resolvingSymlinksInPath().standardizedFileURL
+        let rootComponents = root.pathComponents
+        let candidateComponents = candidate.pathComponents
+
+        return candidateComponents.count > rootComponents.count
+            && candidateComponents.prefix(rootComponents.count).elementsEqual(rootComponents)
     }
 }

@@ -38,6 +38,7 @@ final class MediaKeyInterceptor {
 
     // MARK: - Accessibility (via XPC)
 
+    @MainActor
     func requestAccessibilityAuthorization() {
         XPCHelperClient.shared.requestAccessibilityAuthorization()
     }

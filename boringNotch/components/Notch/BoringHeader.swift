@@ -16,7 +16,10 @@ struct BoringHeader: View {
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
+                if coordinator.alwaysShowTabs
+                    || ((!tvm.isEmpty) && Defaults[.boringShelf])
+                    || !Defaults[.enabledProductivityWidgets].isEmpty
+                {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()
@@ -81,6 +84,8 @@ struct BoringHeader: View {
                                     }
                             }
                             .buttonStyle(PlainButtonStyle())
+                            .accessibilityLabel("Settings")
+                            .accessibilityIdentifier("notch-settings-button")
                         }
                         if Defaults[.showBatteryIndicator] {
                             BoringBatteryView(

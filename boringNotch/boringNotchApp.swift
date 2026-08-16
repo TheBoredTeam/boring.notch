@@ -115,7 +115,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @MainActor
-    func onScreenLocked(_ notification: Notification) {
+    func onScreenLocked() {
         isScreenLocked = true
         if !Defaults[.showOnLockScreen] {
             cleanupWindows()
@@ -125,7 +125,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @MainActor
-    func onScreenUnlocked(_ notification: Notification) {
+    func onScreenUnlocked() {
         isScreenLocked = false
         if !Defaults[.showOnLockScreen] {
             adjustWindowPosition(changeAlpha: true)
@@ -313,6 +313,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
 
+        let isUITesting = ProcessInfo.processInfo.arguments.contains("--uitesting")
+        if isUITesting {
+            coordinator.firstLaunch = false
+            coordinator.alwaysShowTabs = true
+            Defaults[.productivityWidgetOrder] = ProductivityWidget.allCases
+            Defaults[.enabledProductivityWidgets] = ProductivityWidget.allCases
+            Defaults[.settingsIconInNotch] = true
+            // Keep UI automation deterministic and offline. The cards remain visible,
+            // but no permission dialogs, network calls, or hardware polling can race it.
+            Defaults[.enableDownloadListener] = false
+            Defaults[.bluetoothLiveActivityEnabled] = false
+            Defaults[.weatherEnabled] = ProcessInfo.processInfo.arguments.contains(
+                "--uitesting-weather-configuration"
+            )
+            Defaults[.weatherUseCurrentLocation] = false
+            Defaults[.clipboardHistoryEnabled] = false
+            Defaults[.meetingCardEnabled] = false
+            NSApp.setActivationPolicy(.regular)
+        }
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(screenConfigurationDidChange),
@@ -341,8 +361,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         observers.append(NotificationCenter.default.addObserver(
             forName: Notification.Name.automaticallySwitchDisplayChanged, object: nil, queue: nil
         ) { [weak self] _ in
-            guard let self = self, let window = self.window else { return }
             Task { @MainActor in
+                guard let self, let window = self.window else { return }
                 window.alphaValue = self.coordinator.selectedScreenUUID == self.coordinator.preferredScreenUUID ? 1 : 0
             }
         })
@@ -369,17 +389,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Use closure-based observers for DistributedNotificationCenter and keep tokens for removal
         screenLockedObserver = DistributedNotificationCenter.default().addObserver(
             forName: NSNotification.Name(rawValue: "com.apple.screenIsLocked"),
-            object: nil, queue: .main) { [weak self] notification in
+            object: nil, queue: .main) { [weak self] _ in
                 Task { @MainActor in
-                    self?.onScreenLocked(notification)
+                    self?.onScreenLocked()
                 }
         }
 
         screenUnlockedObserver = DistributedNotificationCenter.default().addObserver(
             forName: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"),
-            object: nil, queue: .main) { [weak self] notification in
+            object: nil, queue: .main) { [weak self] _ in
                 Task { @MainActor in
-                    self?.onScreenUnlocked(notification)
+                    self?.onScreenUnlocked()
                 }
         }
 
@@ -465,7 +485,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupDragDetectors()
 
-        if coordinator.firstLaunch {
+        if isUITesting {
+            vm.open()
+            coordinator.currentView = .productivity
+            window?.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+        }
+
+        if coordinator.firstLaunch && !isUITesting {
             DispatchQueue.main.async {
                 self.showOnboardingWindow()
             }
