@@ -46,7 +46,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Lecture en cours” était la seule option dans les versions précédentes et fonctionne avec toutes les applications multimédias."
+            "value" : "« À l'écoute » était la seule option des versions précédentes et fonctionne avec toutes les applications multimédias."
           }
         },
         "he" : {
@@ -94,7 +94,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "'Tocando agora' era a única opção em versões anteriores e funciona em todos os aplicativos de mídia."
+            "value" : "'Reproduzindo' era a única opção em versões anteriores e funciona em todos os aplicativos de mídia."
           }
         },
         "ru" : {
@@ -145,233 +145,8 @@
         }
       }
     },
-    "%.0f seconds" : {
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f sekund"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f Sekunden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f seconds"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f seconds"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f segundos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f secondes"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f שניות"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f másodperc"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f secondi"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f秒"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f 초"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f seconden"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f sekundy"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f segundos"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f сек"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f saniye"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f секунд"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f 秒"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.0f 秒"
-          }
-        }
-      }
-    },
-    "%.1fs" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1fs"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1fs"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1fs"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1fs"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1fs"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1f с"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1fс"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1fs"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1fs"
-          }
-        }
-      }
-    },
-    "%.1fx" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1fx"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1fx"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1fx"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1fx"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1f×"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1fx"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1fx"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1fx"
-          }
-        }
-      }
+    "%@x" : {
+      "comment" : "Animation speed multiplier."
     },
     "%@" : {
       "localizations" : {
@@ -389,22 +164,6 @@
         }
       }
     },
-    "%d%%" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d%%"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d%%"
-          }
-        }
-      }
-    },
     "%lld" : {
       "localizations" : {
         "en" : {
@@ -417,22 +176,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld"
-          }
-        }
-      }
-    },
-    "%lld%%" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%%"
           }
         }
       }
@@ -638,7 +381,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cor de destaque"
+            "value" : "Cor secundária"
           }
         },
         "ru" : {
@@ -811,6 +554,12 @@
             "value" : "Accès Accessibilité requis"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アクセシビリティへのアクセスが必要です"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -820,7 +569,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Acesso à Acessibilidade necessário"
+            "value" : "Permissões de Acessibilidade Necessárias"
           }
         },
         "ru" : {
@@ -1528,7 +1277,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Permitir acesso"
+            "value" : "Permitir Acesso"
           }
         },
         "ru" : {
@@ -1758,7 +1507,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Permitir mostrar guias"
+            "value" : "Sempre mostrar abas"
           }
         },
         "ru" : {
@@ -1817,6 +1566,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Velocità animazione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アニメーションの速度"
           }
         },
         "nl" : {
@@ -2238,10 +1993,22 @@
             "value" : "Automatico"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Automatisch"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automático"
           }
         },
         "ru" : {
@@ -2648,6 +2415,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rétro-éclairage"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バックライト"
           }
         },
         "nl" : {
@@ -3210,6 +2983,12 @@
             "value" : "Boring Notch"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3263,6 +3042,18 @@
     "Boring Notch can check for updates in the background. You can still check manually from the menu bar at any time." : {
       "comment" : "A description of the software update permission.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch kann im Hintergrund nach Updates suchen. Sie können jederzeit auch manuell über die Menüleiste nach Updates suchen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch puede comprobar si hay actualizaciones en segundo plano. Puede comprobar manualmente desde la barra del menú en cualquier momento."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3275,10 +3066,22 @@
             "value" : "Boring Notch può controllare gli aggiornamenti in background. È comunque possibile controllare manualmente dalla barra dei menu in qualsiasi momento."
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notchはバックグラウンドでアップデートを確認します。また、メニューバーからいつでも確認することもできます。"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boring Notch kan op de achtergrond controleren of er updates beschikbaar zijn. Je kunt dit op elk moment ook handmatig controleren via de menubalk."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Boring Notch pode verificar atualizações em segundo plano. Mesmo assim, você ainda pode verificar manualmente a partir da barra de menus a qualquer momento."
           }
         },
         "ru" : {
@@ -3291,6 +3094,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boring Notch arka planda güncellemeleri denetleyebilir. Güncellemeleri menü çubuğundan istediğiniz zaman denetleyebilirsiniz."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch може перевіряти наявність оновлень у фоновому режимі. Ви також можете в будь-який момент перевірити їх вручну через інструментальну панель."
           }
         },
         "zh-Hans" : {
@@ -3340,6 +3149,12 @@
           }
         },
         "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "boring.notch"
+          }
+        },
+        "ja" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "boring.notch"
@@ -3421,6 +3236,12 @@
             "value" : "Luminosità"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "明るさ"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3483,6 +3304,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Source de luminosité"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "明るさのソース"
           }
         },
         "nl" : {
@@ -3883,6 +3710,9 @@
         }
       }
     },
+    "Camera" : {
+      "comment" : "A label for the camera picker."
+    },
     "Cancel" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4116,6 +3946,12 @@
     },
     "Changing the app language requires restarting Boring Notch." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Ändern der App-Sprache erfordert einen Neustart von Boring Notch."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4128,10 +3964,22 @@
             "value" : "La modification de la langue nécessite le redémarrage de l'application."
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリの言語を変更するにはBoring Notchを再起動する必要があります。"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Om de taal van de app te wijzigen, moet je Boring Notch opnieuw opstarten."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "É preciso reiniciar o Boring Notch para alterar o idioma."
           }
         },
         "ru" : {
@@ -4144,6 +3992,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uygulama dilini değiştirmek Boring Notch'u yeniden başlatır."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зміна мови програми вимагає перезапуску Boring Notch."
           }
         },
         "zh-Hans" : {
@@ -4304,6 +4158,12 @@
             "value" : "Batteria in ricarica"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "充電中"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4462,10 +4322,22 @@
     },
     "Check for updates automatically" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch nach Updates suchen"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vérifier les mises à jour automatiquement"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アップデートを自動的に確認する"
           }
         },
         "nl" : {
@@ -4474,10 +4346,22 @@
             "value" : "Controleer automatisch op updates"
           }
         },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verificar atualizações automaticamente"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Проверять обновления автоматически"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Автоматично перевіряти наявність оновлень"
           }
         },
         "zh-Hans" : {
@@ -6125,6 +6009,12 @@
             "value" : "Contrôle des sources"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コントロールソース"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6619,123 +6509,8 @@
         }
       }
     },
-    "Custom notch size - %.0f" : {
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vlastní velikost výřezu - %.0f"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Benutzerdefinierte Notchgröße - %.0f"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Custom notch size - %.0f"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Custom notch size - %.0f"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tamaño personalizado del notch - %.0f"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Personnaliser la taille de l'encoche - %.0f"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "גודל מגרעת מותאם - %.0f"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Egyedi notch méret - %.0f"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dimensione notch personalizzata - %.0f"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "カスタムノッチサイズ - %.0f"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "사용자 정의 노치 사이즈 - %.0f"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aangepaste inkepinggrootte - %.0f"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Niestandardowy rozmiar notcha - %.0f"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tamanho personalizado do notch - %.0f"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Размер выреза вручную — %.0f"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Özel çentik boyutu - %.0f"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Користувацький розмір брові - %.0f"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自定义Notch大小 - %.0f"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自訂劉海尺寸 - %.0f"
-          }
-        }
-      }
+    "Custom notch size - %@" : {
+      "comment" : "Slider label showing the custom notch height."
     },
     "Customize in Settings" : {
       "localizations" : {
@@ -6944,7 +6719,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Налаштуйте, які елементи керування відображатимуться в музичному програвачі. Гучність збільшується, коли активна."
+            "value" : "Налаштуйте, які елементи керування відображатимуться в музичному плеєрі. Гучність розгортається, коли вона активна."
           }
         },
         "zh-Hans" : {
@@ -7557,6 +7332,12 @@
     "Download and install updates automatically" : {
       "comment" : "A checkbox that allows users to download and install updates automatically.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisches herunterladen und installieren von Updates"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7569,16 +7350,34 @@
             "value" : "Scarica e installa gli aggiornamenti automaticamente"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アップデートを自動的にダウンロードしてインストールする"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Updates automatisch downloaden en installeren"
           }
         },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baixar e instalar atualizações automaticamente"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Скачивать и устанавливать обновления автоматически"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завантажувати та встановлювати оновлення автоматично"
           }
         },
         "zh-Hans" : {
@@ -8336,6 +8135,12 @@
             "value" : "Abilita specchio"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring mirrorを有効にする"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8643,6 +8448,12 @@
             "value" : "Activer le dégradé"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "グラデーションを有効にする"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8659,6 +8470,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Включить градиент"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увімкнути градієнт"
           }
         },
         "zh-Hans" : {
@@ -8723,6 +8540,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Attiva la vibrazione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "触覚フィードバックを有効にする"
           }
         },
         "ko" : {
@@ -8837,6 +8660,12 @@
             "value" : "Abilita scaffale"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "shelfを有効にする"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8941,6 +8770,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abilita ombra della finestra"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウィンドウの影を有効にする"
           }
         },
         "ko" : {
@@ -9055,6 +8890,12 @@
             "value" : "Goditi il tuo tempo libero!"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自由な時間を楽しんでください！"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9153,6 +8994,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Area di rilevamento drag estesa"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ドラッグの検出領域を拡大"
           }
         },
         "ko" : {
@@ -9259,6 +9106,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Estendi area di attivazione col mouse"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ホバーの領域を拡大"
           }
         },
         "ko" : {
@@ -9374,6 +9227,12 @@
             "value" : "Estensioni"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拡張機能"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9472,6 +9331,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "I file lasciati sullo scaffale saranno condivisi tramite questo servizio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "shelfにドロップされたファイルはこのサービスを通じて共有されます"
           }
         },
         "ko" : {
@@ -9586,6 +9451,12 @@
             "value" : "Fine"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完了"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9642,6 +9513,12 @@
         }
       }
     },
+    "Flip video" : {
+      "comment" : "A toggle to flip the video."
+    },
+    "Frame shape" : {
+      "comment" : "A label for the shape of the mirror frame."
+    },
     "Full charge" : {
       "localizations" : {
         "cs" : {
@@ -9674,6 +9551,12 @@
             "value" : "Carica completa"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "満充電"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9690,6 +9573,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Полный заряд"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повний заряд"
           }
         },
         "zh-Hans" : {
@@ -9754,6 +9643,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Comportamento a schermo intero"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全画面表示動作"
           }
         },
         "ko" : {
@@ -9868,6 +9763,12 @@
             "value" : "Generali"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一般"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9978,6 +9879,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Controllo gesti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ジェスチャーコントロール"
           }
         },
         "ko" : {
@@ -10092,6 +9999,12 @@
             "value" : "Sensibilità gesti"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ジェスチャーの感度"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10204,6 +10117,12 @@
             "value" : "Inizia"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始する"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10298,6 +10217,12 @@
             "value" : "GitHub"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10311,6 +10236,12 @@
           }
         },
         "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub"
+          }
+        },
+        "uk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "GitHub"
@@ -10389,6 +10320,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sfumatura"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "グラデーション"
           }
         },
         "ko" : {
@@ -10479,6 +10416,12 @@
             "value" : "Concedi l'accesso"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アクセスを許可"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10495,6 +10438,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Предоставить доступ"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Надати доступ"
           }
         },
         "zh-Hans" : {
@@ -10531,6 +10480,12 @@
             "value" : "Accorder l'accès à l'accès pour que les commandes de luminosité du clavier intégrées puissent être interceptées."
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アクセシビリティへのアクセスを許可することで、内蔵のキーボードの明るさコントロールを傍受できます。"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10547,6 +10502,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Предоставьте доступ к Универсальному доступу, чтобы приложение могло перехватывать клавиши управления яркостью клавиатуры."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Надайте доступ до Параметрів доступності, щоб система могла перехоплювати сигнали вбудованих клавіш керування яскравістю клавіатури."
           }
         },
         "zh-Hans" : {
@@ -10617,6 +10578,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nascondi gli eventi giornalieri"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "終日の予定を非表示"
           }
         },
         "ko" : {
@@ -10717,6 +10684,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Teljesített emlékeztetők elrejtése"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完了済みのリマインダーを非表示"
           }
         },
         "ko" : {
@@ -10825,6 +10798,12 @@
             "value" : "Nascondi per tutte le app"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのアプリで非表示"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10917,6 +10896,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nascondi solo per app multimediali"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メディアアプリのみ非表示"
           }
         },
         "ko" : {
@@ -11113,6 +11098,12 @@
             "value" : "Nascondi la barra del titolo"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "タイトルバーを非表示"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11177,6 +11168,12 @@
             "value" : "Masquer les fenêtres sur les affichages non-encoches du Mission Control"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ノッチ非搭載のディスプレイのウィンドウをMission Controlから非表示にする"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11193,6 +11190,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Скрывать окна на дисплеях без выреза из Mission Control"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приховати вікна на дисплеях без чубчика з Mission Control"
           }
         },
         "zh-Hans" : {
@@ -11264,6 +11267,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gerarchico"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "階層"
           }
         },
         "ko" : {
@@ -11378,6 +11387,12 @@
             "value" : "Alta"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11476,6 +11491,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ritardo passaggio del mouse"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カーソルを重ねた時の遅延"
           }
         },
         "ko" : {
@@ -11600,6 +11621,12 @@
             "value" : "In corso"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "進行中"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11711,6 +11738,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "In linea"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インライン"
           }
         },
         "ko" : {
@@ -11826,6 +11859,12 @@
             "value" : "Estensioni installate"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インストール済みの拡張機能"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11896,6 +11935,12 @@
             "value" : "Interaction"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インタラクション"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11912,6 +11957,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Взаимодействие"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Взаємодія"
           }
         },
         "zh-Hans" : {
@@ -11931,10 +11982,22 @@
     "Keep Boring Notch Updated" : {
       "comment" : "A title for a view that allows users to configure Boring Notch's update preferences.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Immer Boring Notch aktualisiert haben"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Garder Boring Notch à jour"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notchを最新に保つ"
           }
         },
         "nl" : {
@@ -11943,10 +12006,22 @@
             "value" : "Houd Boring Notch up-to-date"
           }
         },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantenha o Boring Notch atualizado"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Сохранять Boring Notch обновленным"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зберігати Boring Notch оновленим"
           }
         },
         "zh-Hans" : {
@@ -11958,7 +12033,39 @@
       }
     },
     "Keep newer shelf items in front" : {
-      "comment" : "A toggle that allows users to reverse the order of shelf items."
+      "comment" : "A toggle that allows users to reverse the order of shelf items.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neuere Artikel im Regal vorne halten"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しいshelfのアイテムを最前で保つ"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Houd nieuwere items vooraan op de plank"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantenha itens da estante mais recentes na frente"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тримати новіші речі попереду"
+          }
+        }
+      }
     },
     "Keyboard Source" : {
       "localizations" : {
@@ -11980,6 +12087,12 @@
             "value" : "Source du clavier"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キーボードソース"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11998,6 +12111,12 @@
             "value" : "Источник ввода с клавиатуры"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Джерело клавіатури"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12014,6 +12133,12 @@
     },
     "Language" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprache"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12026,16 +12151,34 @@
             "value" : "Langue"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "言語"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Taal"
           }
         },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idioma"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Язык"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Мова"
           }
         },
         "zh-Hans" : {
@@ -12088,6 +12231,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Più tardi"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "後で"
           }
         },
         "ko" : {
@@ -12154,6 +12303,12 @@
             "value" : "Lancer au démarrage"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ログイン時に起動"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12176,6 +12331,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Oturum açıldığında başlat"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запускати під час входу"
           }
         },
         "zh-Hans" : {
@@ -12234,6 +12395,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Anteprima di layout"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "レイアウトのプレビュー"
           }
         },
         "ko" : {
@@ -12340,6 +12507,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bassa"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "低"
           }
         },
         "ko" : {
@@ -12454,6 +12627,12 @@
             "value" : "Modalità Bassa Potenza"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "低電力モード"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12564,6 +12743,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Realizzato col 🫶🏻 da not so boring not.people"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "not boring not.peopleによって🫶とともに作られました"
           }
         },
         "ko" : {
@@ -12678,6 +12863,12 @@
             "value" : "Segna come completato"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完了としてマーク"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12790,6 +12981,12 @@
             "value" : "Segna come incompleto"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未完了としてマーク"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12890,6 +13087,12 @@
             "value" : "Adatta altezza barra dei menu"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メニューバーの高さを一致させる"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12984,6 +13187,12 @@
             "value" : "Adatta altezza reale Notch"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "実際のノッチの高さと一致させる"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13040,125 +13249,28 @@
         }
       }
     },
-    "Max Capacity: %lld%%" : {
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Maximální kapacita: %lld%%"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Max. Kapazität: %lld%%"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Max Capacity: %lld%%"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Max Capacity: %lld%%"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capacidad máxima: %lld%%"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capacité maximale : %lld%%"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קיבולת מקסימלית: %lld%%"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Max kapacitás: %lld%%"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capacità Massima: %lld%%"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "최대 용량: %lld%%"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Maximale capaciteit: %lld%%"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Maksymalna pojemność: %lld%%"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capacidade máxima: %lld%%"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Максимальная ёмкость: %lld %%"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Maksimum Kapasite: %lld%%"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Максимальна місткість: %lld%%"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最大容量：%lld%%"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最大容量：%lld%%"
-          }
-        }
-      }
+    "Max Capacity: %@" : {
+      "comment" : "Battery maximum capacity."
     },
     "Max Capacity: Not Available" : {
       "comment" : "A label displayed when the maximum capacity of the battery is not available.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maximale Kapazität: Nicht verfügbar"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Capacité maximale : Indisponible"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最大容量: 不明"
           }
         },
         "nl" : {
@@ -13177,6 +13289,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Максимальная ёмкость: недоступно"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Максимальна місткість: недоступне"
           }
         },
         "zh-Hans" : {
@@ -13245,6 +13363,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Media"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メディア"
           }
         },
         "ko" : {
@@ -13359,6 +13483,12 @@
             "value" : "Controlli multimediali"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メディアコントロール"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13469,6 +13599,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Timeout inattività media"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メディアのタイムアウト"
           }
         },
         "ko" : {
@@ -13583,6 +13719,12 @@
             "value" : "Riproduzione media attività live"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メディア再生のライブアクティビティ"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13693,6 +13835,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sorgente multimediale"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メディアソース"
           }
         },
         "ko" : {
@@ -13807,6 +13955,12 @@
             "value" : "Media"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13893,6 +14047,12 @@
             "value" : "Micro"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マイク"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13915,6 +14075,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mikrofon"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Мікрофон"
           }
         },
         "zh-Hans" : {
@@ -13985,6 +14151,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mic %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マイク %@"
           }
         },
         "ko" : {
@@ -14099,6 +14271,12 @@
             "value" : "Specchio"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ミラー"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14155,218 +14333,6 @@
         }
       }
     },
-    "Mirror camera" : {
-      "comment" : "A picker that lets the user select which camera to use for the boring mirror.",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zrcadlit kameru"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kamera spiegeln"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Caméra miroir"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spiegel camera"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Камера зеркала"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "选择相机"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "選擇鏡頭"
-          }
-        }
-      }
-    },
-    "Mirror shape" : {
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tvar zrcadla"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spiegelform"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mirror shape"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mirror shape"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Forma del espejo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Forme du miroir"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "צורת מראה"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tükör alakja"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Forma dello specchio"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "거울 모양"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spiegel vorm"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kształt lustra"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Formato do espelho"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Форма зеркала"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ayna şekli"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Форма дзеркала"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "镜子大小"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "鏡子大小"
-          }
-        }
-      }
-    },
-    "Mirror video" : {
-      "comment" : "A toggle that enables or disables mirroring the video feed.",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zrcadlit video"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Video spiegeln"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reflejar vídeo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inverser la vidéo"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Video spiegelen"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отразить видео"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "镜像画面"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "鏡像畫面"
-          }
-        }
-      }
-    },
     "Miscellaneous" : {
       "localizations" : {
         "de" : {
@@ -14387,6 +14353,12 @@
             "value" : "Divers"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多種多様の"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14403,6 +14375,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Разное"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Інше"
           }
         },
         "zh-Hans" : {
@@ -14473,6 +14451,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sorgente Musica"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ミュージックソース"
           }
         },
         "ko" : {
@@ -14587,6 +14571,12 @@
             "value" : "mutato"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ミュート"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14691,6 +14681,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Muto"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ミュート"
           }
         },
         "ko" : {
@@ -14798,6 +14794,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nome"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "名前"
           }
         },
         "ko" : {
@@ -14912,6 +14914,12 @@
             "value" : "Non nascondere mai"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "非表示にしない"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15016,6 +15024,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nessun evento"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "イベントはありません"
           }
         },
         "ko" : {
@@ -15128,6 +15142,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Non ci sono eventi"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日の予定はありません"
           }
         },
         "ko" : {
@@ -15243,6 +15263,12 @@
             "value" : "Nessuna estensione installata"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拡張機能はインストールされていません"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15327,6 +15353,12 @@
             "value" : "Normaliser la direction des gestes"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ジェスチャーの方向を正規化"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15343,6 +15375,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Нормализовать направление жестов"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нормалізувати напрямок жестів"
           }
         },
         "zh-Hans" : {
@@ -15385,6 +15423,12 @@
             "value" : "Pas en charge"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未充電"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15407,6 +15451,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Şarj olmuyor"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не заряджається"
           }
         },
         "zh-Hans" : {
@@ -15479,6 +15529,12 @@
             "value" : "Non Ora"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今はしない"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15513,6 +15569,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Şimdi Değil"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не зараз"
           }
         },
         "zh-Hans" : {
@@ -15555,6 +15617,12 @@
             "value" : "Animation de l'encoche"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ノッチアニメーション"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15577,6 +15645,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Çentik animasyonu"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Анімація чубчику"
           }
         },
         "zh-Hans" : {
@@ -15647,6 +15721,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Comportamento notch"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ノッチの動作"
           }
         },
         "ko" : {
@@ -15755,6 +15835,12 @@
             "value" : "Altezza del notch su display senza notch"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ノッチ非搭載ディスプレイのノッチの高さ"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15859,6 +15945,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Altezza del notch sui display con notch"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ノッチ搭載ディスプレイのノッチの高さ"
           }
         },
         "ko" : {
@@ -15967,6 +16059,12 @@
             "value" : "Dimensione del Notch"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ノッチのサイズ"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16049,6 +16147,12 @@
             "value" : "Lecture en cours"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再生中"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16071,6 +16175,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Şimdi çalıyor"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зараз грає"
           }
         },
         "zh-Hans" : {
@@ -16145,6 +16255,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apri Impostazioni Calendario"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カレンダーの設定を開く"
           }
         },
         "ko" : {
@@ -16248,6 +16364,12 @@
             "value" : "Apri Notch"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ノッチを開く"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16340,6 +16462,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apri notch portando il mouse sopra di esso"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ホバー時にノッチを開く"
           }
         },
         "ko" : {
@@ -16454,6 +16582,12 @@
             "value" : "Apri Impostazioni Promemoria"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リマインダーの設定を開く"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16560,6 +16694,12 @@
             "value" : "Apri automaticamente lo scaffale se contiene elementi"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アイテムが存在する時はデフォルトでshelfを開く"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16642,6 +16782,12 @@
             "value" : "Comportement avec touche option (⌥)"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Option (⌥) キーの動作"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16664,6 +16810,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Option (⌥) tuşu davranışı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поведінка клавіші Option (⌥)"
           }
         },
         "zh-Hans" : {
@@ -16729,6 +16881,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Comportamento del tasto opzione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Option キーの動作"
           }
         },
         "ko" : {
@@ -16814,6 +16972,12 @@
             "value" : "Aucune action"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アクションなし"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16836,6 +17000,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Eylem yok"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нема дії"
           }
         },
         "zh-Hans" : {
@@ -16879,6 +17049,12 @@
             "value" : "Ouvrir les paramètres système"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "システム設定を開く"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16901,6 +17077,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sistem ayarlarını aç"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відкрити системні налаштування"
           }
         },
         "zh-Hans" : {
@@ -16944,6 +17126,12 @@
             "value" : "Afficher l'OSD"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OSDを表示"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16960,6 +17148,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Показать OSD"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показати OSD"
           }
         },
         "zh-Hans" : {
@@ -16997,6 +17191,12 @@
             "value" : "OSD"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OSD"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17010,6 +17210,12 @@
           }
         },
         "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OSD"
+          }
+        },
+        "uk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "OSD"
@@ -17056,6 +17262,12 @@
             "value" : "Intégré"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内蔵"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17078,6 +17290,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yerleşik"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вбудований"
           }
         },
         "zh-Hans" : {
@@ -17122,6 +17340,12 @@
           }
         },
         "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OSD.ValueLabel"
+          }
+        },
+        "uk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "OSD.ValueLabel"
@@ -17189,6 +17413,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Scegli un colore"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "色を選ぶ"
           }
         },
         "ko" : {
@@ -17271,6 +17501,12 @@
             "value" : "Teinte du lecteur"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プレイヤーの色"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17287,6 +17523,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Тонирование плеера"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тональність програвача"
           }
         },
         "zh-Hans" : {
@@ -17357,6 +17599,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Collegato"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接続済み"
           }
         },
         "ko" : {
@@ -17457,6 +17705,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Display preferito"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "優先するディスプレイ"
           }
         },
         "ko" : {
@@ -17568,6 +17822,12 @@
             "value" : "Stile barra di progresso"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "進捗バーのスタイル"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17660,6 +17920,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Condivisione rapida"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick Share"
           }
         },
         "ko" : {
@@ -17760,6 +18026,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Servizio di condivisione rapida"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick Share Service"
           }
         },
         "ko" : {
@@ -17866,6 +18138,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chiudi"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "終了"
           }
         },
         "ko" : {
@@ -17980,6 +18258,12 @@
             "value" : "Chiudi app"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリを終了"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18038,10 +18322,22 @@
     },
     "Real-time audio waveform" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Echtzeit-Audio-Wellenform"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Forme d'onde audio en temps réel"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リアルタイムのオーディオ波形"
           }
         },
         "nl" : {
@@ -18050,10 +18346,22 @@
             "value" : "Realtime audiogolfvorm"
           }
         },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visualização de onda de áudio em tempo real"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Визуализация аудио в реальном времени"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Візуалізація аудіо у реальному часі"
           }
         },
         "zh-Hans" : {
@@ -18118,6 +18426,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nome del rilascio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リリース名"
           }
         },
         "ko" : {
@@ -18232,6 +18546,12 @@
             "value" : "Ricorda l'ultima scheda"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最後のタブを記憶"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18342,6 +18662,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "L'accesso al promemoria è negato. Si prega di abilitarlo nelle impostazioni di sistema."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リマインダーへのアクセスが拒否されています。システム設定で有効にしてください。"
           }
         },
         "ko" : {
@@ -18456,6 +18782,12 @@
             "value" : "Promemoria"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リマインダー"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18556,6 +18888,12 @@
             "value" : "Rimuovi dallo scaffale dopo il trascinamento"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ドラッグ後にshelfから削除"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18626,6 +18964,12 @@
             "value" : "Remplacer les affichages OSD du système"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "システムOSDを置き換え"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18642,6 +18986,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Заменить системный OSD"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Замінити системну OSD"
           }
         },
         "zh-Hans" : {
@@ -18709,6 +19059,12 @@
             "value" : "Richiesta Accessibilità"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アクセシビリティをリクエスト"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18767,10 +19123,22 @@
     },
     "Requires macOS 14.2 or later. Update macOS to enable real-time audio waveform." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erfordert macOS 14.2 oder neuer. Aktualisiere macOS, um die Echtzeit-Audiowellenform zu aktivieren."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nécessite macOS 14.2 ou ultérieur. Mettre à jour macOS pour activer la forme d'onde audio en temps réel."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 14.2 以降が必要です。リアルタイムのオーディオ波形を表示するには macOSをアップデートしてください。"
           }
         },
         "nl" : {
@@ -18779,10 +19147,22 @@
             "value" : "Vereist macOS 14.2 of hoger. Werk macOS bij om realtime audiogolfvorm in te schakelen."
           }
         },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requer macOS 14.2 ou posterior. Atualize o macOS para habilitar a visualização de onda de áudio em tempo real."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Требуется macOS 14.2 или новее. Обновите macOS, чтобы включить отображение визуализации аудио в реальном времени."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Потребує macOS 14.2 або вище. Оновіть macOS, щоб активувати візуалізацію аудіо в реальному часі."
           }
         },
         "zh-Hans" : {
@@ -18841,6 +19221,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ripristina impostazioni predefinite"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "初期設定にリセット"
           }
         },
         "ko" : {
@@ -18956,6 +19342,12 @@
             "value" : "Riavvia"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再起動"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19068,6 +19460,12 @@
             "value" : "Riavvia Boring Notch"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notchを再起動"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19126,6 +19524,12 @@
     },
     "Restart Now" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jetzt neu starten"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19138,10 +19542,22 @@
             "value" : "Redémarrer maintenant"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今すぐ再起動"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nu herstarten"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reiniciar Agora"
           }
         },
         "ru" : {
@@ -19156,6 +19572,12 @@
             "value" : "Şimdi Yeniden Başlat"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перезавантажити"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19166,6 +19588,12 @@
     },
     "Restart to apply language" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neu starten, um die Sprache zu übernehmen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19178,16 +19606,34 @@
             "value" : "Redémarrer pour changer la langue"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "言語を適用するには再起動してください"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Opnieuw opstarten om de taal toe te passen"
           }
         },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reinicie para aplicar idioma"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Перезапустите, чтобы применить язык"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перезапустіть для застосування мови"
           }
         },
         "zh-Hans" : {
@@ -19253,6 +19699,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "In esecuzione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "実行中"
           }
         },
         "ko" : {
@@ -19337,6 +19789,12 @@
             "value" : "Échelle du rayon d'angle pour l'encoche fermée"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "閉じているノッチの角の半径を調整"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19353,6 +19811,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Масштабировать радиус скругления закрытого выреза"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Масштабувати кут радіусу для закритого чубчика"
           }
         },
         "zh-Hans" : {
@@ -19423,6 +19887,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Selezionare la sorgente musicale che si desidera utilizzare. È possibile modificare questa impostazione in seguito nelle impostazioni dell'app."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用したい音楽ソースを選択してください。アプリの設定で後から変更できます。"
           }
         },
         "ko" : {
@@ -19501,6 +19971,12 @@
             "value" : "Sélectionnez le fournisseur à utiliser pour les contrôles système. BetterDisplay et Lunar exigent que leurs applications respectives soient installées et exécutées."
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "システムコントロールに使用するプロバイダを選択します。BetterDisplayとLunarはそれぞれのアプリをインストールして実行する必要があります。"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19523,6 +19999,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sistem kontrolü için hangi sağlayıcıyı kullanacağınızı seçin.\nBetterDisplay ve Lunar ilgili uygulamaların kurulu ve çalışıyor olmasını gerektirir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Виберіть провайдера системних елементів керування системою. BetterDisplay і Lunar вимагають встановлення і запуску відповідних програм."
           }
         },
         "zh-Hans" : {
@@ -19594,6 +20076,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "selezionato"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選択済み"
           }
         },
         "ko" : {
@@ -19708,6 +20196,12 @@
             "value" : "Impostazioni"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19820,6 +20314,12 @@
             "value" : "Scaffale"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19909,6 +20409,12 @@
             "value" : "Сжать"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стиснути"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19954,6 +20460,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Конвертировать изображение"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Конвертувати зображення"
           }
         },
         "zh-Hans" : {
@@ -20003,6 +20515,12 @@
             "value" : "Копировать"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Копіювати"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20048,6 +20566,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Скопировать путь"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Копіювати шлях"
           }
         },
         "zh-Hans" : {
@@ -20097,6 +20621,12 @@
             "value" : "Создать PDF"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Створити PDF"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20142,6 +20672,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Действия с изображением"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Операції із зображеннями"
           }
         },
         "zh-Hans" : {
@@ -20191,6 +20727,12 @@
             "value" : "Совместимые приложения не найдены"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не знайдено сумісних програм"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20238,6 +20780,12 @@
             "value" : "Открыть"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відкрити"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20283,6 +20831,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Открыть в программе"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відкрити за допомогою"
           }
         },
         "zh-Hans" : {
@@ -20338,6 +20892,12 @@
             "value" : "Shelf.ContextMenu.Other"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Інше"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20389,6 +20949,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shelf.ContextMenu.QuickLook"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Швидкий перегляд"
           }
         },
         "zh-Hans" : {
@@ -20444,6 +21010,12 @@
             "value" : "Shelf.ContextMenu.Remove"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20495,6 +21067,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shelf.ContextMenu.RemoveBackground"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видалити фон"
           }
         },
         "zh-Hans" : {
@@ -20550,6 +21128,12 @@
             "value" : "Shelf.ContextMenu.Rename"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перейменувати"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20603,6 +21187,12 @@
             "value" : "Shelf.ContextMenu.Share"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поділитися"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20654,6 +21244,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shelf.ContextMenu.ShowInFinder"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показати у Finder"
           }
         },
         "zh-Hans" : {
@@ -20724,6 +21320,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Scorciatoie"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ショートカット"
           }
         },
         "ko" : {
@@ -20838,6 +21440,12 @@
             "value" : "Mostra indicatore della batteria"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バッテリーインジケーターを表示"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20899,7 +21507,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zobrazit % baterie"
+            "value" : "Zobrazit procento baterie"
           }
         },
         "de" : {
@@ -20948,6 +21556,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostra percentuale batteria"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バッテリ残量を表示"
           }
         },
         "ko" : {
@@ -21062,6 +21676,12 @@
             "value" : "Mostra calendario"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カレンダーを表示"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21166,6 +21786,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostra la faccina animata se non ci sono attività"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "非アクティブ時にクールな顔のアニメーションを表示する"
           }
         },
         "ko" : {
@@ -21278,6 +21904,12 @@
             "value" : "Mostra il testo sotto il nome dell'artista"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アーティスト名の下に歌詞を表示"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21382,6 +22014,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostra l'icona nella barra del menu"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メニューバーアイコンを表示"
           }
         },
         "ko" : {
@@ -21490,6 +22128,12 @@
             "value" : "Mostra attività musicale dal vivo"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音楽のライブアクティビティを表示"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21588,6 +22232,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostra il notch nella schermata di blocco"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ロック画面にノッチを表示"
           }
         },
         "ko" : {
@@ -21696,6 +22346,12 @@
             "value" : "Mostra su tutti gli schermi"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのディスプレイに表示"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21772,6 +22428,12 @@
             "value" : "Afficher l'OSD dans l'encoche ouverte"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開いているノッチでOSDを表示"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21788,6 +22450,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Показывать OSD в открытом вырезе"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показувати OSD у відкритому чубчику"
           }
         },
         "zh-Hans" : {
@@ -21807,6 +22475,12 @@
     "Show percentage" : {
       "extractionState" : "stale",
       "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobrazit procento"
+          }
+        },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21853,6 +22527,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostra percentuale"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "パーセントを表示"
           }
         },
         "ko" : {
@@ -21925,6 +22605,12 @@
             "value" : "Afficher le pourcentage (encoche fermée)"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "閉じているノッチでパーセントを表示 "
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21941,6 +22627,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Показывать процент (закрытый вырез)"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показувати відсотки (закритий чубчик)"
           }
         },
         "zh-Hans" : {
@@ -21977,6 +22669,12 @@
             "value" : "Afficher le pourcentage (encoche ouverte)"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開いているノッチでパーセントを表示 "
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21993,6 +22691,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Показывать процент (открытый вырез)"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показувати відсотки (відкритий чубчик)"
           }
         },
         "zh-Hans" : {
@@ -22063,6 +22767,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostra icona stato alimentazione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "電源ステータスアイコンを表示"
           }
         },
         "ko" : {
@@ -22177,6 +22887,12 @@
             "value" : "Mostra notifiche alimentazione"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "電源ステータス通知を表示"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22287,6 +23003,12 @@
             "value" : "Mostra l'icona delle impostazioni nel notch"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ノッチに設定アイコンを表示する"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22357,6 +23079,12 @@
             "value" : "Afficher les ombres"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "影を表示"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22379,6 +23107,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gölgeyi göster"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показувати тінь"
           }
         },
         "zh-Hans" : {
@@ -22443,6 +23177,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostra un’anteprima durante le modifiche alla riproduzione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再生の変更時にスニークピークを表示"
           }
         },
         "ko" : {
@@ -22563,6 +23303,12 @@
             "value" : "Colore cursore"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スライダーの色"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22622,6 +23368,12 @@
     "slider_color_accent" : {
       "comment" : "Slider color option: accent color",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Akzentfarbe"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22634,10 +23386,22 @@
             "value" : "Couleur d'accent"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アクセントカラー"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Accentkleur"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cor secundária"
           }
         },
         "ru" : {
@@ -22650,6 +23414,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vurgu rengi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Колір відтінку"
           }
         },
         "zh-Hans" : {
@@ -22687,6 +23457,12 @@
             "value" : "Faire correspondre la pochette de l'album"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アルバムアートに合わせる"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22709,6 +23485,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Albüm kapağını eşleştir"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Підлаштовувати під обкладинку альбому"
           }
         },
         "zh-Hans" : {
@@ -22752,6 +23534,12 @@
             "value" : "Blanc"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "白"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22768,6 +23556,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Белый"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Білий"
           }
         },
         "zh-Hans" : {
@@ -22838,6 +23632,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sneak Peek mostra per alcuni secondi il titolo dei media e l'artista sotto la notch."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スニークピークは、ノッチの下にメディアのタイトルとアーティスト名を数秒間表示します。"
           }
         },
         "ko" : {
@@ -22952,6 +23752,12 @@
             "value" : "Stile Sneak Peek"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スニークピークのスタイル"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23011,6 +23817,12 @@
     "sneak_peek_inline" : {
       "comment" : "Sneak Peek style: Inline",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inline-Vorschau"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23023,16 +23835,34 @@
             "value" : "En ligne"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インライン"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Inline"
           }
         },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alinhado"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "В строке"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вбудований"
           }
         },
         "zh-Hans" : {
@@ -23046,6 +23876,12 @@
     "sneak_peek_standard" : {
       "comment" : "Sneak Peek style: Default",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23058,10 +23894,22 @@
             "value" : "Par défaut"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デフォルト"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Standaard"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Padrão"
           }
         },
         "ru" : {
@@ -23074,6 +23922,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Varsayılan"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "За замовчуванням"
           }
         },
         "zh-Hans" : {
@@ -23138,6 +23992,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aggiornamenti software"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ソフトウェアアップデート"
           }
         },
         "ko" : {
@@ -23253,6 +24113,12 @@
             "value" : "Velocità"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スピード"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23363,6 +24229,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Quadrato"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "四角"
           }
         },
         "ko" : {
@@ -23478,6 +24350,12 @@
             "value" : "Interrotto"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23584,6 +24462,12 @@
             "value" : "Sistema"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "システム"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23655,6 +24539,12 @@
     "System default" : {
       "comment" : "Language picker option: follow the system app language",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Systemstandard"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23667,16 +24557,34 @@
             "value" : "Système par défaut"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "システムのデフォルト"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Systeemstandaard"
           }
         },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Padrão do sistema"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Системная"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Системне значення"
           }
         },
         "zh-Hans" : {
@@ -23743,6 +24651,12 @@
             "value" : "Funzionalità di sistema"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "システムの機能"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23799,8 +24713,55 @@
         }
       }
     },
+    "System Setting" : {
+      "comment" : "Week starts on: follow the macOS system setting (shown with the resolved day in parentheses)",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Systemeinstellung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System Setting"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "システム設定"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Systeeminstelling"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Системні параметри"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系统设置"
+          }
+        }
+      }
+    },
     "Time to Full Charge: %@" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeit bis zur vollständigen Aufladung: %@"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23813,16 +24774,34 @@
             "value" : "Temps avant la charge complète : %@ min"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "充電完了まで: %@"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tijd tot volledig opgeladen: %@"
           }
         },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tempo até Carga Máxima: %@"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Время до полной зарядки: %@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Час до повної зарядки: %@"
           }
         },
         "zh-Hans" : {
@@ -23836,10 +24815,22 @@
     "Time to Full Charge: Calculating..." : {
       "comment" : "A label that indicates that the time to full charge is being calculated.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeit bis zur vollständigen Ladung: Wird berechnet..."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Temps avant la charge complète : Calcul..."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "充電完了まで: 計算中..."
           }
         },
         "nl" : {
@@ -23848,10 +24839,22 @@
             "value" : "Tijd tot volledig opgeladen: Berekenen..."
           }
         },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tempo até Carga Máxima: Calculando..."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Время до полной зарядки: расчёт..."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Час до повного заряджання: обчислення..."
           }
         },
         "zh-Hans" : {
@@ -23865,10 +24868,22 @@
     "Time Until Empty: %@" : {
       "comment" : "A label that shows the time remaining until the battery is empty.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeit bis Leer: %@"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Temps avant décharge : %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バッテリが空になるまで:  %@"
           }
         },
         "nl" : {
@@ -23880,13 +24895,19 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tempo até o vazio: %@"
+            "value" : "Tempo até acabar: %@"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Время до полной разрядки: %@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Час до розряджання: %@"
           }
         },
         "zh-Hans" : {
@@ -23900,10 +24921,22 @@
     "Time Until Empty: Calculating..." : {
       "comment" : "A label that indicates that the time until the battery is empty is being calculated.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeit bis leer: Wird berechnet..."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Temps avant décharge : Calcul en cours..."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バッテリが空になるまで: 計算中..."
           }
         },
         "nl" : {
@@ -23912,10 +24945,22 @@
             "value" : "Tijd tot leeg: Berekenen..."
           }
         },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tempo até acabar: Calculando..."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Время до полной разрядки: расчёт..."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Час до розряджання: обчислення..."
           }
         },
         "zh-Hans" : {
@@ -23975,6 +25020,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Colora la barra di avanzamento con il colore di accento"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "進捗バーをアクセントカラーにする"
           }
         },
         "ko" : {
@@ -24081,6 +25132,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apri Notch:"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ノッチの開閉を切り替える："
           }
         },
         "ko" : {
@@ -24193,6 +25250,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apri Sneak Peek:"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スニークピークの切り替え:"
           }
         },
         "ko" : {
@@ -24315,6 +25378,12 @@
             "value" : "Scorri due dita verso l'alto sulla notch per chiudere, scorri due dita verso il basso sulla tacca per aprirla quando l'opzione **Apri notch all'hover ** è disabilitata"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "**ホバーでノッチを開く** オプションが無効の時は、2本指でノッチを上にスワイプして閉じ、下にスワイプして開きます。"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24349,6 +25418,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "**Fareyi üzerine getirdiğinde aç** seçeneği devre dışı bırakıldığında, kapatmak için çentiği iki parmağınızla yukarı kaydırın, açmak için çentiği iki parmağınızla aşağı kaydırın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проведіть двома пальцями вгору по чубчику, щоб закрити його, або двома пальцями вниз, щоб відкрити, якщо вимкнено опцію «Відкривати виріз під час наведення»"
           }
         },
         "zh-Hans" : {
@@ -24420,6 +25495,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disinstalla"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アンインストール"
           }
         },
         "ko" : {
@@ -24534,6 +25615,12 @@
             "value" : "smutato"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ミュート解除"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24640,6 +25727,12 @@
             "value" : "Audio attivo"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ミュート解除"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24740,6 +25833,12 @@
             "value" : "Passa a Pro"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proにアップグレード"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24834,6 +25933,12 @@
             "value" : "Usa il colore in rilievo"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アクセントカラーを使用"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24870,6 +25975,12 @@
             "value" : "Vurgu rengini kullan"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Використовувати колір акценту"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24904,6 +26015,12 @@
             "value" : "Utiliser le style en ligne"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インラインスタイルを使用"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24920,6 +26037,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Использовать встроенный стиль"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Використовувати вбудований стиль"
           }
         },
         "zh-Hans" : {
@@ -24986,6 +26109,12 @@
             "value" : "Usa il tuo colore di accento di macOS"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS のシステムアクセントカラーを使用する"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25044,10 +26173,22 @@
     },
     "Uses Accelerate FFT on the playing app's audio. Requires audio capture permission and uses slightly more CPU." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nutzt Accelerate FFT für das Audio der aktiven App. Erfordert die Berechtigung zur Audioaufnahme und beansprucht etwas mehr CPU-Leistung."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Utilise l'accélération FFT sur l'audio de l'application de lecture. Nécessite l'autorisation de capture audio et utilise un peu plus de CPU."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリの音声を再生する際にFFTアセレートを使用します。音声収録への許可が必要でCPU使用率がわずかに上がります。"
           }
         },
         "nl" : {
@@ -25056,10 +26197,22 @@
             "value" : "Gebruikt Accelerate FFT voor de audio van de afspeelapp. Hiervoor is toestemming voor audio-opname vereist en het verbruikt iets meer CPU-vermogen."
           }
         },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa Accelerate FFT no áudio do app. Requer permissão de captura de áudio e usa um pouco mais da CPU."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Использует Accelerate FFT для аудио текущего приложения. Требуется разрешение на захват звука и расходуется немного больше CPU."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Використовує фреймворк Accelerate FFT для аудіо з активної програми. Потребує дозволу на запис аудіо та споживає трохи більше ресурсів процесора."
           }
         },
         "zh-Hans" : {
@@ -25118,6 +26271,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Usare il colore di accento di sistema"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "システムアクセントの使用"
           }
         },
         "ko" : {
@@ -25224,6 +26383,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Versione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バージョン"
           }
         },
         "ko" : {
@@ -25338,6 +26503,12 @@
             "value" : "Info versione"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バージョン情報"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25444,6 +26615,12 @@
             "value" : "Vedi su GitHub: pear-devs/pear-desktop"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub で表示: pear-devs/pear-desktop"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25520,6 +26697,12 @@
             "value" : "Visibilité"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "公開範囲"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25542,6 +26725,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Görünürlük"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Видимість"
           }
         },
         "zh-Hans" : {
@@ -25582,6 +26771,12 @@
             "value" : "Volume"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音量"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25604,6 +26799,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ses"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Гучність"
           }
         },
         "zh-Hans" : {
@@ -25640,6 +26841,12 @@
             "value" : "Source du volume"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音量ソース"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25664,6 +26871,12 @@
             "value" : "Ses Kaynağı"
           }
         },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Джерело звуку"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25681,21 +26894,34 @@
     "Week starts on" : {
       "comment" : "Calendar setting: which weekday the week strip starts on",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Woche beginnt am"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Week starts on"
           }
-        }
-      }
-    },
-    "System Setting" : {
-      "comment" : "Week starts on: follow the macOS system setting (shown with the resolved day in parentheses)",
-      "localizations" : {
-        "en" : {
+        },
+        "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "System Setting"
+            "value" : "週の始まり"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De week begint op"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тиждень починається з"
           }
         }
       }
@@ -25703,10 +26929,34 @@
     "Weekly view" : {
       "comment" : "Calendar setting: show one week at a time instead of the scrolling day dial",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wochenansicht"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Weekly view"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "週表示"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Week-overzicht"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тижневий вигляд"
           }
         }
       }
@@ -25765,6 +27015,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Benvenuto"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ようこそ"
           }
         },
         "ko" : {
@@ -25873,6 +27129,12 @@
             "value" : "Aspetto della Finestra"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウィンドウの外観"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25979,6 +27241,12 @@
             "value" : "Comportamento delle finestre"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウィンドウの動作"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -26083,6 +27351,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ora puoi goderti l'app. Se vuoi modificare ulteriormente le cose, puoi sempre visitare le impostazioni."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "これでアプリを楽しむことができます。さらに調整したい場合は、いつでも設定にアクセスできます。"
           }
         },
         "ko" : {
@@ -26197,6 +27471,12 @@
             "value" : "È Tutto ok!"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "準備完了！"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -26295,6 +27575,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Il colore di accento di macOS"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS のシステムアクセントカラー"
           }
         },
         "ko" : {
@@ -26407,6 +27693,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "YouTube Music richiede l'installazione di questa app di terze parti: "
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "YouTube Musicはこのサードパーティー制アプリのインストールが必要です： "
           }
         },
         "ko" : {
