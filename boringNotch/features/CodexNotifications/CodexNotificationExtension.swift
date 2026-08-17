@@ -44,11 +44,7 @@ enum CodexNotificationExtension {
                 opensNotchOnHover: isPermissionRequest,
                 opensNotchOnTap: false,
                 onSelect: {
-                    if notification.status == .needsAction(.systemPermission) {
-                        CodexNotificationManager.shared.openCodexAndDismiss(notification)
-                    } else {
-                        CodexNotificationManager.shared.openCodex(for: notification)
-                    }
+                    CodexNotificationManager.shared.openCodex(for: notification)
                 }
             )]
         }
@@ -58,8 +54,7 @@ enum CodexNotificationExtension {
 private extension CodexJobStatus {
     var notchPriority: ClosedNotchPresentationPriority {
         switch self {
-        case .needsAction(.permission), .needsAction(.systemPermission),
-             .needsAction(.decision), .failed:
+        case .needsAction(.permission), .needsAction(.decision), .failed:
             .critical
         case .needsAction(.manualCheck):
             .system
@@ -71,7 +66,6 @@ private extension CodexJobStatus {
     var icon: String {
         switch self {
         case .needsAction(.permission): "lock.shield.fill"
-        case .needsAction(.systemPermission): "gearshape.fill"
         case .needsAction(.decision): "questionmark.circle.fill"
         case .needsAction(.manualCheck): "hand.tap.fill"
         case .failed: "xmark.circle.fill"
@@ -81,8 +75,7 @@ private extension CodexJobStatus {
 
     var tint: Color {
         switch self {
-        case .needsAction(.permission), .needsAction(.systemPermission),
-             .needsAction(.decision): .orange
+        case .needsAction(.permission), .needsAction(.decision): .orange
         case .needsAction(.manualCheck): .blue
         case .failed: .red
         case .succeeded: .green

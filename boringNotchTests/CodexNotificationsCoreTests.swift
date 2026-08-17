@@ -337,7 +337,6 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertEqual(notice?.status, .failed)
 
         XCTAssertTrue(CodexJobStatus.needsAction(.permission).isPersistent)
-        XCTAssertTrue(CodexJobStatus.needsAction(.systemPermission).isPersistent)
         XCTAssertFalse(CodexJobStatus.needsAction(.decision).isPersistent)
         XCTAssertFalse(CodexJobStatus.needsAction(.manualCheck).isPersistent)
         XCTAssertFalse(CodexJobStatus.failed.isPersistent)
@@ -400,33 +399,6 @@ final class CodexNotificationsCoreTests: XCTestCase {
         )
         XCTAssertEqual(
             state.notifications.first { $0.sessionID == "success" }?.status,
-            .succeeded
-        )
-    }
-
-    func testSystemSettingsPermissionBlockerStaysActionable() {
-        var state = CodexNotificationState()
-        state.reduce(.stop(
-            sessionID: "system-permission",
-            turnID: "turn-1",
-            cwd: "/tmp/project",
-            result: "The task failed because Local Network access is required. Please enable it in System Settings before I can continue."
-        ), at: Date(timeIntervalSince1970: 10))
-        state.reduce(.stop(
-            sessionID: "documentation",
-            turnID: "turn-2",
-            cwd: "/tmp/project",
-            result: "Updated the documentation for Local Network access in System Settings."
-        ), at: Date(timeIntervalSince1970: 11))
-
-        let reminder = state.notifications.first {
-            $0.sessionID == "system-permission"
-        }
-        XCTAssertEqual(reminder?.status, .needsAction(.systemPermission))
-        XCTAssertEqual(reminder?.status.title, "System Permission Required")
-        XCTAssertTrue(reminder?.status.isPersistent == true)
-        XCTAssertEqual(
-            state.notifications.first { $0.sessionID == "documentation" }?.status,
             .succeeded
         )
     }
@@ -591,6 +563,11 @@ final class CodexNotificationsCoreTests: XCTestCase {
     }
 
     func testNativePermissionObservationHasBoundedAppearanceWindow() {
+        XCTAssertEqual(
+            CodexNotificationTiming.nativePermissionInspectionGrace,
+            0.75,
+            accuracy: 0.001
+        )
         XCTAssertEqual(
             CodexNotificationTiming.nativePermissionAppearanceTimeout,
             10,

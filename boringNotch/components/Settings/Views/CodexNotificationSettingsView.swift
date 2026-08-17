@@ -57,12 +57,11 @@ struct CodexNotificationSettings: View {
             Section {
                 Label("The task Codex is working on", systemImage: "text.alignleft")
                 Label("Success or failure status", systemImage: "checkmark.circle")
-                Label("Codex or macOS permission required", systemImage: "hand.raised.fill")
-                Label("Decision or manual test needed", systemImage: "questionmark.circle")
+                Label("Permission, decision, or manual test needed", systemImage: "hand.raised.fill")
             } header: {
                 Text("What appears in the notch")
             } footer: {
-                Text("A Codex permission mirror appears only while the matching prompt is visible in Codex. System Settings permission reminders stay until opened. Passive Codex notices finish opening, stay for 3 seconds, then play their closing animation.")
+                Text("Live permission requests stay until you choose Allow or Deny or the Codex request expires. Passive Codex notices finish opening, stay for 3 seconds, then play their closing animation.")
             }
 
             Section("After connecting or updating") {

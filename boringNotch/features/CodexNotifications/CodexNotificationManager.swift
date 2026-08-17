@@ -227,11 +227,6 @@ final class CodexNotificationManager: ObservableObject {
         dismissVisibleNotification()
     }
 
-    func openCodexAndDismiss(_ notification: CodexJobNotification) {
-        openCodex(for: notification)
-        dismiss(notification: notification)
-    }
-
     private func codexThreadURL(for notification: CodexJobNotification) -> URL? {
         guard !notification.sessionID.isEmpty else { return nil }
         let allowedCharacters = CharacterSet.alphanumerics.union(
@@ -483,6 +478,9 @@ final class CodexNotificationManager: ObservableObject {
 
         nativePermissionObservationTask = Task { [weak self] in
             var hasObservedNativePrompt = false
+            let unavailableInspectionDeadline = Date().addingTimeInterval(
+                CodexNotificationTiming.nativePermissionInspectionGrace
+            )
             let appearanceDeadline = Date().addingTimeInterval(
                 CodexNotificationTiming.nativePermissionAppearanceTimeout
             )
@@ -501,21 +499,17 @@ final class CodexNotificationManager: ObservableObject {
                 }
 
                 if !status.inspected {
-                    guard Date() < appearanceDeadline else {
-                        self.dismiss(notification: permission)
-                        return
+                    if Date() < unavailableInspectionDeadline {
+                        try? await Task.sleep(for: .milliseconds(250))
+                        continue
                     }
-                    try? await Task.sleep(for: .milliseconds(250))
-                    continue
+                    self.confirmNativePermissionIfNeeded(permission)
+                    return
                 }
 
                 if status.visible {
-                    if !hasObservedNativePrompt,
-                       !permission.nativePermissionConfirmed {
-                        var updatedState = self.state
-                        updatedState.confirmNativePermission(permission.id)
-                        self.state = updatedState
-                        self.synchronizePresentedNotification()
+                    if !hasObservedNativePrompt {
+                        self.confirmNativePermissionIfNeeded(permission)
                     }
                     hasObservedNativePrompt = true
                 } else if hasObservedNativePrompt || Date() >= appearanceDeadline {
@@ -526,6 +520,20 @@ final class CodexNotificationManager: ObservableObject {
                 try? await Task.sleep(for: .milliseconds(250))
             }
         }
+    }
+
+    private func confirmNativePermissionIfNeeded(_ permission: CodexJobNotification) {
+        guard state.notifications.contains(where: {
+            $0.id == permission.id
+                && $0.createdAt == permission.createdAt
+                && !$0.nativePermissionConfirmed
+        }) else {
+            return
+        }
+        var updatedState = state
+        updatedState.confirmNativePermission(permission.id)
+        state = updatedState
+        synchronizePresentedNotification()
     }
 
     private func permissionMatchRequest(

@@ -23,7 +23,6 @@ public enum PriorityResolver {
 
 public enum CodexRequiredAction: String, Equatable, Sendable {
     case permission
-    case systemPermission
     case decision
     case manualCheck
 }
@@ -32,6 +31,7 @@ public enum CodexNotificationTiming {
     public static let transitionAnimationResponse: TimeInterval = 0.42
     public static let passiveDwellDuration: TimeInterval = 3
     public static let codexHoverExpansionDelay: TimeInterval = 0.6
+    public static let nativePermissionInspectionGrace: TimeInterval = 0.75
     public static let nativePermissionAppearanceTimeout: TimeInterval = 10
 
     public static func transitionDuration(
@@ -140,7 +140,7 @@ public enum CodexJobStatus: Equatable, Sendable {
 
     public var isPersistent: Bool {
         switch self {
-        case .needsAction(.permission), .needsAction(.systemPermission): true
+        case .needsAction(.permission): true
         case .needsAction(.decision), .needsAction(.manualCheck), .failed, .succeeded:
             false
         }
@@ -149,7 +149,6 @@ public enum CodexJobStatus: Equatable, Sendable {
     public var title: String {
         switch self {
         case .needsAction(.permission): "Permission Required"
-        case .needsAction(.systemPermission): "System Permission Required"
         case .needsAction(.decision): "Decision Required"
         case .needsAction(.manualCheck): "Manual Check"
         case .failed: "Failure"
@@ -159,7 +158,7 @@ public enum CodexJobStatus: Equatable, Sendable {
 
     public var nextAction: String {
         switch self {
-        case .needsAction(.permission), .needsAction(.systemPermission), .needsAction(.decision):
+        case .needsAction(.permission), .needsAction(.decision):
             "Open Codex"
         case .needsAction(.manualCheck), .failed: "Review result"
         case .succeeded: "No action needed"
@@ -654,26 +653,6 @@ public struct CodexNotificationState: Equatable, Sendable {
         }
 
         let text = result.lowercased()
-        let systemPermissionLocations = [
-            "system settings", "system preferences", "privacy & security",
-            "privacy and security", "local network", "full disk access",
-            "screen recording", "files and folders", "camera", "microphone",
-            "bluetooth", "input monitoring", "location services", "photos",
-            "contacts", "calendars", "reminders"
-        ]
-        let systemPermissionTerms = [
-            "permission", "access", "allow", "enable", "grant"
-        ]
-        let blockingTerms = [
-            "please", "need", "needs", "required", "requires", "must",
-            "blocked", "waiting", "before i can continue", "to continue"
-        ]
-        if systemPermissionLocations.contains(where: text.contains),
-           systemPermissionTerms.contains(where: text.contains),
-           blockingTerms.contains(where: text.contains) {
-            return .needsAction(.systemPermission)
-        }
-
         let failureText = text
             .replacingOccurrences(of: "no tests failed", with: "")
             .replacingOccurrences(of: "0 tests failed", with: "")
