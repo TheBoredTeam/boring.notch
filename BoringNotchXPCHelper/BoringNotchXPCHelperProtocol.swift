@@ -42,6 +42,22 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     func isAccessibilityAuthorized(with reply: @escaping (Bool) -> Void)
     func requestAccessibilityAuthorization()
     func ensureAccessibilityAuthorization(_ promptIfNeeded: Bool, with reply: @escaping (Bool) -> Void)
+    func validateCodexNotificationPayload(
+        _ payload: String,
+        signature: String,
+        with reply: @escaping (Bool) -> Void
+    )
+    func codexPermissionPromptStatus(
+        matchingChatTitle chatTitle: String,
+        request: String,
+        with reply: @escaping (Bool, Bool) -> Void
+    )
+    func performCodexPermissionDecision(
+        _ decision: String,
+        matchingChatTitle chatTitle: String,
+        request: String,
+        with reply: @escaping (Bool, String?) -> Void
+    )
     // Keyboard backlight / CoreBrightness access (performed by the helper)
     func isKeyboardBrightnessAvailable(with reply: @escaping (Bool) -> Void)
     func currentKeyboardBrightness(with reply: @escaping (NSNumber?) -> Void)
@@ -59,6 +75,9 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     func stopLunarEventStream()
     /// Write Lunar's hideOSD preference (disable/enable Lunar's OSD when we replace it).
     func setLunarOSDHidden(_ hide: Bool, with reply: @escaping (Bool) -> Void)
+    // Codex notification hook configuration (performed by the unsandboxed helper)
+    func isCodexNotificationHookInstalled(with reply: @escaping (Bool) -> Void)
+    func setCodexNotificationHookInstalled(_ installed: Bool, with reply: @escaping (Bool, String?) -> Void)
 }
 
 /*

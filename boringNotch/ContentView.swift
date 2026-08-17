@@ -15,6 +15,8 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var vm: BoringViewModel
     @ObservedObject private var coordinator = BoringViewCoordinator.shared
+    @ObservedObject private var extensionRegistry = NotchExtensionRegistry.shared
+    @ObservedObject private var codexNotifications = CodexNotificationManager.shared
 
     private let musicManager = MusicManager.shared
     private let batteryModel = BatteryStatusViewModel.shared
@@ -22,12 +24,16 @@ struct ContentView: View {
     @State private var closedSnapshotRevision = 0
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
+    @State private var suppressHoverExpansion = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
 
     @State private var gestureProgress: CGFloat = .zero
     @State private var horizontalMediaGestureTriggered = false
     @State private var horizontalMediaGestureFeedback: CGFloat = .zero
     @State private var isHoveringMusicArea = false
+    @State private var isPresentingCodexPermission = false
+    @State private var presentedCodexPermission: CodexJobNotification?
+    @State private var permissionCollapseTask: Task<Void, Never>?
 
     @State private var haptics: Bool = false
 
@@ -87,6 +93,11 @@ struct ContentView: View {
             osd: coordinator.binding(for: vm.screenUUID)
         )
 
+        let extensionActivities = extensionRegistry.closedActivities(context: .init(
+            surfaceID: vm.screenUUID ?? "primary",
+            closedNotchWidth: vm.closedNotchSize.width,
+            displayHeight: displayHeight
+        ))
         let context = ClosedNotchSnapshotContext(
             closedNotchWidth: vm.closedNotchSize.width,
             displayHeight: displayHeight,
@@ -105,7 +116,8 @@ struct ContentView: View {
             inlineOSDEnabled: Defaults[.inlineOSD],
             powerStatusNotificationsEnabled: Defaults[.showPowerStatusNotifications],
             sneakPeekStyle: Defaults[.sneakPeekStyles],
-            renderData: renderData
+            renderData: renderData,
+            extensionActivities: extensionActivities
         )
 
         return ClosedNotchRenderSnapshot(context: context)
@@ -115,7 +127,7 @@ struct ContentView: View {
         let closedSnapshot: ClosedNotchRenderSnapshot? = vm.notchState == .closed
             ? makeClosedNotchSnapshot()
             : nil
-        
+
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 let mainLayout = notchLayout(closedSnapshot: closedSnapshot)
@@ -152,10 +164,16 @@ struct ContentView: View {
                     .animation(.smooth, value: gestureProgress)
                     .contentShape(Rectangle())
                     .onHover { hovering in
-                        handleHover(hovering)
+                        handleHover(
+                            hovering,
+                            extensionAllowsExpansion: closedSnapshot?.opensNotchOnHover
+                        )
                     }
                     .onTapGesture {
-                        doOpen()
+                        guard vm.notchState == .closed else { return }
+                        if closedSnapshot?.opensNotchOnTap ?? true {
+                            doOpen()
+                        }
                     }
                     .conditionalModifier(Defaults[.enableGestures]) { view in
                         view
@@ -189,6 +207,10 @@ struct ContentView: View {
                                 isHovering = false
                             }
                         }
+                    }
+                    .onChange(of: codexNotifications.expandedPermissionNotificationID) { _, notificationID in
+                        guard isPresentingCodexPermission, notificationID == nil else { return }
+                        collapseCodexPermission()
                     }
                     .onChange(of: vm.isBatteryPopoverActive) {
                         if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
@@ -232,6 +254,9 @@ struct ContentView: View {
             invalidateClosedSnapshot()
         }
         .onReceive(batteryModel.objectWillChange) { _ in
+            invalidateClosedSnapshot()
+        }
+        .onReceive(extensionRegistry.objectWillChange) { _ in
             invalidateClosedSnapshot()
         }
         .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
@@ -285,9 +310,10 @@ struct ContentView: View {
                 } else if let closedSnapshot {
                     ClosedNotchRenderer(
                         snapshot: closedSnapshot,
-                        albumArtNamespace: albumArtNamespace
+                        albumArtNamespace: albumArtNamespace,
+                        onActivitySelect: handleClosedActivitySelection
                     )
-                } else {
+                } else if !isPresentingCodexPermission {
                     BoringHeader()
                         .frame(height: max(24, displayClosedNotchHeight))
                         .opacity(
@@ -304,7 +330,9 @@ struct ContentView: View {
                     albumArtNamespace: albumArtNamespace,
                     horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
                     isHoveringMusicArea: $isHoveringMusicArea,
-                    gestureProgress: gestureProgress
+                    gestureProgress: gestureProgress,
+                    permissionNotification: presentedCodexPermission,
+                    dismissPermissionRequest: dismissCodexPermissionRequest
                 )
             }
         }
@@ -333,15 +361,58 @@ struct ContentView: View {
     @discardableResult
     private func doOpen() -> Bool {
         var didOpen = false
+        permissionCollapseTask?.cancel()
+        permissionCollapseTask = nil
         withAnimation(animationSpring) {
+            if let notification = codexNotifications.visibleNotification,
+               notification.status == .needsAction(.permission) {
+                codexNotifications.presentPermissionDetail(for: notification)
+                presentedCodexPermission = notification
+                isPresentingCodexPermission = true
+            }
             didOpen = vm.open()
         }
         return didOpen
     }
 
+    private func dismissCodexPermissionRequest() {
+        collapseCodexPermission()
+    }
+
+    private func collapseCodexPermission() {
+        guard isPresentingCodexPermission else { return }
+
+        permissionCollapseTask?.cancel()
+        withAnimation(StandardAnimations.close) {
+            isPresentingCodexPermission = false
+            vm.close()
+        }
+
+        let transitionDuration = CodexNotificationTiming.transitionDuration(
+            animationSpeedMultiplier: Defaults[.animationSpeedMultiplier],
+            animationsEnabled: Defaults[.enableOpeningAnimation]
+        )
+        permissionCollapseTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(transitionDuration))
+            guard !Task.isCancelled else { return }
+            presentedCodexPermission = nil
+            codexNotifications.dismissPermissionDetail()
+            permissionCollapseTask = nil
+        }
+    }
+
     // MARK: - Hover Management
 
-    private func handleHover(_ hovering: Bool) {
+    private func handleClosedActivitySelection() {
+        hoverTask?.cancel()
+        hoverTask = nil
+        suppressHoverExpansion = true
+        withAnimation(animationSpring) {
+            isHovering = false
+        }
+    }
+
+    private func handleHover(_ hovering: Bool, extensionAllowsExpansion: Bool?) {
         if coordinator.firstLaunch { return }
         hoverTask?.cancel()
         
@@ -354,14 +425,22 @@ struct ContentView: View {
                 haptics.toggle()
             }
             
+            let shouldExpand = extensionAllowsExpansion ?? Defaults[.openNotchOnHover]
             guard vm.notchState == .closed,
-                  !coordinator.shouldShowSneakPeek(on: vm.screenUUID),
-                  Defaults[.openNotchOnHover] else { return }
-            
+                  shouldExpand,
+                  !suppressHoverExpansion,
+                  !coordinator.shouldShowSneakPeek(on: vm.screenUUID) else { return }
+
+            let hoverDuration = extensionAllowsExpansion == true
+                ? max(
+                    Defaults[.minimumHoverDuration],
+                    CodexNotificationTiming.codexHoverExpansionDelay
+                )
+                : Defaults[.minimumHoverDuration]
             hoverTask = Task {
-                try? await Task.sleep(for: .seconds(Defaults[.minimumHoverDuration]))
+                try? await Task.sleep(for: .seconds(hoverDuration))
                 guard !Task.isCancelled else { return }
-                
+
                 await MainActor.run {
                     guard self.vm.notchState == .closed,
                           self.isHovering,
@@ -371,6 +450,7 @@ struct ContentView: View {
                 }
             }
         } else {
+            suppressHoverExpansion = false
             scheduleAutomaticClose(clearingHover: true)
         }
     }
@@ -379,6 +459,7 @@ struct ContentView: View {
         vm.notchState == .open
             && !isHovering
             && !vm.isBatteryPopoverActive
+            && codexNotifications.submittingNotificationIDs.isEmpty
             && !SharingStateManager.shared.preventNotchClose
     }
 
@@ -395,7 +476,11 @@ struct ContentView: View {
             }
 
             if canAutomaticallyClose {
-                vm.close()
+                if isPresentingCodexPermission {
+                    collapseCodexPermission()
+                } else {
+                    vm.close()
+                }
             }
         }
     }
@@ -403,7 +488,7 @@ struct ContentView: View {
     // MARK: - Gesture Handling
 
     private func handleDownGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .closed else { return }
+        guard !isPresentingCodexPermission, vm.notchState == .closed else { return }
 
         if phase == .ended {
             withAnimation(animationSpring) { gestureProgress = .zero }
@@ -426,7 +511,9 @@ struct ContentView: View {
     }
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
+        guard !isPresentingCodexPermission,
+              vm.notchState == .open,
+              !vm.isHoveringCalendar else { return }
 
         withAnimation(animationSpring) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
@@ -471,7 +558,7 @@ struct ContentView: View {
         feedback: CGFloat,
         action: () -> Void
     ) {
-        guard isHorizontalMediaGestureContext else {
+        guard !isPresentingCodexPermission, isHorizontalMediaGestureContext else {
             resetHorizontalMediaGesture()
             return
         }

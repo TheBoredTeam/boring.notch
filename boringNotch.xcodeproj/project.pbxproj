@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D00000012F00000100000001 /* NotchExtensionRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00001012F00000100000001 /* NotchExtensionRegistry.swift */; };
+		D00000022F00000100000002 /* CodexNotificationsCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00001022F00000100000002 /* CodexNotificationsCore.swift */; };
+		D00000032F00000100000003 /* CodexNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00001032F00000100000003 /* CodexNotificationManager.swift */; };
+		D00000042F00000100000004 /* CodexNotificationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00001042F00000100000004 /* CodexNotificationExtension.swift */; };
+		D00000052F00000100000005 /* CodexNotificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00001052F00000100000005 /* CodexNotificationSettingsView.swift */; };
 		C70000012F00000100000001 /* ClosedNotchRenderSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70000022F00000100000002 /* ClosedNotchRenderSnapshot.swift */; };
 		C50000012F00000100000001 /* ClosedNotchRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50000022F00000100000002 /* ClosedNotchRenderer.swift */; };
 		C40000012F00000100000001 /* MusicLiveActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C40000032F00000100000003 /* MusicLiveActivityView.swift */; };
@@ -203,6 +208,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		D00001012F00000100000001 /* NotchExtensionRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extensions/NotchExtensionRegistry.swift; sourceTree = "<group>"; };
+		D00001022F00000100000002 /* CodexNotificationsCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/Core/CodexNotificationsCore.swift; sourceTree = "<group>"; };
+		D00001032F00000100000003 /* CodexNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/CodexNotificationManager.swift; sourceTree = "<group>"; };
+		D00001042F00000100000004 /* CodexNotificationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/CodexNotificationExtension.swift; sourceTree = "<group>"; };
+		D00001052F00000100000005 /* CodexNotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = components/Settings/Views/CodexNotificationSettingsView.swift; sourceTree = "<group>"; };
 		C70000022F00000100000002 /* ClosedNotchRenderSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClosedNotchRenderSnapshot.swift; sourceTree = "<group>"; };
 		C50000022F00000100000002 /* ClosedNotchRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClosedNotchRenderer.swift; sourceTree = "<group>"; };
 		C40000032F00000100000003 /* MusicLiveActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicLiveActivityView.swift; sourceTree = "<group>"; };
@@ -671,6 +681,11 @@
 		14CEF4142C5CAED300855D72 /* boringNotch */ = {
 			isa = PBXGroup;
 			children = (
+				D00001012F00000100000001 /* NotchExtensionRegistry.swift */,
+				D00001022F00000100000002 /* CodexNotificationsCore.swift */,
+				D00001032F00000100000003 /* CodexNotificationManager.swift */,
+				D00001042F00000100000004 /* CodexNotificationExtension.swift */,
+				D00001052F00000100000005 /* CodexNotificationSettingsView.swift */,
 				11F748672EC9AC9600F841DB /* XPCHelperClient */,
 				116398942DF5D6B40052E6AF /* Providers */,
 				14288DE22C6E016F00B9F80C /* observers */,
@@ -1011,6 +1026,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D00000012F00000100000001 /* NotchExtensionRegistry.swift in Sources */,
+				D00000022F00000100000002 /* CodexNotificationsCore.swift in Sources */,
+				D00000032F00000100000003 /* CodexNotificationManager.swift in Sources */,
+				D00000042F00000100000004 /* CodexNotificationExtension.swift in Sources */,
+				D00000052F00000100000005 /* CodexNotificationSettingsView.swift in Sources */,
 				C70000012F00000100000001 /* ClosedNotchRenderSnapshot.swift in Sources */,
 				C50000012F00000100000001 /* ClosedNotchRenderer.swift in Sources */,
 				C40000012F00000100000001 /* MusicLiveActivityView.swift in Sources */,

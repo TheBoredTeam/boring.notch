@@ -41,6 +41,7 @@ struct ClosedNotchSnapshotContext {
     let powerStatusNotificationsEnabled: Bool
     let sneakPeekStyle: SneakPeekStyle
     let renderData: ClosedNotchRenderData
+    let extensionActivities: [ClosedNotchExtensionActivity]
 }
 
 struct ClosedNotchRenderSnapshot {
@@ -50,8 +51,23 @@ struct ClosedNotchRenderSnapshot {
     let cornerRadiusScaleFactor: CGFloat?
     let albumArtWidth: CGFloat
     let spectrumWidth: CGFloat
+    let extensionActivities: [String: ClosedNotchExtensionActivity]
 
     init(context: ClosedNotchSnapshotContext) {
+        var extensionActivitiesByID: [String: ClosedNotchExtensionActivity] = [:]
+        for activity in context.extensionActivities {
+            guard let existing = extensionActivitiesByID[activity.id] else {
+                extensionActivitiesByID[activity.id] = activity
+                continue
+            }
+            let isNewerAtSamePriority = activity.priority == existing.priority
+                && activity.updatedAt > existing.updatedAt
+            if activity.priority > existing.priority || isNewerAtSamePriority {
+                extensionActivitiesByID[activity.id] = activity
+            }
+        }
+        let extensionActivities = Array(extensionActivitiesByID.values)
+
         let cornerScale: CGFloat? = context.cornerRadiusScalingEnabled
             && context.displayHeight > 0
             ? context.displayHeight / 38
@@ -116,7 +132,15 @@ struct ClosedNotchRenderSnapshot {
                 .init(.music, isVisible: musicVisible),
                 .init(.idleFace, isVisible: idleFaceVisible),
                 .init(.idle, isVisible: true)
-            ],
+            ] + extensionActivities.map { activity in
+                .init(
+                    .extensionActivity(activity.id),
+                    isVisible: true,
+                    priority: activity.priority,
+                    updatedAt: activity.updatedAt,
+                    metrics: activity.metrics
+                )
+            },
             musicExpanded: musicExpanded,
             supplemental: supplemental
         )
@@ -127,6 +151,7 @@ struct ClosedNotchRenderSnapshot {
         cornerRadiusScaleFactor = cornerScale
         self.albumArtWidth = albumArtWidth
         self.spectrumWidth = spectrumWidth
+        self.extensionActivities = extensionActivitiesByID
     }
 
     var topCornerRadius: CGFloat {
@@ -135,6 +160,22 @@ struct ClosedNotchRenderSnapshot {
             return displayHeight > 0 ? baseRadius : 0
         }
         return max(0, baseRadius * cornerRadiusScaleFactor)
+    }
+
+    var opensNotchOnHover: Bool? {
+        guard case .extensionActivity(let id) = presentation.primary,
+              let activity = extensionActivities[id] else {
+            return nil
+        }
+        return activity.opensNotchOnHover
+    }
+
+    var opensNotchOnTap: Bool {
+        guard case .extensionActivity(let id) = presentation.primary,
+              let activity = extensionActivities[id] else {
+            return true
+        }
+        return activity.opensNotchOnTap
     }
 
     var notchShape: NotchShape {

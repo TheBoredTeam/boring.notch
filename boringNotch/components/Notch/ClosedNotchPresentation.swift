@@ -5,6 +5,7 @@ enum ClosedNotchPresentation: Equatable {
     case inlineOSD
     case music
     case idleFace
+    case extensionActivity(String)
     case idle
 
     var priority: ClosedNotchPresentationPriority {
@@ -13,6 +14,7 @@ enum ClosedNotchPresentation: Equatable {
         case .inlineOSD: .system
         case .music: .activity
         case .idleFace: .ambient
+        case .extensionActivity: .activity
         case .idle: .idle
         }
     }
@@ -33,10 +35,22 @@ enum ClosedNotchPresentationPriority: Int, Comparable {
 struct ClosedNotchPresentationCandidate: Equatable {
     let presentation: ClosedNotchPresentation
     let isVisible: Bool
+    let priority: ClosedNotchPresentationPriority
+    let updatedAt: Date
+    let metrics: ClosedNotchLayoutMetrics?
 
-    init(_ presentation: ClosedNotchPresentation, isVisible: Bool) {
+    init(
+        _ presentation: ClosedNotchPresentation,
+        isVisible: Bool,
+        priority: ClosedNotchPresentationPriority? = nil,
+        updatedAt: Date = .distantPast,
+        metrics: ClosedNotchLayoutMetrics? = nil
+    ) {
         self.presentation = presentation
         self.isVisible = isVisible
+        self.priority = priority ?? presentation.priority
+        self.updatedAt = updatedAt
+        self.metrics = metrics
     }
 }
 
@@ -88,15 +102,23 @@ struct ClosedNotchPresentationState: Equatable {
 
 enum ClosedNotchPresentationResolver {
     static func resolve(_ input: ClosedNotchPresentationInput) -> ClosedNotchPresentationState {
-        let primary = input.candidates.reduce(nil as ClosedNotchPresentationCandidate?) {
-            selected, candidate in
-            guard candidate.isVisible else { return selected }
-            guard let selected else { return candidate }
+        let selectedCandidate = PriorityResolver.select(
+            from: input.candidates,
+            isVisible: { $0.isVisible },
+            priority: { $0.priority.rawValue },
+            updatedAt: { $0.updatedAt }
+        )
+        let primary = selectedCandidate?.presentation ?? .idle
 
-            return candidate.presentation.priority > selected.presentation.priority
-                ? candidate
-                : selected
-        }?.presentation ?? .idle
+        if case .extensionActivity = primary,
+           let metrics = selectedCandidate?.metrics {
+            return .init(
+                primary: primary,
+                supplemental: nil,
+                musicExpanded: false,
+                metrics: metrics
+            )
+        }
 
         let layout: (
             leadingWidth: CGFloat,
@@ -150,6 +172,9 @@ enum ClosedNotchPresentationResolver {
                 8,
                 cornerRadiusInsets.closed.bottom
             )
+
+        case .extensionActivity:
+            layout = (0, 0, 0, 0, cornerRadiusInsets.closed.bottom)
 
         case .idle:
             layout = (0, 0, 0, 0, 4)

@@ -126,6 +126,16 @@ final class XPCHelperClient: NSObject {
     }
     
     // MARK: - Accessibility
+
+    private var accessibilitySettingsURL: URL? {
+        let pane: String
+        if #available(macOS 26.0, *) {
+            pane = "com.apple.settings.PrivacySecurity.extension?Privacy_Accessibility"
+        } else {
+            pane = "com.apple.preference.security?Privacy_Accessibility"
+        }
+        return URL(string: "x-apple.systempreferences:\(pane)")
+    }
     
     nonisolated func requestAccessibilityAuthorization() {
         Task {
@@ -135,6 +145,26 @@ final class XPCHelperClient: NSObject {
             try? await service.withService { service in
                 service.requestAccessibilityAuthorization()
             }
+        }
+    }
+
+    @MainActor
+    func openAccessibilitySettings() {
+        guard let settingsURL = accessibilitySettingsURL else {
+            return
+        }
+
+        // AXIsProcessTrustedWithOptions can ask macOS to open System Settings itself.
+        // Wait for that request to finish before opening the target pane so the two
+        // launches do not race and terminate the settings window.
+        Task { @MainActor [weak self] in
+            _ = await self?.ensureAccessibilityAuthorization(promptIfNeeded: true)
+            do {
+                try await Task.sleep(for: .milliseconds(500))
+            } catch {
+                return
+            }
+            NSWorkspace.shared.open(settingsURL)
         }
     }
     
@@ -175,7 +205,7 @@ final class XPCHelperClient: NSObject {
             return false
         }
     }
-    
+
     // MARK: - Keyboard Brightness
     
     nonisolated func isKeyboardBrightnessAvailable() async -> Bool {
@@ -365,5 +395,119 @@ final class XPCHelperClient: NSObject {
             return false
         }
     }
-}
 
+    // MARK: - Codex Notifications
+
+    @MainActor
+    func isAuthenticCodexNotificationPayload(
+        _ payload: String,
+        signature: String
+    ) async -> Bool {
+        do {
+            let service = ensureRemoteService()
+            return try await service.withContinuation { service, continuation in
+                service.validateCodexNotificationPayload(
+                    payload,
+                    signature: signature
+                ) { isValid in
+                    continuation.resume(returning: isValid)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
+
+    @MainActor
+    func codexPermissionPromptStatus(
+        matchingChatTitle chatTitle: String,
+        request: String
+    ) async -> (
+        inspected: Bool,
+        visible: Bool
+    ) {
+        do {
+            let service = ensureRemoteService()
+            return try await service.withContinuation { service, continuation in
+                service.codexPermissionPromptStatus(
+                    matchingChatTitle: chatTitle,
+                    request: request
+                ) { inspected, visible in
+                    continuation.resume(returning: (inspected, visible))
+                }
+            }
+        } catch {
+            return (false, false)
+        }
+    }
+
+    @MainActor
+    func performCodexPermissionDecision(
+        _ decision: CodexPermissionDecision,
+        matchingChatTitle chatTitle: String,
+        request: String
+    ) async -> Result<Void, Error> {
+        do {
+            let service = ensureRemoteService()
+            let result: (Bool, String?) = try await service.withContinuation {
+                service,
+                continuation in
+                service.performCodexPermissionDecision(
+                    decision.rawValue,
+                    matchingChatTitle: chatTitle,
+                    request: request
+                ) { success, message in
+                    continuation.resume(returning: (success, message))
+                }
+            }
+            guard result.0 else {
+                throw NSError(
+                    domain: "BoringNotch.CodexPermissions",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: result.1 ?? "The Codex permission prompt could not be answered."]
+                )
+            }
+            return .success(())
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    @MainActor
+    func isCodexNotificationHookInstalled() async -> Bool {
+        do {
+            let service = ensureRemoteService()
+            return try await service.withContinuation { service, continuation in
+                service.isCodexNotificationHookInstalled { installed in
+                    continuation.resume(returning: installed)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
+
+    @MainActor
+    func setCodexNotificationHookInstalled(
+        _ installed: Bool
+    ) async -> Result<Void, Error> {
+        do {
+            let service = ensureRemoteService()
+            let result: (Bool, String?) = try await service.withContinuation { service, continuation in
+                service.setCodexNotificationHookInstalled(installed) { success, message in
+                    continuation.resume(returning: (success, message))
+                }
+            }
+            guard result.0 else {
+                throw NSError(
+                    domain: "BoringNotch.CodexHooks",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: result.1 ?? "Codex notification hooks could not be updated."]
+                )
+            }
+            return .success(())
+        } catch {
+            return .failure(error)
+        }
+    }
+}
