@@ -35,6 +35,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Test Codex notification core
+        run: swift test --filter CodexNotificationsCoreTests
+
       - name: Build
         uses: mxcl/xcodebuild@d3ee9b419c1be9a988086c58fe0988f32d99cfc5 # v3.6.0
         with:
