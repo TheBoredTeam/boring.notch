@@ -57,6 +57,24 @@ final class ShelfStateViewModel: ObservableObject {
         items.removeAll { $0.id == item.id }
     }
 
+    /// Removes several items in one pass, so the shelf is persisted once rather than per item.
+    func remove(_ itemsToRemove: [ShelfItem]) {
+        guard !itemsToRemove.isEmpty else { return }
+        let ids = Set(itemsToRemove.map(\.id))
+        for item in itemsToRemove {
+            item.cleanupStoredData()
+        }
+        items.removeAll { ids.contains($0.id) }
+    }
+
+    func removeAll() {
+        guard !items.isEmpty else { return }
+        for item in items {
+            item.cleanupStoredData()
+        }
+        items = []
+    }
+
     func updateBookmark(for item: ShelfItem, bookmark: Data) {
         guard let idx = items.firstIndex(where: { $0.id == item.id }) else { return }
         if case .file = items[idx].kind {

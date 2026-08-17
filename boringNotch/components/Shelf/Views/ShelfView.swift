@@ -15,6 +15,7 @@ struct ShelfView: View {
     @StateObject var selection = ShelfSelectionModel.shared
     @StateObject private var quickLookService = QuickLookService()
     private let spacing: CGFloat = 8
+    @State private var isHoveringPanel = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -71,11 +72,65 @@ struct ShelfView: View {
                 content
                     .padding()
             }
+            .overlay(alignment: .topTrailing) {
+                removalButton
+                    .padding(6)
+                    .opacity(showRemovalButton ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.12), value: showRemovalButton)
+            }
             .transaction { transaction in
                 transaction.animation = vm.animation
             }
             .contentShape(Rectangle())
             .onTapGesture { selection.clear() }
+            .onHover { hovering in
+                isHoveringPanel = hovering
+            }
+    }
+
+    private var selectionCount: Int {
+        selection.selectedItems(in: tvm.items).count
+    }
+
+    /// Stays visible whenever there is a selection, since the button is then the only way to
+    /// remove exactly those items. With no selection it keeps out of the way until hover: the
+    /// panel is only as wide as the open notch, so a permanent control here would sit over
+    /// the last item's tile.
+    private var showRemovalButton: Bool {
+        !tvm.isEmpty && (isHoveringPanel || selectionCount > 0)
+    }
+
+    /// Scoped to the selection when there is one, and to the whole shelf otherwise, so the
+    /// visible control never removes more than the user just asked for.
+    private var removalButton: some View {
+        let count = selectionCount
+        let isSelectionScoped = count > 0
+        let title = isSelectionScoped ? "Remove Selected (\(count))" : "Clear All"
+
+        return Button {
+            if isSelectionScoped {
+                let selected = selection.selectedItems(in: tvm.items)
+                selection.clear()
+                tvm.remove(selected)
+            } else {
+                selection.clear()
+                tvm.removeAll()
+            }
+        } label: {
+            HStack(spacing: 3) {
+                Image(systemName: "trash")
+                Text(title)
+            }
+            .font(.system(size: 10, weight: .medium))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 4)
+            .background(Capsule().fill(Color.black.opacity(0.65)))
+            .overlay(Capsule().strokeBorder(Color.white.opacity(0.2), lineWidth: 0.5))
+        }
+        .buttonStyle(.plain)
+        .help(title)
+        .accessibilityLabel(Text(title))
     }
 
     var content: some View {
