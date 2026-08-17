@@ -1,0 +1,49 @@
+# Runtime and packager lock for the local MarkItDown helper.
+#
+# Generated and verified on Apple Silicon macOS with CPython 3.13.15. The lock
+# is intended for Intel builds too, with pip selecting host-architecture wheels,
+# but that path requires CI or maintainer verification. Install with --no-deps
+# so rebuilds cannot silently add unreviewed packages.
+altgraph==0.17.5
+beautifulsoup4==4.15.0
+certifi==2026.7.22
+cffi==2.1.1
+charset-normalizer==3.5.1
+click==8.4.2
+cobble==0.1.4
+cryptography==50.0.0
+defusedxml==0.7.1
+et_xmlfile==2.0.0
+flatbuffers==25.12.19
+idna==3.18
+lxml==6.1.1
+macholib==1.16.4
+magika==0.6.3
+mammoth==1.11.0
+markdownify==1.2.3
+markitdown==0.1.7
+numpy==2.5.2
+olefile==0.47
+onnxruntime==1.28.0
+openpyxl==3.1.5
+packaging==26.3
+pandas==3.0.5
+pdfminer.six==20260107
+pdfplumber==0.11.10
+pillow==12.3.0
+protobuf==7.35.1
+pycparser==3.0
+pyinstaller-hooks-contrib==2026.6
+pyinstaller==6.22.1
+pypdfium2==5.13.0
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.3
+python-pptx==1.0.2
+requests==2.34.2
+setuptools==84.0.0
+six==1.17.0
+soupsieve==2.9.2
+typing_extensions==4.16.0
+urllib3==2.7.0
+xlrd==2.0.2
+xlsxwriter==3.2.9
