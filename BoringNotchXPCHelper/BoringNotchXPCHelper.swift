@@ -228,11 +228,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
                 visited: &visited,
                 inspectedCount: &inspectedCount
             )
-            if let focusedWindow,
-               CFHash(window) == CFHash(focusedWindow),
-               let focusedMatch = resolvedPermissionControls(in: scan) {
-                return focusedMatch
-            }
             var windowPromptCandidates: [CodexPermissionControls] = []
             for candidate in scan.promptCandidates {
                 appendUniquePermissionControls(candidate, to: &windowPromptCandidates)
@@ -259,22 +254,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         }
         if requestMatches.count == 1 {
             return requestMatches[0]
-        }
-        return nil
-    }
-
-    private func resolvedPermissionControls(in scan: CodexPermissionScan) -> CodexPermissionControls? {
-        for matches in [
-            scan.combinedMatches,
-            scan.requestMatches,
-        ] {
-            var uniqueMatches: [CodexPermissionControls] = []
-            for match in matches {
-                appendUniquePermissionControls(match, to: &uniqueMatches)
-            }
-            if uniqueMatches.count == 1 {
-                return uniqueMatches[0]
-            }
         }
         return nil
     }

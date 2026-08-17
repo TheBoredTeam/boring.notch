@@ -104,6 +104,10 @@ final class CodexNotificationManager: ObservableObject {
 
         do {
             let event = try CodexHookEventParser.parse(payload)
+            if case .permissionRequest(_, _, _, _, let control, _, _) = event,
+               control != .accessibility {
+                return
+            }
             var updatedState = state
             updatedState.reduce(event)
             state = updatedState
@@ -221,6 +225,11 @@ final class CodexNotificationManager: ObservableObject {
     func openCodexAndDismiss() {
         openCodex()
         dismissVisibleNotification()
+    }
+
+    func openCodexAndDismiss(_ notification: CodexJobNotification) {
+        openCodex(for: notification)
+        dismiss(notification: notification)
     }
 
     private func codexThreadURL(for notification: CodexJobNotification) -> URL? {
@@ -462,12 +471,7 @@ final class CodexNotificationManager: ObservableObject {
     }
 
     private func synchronizeNativePermissionObservation() {
-        let permission = state.visibleNotification().flatMap { notification in
-            notification.status == .needsAction(.permission)
-                && notification.permissionControl == .accessibility
-                ? notification
-                : nil
-        }
+        let permission = state.nativePermissionNotification()
         let token = permission.map(CodexNotificationPresentationToken.init)
         guard token != observedNativePermissionToken else { return }
 
@@ -497,12 +501,22 @@ final class CodexNotificationManager: ObservableObject {
                 }
 
                 if !status.inspected {
-                    guard Date() < appearanceDeadline else { return }
+                    guard Date() < appearanceDeadline else {
+                        self.dismiss(notification: permission)
+                        return
+                    }
                     try? await Task.sleep(for: .milliseconds(250))
                     continue
                 }
 
                 if status.visible {
+                    if !hasObservedNativePrompt,
+                       !permission.nativePermissionConfirmed {
+                        var updatedState = self.state
+                        updatedState.confirmNativePermission(permission.id)
+                        self.state = updatedState
+                        self.synchronizePresentedNotification()
+                    }
                     hasObservedNativePrompt = true
                 } else if hasObservedNativePrompt || Date() >= appearanceDeadline {
                     self.dismiss(notification: permission)

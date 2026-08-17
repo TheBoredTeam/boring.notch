@@ -23,6 +23,7 @@ public enum PriorityResolver {
 
 public enum CodexRequiredAction: String, Equatable, Sendable {
     case permission
+    case systemPermission
     case decision
     case manualCheck
 }
@@ -139,7 +140,7 @@ public enum CodexJobStatus: Equatable, Sendable {
 
     public var isPersistent: Bool {
         switch self {
-        case .needsAction(.permission): true
+        case .needsAction(.permission), .needsAction(.systemPermission): true
         case .needsAction(.decision), .needsAction(.manualCheck), .failed, .succeeded:
             false
         }
@@ -148,6 +149,7 @@ public enum CodexJobStatus: Equatable, Sendable {
     public var title: String {
         switch self {
         case .needsAction(.permission): "Permission Required"
+        case .needsAction(.systemPermission): "System Permission Required"
         case .needsAction(.decision): "Decision Required"
         case .needsAction(.manualCheck): "Manual Check"
         case .failed: "Failure"
@@ -157,7 +159,8 @@ public enum CodexJobStatus: Equatable, Sendable {
 
     public var nextAction: String {
         switch self {
-        case .needsAction(.permission), .needsAction(.decision): "Open Codex"
+        case .needsAction(.permission), .needsAction(.systemPermission), .needsAction(.decision):
+            "Open Codex"
         case .needsAction(.manualCheck), .failed: "Review result"
         case .succeeded: "No action needed"
         }
@@ -176,6 +179,7 @@ public struct CodexJobNotification: Equatable, Identifiable, Sendable {
     public let status: CodexJobStatus
     public let permissionControl: CodexPermissionControl?
     public let permissionDetails: CodexPermissionDetails?
+    public let nativePermissionConfirmed: Bool
     public let createdAt: Date
 
     public init(
@@ -190,6 +194,7 @@ public struct CodexJobNotification: Equatable, Identifiable, Sendable {
         status: CodexJobStatus,
         permissionControl: CodexPermissionControl? = nil,
         permissionDetails: CodexPermissionDetails? = nil,
+        nativePermissionConfirmed: Bool = true,
         createdAt: Date
     ) {
         self.id = id
@@ -203,6 +208,7 @@ public struct CodexJobNotification: Equatable, Identifiable, Sendable {
         self.status = status
         self.permissionControl = permissionControl
         self.permissionDetails = permissionDetails
+        self.nativePermissionConfirmed = nativePermissionConfirmed
         self.createdAt = createdAt
     }
 }
@@ -462,6 +468,7 @@ public struct CodexNotificationState: Equatable, Sendable {
                 status: .needsAction(.permission),
                 permissionControl: control,
                 permissionDetails: details,
+                nativePermissionConfirmed: false,
                 chatTitle: chatTitle,
                 projectName: projectName,
                 date: date
@@ -505,9 +512,52 @@ public struct CodexNotificationState: Equatable, Sendable {
     public func visibleNotification() -> CodexJobNotification? {
         PriorityResolver.select(
             from: notifications,
-            isVisible: { _ in true },
+            isVisible: {
+                $0.status != .needsAction(.permission)
+                    || $0.nativePermissionConfirmed
+            },
             priority: { $0.status.priority },
             updatedAt: { $0.createdAt }
+        )
+    }
+
+    public func nativePermissionNotification() -> CodexJobNotification? {
+        PriorityResolver.select(
+            from: notifications,
+            isVisible: {
+                $0.status == .needsAction(.permission)
+                    && $0.permissionControl == .accessibility
+            },
+            priority: { $0.nativePermissionConfirmed ? 1 : 0 },
+            updatedAt: { $0.createdAt }
+        )
+    }
+
+    public mutating func confirmNativePermission(_ id: String) {
+        guard let index = notifications.firstIndex(where: {
+            $0.id == id
+                && $0.status == .needsAction(.permission)
+                && $0.permissionControl == .accessibility
+                && !$0.nativePermissionConfirmed
+        }) else {
+            return
+        }
+
+        let notification = notifications[index]
+        notifications[index] = CodexJobNotification(
+            id: notification.id,
+            sessionID: notification.sessionID,
+            turnID: notification.turnID,
+            jobTitle: notification.jobTitle,
+            resultSummary: notification.resultSummary,
+            chatTitle: notification.chatTitle,
+            userPrompt: notification.userPrompt,
+            projectName: notification.projectName,
+            status: notification.status,
+            permissionControl: notification.permissionControl,
+            permissionDetails: notification.permissionDetails,
+            nativePermissionConfirmed: true,
+            createdAt: notification.createdAt
         )
     }
 
@@ -523,6 +573,7 @@ public struct CodexNotificationState: Equatable, Sendable {
         status: CodexJobStatus,
         permissionControl: CodexPermissionControl? = nil,
         permissionDetails: CodexPermissionDetails? = nil,
+        nativePermissionConfirmed: Bool = true,
         chatTitle: String? = nil,
         projectName: String? = nil,
         date: Date
@@ -552,6 +603,7 @@ public struct CodexNotificationState: Equatable, Sendable {
             status: status,
             permissionControl: permissionControl,
             permissionDetails: permissionDetails,
+            nativePermissionConfirmed: nativePermissionConfirmed,
             createdAt: date
         )
     }
@@ -602,6 +654,26 @@ public struct CodexNotificationState: Equatable, Sendable {
         }
 
         let text = result.lowercased()
+        let systemPermissionLocations = [
+            "system settings", "system preferences", "privacy & security",
+            "privacy and security", "local network", "full disk access",
+            "screen recording", "files and folders", "camera", "microphone",
+            "bluetooth", "input monitoring", "location services", "photos",
+            "contacts", "calendars", "reminders"
+        ]
+        let systemPermissionTerms = [
+            "permission", "access", "allow", "enable", "grant"
+        ]
+        let blockingTerms = [
+            "please", "need", "needs", "required", "requires", "must",
+            "blocked", "waiting", "before i can continue", "to continue"
+        ]
+        if systemPermissionLocations.contains(where: text.contains),
+           systemPermissionTerms.contains(where: text.contains),
+           blockingTerms.contains(where: text.contains) {
+            return .needsAction(.systemPermission)
+        }
+
         let failureText = text
             .replacingOccurrences(of: "no tests failed", with: "")
             .replacingOccurrences(of: "0 tests failed", with: "")

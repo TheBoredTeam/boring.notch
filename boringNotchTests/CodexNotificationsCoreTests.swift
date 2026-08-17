@@ -69,6 +69,9 @@ final class CodexNotificationsCoreTests: XCTestCase {
         }
         """#))
 
+        XCTAssertNil(state.visibleNotification())
+        let pendingNotice = try XCTUnwrap(state.nativePermissionNotification())
+        state.confirmNativePermission(pendingNotice.id)
         let notice = try XCTUnwrap(state.visibleNotification())
         XCTAssertEqual(notice.jobTitle, "Fix the extension conflict in PR #970")
         XCTAssertEqual(notice.chatTitle, "Fix Codex permission relay")
@@ -135,6 +138,9 @@ final class CodexNotificationsCoreTests: XCTestCase {
         }
         """#))
 
+        XCTAssertNil(state.visibleNotification())
+        let pendingNotice = try XCTUnwrap(state.nativePermissionNotification())
+        state.confirmNativePermission(pendingNotice.id)
         let notice = try XCTUnwrap(state.visibleNotification())
         XCTAssertEqual(notice.chatTitle, "Build project bootstrap skill")
         XCTAssertEqual(notice.jobTitle, "Build project bootstrap skill")
@@ -175,6 +181,9 @@ final class CodexNotificationsCoreTests: XCTestCase {
             control: .accessibility
         ))
 
+        XCTAssertNil(state.visibleNotification())
+        let pendingNotice = try XCTUnwrap(state.nativePermissionNotification())
+        state.confirmNativePermission(pendingNotice.id)
         let notice = try XCTUnwrap(state.visibleNotification())
         XCTAssertEqual(
             notice.userPrompt,
@@ -201,7 +210,8 @@ final class CodexNotificationsCoreTests: XCTestCase {
         }
         """#))
 
-        let notice = try XCTUnwrap(state.visibleNotification())
+        XCTAssertNil(state.visibleNotification())
+        let notice = try XCTUnwrap(state.nativePermissionNotification())
         XCTAssertEqual(notice.permissionControl, .accessibility)
     }
 
@@ -214,6 +224,8 @@ final class CodexNotificationsCoreTests: XCTestCase {
             details: CodexPermissionDetails(toolName: "Bash", description: "Run tests"),
             control: .accessibility
         ))
+        XCTAssertNil(state.visibleNotification())
+        XCTAssertNotNil(state.nativePermissionNotification())
 
         state.reduce(try CodexHookEventParser.parse(#"""
         {
@@ -225,9 +237,10 @@ final class CodexNotificationsCoreTests: XCTestCase {
         """#))
 
         XCTAssertNil(state.visibleNotification())
+        XCTAssertNil(state.nativePermissionNotification())
     }
 
-    func testPermissionRequestWithoutUsableControlIsStillMirrored() throws {
+    func testPermissionRequestWithoutUsableControlIsNotPresented() throws {
         let payloads = [
             #"{"hook_event_name":"PermissionRequest","session_id":"absent"}"#,
             #"{"hook_event_name":"PermissionRequest","session_id":"missing-control","boring_notch_approval":{}}"#,
@@ -237,9 +250,11 @@ final class CodexNotificationsCoreTests: XCTestCase {
         for payload in payloads {
             var state = CodexNotificationState()
             state.reduce(try CodexHookEventParser.parse(payload))
-            let notice = try XCTUnwrap(state.visibleNotification(), payload)
+            let notice = try XCTUnwrap(state.notifications.first, payload)
             XCTAssertEqual(notice.status, .needsAction(.permission), payload)
             XCTAssertNil(notice.permissionControl, payload)
+            XCTAssertNil(state.visibleNotification(), payload)
+            XCTAssertNil(state.nativePermissionNotification(), payload)
         }
     }
 
@@ -308,7 +323,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         )
     }
 
-    func testOnlyPermissionNotificationsPersist() {
+    func testOnlyPermissionRemindersPersist() {
         var state = CodexNotificationState()
         let now = Date(timeIntervalSince1970: 20)
         state.reduce(.stop(
@@ -322,6 +337,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertEqual(notice?.status, .failed)
 
         XCTAssertTrue(CodexJobStatus.needsAction(.permission).isPersistent)
+        XCTAssertTrue(CodexJobStatus.needsAction(.systemPermission).isPersistent)
         XCTAssertFalse(CodexJobStatus.needsAction(.decision).isPersistent)
         XCTAssertFalse(CodexJobStatus.needsAction(.manualCheck).isPersistent)
         XCTAssertFalse(CodexJobStatus.failed.isPersistent)
@@ -384,6 +400,33 @@ final class CodexNotificationsCoreTests: XCTestCase {
         )
         XCTAssertEqual(
             state.notifications.first { $0.sessionID == "success" }?.status,
+            .succeeded
+        )
+    }
+
+    func testSystemSettingsPermissionBlockerStaysActionable() {
+        var state = CodexNotificationState()
+        state.reduce(.stop(
+            sessionID: "system-permission",
+            turnID: "turn-1",
+            cwd: "/tmp/project",
+            result: "The task failed because Local Network access is required. Please enable it in System Settings before I can continue."
+        ), at: Date(timeIntervalSince1970: 10))
+        state.reduce(.stop(
+            sessionID: "documentation",
+            turnID: "turn-2",
+            cwd: "/tmp/project",
+            result: "Updated the documentation for Local Network access in System Settings."
+        ), at: Date(timeIntervalSince1970: 11))
+
+        let reminder = state.notifications.first {
+            $0.sessionID == "system-permission"
+        }
+        XCTAssertEqual(reminder?.status, .needsAction(.systemPermission))
+        XCTAssertEqual(reminder?.status.title, "System Permission Required")
+        XCTAssertTrue(reminder?.status.isPersistent == true)
+        XCTAssertEqual(
+            state.notifications.first { $0.sessionID == "documentation" }?.status,
             .succeeded
         )
     }
@@ -461,7 +504,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertEqual(surfaces.activeSurfaceIDs, ["display-2"])
     }
 
-    func testActionRequiredOutranksNewerCompletion() {
+    func testActionRequiredOutranksNewerCompletion() throws {
         var state = CodexNotificationState()
         state.reduce(.permissionRequest(
             sessionID: "permission",
@@ -470,6 +513,8 @@ final class CodexNotificationsCoreTests: XCTestCase {
             details: CodexPermissionDetails(toolName: "Bash", description: "Run tests"),
             control: .accessibility
         ), at: Date(timeIntervalSince1970: 10))
+        let pendingPermission = try XCTUnwrap(state.nativePermissionNotification())
+        state.confirmNativePermission(pendingPermission.id)
         state.reduce(.stop(
             sessionID: "complete",
             turnID: "turn-2",
@@ -490,8 +535,11 @@ final class CodexNotificationsCoreTests: XCTestCase {
             control: .accessibility
         ), at: Date(timeIntervalSince1970: 100))
 
+        XCTAssertNil(state.visibleNotification())
+        let pendingNotice = try XCTUnwrap(state.nativePermissionNotification())
+        state.confirmNativePermission(pendingNotice.id)
         XCTAssertEqual(state.visibleNotification()?.permissionControl, .accessibility)
-        state.dismiss(try XCTUnwrap(state.visibleNotification()?.id))
+        state.dismiss(pendingNotice.id)
         XCTAssertNil(state.visibleNotification())
     }
 
