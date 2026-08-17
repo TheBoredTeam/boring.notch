@@ -16,12 +16,25 @@ final class ShelfStateViewModel: ObservableObject {
     }
 
     @Published var isLoading: Bool = false
+    @Published private(set) var convertingItemIDs: Set<ShelfItem.ID> = []
 
     var isEmpty: Bool { items.isEmpty }
 
     // Debounced persistence
     private var persistenceTask: Task<Void, Never>?
     private let persistenceDelay: Duration = .seconds(1)
+
+    func isConverting(_ item: ShelfItem) -> Bool {
+        convertingItemIDs.contains(item.id)
+    }
+
+    func beginConverting(_ items: [ShelfItem]) {
+        convertingItemIDs.formUnion(items.map(\.id))
+    }
+
+    func finishConverting(_ items: [ShelfItem]) {
+        convertingItemIDs.subtract(items.map(\.id))
+    }
 
     private init() {
         items = ShelfPersistenceService.shared.load()

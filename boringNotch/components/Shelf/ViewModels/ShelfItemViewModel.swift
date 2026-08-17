@@ -156,6 +156,59 @@ final class ShelfItemViewModel: ObservableObject {
         for it in selected { ShelfActionService.open(it) }
     }
 
+    var canConvertToMarkdown: Bool {
+        guard let url = item.fileURL else { return false }
+        guard !["md", "markdown"].contains(url.pathExtension.lowercased()) else { return false }
+        return MarkItDownConversionService.supports(url)
+    }
+
+    func convertItemToMarkdown() {
+        convertItemsToMarkdown([item])
+    }
+
+    private func convertItemsToMarkdown(_ items: [ShelfItem]) {
+        guard !items.isEmpty else { return }
+        ShelfStateViewModel.shared.beginConverting(items)
+
+        Task {
+            var convertedItems: [ShelfItem] = []
+            var failures: [String] = []
+
+            for sourceItem in items {
+                guard let inputURL = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: sourceItem) else {
+                    failures.append("\(sourceItem.displayName): The file is no longer available.")
+                    continue
+                }
+
+                do {
+                    // The service always writes into a new UUID-named temporary
+                    // directory. The source document is never modified or replaced.
+                    let outputURL = try await MarkItDownConversionService.shared.convert(inputURL)
+                    let bookmark = try Bookmark(url: outputURL)
+                    convertedItems.append(
+                        ShelfItem(kind: .file(bookmark: bookmark.data), isTemporary: true)
+                    )
+                } catch {
+                    failures.append("\(sourceItem.displayName): \(error.localizedDescription)")
+                }
+            }
+
+            ShelfStateViewModel.shared.add(convertedItems)
+            ShelfStateViewModel.shared.finishConverting(items)
+
+            if !failures.isEmpty {
+                let alert = NSAlert()
+                alert.messageText = failures.count == 1
+                    ? "Markdown Conversion Failed"
+                    : "Some Markdown Conversions Failed"
+                alert.informativeText = failures.joined(separator: "\n")
+                alert.alertStyle = .warning
+                alert.addButton(withTitle: "OK")
+                alert.runModal()
+            }
+        }
+    }
+
     func shareItem(from view: NSView?) {
         Task {
             var itemsToShare: [Any] = []
@@ -354,7 +407,7 @@ final class ShelfItemViewModel: ObservableObject {
 
         menu.addItem(NSMenuItem.separator())
         addMenuItem(title: "Share…")
-        
+
         // Add image processing options for image files grouped under "Image Actions"
         let imageURLs = selectedFileURLs.filter { ImageProcessingService.shared.isImageFile($0) }
         if !imageURLs.isEmpty {
@@ -424,7 +477,10 @@ final class ShelfItemViewModel: ObservableObject {
         
         menu.retainActionTarget(actionTarget)
         
-        NSMenu.popUpContextMenu(menu, with: event, for: view)
+        // Present in screen coordinates so the menu can use the display's full
+        // available height. Anchoring it to the compact shelf tile can make
+        // AppKit collapse an otherwise normal menu into a scrolling menu.
+        menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
     }
 
     private func isDirectory(_ url: URL) -> Bool {
