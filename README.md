@@ -102,6 +102,21 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch
 - Use the controls to manage your music like a rockstar.
 - Click the star in your menu bar to customize your notch to your heart's content.
 
+### Local document-to-Markdown conversion
+
+The shelf can create a separate Markdown copy of supported local documents. Add
+a PDF, Word document, presentation, spreadsheet, HTML/XML document, ebook,
+Outlook message, archive, or text file to the shelf, then choose **Convert to
+MD**. The source file is preserved, and the generated `.md` file can be dragged
+to Finder like any other shelf item.
+
+Conversion runs in a bundled, local-only [Microsoft
+MarkItDown](https://github.com/microsoft/markitdown) runtime. Plugins and remote
+URLs are disabled, Python socket connections are blocked, and no cloud or AI API
+dependency is included in the runtime lock. This guarantee applies to the
+document conversion path; other Boring Notch features retain their existing
+network behavior.
+
 ## 📋 Roadmap
 - [x] Playback live activity 🎧
 - [x] Calendar integration 📆
@@ -133,6 +148,7 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch
 
 - **macOS 15.6 or later**
 - **Xcode 26 or later**
+- **Homebrew CPython 3.13.15** for the optional local MarkItDown runtime
 
 ### Installation
 
@@ -142,13 +158,27 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch
    cd boring.notch
    ```
 
-2. **Open the Project in Xcode**:
+2. **Build the local MarkItDown runtime**:
+   ```bash
+   brew install python@3.13
+   ./scripts/build_markitdown_runtime.sh
+   ./scripts/test_markitdown_runtime.sh
+   ```
+
+   The generated runtime is architecture-specific and intentionally excluded
+   from Git. Its exact dependency versions are recorded in
+   `requirements/markitdown-runtime.txt`.
+
+3. **Open the Project in Xcode**:
    ```bash
    open boringNotch.xcodeproj
    ```
 
-3. **Build and Run**:
+4. **Build and Run**:
     - Click the "Run" button or press `Cmd + R`. Watch the magic unfold!
+
+See [Local MarkItDown Runtime](docs/markitdown-local.md) for the architecture,
+supported formats, reproducible Release build, tests, and distribution notes.
 
 ## 🤝 Contributing
 
@@ -179,13 +209,19 @@ We would like to express our gratitude to the authors and maintainers of the ope
 ## Notable Projects
 - **[MediaRemoteAdapter](https://github.com/ungive/mediaremote-adapter)** –  An open-source project that allowed us to use the Now Playing source in macOS 15.4+
 - **[NotchDrop](https://github.com/Lakr233/NotchDrop)** – An open-source project that has been instrumental in developing the first version of the "Shelf" feature in Boring Notch.
+- **[Microsoft MarkItDown](https://github.com/microsoft/markitdown)** – MIT-licensed local document-to-Markdown conversion used by the shelf.
 
-For a full list of licenses and attributions, please see the [Third-Party Licenses](./THIRD_PARTY_LICENSES.md) file.
+For licenses and attributions, see the existing [Third-Party Licenses](./THIRD_PARTY_LICENSES)
+and the generated [MarkItDown Runtime Notices](./THIRD_PARTY_LICENSES_MARKITDOWN).
+MarkItDown remains unmodified and is not forked by this project.
+
+Boring Notch remains licensed under [GPL-3.0](./LICENSE). Distributors of a
+modified binary must retain the notices and provide the corresponding source
+and build instructions as required by GPL-3.0.
 
 ### Icon credits: [@maxtron95](https://github.com/maxtron95)
 ### Website credits: [@himanshhhhuv](https://github.com/himanshhhhuv)
 
 - **SwiftUI**: For making us look like coding wizards.
 - **You**: For being awesome and checking out **boring.notch**!
-
 

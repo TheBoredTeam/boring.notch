@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C0D3A001A816202600000001 /* markitdown-runtime in Resources */ = {isa = PBXBuildFile; fileRef = C0D3A002A816202600000001 /* markitdown-runtime */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -196,6 +197,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		C0D3A002A816202600000001 /* markitdown-runtime */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "vendor/markitdown-runtime"; sourceTree = "<group>"; };
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
 		110029292E8691B400035A57 /* FileShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShareView.swift; sourceTree = "<group>"; };
@@ -657,6 +659,7 @@
 		14CEF4142C5CAED300855D72 /* boringNotch */ = {
 			isa = PBXGroup;
 			children = (
+				C0D3A002A816202600000001 /* markitdown-runtime */,
 				11F748672EC9AC9600F841DB /* XPCHelperClient */,
 				116398942DF5D6B40052E6AF /* Providers */,
 				14288DE22C6E016F00B9F80C /* observers */,
@@ -967,6 +970,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0D3A001A816202600000001 /* markitdown-runtime in Resources */,
 				14CEF41D2C5CAED400855D72 /* Preview Assets.xcassets in Resources */,
 				14CEF41A2C5CAED400855D72 /* Assets.xcassets in Resources */,
 				112B0EB82E30DD0F00562D6C /* MediaRemoteAdapterTestClient in Resources */,

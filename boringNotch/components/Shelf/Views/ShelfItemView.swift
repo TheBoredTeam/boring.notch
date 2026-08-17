@@ -8,6 +8,7 @@
 import AppKit
 import SwiftUI
 import Defaults
+import UniformTypeIdentifiers
 
 import QuickLook
 
@@ -15,6 +16,7 @@ struct ShelfItemView: View {
     let item: ShelfItem
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var selection = ShelfSelectionModel.shared
+    @ObservedObject private var shelfState = ShelfStateViewModel.shared
     @StateObject private var viewModel: ShelfItemViewModel
     @EnvironmentObject private var quickLookService: QuickLookService
     @State private var showStack = false
@@ -22,6 +24,7 @@ struct ShelfItemView: View {
 
     private var isSelected: Bool { viewModel.isSelected }
     private var shouldHideDuringDrag: Bool { selection.isDragging && selection.isSelected(item.id) && false }
+    private var conversionTint: Color { Color(red: 0.24, green: 0.56, blue: 0.96) }
     
     init(item: ShelfItem) {
         self.item = item
@@ -31,32 +34,46 @@ struct ShelfItemView: View {
     var body: some View {
         ZStack {
             if !shouldHideDuringDrag {
-                VStack(alignment: .center, spacing: 2) {
-                    iconView
-                    textView
+                VStack(alignment: .center, spacing: 6) {
+                    ZStack {
+                        VStack(alignment: .center, spacing: 2) {
+                            iconView
+                            textView
+                        }
+
+                        DraggableClickHandler(
+                            item: item,
+                            viewModel: viewModel,
+                            dragPreviewContent: {
+                                DragPreviewView(thumbnail: viewModel.thumbnail ?? item.icon, displayName: item.displayName)
+                            },
+                            onRightClick: viewModel.handleRightClick,
+                            onClick: { event, nsview in
+                                viewModel.handleClick(event: event, view: nsview)
+                            }
+                        )
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                    .frame(width: 105, height: 88)
+                    .offset(y: viewModel.canConvertToMarkdown ? 0 : 13)
+
+                    if viewModel.canConvertToMarkdown {
+                        conversionButton
+                    } else {
+                        Color.clear
+                            .frame(height: 20)
+                    }
                 }
-                .frame(width: 105)
+                .frame(width: 105, height: 114, alignment: .top)
                 .padding(.vertical, 10)
                 .padding(.horizontal, 5)
                 .background(backgroundView)
                 .contentShape(Rectangle())
                 .animation(.easeInOut(duration: 0.1), value: debouncedDropTarget)
                 .animation(.easeInOut(duration: 0.1), value: isSelected)
-
-                DraggableClickHandler(
-                    item: item,
-                    viewModel: viewModel,
-                    dragPreviewContent: {
-                        DragPreviewView(thumbnail: viewModel.thumbnail ?? item.icon, displayName: item.displayName)
-                    },
-                    onRightClick: viewModel.handleRightClick,
-                    onClick: { event, nsview in
-                        viewModel.handleClick(event: event, view: nsview)
-                    }
-                )
             } else {
                 Color.clear
-                    .frame(width: 105)
+                    .frame(width: 105, height: 114)
                     .padding(.vertical, 10)
                     .padding(.horizontal, 5)
             }
@@ -88,6 +105,17 @@ struct ShelfItemView: View {
             .frame(width: 56, height: 56)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 2)
+            .overlay {
+                if shelfState.isConverting(item) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(.black.opacity(0.62))
+                        ProgressView()
+                            .controlSize(.small)
+                            .tint(.white)
+                    }
+                }
+            }
     }
 
     private var textView: some View {
@@ -98,6 +126,43 @@ struct ShelfItemView: View {
             .truncationMode(.middle)
             .multilineTextAlignment(.center)
             .frame(height: 30, alignment: .top)
+    }
+
+    private var conversionButton: some View {
+        Button {
+            viewModel.convertItemToMarkdown()
+        } label: {
+            HStack(spacing: 3) {
+                if shelfState.isConverting(item) {
+                    ProgressView()
+                        .controlSize(.mini)
+                        .tint(conversionTint.opacity(0.85))
+                } else {
+                    Image(systemName: "doc.badge.arrow.up")
+                }
+
+                Text(shelfState.isConverting(item) ? "Converting…" : "Convert to MD")
+                    .lineLimit(1)
+            }
+            .font(.system(size: 9, weight: .semibold, design: .rounded))
+            .foregroundStyle(conversionTint.opacity(0.9))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 4)
+            .padding(.horizontal, 5)
+            .background(
+                Capsule(style: .continuous)
+                    .fill(conversionTint.opacity(0.1))
+                    .overlay {
+                        Capsule(style: .continuous)
+                            .strokeBorder(conversionTint.opacity(0.35), lineWidth: 0.75)
+                    }
+            )
+        }
+        .frame(height: 20)
+        .buttonStyle(.plain)
+        .disabled(shelfState.isConverting(item))
+        .help("Create a separate Markdown copy")
+        .accessibilityLabel("Convert to Markdown")
     }
 
     private var backgroundView: some View {
@@ -198,6 +263,8 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         private let dragThreshold: CGFloat = 3.0
         private var draggedURLs: [URL] = []
         private var draggedItems: [ShelfItem] = []
+        private var promisedItemIDs: Set<ShelfItem.ID> = []
+        private var filePromiseDelegates: [TemporaryFilePromiseDelegate] = []
         
         override func rightMouseDown(with event: NSEvent) {
             onRightClick?(event, self)
@@ -266,8 +333,26 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
 
             beginDraggingSession(with: draggingItems, event: event, source: self)
         }
-        
+
         private func pasteboardWriter(for item: ShelfItem) -> (any NSPasteboardWriting)? {
+            if item.isTemporary,
+               case .file = item.kind,
+               let sourceURL = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) {
+                let fileType = UTType(filenameExtension: sourceURL.pathExtension)?.identifier
+                    ?? UTType.data.identifier
+                let delegate = TemporaryFilePromiseDelegate(sourceURL: sourceURL)
+                delegate.onCompletion = { [weak self, weak delegate] in
+                    guard let delegate else { return }
+                    DispatchQueue.main.async {
+                        self?.filePromiseDelegates.removeAll { $0 === delegate }
+                    }
+                }
+                filePromiseDelegates.append(delegate)
+                promisedItemIDs.insert(item.id)
+
+                return NSFilePromiseProvider(fileType: fileType, delegate: delegate)
+            }
+
             switch item.kind {
             case .file:
                 guard let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) else {
@@ -332,15 +417,62 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
 
             // Auto-remove items from shelf if enabled and drag succeeded
             if Defaults[.autoRemoveShelfItems] && !operation.isEmpty {
-                for item in draggedItems {
+                // Promised files must remain available until Finder finishes
+                // copying them out of the sandbox.
+                for item in draggedItems where !promisedItemIDs.contains(item.id) {
                     ShelfStateViewModel.shared.remove(item)
                 }
             }
             draggedItems.removeAll()
+            promisedItemIDs.removeAll()
         }
         
         func ignoreModifierKeys(for session: NSDraggingSession) -> Bool {
             return false
         }
+    }
+}
+
+private final class TemporaryFilePromiseDelegate: NSObject, NSFilePromiseProviderDelegate {
+    let sourceURL: URL
+    var onCompletion: (() -> Void)?
+
+    private let promiseQueue: OperationQueue = {
+        let queue = OperationQueue()
+        queue.name = "boringNotch.markdown-file-promise"
+        queue.maxConcurrentOperationCount = 1
+        queue.qualityOfService = .userInitiated
+        return queue
+    }()
+
+    init(sourceURL: URL) {
+        self.sourceURL = sourceURL
+        super.init()
+    }
+
+    func filePromiseProvider(
+        _ filePromiseProvider: NSFilePromiseProvider,
+        fileNameForType fileType: String
+    ) -> String {
+        sourceURL.lastPathComponent
+    }
+
+    nonisolated func filePromiseProvider(
+        _ filePromiseProvider: NSFilePromiseProvider,
+        writePromiseTo url: URL,
+        completionHandler: @escaping (Error?) -> Void
+    ) {
+        do {
+            // copyItem never overwrites an existing destination.
+            try FileManager.default.copyItem(at: sourceURL, to: url)
+            completionHandler(nil)
+        } catch {
+            completionHandler(error)
+        }
+        onCompletion?()
+    }
+
+    func operationQueue(for filePromiseProvider: NSFilePromiseProvider) -> OperationQueue {
+        promiseQueue
     }
 }
