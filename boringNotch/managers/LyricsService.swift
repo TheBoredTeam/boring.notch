@@ -220,9 +220,36 @@ class LyricsService: ObservableObject {
         }
     }
 
-    private func retryAfterDelay(from response: HTTPURLResponse) -> TimeInterval? {
-        guard let value = response.value(forHTTPHeaderField: "Retry-After") else { return nil }
-        return TimeInterval(value)
+    private func retryAfterDelay(
+        from response: HTTPURLResponse,
+        relativeTo now: Date = Date()
+    ) -> TimeInterval? {
+        guard let value = response.value(forHTTPHeaderField: "Retry-After")?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+            !value.isEmpty else { return nil }
+
+        if let delay = TimeInterval(value), delay >= 0 {
+            return delay
+        }
+
+        // HTTP-date uses IMF-fixdate; accept the two obsolete formats for compatibility.
+        let formats = [
+            "EEE, dd MMM yyyy HH:mm:ss zzz",
+            "EEEE, dd-MMM-yy HH:mm:ss zzz",
+            "EEE MMM d HH:mm:ss yyyy"
+        ]
+        for format in formats {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone(secondsFromGMT: 0)
+            formatter.dateFormat = format
+            formatter.isLenient = false
+
+            if let retryDate = formatter.date(from: value) {
+                return max(0, retryDate.timeIntervalSince(now))
+            }
+        }
+        return nil
     }
 
     private func failureResult(for response: HTTPURLResponse) -> LyricsLookupResult {
@@ -273,6 +300,11 @@ class LyricsService: ObservableObject {
            let nativeLyrics = await fetchAppleMusicLyrics() {
             NSLog("Lyrics: using native Apple Music lyrics")
             return nativeLyrics
+        }
+
+        guard !normalizedMatchValue(request.artist).isEmpty else {
+            NSLog("Lyrics: skipping web providers until artist metadata is available")
+            return nil
         }
 
         let providers: [(String, () async -> LyricsLookupResult)] = [
@@ -620,8 +652,7 @@ class LyricsService: ObservableObject {
     private func artistMatches(_ candidateArtist: String, _ targetArtist: String) -> Bool {
         let candidate = normalizedMatchValue(candidateArtist)
         let target = normalizedMatchValue(targetArtist)
-        if target.isEmpty { return true }
-        guard !candidate.isEmpty else { return false }
+        guard !candidate.isEmpty, !target.isEmpty else { return false }
         return candidate == target || candidate.contains(target) || target.contains(candidate)
     }
 
