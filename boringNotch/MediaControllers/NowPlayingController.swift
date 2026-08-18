@@ -23,15 +23,14 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         $playbackState.eraseToAnyPublisher()
     }
 
-    var supportsVolumeControl: Bool {
-        let bundleID = playbackState.bundleIdentifier
-        return bundleID == "com.apple.Music" || bundleID == "com.spotify.client"
-    }
-
-    var supportsFavorite: Bool {
-        let bundleID = playbackState.bundleIdentifier
-        return bundleID == "com.apple.Music"
-    }
+    /// Now Playing surfaces every control as interactive, regardless of the underlying app.
+    ///
+    /// It drives the generic MediaRemote pipeline, whose set-commands (seek/shuffle/repeat) and the
+    /// AppleScript-based volume/favorite paths are honoured reliably only by Apple Music (volume also
+    /// by Spotify). For other apps some of these may no-op while the button flips optimistically. We
+    /// accept that rather than gating per-app: per-bundle gating here produced an inconsistent,
+    /// confusing toolbar (some controls greyed, some missing) for little practical gain.
+    var channelPolicy: MediaChannelPolicy { .allSupported }
 
     func setFavorite(_ favorite: Bool) async {
         let bundleID = playbackState.bundleIdentifier
