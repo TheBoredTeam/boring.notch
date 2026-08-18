@@ -47,17 +47,6 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
         signature: String,
         with reply: @escaping (Bool) -> Void
     )
-    func codexPermissionPromptStatus(
-        matchingChatTitle chatTitle: String,
-        request: String,
-        with reply: @escaping (Bool, Bool) -> Void
-    )
-    func performCodexPermissionDecision(
-        _ decision: String,
-        matchingChatTitle chatTitle: String,
-        request: String,
-        with reply: @escaping (Bool, String?) -> Void
-    )
     // Keyboard backlight / CoreBrightness access (performed by the helper)
     func isKeyboardBrightnessAvailable(with reply: @escaping (Bool) -> Void)
     func currentKeyboardBrightness(with reply: @escaping (NSNumber?) -> Void)

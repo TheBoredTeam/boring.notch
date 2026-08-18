@@ -31,8 +31,6 @@ public enum CodexNotificationTiming {
     public static let transitionAnimationResponse: TimeInterval = 0.42
     public static let passiveDwellDuration: TimeInterval = 3
     public static let codexHoverExpansionDelay: TimeInterval = 0.6
-    public static let nativePermissionInspectionGrace: TimeInterval = 0.75
-    public static let nativePermissionAppearanceTimeout: TimeInterval = 10
 
     public static func transitionDuration(
         animationSpeedMultiplier: Double,
@@ -78,13 +76,26 @@ public struct CodexNotificationPresentationSurfaces: Equatable, Sendable {
     }
 }
 
-public enum CodexPermissionControl: String, Equatable, Sendable {
-    case accessibility
+public struct CodexPermissionCallback: Equatable, Sendable {
+    public let port: Int
+    public let token: String
+    public let expiresAt: Date
+
+    public init(port: Int, token: String, expiresAt: Date) {
+        self.port = port
+        self.token = token
+        self.expiresAt = expiresAt
+    }
+
+    public func isActive(at date: Date = Date()) -> Bool {
+        expiresAt > date
+    }
 }
 
-public enum CodexPermissionDecision: String, Sendable {
+public enum CodexPermissionDecision: String, Equatable, Sendable {
     case allow
     case deny
+    case reviewInCodex = "codex"
 }
 
 public struct CodexPermissionDetails: Equatable, Sendable {
@@ -93,19 +104,22 @@ public struct CodexPermissionDetails: Equatable, Sendable {
     public let command: String?
     public let rawCommand: String?
     public let additionalInput: String?
+    public let isAutoReviewed: Bool
 
     public init(
         toolName: String,
         description: String? = nil,
         command: String? = nil,
         rawCommand: String? = nil,
-        additionalInput: String? = nil
+        additionalInput: String? = nil,
+        isAutoReviewed: Bool = false
     ) {
         self.toolName = toolName
         self.description = description
         self.command = command
         self.rawCommand = rawCommand
         self.additionalInput = additionalInput
+        self.isAutoReviewed = isAutoReviewed
     }
 
     public var summary: String {
@@ -115,14 +129,6 @@ public struct CodexPermissionDetails: Equatable, Sendable {
             ?? "Codex needs permission to use \(toolName)."
     }
 
-    public var accessibilityMatchCandidates: [String] {
-        var candidates: [String] = []
-        for candidate in [description, rawCommand, command].compactMap({ $0 })
-            where !candidate.isEmpty && !candidates.contains(candidate) {
-            candidates.append(candidate)
-        }
-        return candidates
-    }
 }
 
 public enum CodexJobStatus: Equatable, Sendable {
@@ -176,9 +182,8 @@ public struct CodexJobNotification: Equatable, Identifiable, Sendable {
     public let projectName: String
     public let resultSummary: String
     public let status: CodexJobStatus
-    public let permissionControl: CodexPermissionControl?
+    public let permissionCallback: CodexPermissionCallback?
     public let permissionDetails: CodexPermissionDetails?
-    public let nativePermissionConfirmed: Bool
     public let createdAt: Date
 
     public init(
@@ -191,9 +196,8 @@ public struct CodexJobNotification: Equatable, Identifiable, Sendable {
         userPrompt: String? = nil,
         projectName: String = "Codex",
         status: CodexJobStatus,
-        permissionControl: CodexPermissionControl? = nil,
+        permissionCallback: CodexPermissionCallback? = nil,
         permissionDetails: CodexPermissionDetails? = nil,
-        nativePermissionConfirmed: Bool = true,
         createdAt: Date
     ) {
         self.id = id
@@ -205,9 +209,8 @@ public struct CodexJobNotification: Equatable, Identifiable, Sendable {
         self.projectName = projectName
         self.resultSummary = resultSummary
         self.status = status
-        self.permissionControl = permissionControl
+        self.permissionCallback = permissionCallback
         self.permissionDetails = permissionDetails
-        self.nativePermissionConfirmed = nativePermissionConfirmed
         self.createdAt = createdAt
     }
 }
@@ -226,7 +229,7 @@ public enum CodexHookEvent: Equatable, Sendable {
         turnID: String?,
         cwd: String?,
         details: CodexPermissionDetails,
-        control: CodexPermissionControl? = nil,
+        callback: CodexPermissionCallback? = nil,
         chatTitle: String? = nil,
         projectName: String? = nil
     )
@@ -313,7 +316,7 @@ public enum CodexHookEventParser {
                 turnID: turnID,
                 cwd: cwd,
                 details: permissionDetails(from: object, toolName: toolName),
-                control: permissionControl(from: object),
+                callback: permissionCallback(from: object),
                 chatTitle: chatTitle,
                 projectName: projectName
             )
@@ -350,8 +353,14 @@ public enum CodexHookEventParser {
         from object: [String: Any],
         toolName: String
     ) -> CodexPermissionDetails {
+        let isAutoReviewed = nonemptyString(
+            object["boring_notch_approval_reviewer"]
+        ) == "auto_review"
         guard let input = object["tool_input"] as? [String: Any] else {
-            return CodexPermissionDetails(toolName: toolName)
+            return CodexPermissionDetails(
+                toolName: toolName,
+                isAutoReviewed: isAutoReviewed
+            )
         }
 
         let description = nonemptyString(input["description"])
@@ -378,19 +387,36 @@ public enum CodexHookEventParser {
             description: description,
             command: command,
             rawCommand: command == rawCommand ? nil : rawCommand,
-            additionalInput: additionalInput
+            additionalInput: additionalInput,
+            isAutoReviewed: isAutoReviewed
         )
     }
 
-    private static func permissionControl(
+    private static func permissionCallback(
         from object: [String: Any]
-    ) -> CodexPermissionControl? {
+    ) -> CodexPermissionCallback? {
         guard let approval = object["boring_notch_approval"] as? [String: Any],
-              let controlValue = approval["control"] as? String,
-              let control = CodexPermissionControl(rawValue: controlValue) else {
+              let port = approval["port"] as? Int,
+              (1024...65535).contains(port),
+              let token = approval["token"] as? String,
+              token.count >= 32,
+              token.unicodeScalars.allSatisfy({ scalar in
+                  scalar.isASCII && (
+                      CharacterSet.alphanumerics.contains(scalar)
+                          || scalar == "_"
+                          || scalar == "-"
+                  )
+              }),
+              let expiresAt = approval["expires_at"] as? TimeInterval,
+              expiresAt.isFinite,
+              expiresAt > 0 else {
             return nil
         }
-        return control
+        return CodexPermissionCallback(
+            port: port,
+            token: token,
+            expiresAt: Date(timeIntervalSince1970: expiresAt)
+        )
     }
 
     private static func applyPatchTargets(from command: String?) -> String? {
@@ -455,19 +481,19 @@ public struct CodexNotificationState: Equatable, Sendable {
             let turnID,
             let cwd,
             let details,
-            let control,
+            let callback,
             let chatTitle,
             let projectName
         ):
+            guard !details.isAutoReviewed else { return }
             let notification = makeNotification(
                 sessionID: sessionID,
                 turnID: turnID,
                 cwd: cwd,
                 result: details.summary,
                 status: .needsAction(.permission),
-                permissionControl: control,
+                permissionCallback: callback,
                 permissionDetails: details,
-                nativePermissionConfirmed: false,
                 chatTitle: chatTitle,
                 projectName: projectName,
                 date: date
@@ -508,56 +534,23 @@ public struct CodexNotificationState: Equatable, Sendable {
         }
     }
 
-    public func visibleNotification() -> CodexJobNotification? {
+    public func visibleNotification(at date: Date = Date()) -> CodexJobNotification? {
         PriorityResolver.select(
             from: notifications,
             isVisible: {
                 $0.status != .needsAction(.permission)
-                    || $0.nativePermissionConfirmed
+                    || $0.permissionCallback?.isActive(at: date) == true
             },
             priority: { $0.status.priority },
             updatedAt: { $0.createdAt }
         )
     }
 
-    public func nativePermissionNotification() -> CodexJobNotification? {
-        PriorityResolver.select(
-            from: notifications,
-            isVisible: {
-                $0.status == .needsAction(.permission)
-                    && $0.permissionControl == .accessibility
-            },
-            priority: { $0.nativePermissionConfirmed ? 1 : 0 },
-            updatedAt: { $0.createdAt }
-        )
-    }
-
-    public mutating func confirmNativePermission(_ id: String) {
-        guard let index = notifications.firstIndex(where: {
-            $0.id == id
-                && $0.status == .needsAction(.permission)
-                && $0.permissionControl == .accessibility
-                && !$0.nativePermissionConfirmed
-        }) else {
-            return
+    public mutating func removeExpiredPermissionRequests(at date: Date = Date()) {
+        notifications.removeAll { notification in
+            notification.status == .needsAction(.permission)
+                && notification.permissionCallback?.isActive(at: date) != true
         }
-
-        let notification = notifications[index]
-        notifications[index] = CodexJobNotification(
-            id: notification.id,
-            sessionID: notification.sessionID,
-            turnID: notification.turnID,
-            jobTitle: notification.jobTitle,
-            resultSummary: notification.resultSummary,
-            chatTitle: notification.chatTitle,
-            userPrompt: notification.userPrompt,
-            projectName: notification.projectName,
-            status: notification.status,
-            permissionControl: notification.permissionControl,
-            permissionDetails: notification.permissionDetails,
-            nativePermissionConfirmed: true,
-            createdAt: notification.createdAt
-        )
     }
 
     public mutating func dismiss(_ id: String) {
@@ -570,9 +563,8 @@ public struct CodexNotificationState: Equatable, Sendable {
         cwd: String?,
         result: String,
         status: CodexJobStatus,
-        permissionControl: CodexPermissionControl? = nil,
+        permissionCallback: CodexPermissionCallback? = nil,
         permissionDetails: CodexPermissionDetails? = nil,
-        nativePermissionConfirmed: Bool = true,
         chatTitle: String? = nil,
         projectName: String? = nil,
         date: Date
@@ -600,9 +592,8 @@ public struct CodexNotificationState: Equatable, Sendable {
             userPrompt: userPrompt,
             projectName: resolvedProjectName,
             status: status,
-            permissionControl: permissionControl,
+            permissionCallback: permissionCallback,
             permissionDetails: permissionDetails,
-            nativePermissionConfirmed: nativePermissionConfirmed,
             createdAt: date
         )
     }
@@ -643,16 +634,12 @@ public struct CodexNotificationState: Equatable, Sendable {
         result: String,
         reportedStatus: String?
     ) -> CodexJobStatus {
-        if let normalizedStatus = reportedStatus?.lowercased() {
-            if ["failed", "error", "cancelled", "canceled"].contains(normalizedStatus) {
-                return .failed
-            }
-            if ["succeeded", "success"].contains(normalizedStatus) {
-                return .succeeded
-            }
-        }
-
-        let text = result.lowercased()
+        let normalizedStatus = reportedStatus?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        let text = result
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
         let failureText = text
             .replacingOccurrences(of: "no tests failed", with: "")
             .replacingOccurrences(of: "0 tests failed", with: "")
@@ -662,15 +649,19 @@ public struct CodexNotificationState: Equatable, Sendable {
             "could not complete", "couldn't complete", "unable to complete",
             "the task failed", "encountered an error", "interrupted",
             "aborted", "cancelled", "canceled", "terminated",
-            "stopped before completing", "stopped by user"
+            "stopped before completing", "stopped by user", "error:",
+            "command failed", "status: failed", "failed (exit code"
         ]
-        if failureMarkers.contains(where: failureText.contains) {
+        if ["failed", "error", "cancelled", "canceled"].contains(normalizedStatus)
+            || failureMarkers.contains(where: failureText.contains) {
             return .failed
         }
 
         let manualMarkers = [
             "manual verification", "manually verify", "verify manually",
-            "manual test", "test manually", "please verify", "please test"
+            "manual test", "test manually", "please verify", "please test",
+            "manual review", "manually review", "review and approve",
+            "approve or reject"
         ]
         if manualMarkers.contains(where: text.contains) {
             return .needsAction(.manualCheck)
@@ -678,10 +669,38 @@ public struct CodexNotificationState: Equatable, Sendable {
 
         let decisionMarkers = [
             "need your decision", "your decision is needed", "please choose",
-            "which option", "choose whether", "let me know whether"
+            "please decide", "i need your input", "need your input",
+            "your input is needed", "waiting for your input",
+            "waiting for your choice", "waiting for your decision",
+            "waiting for your response", "awaiting your response",
+            "select an option", "choose an option", "pick an option",
+            "choose one", "select one", "pick one", "make a choice",
+            "need a decision", "decision from you", "your choice",
+            "requires your input", "your input is required",
+            "which option", "which one", "which should i", "which do you prefer",
+            "which would you prefer", "do you prefer", "would you prefer",
+            "what would you like me to", "what should i do",
+            "let me know whether", "tell me which", "tell me whether",
+            "let me know what you prefer", "what do you prefer",
+            "what would you choose", "please confirm", "confirm whether",
+            "confirm if",
+            "should i ", "would you like me to", "do you want me to",
+            "how should i proceed", "how should we proceed",
+            "how would you like to proceed", "how would you like me to proceed",
+            "choose a or b", "select a or b", "pick a or b",
+            "choose between"
         ]
-        if decisionMarkers.contains(where: text.contains) {
+        let directQuestionMarkers = [
+            "which ", "what ", "how ", "should i ", "would you ",
+            "do you ", "can i ", "may i ", "shall i "
+        ]
+        if decisionMarkers.contains(where: text.contains)
+            || (text.hasSuffix("?") && directQuestionMarkers.contains(where: text.contains)) {
             return .needsAction(.decision)
+        }
+
+        if ["succeeded", "success"].contains(normalizedStatus) {
+            return .succeeded
         }
 
         let successMarkers = [

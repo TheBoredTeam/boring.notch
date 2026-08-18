@@ -2,7 +2,6 @@ import SwiftUI
 
 struct CodexNotificationSettings: View {
     @State private var isInstalled = false
-    @State private var isAccessibilityAuthorized = true
     @State private var isUpdating = false
     @State private var errorMessage: String?
 
@@ -29,29 +28,7 @@ struct CodexNotificationSettings: View {
             } header: {
                 Text("Codex task notifications")
             } footer: {
-                Text("Codex and Boring Notch show the same permission request at the same time. Allow or Deny in either place; Accessibility access lets the notch choice reach Codex.")
-            }
-
-            Section {
-                LabeledContent("Status") {
-                    Label(
-                        isAccessibilityAuthorized ? "Granted" : "Required",
-                        systemImage: isAccessibilityAuthorized
-                            ? "checkmark.circle.fill"
-                            : "exclamationmark.triangle.fill"
-                    )
-                    .foregroundStyle(isAccessibilityAuthorized ? .green : .orange)
-                }
-
-                if !isAccessibilityAuthorized {
-                    Button("Open Accessibility Settings") {
-                        XPCHelperClient.shared.openAccessibilitySettings()
-                    }
-                }
-            } header: {
-                Text("Accessibility")
-            } footer: {
-                Text("Required only to send Allow or Deny from Boring Notch to the matching Codex prompt.")
+                Text("In Ask for approval mode, Boring Notch shows the request first. Allow or Deny answers Codex directly; Review in Codex hands the unresolved request to Codex's native prompt. Approve for me requests do not appear in the notch.")
             }
 
             Section {
@@ -65,7 +42,7 @@ struct CodexNotificationSettings: View {
             }
 
             Section("After connecting or updating") {
-                Text("Reconnect or restart Codex, then open /hooks in Codex and trust the updated Boring Notch hooks. Keep Accessibility enabled for Boring Notch’s helper. Hover over a permission prompt to review it; moving away collapses it back into the notch without dismissing the request.")
+                Text("Restart Codex, then open /hooks in Codex and trust the updated Boring Notch hooks. Hover over a permission prompt to review it; moving away collapses it without dismissing the request.")
                     .foregroundStyle(.secondary)
             }
 
@@ -79,23 +56,11 @@ struct CodexNotificationSettings: View {
         .formStyle(.grouped)
         .task {
             await refreshStatus()
-            await refreshAccessibilityStatus()
-        }
-        .onReceive(
-            NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)
-        ) { notification in
-            if let granted = notification.userInfo?["granted"] as? Bool {
-                isAccessibilityAuthorized = granted
-            }
         }
     }
 
     private func refreshStatus() async {
         isInstalled = await XPCHelperClient.shared.isCodexNotificationHookInstalled()
-    }
-
-    private func refreshAccessibilityStatus() async {
-        isAccessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
     }
 
     private func updateInstallation(installed: Bool) {

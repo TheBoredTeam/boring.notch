@@ -10,6 +10,7 @@
 		D00000012F00000100000001 /* NotchExtensionRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00001012F00000100000001 /* NotchExtensionRegistry.swift */; };
 		D00000022F00000100000002 /* CodexNotificationsCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00001022F00000100000002 /* CodexNotificationsCore.swift */; };
 		D00000032F00000100000003 /* CodexNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00001032F00000100000003 /* CodexNotificationManager.swift */; };
+		D00000062F00000100000006 /* CodexPermissionRelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00001062F00000100000006 /* CodexPermissionRelay.swift */; };
 		D00000042F00000100000004 /* CodexNotificationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00001042F00000100000004 /* CodexNotificationExtension.swift */; };
 		D00000052F00000100000005 /* CodexNotificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00001052F00000100000005 /* CodexNotificationSettingsView.swift */; };
 		C70000012F00000100000001 /* ClosedNotchRenderSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70000022F00000100000002 /* ClosedNotchRenderSnapshot.swift */; };
@@ -211,6 +212,7 @@
 		D00001012F00000100000001 /* NotchExtensionRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extensions/NotchExtensionRegistry.swift; sourceTree = "<group>"; };
 		D00001022F00000100000002 /* CodexNotificationsCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/Core/CodexNotificationsCore.swift; sourceTree = "<group>"; };
 		D00001032F00000100000003 /* CodexNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/CodexNotificationManager.swift; sourceTree = "<group>"; };
+		D00001062F00000100000006 /* CodexPermissionRelay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/CodexPermissionRelay.swift; sourceTree = "<group>"; };
 		D00001042F00000100000004 /* CodexNotificationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/CodexNotificationExtension.swift; sourceTree = "<group>"; };
 		D00001052F00000100000005 /* CodexNotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = components/Settings/Views/CodexNotificationSettingsView.swift; sourceTree = "<group>"; };
 		C70000022F00000100000002 /* ClosedNotchRenderSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClosedNotchRenderSnapshot.swift; sourceTree = "<group>"; };
@@ -684,6 +686,7 @@
 				D00001012F00000100000001 /* NotchExtensionRegistry.swift */,
 				D00001022F00000100000002 /* CodexNotificationsCore.swift */,
 				D00001032F00000100000003 /* CodexNotificationManager.swift */,
+				D00001062F00000100000006 /* CodexPermissionRelay.swift */,
 				D00001042F00000100000004 /* CodexNotificationExtension.swift */,
 				D00001052F00000100000005 /* CodexNotificationSettingsView.swift */,
 				11F748672EC9AC9600F841DB /* XPCHelperClient */,
@@ -1029,6 +1032,7 @@
 				D00000012F00000100000001 /* NotchExtensionRegistry.swift in Sources */,
 				D00000022F00000100000002 /* CodexNotificationsCore.swift in Sources */,
 				D00000032F00000100000003 /* CodexNotificationManager.swift in Sources */,
+				D00000062F00000100000006 /* CodexPermissionRelay.swift in Sources */,
 				D00000042F00000100000004 /* CodexNotificationExtension.swift in Sources */,
 				D00000052F00000100000005 /* CodexNotificationSettingsView.swift in Sources */,
 				C70000012F00000100000001 /* ClosedNotchRenderSnapshot.swift in Sources */,

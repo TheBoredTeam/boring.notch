@@ -21,25 +21,24 @@ enum CodexNotificationExtension {
             let notchWidth = context.closedNotchWidth + 10
             let promptWidth: CGFloat = 236
             let isPermissionRequest = notification.status == .needsAction(.permission)
-
+            let metrics = ClosedNotchLayoutMetrics(
+                exclusionWidth: notchWidth,
+                leadingWidth: 0,
+                trailingWidth: promptWidth,
+                leadingExclusionMargin: 0,
+                trailingExclusionMargin: 0,
+                horizontalChromeInset: cornerRadiusInsets.closed.bottom,
+                height: height
+            )
             return [ClosedNotchExtensionActivity(
                 id: activityID,
                 priority: notification.status.notchPriority,
                 updatedAt: notification.createdAt,
-                metrics: .init(
-                    exclusionWidth: notchWidth,
-                    leadingWidth: 0,
-                    trailingWidth: promptWidth,
-                    leadingExclusionMargin: 0,
-                    trailingExclusionMargin: 0,
-                    horizontalChromeInset: cornerRadiusInsets.closed.bottom,
-                    height: height
-                ),
+                metrics: metrics,
                 content: AnyView(CodexClosedNotchPrompt(
                     notification: notification,
                     presentationSurfaceID: context.surfaceID,
-                    notchWidth: notchWidth,
-                    height: height
+                    metrics: metrics
                 )),
                 opensNotchOnHover: isPermissionRequest,
                 opensNotchOnTap: false,
@@ -120,8 +119,7 @@ private struct CodexNotificationStatusIcon: View {
 private struct CodexClosedNotchPrompt: View {
     let notification: CodexJobNotification
     let presentationSurfaceID: String
-    let notchWidth: CGFloat
-    let height: CGFloat
+    let metrics: ClosedNotchLayoutMetrics
 
     private var isPermissionRequest: Bool {
         notification.status == .needsAction(.permission)
@@ -154,11 +152,15 @@ private struct CodexClosedNotchPrompt: View {
     private var promptContainer: some View {
         VStack(alignment: .center, spacing: 0) {
             Color.clear
-                .frame(width: notchWidth, height: height)
+                .frame(width: metrics.exclusionWidth, height: metrics.height)
                 .accessibilityHidden(true)
 
             prompt
-                .frame(width: 236, height: height, alignment: .leading)
+                .frame(
+                    width: metrics.trailingWidth,
+                    height: metrics.height,
+                    alignment: .leading
+                )
                 .contentShape(Rectangle())
                 .onHover { isHovered in
                     CodexNotificationManager.shared.setPassivePresentationHovered(
@@ -171,7 +173,7 @@ private struct CodexClosedNotchPrompt: View {
     }
 
     private var prompt: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             CodexNotificationStatusIcon(status: notification.status)
                 .frame(width: 20, height: 28)
                 .accessibilityHidden(true)
@@ -189,13 +191,10 @@ private struct CodexClosedNotchPrompt: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Circle()
-                .fill(notification.status.tint)
-                .frame(width: 6, height: 6)
-                .accessibilityHidden(true)
         }
-        .padding(.leading, 17)
+        .padding(.leading, 10)
         .padding(.trailing, 7)
+        .padding(.bottom, 7)
     }
 
     private var summary: String {
@@ -208,7 +207,6 @@ struct CodexPermissionApprovalView: View {
     private static let viewportHeight = max(0, openNotchSize.height - 12)
 
     let notification: CodexJobNotification
-    let onDismiss: () -> Void
 
     @ObservedObject private var manager = CodexNotificationManager.shared
     @State private var isPromptExpanded = false
@@ -233,83 +231,21 @@ struct CodexPermissionApprovalView: View {
     }
 
     private var canRespondInNotch: Bool {
-        notification.permissionControl == .accessibility
+        notification.permissionCallback?.isActive() == true
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                Image(systemName: toolIcon)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
+            permissionHeader
 
-                Text(toolDisplayName)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.secondary)
-
-                Spacer()
-
-                Button(action: onDismiss) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 11, weight: .bold))
-                        .frame(width: 24, height: 24)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Collapse permission request")
-            }
-
-            ScrollView(.vertical) {
-                VStack(alignment: .leading, spacing: 6) {
-                    expandablePrompt
-
-                    Text(requestDescription)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.94))
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    if details.command != nil || details.additionalInput != nil {
-                        VStack(alignment: .leading, spacing: 5) {
-                            if let command = details.command {
-                                expandableDetailSection(
-                                    title: details.toolName == "apply_patch" ? "Files" : "Command",
-                                    value: command
-                                )
-                            }
-                            if let additionalInput = details.additionalInput {
-                                detailSection(title: "Request input", value: additionalInput)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
-                        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
-                        .accessibilityLabel("Permission request details")
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
+            permissionDetails
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 
             if let error = manager.lastError {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(error)
-                        .font(.system(size: 9, weight: .medium))
-                        .foregroundStyle(.red)
-                        .lineLimit(2)
-
-                    if manager.accessibilityAuthorizationRequired {
-                        Button {
-                            XPCHelperClient.shared.openAccessibilitySettings()
-                        } label: {
-                            Label("Open Accessibility Settings", systemImage: "accessibility")
-                        }
-                        .font(.system(size: 10, weight: .semibold, design: .rounded))
-                        .buttonStyle(.plain)
-                        .foregroundStyle(Color.accentColor)
-                        .accessibilityLabel("Open macOS Accessibility settings")
-                    }
-                }
+                Text(error)
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundStyle(.red)
+                    .lineLimit(2)
             }
 
             permissionActions
@@ -322,10 +258,60 @@ struct CodexPermissionApprovalView: View {
         .accessibilityLabel("Codex permission request")
     }
 
+    private var permissionHeader: some View {
+        HStack(spacing: 8) {
+            Image(systemName: toolIcon)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+
+            Text(toolDisplayName)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+
+            Spacer()
+
+        }
+    }
+
+    private var permissionDetails: some View {
+        ScrollView(.vertical) {
+            VStack(alignment: .leading, spacing: 6) {
+                expandablePrompt
+
+                Text(requestDescription)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.94))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if details.command != nil || details.additionalInput != nil {
+                    VStack(alignment: .leading, spacing: 5) {
+                        if let command = details.command {
+                            expandableDetailSection(
+                                title: details.toolName == "apply_patch" ? "Files" : "Command",
+                                value: command
+                            )
+                        }
+                        if let additionalInput = details.additionalInput {
+                            detailSection(title: "Request input", value: additionalInput)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                    .accessibilityLabel("Permission request details")
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
     @ViewBuilder
     private var permissionActions: some View {
-        if canRespondInNotch {
-            HStack(spacing: 8) {
+        HStack(spacing: 8) {
+            if canRespondInNotch {
                 Button("Deny") {
                     submit(.deny)
                 }
@@ -339,19 +325,32 @@ struct CodexPermissionApprovalView: View {
                 .buttonStyle(CodexPermissionButtonStyle(tint: .green.opacity(0.9)))
                 .disabled(isSubmitting)
                 .accessibilityLabel("Allow Codex permission")
-
-                Spacer()
-
-                if isSubmitting {
-                    ProgressView()
-                        .controlSize(.small)
-                        .accessibilityLabel("Sending decision to Codex")
-                }
             }
+
+            Spacer()
+
+            if isSubmitting {
+                ProgressView()
+                    .controlSize(.small)
+                    .accessibilityLabel("Sending decision to Codex")
+            }
+
+            Button("Review in Codex") {
+                reviewInCodex()
+            }
+            .font(.system(size: 11, weight: .semibold, design: .rounded))
+            .foregroundStyle(.blue)
+            .buttonStyle(.plain)
+            .disabled(isSubmitting)
+            .accessibilityLabel("Review this permission in Codex")
+        }
+    }
+
+    private func reviewInCodex() {
+        if canRespondInNotch {
+            submit(.reviewInCodex)
         } else {
-            Text("Respond in Codex to continue.")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.orange.opacity(0.95))
+            manager.openCodex(for: notification)
         }
     }
 

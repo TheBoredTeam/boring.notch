@@ -1,11 +1,16 @@
 import AppKit
 import Defaults
 import Foundation
+import OSLog
 import SwiftUI
 
 @MainActor
 final class CodexNotificationManager: ObservableObject {
     static let shared = CodexNotificationManager()
+    private static let logger = Logger(
+        subsystem: "theboringteam.boringnotch",
+        category: "CodexNotifications"
+    )
     private static let maximumEncodedPayloadCharacters = (
         (CodexHookEventParser.maximumPayloadBytes + 2) / 3
     ) * 4
@@ -14,7 +19,6 @@ final class CodexNotificationManager: ObservableObject {
     @Published private(set) var state = CodexNotificationState()
     @Published private(set) var presentedNotification: CodexJobNotification?
     @Published private(set) var lastError: String?
-    @Published private(set) var accessibilityAuthorizationRequired = false
     @Published private(set) var submittingNotificationIDs: Set<String> = []
     @Published private(set) var expandedPermissionNotificationID: String?
 
@@ -23,8 +27,7 @@ final class CodexNotificationManager: ObservableObject {
     private var passiveDismissalTransitionTask: Task<Void, Never>?
     private var passivePresentationToken: CodexNotificationPresentationToken?
     private var passivePresentationSurfaces = CodexNotificationPresentationSurfaces()
-    private var nativePermissionObservationTask: Task<Void, Never>?
-    private var observedNativePermissionToken: CodexNotificationPresentationToken?
+    private var permissionExpirationTask: Task<Void, Never>?
     private var eventIngestionTask: Task<Void, Never>?
     private var acceptedPayloads: [String: Date] = [:]
 
@@ -45,8 +48,8 @@ final class CodexNotificationManager: ObservableObject {
     }
 
     func start() {
+        schedulePermissionExpiration()
         synchronizePresentedNotification()
-        synchronizeNativePermissionObservation()
     }
 
     func stop() {
@@ -58,9 +61,8 @@ final class CodexNotificationManager: ObservableObject {
         passiveDismissalTransitionTask = nil
         passivePresentationToken = nil
         passivePresentationSurfaces.reset()
-        nativePermissionObservationTask?.cancel()
-        nativePermissionObservationTask = nil
-        observedNativePermissionToken = nil
+        permissionExpirationTask?.cancel()
+        permissionExpirationTask = nil
         eventIngestionTask?.cancel()
         eventIngestionTask = nil
         presentedNotification = nil
@@ -76,6 +78,7 @@ final class CodexNotificationManager: ObservableObject {
               !encodedPayload.isEmpty,
               signature.count == 43,
               encodedPayload.count <= Self.maximumEncodedPayloadCharacters else {
+            Self.logger.error("Rejected a malformed Codex notification URL")
             return false
         }
 
@@ -89,35 +92,52 @@ final class CodexNotificationManager: ObservableObject {
     }
 
     private func ingest(encodedPayload: String, signature: String) async {
-        guard await XPCHelperClient.shared.isAuthenticCodexNotificationPayload(
+        let isAuthentic = await XPCHelperClient.shared.isAuthenticCodexNotificationPayload(
             encodedPayload,
             signature: signature
-        ), let payload = Self.decodeBase64URL(encodedPayload) else {
+        )
+        guard isAuthentic else {
+            Self.logger.error("Rejected a Codex notification with invalid authentication")
+            return
+        }
+        guard let payload = Self.decodeBase64URL(encodedPayload) else {
+            Self.logger.error("Rejected a Codex notification with invalid payload encoding")
             return
         }
         let now = Date()
         acceptedPayloads = acceptedPayloads.filter {
             now.timeIntervalSince($0.value) <= Self.authenticatedPayloadLifetime
         }
-        guard acceptedPayloads[encodedPayload] == nil else { return }
+        guard acceptedPayloads[encodedPayload] == nil else {
+            Self.logger.error("Rejected a replayed Codex notification")
+            return
+        }
         acceptedPayloads[encodedPayload] = now
 
         do {
             let event = try CodexHookEventParser.parse(payload)
-            if case .permissionRequest(_, _, _, _, let control, _, _) = event,
-               control != .accessibility {
-                return
+            if case .permissionRequest(_, _, _, let details, let callback, _, _) = event {
+                guard let callback, !details.isAutoReviewed else { return }
+                do {
+                    try await CodexPermissionRelay.acknowledge(callback: callback)
+                } catch {
+                    Self.logger.error(
+                        "Could not acknowledge a Codex permission notification: \(error.localizedDescription, privacy: .public)"
+                    )
+                    return
+                }
             }
             var updatedState = state
             updatedState.reduce(event)
             state = updatedState
             lastError = nil
-            accessibilityAuthorizationRequired = false
             clearExpandedPermissionIfNeeded()
+            schedulePermissionExpiration()
             synchronizePresentedNotification()
-            synchronizeNativePermissionObservation()
+            Self.logger.notice("Accepted a Codex notification for presentation")
         } catch {
             lastError = error.localizedDescription
+            Self.logger.error("Failed to parse a Codex notification: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -148,11 +168,11 @@ final class CodexNotificationManager: ObservableObject {
         for notification: CodexJobNotification
     ) async -> Bool {
         guard notification.status == .needsAction(.permission),
-              notification.permissionControl == .accessibility,
+              let callback = notification.permissionCallback,
               state.notifications.contains(where: {
                   $0.id == notification.id
                       && $0.status == .needsAction(.permission)
-                      && $0.permissionControl == .accessibility
+                      && $0.permissionCallback == callback
               }),
               !submittingNotificationIDs.contains(notification.id) else {
             return false
@@ -162,30 +182,16 @@ final class CodexNotificationManager: ObservableObject {
         submittingNotificationIDs.insert(notification.id)
         defer { submittingNotificationIDs.remove(notification.id) }
 
-        guard await XPCHelperClient.shared.isAccessibilityAuthorized() else {
-            accessibilityAuthorizationRequired = true
-            lastError = "Accessibility access is required to answer the Codex prompt from Boring Notch."
-            return false
-        }
-        accessibilityAuthorizationRequired = false
-
-        let nativeDecision = await XPCHelperClient.shared
-            .performCodexPermissionDecision(
-                decision,
-                matchingChatTitle: notification.chatTitle,
-                request: permissionMatchRequest(for: notification)
-        )
-        if case .failure(let error) = nativeDecision {
-            accessibilityAuthorizationRequired = !(
-                await XPCHelperClient.shared.isAccessibilityAuthorized()
-            )
+        do {
+            try await CodexPermissionRelay.submit(decision, callback: callback)
+        } catch {
             lastError = error.localizedDescription
             return false
         }
         guard state.notifications.contains(where: {
             $0.id == notification.id
                 && $0.status == .needsAction(.permission)
-                && $0.permissionControl == .accessibility
+                && $0.permissionCallback == callback
         }) else {
             return false
         }
@@ -193,10 +199,12 @@ final class CodexNotificationManager: ObservableObject {
         updatedState.dismiss(notification.id)
         state = updatedState
         lastError = nil
-        accessibilityAuthorizationRequired = false
         clearExpandedPermissionIfNeeded()
+        schedulePermissionExpiration()
         synchronizePresentedNotification()
-        synchronizeNativePermissionObservation()
+        if decision == .reviewInCodex {
+            openCodex(for: notification)
+        }
         return true
     }
 
@@ -403,8 +411,8 @@ final class CodexNotificationManager: ObservableObject {
         updatedState.dismiss(notification.id)
         state = updatedState
         clearExpandedPermissionIfNeeded()
+        schedulePermissionExpiration()
         synchronizePresentedNotification()
-        synchronizeNativePermissionObservation()
     }
 
     private func synchronizePresentedNotification() {
@@ -443,7 +451,6 @@ final class CodexNotificationManager: ObservableObject {
 
             guard nextToken == self.state.visibleNotification().map(CodexNotificationPresentationToken.init) else {
                 self.synchronizePresentedNotification()
-                self.synchronizeNativePermissionObservation()
                 return
             }
 
@@ -465,85 +472,45 @@ final class CodexNotificationManager: ObservableObject {
         expandedPermissionNotificationID = nil
     }
 
-    private func synchronizeNativePermissionObservation() {
-        let permission = state.nativePermissionNotification()
-        let token = permission.map(CodexNotificationPresentationToken.init)
-        guard token != observedNativePermissionToken else { return }
+    private func schedulePermissionExpiration() {
+        permissionExpirationTask?.cancel()
+        permissionExpirationTask = nil
 
-        nativePermissionObservationTask?.cancel()
-        nativePermissionObservationTask = nil
-        observedNativePermissionToken = token
-        guard let permission else { return }
-        let request = permissionMatchRequest(for: permission)
-
-        nativePermissionObservationTask = Task { [weak self] in
-            var hasObservedNativePrompt = false
-            let unavailableInspectionDeadline = Date().addingTimeInterval(
-                CodexNotificationTiming.nativePermissionInspectionGrace
-            )
-            let appearanceDeadline = Date().addingTimeInterval(
-                CodexNotificationTiming.nativePermissionAppearanceTimeout
-            )
-
-            while !Task.isCancelled {
-                let status = await XPCHelperClient.shared.codexPermissionPromptStatus(
-                    matchingChatTitle: permission.chatTitle,
-                    request: request
-                )
-                guard !Task.isCancelled, let self else { return }
-
-                guard self.state.notifications.contains(where: {
-                    $0.id == permission.id && $0.createdAt == permission.createdAt
-                }) else {
-                    return
-                }
-
-                if !status.inspected {
-                    if Date() < unavailableInspectionDeadline {
-                        try? await Task.sleep(for: .milliseconds(250))
-                        continue
-                    }
-                    self.confirmNativePermissionIfNeeded(permission)
-                    return
-                }
-
-                if status.visible {
-                    if !hasObservedNativePrompt {
-                        self.confirmNativePermissionIfNeeded(permission)
-                    }
-                    hasObservedNativePrompt = true
-                } else if hasObservedNativePrompt || Date() >= appearanceDeadline {
-                    self.dismiss(notification: permission)
-                    return
-                }
-
-                try? await Task.sleep(for: .milliseconds(250))
-            }
+        var updatedState = state
+        updatedState.removeExpiredPermissionRequests()
+        if updatedState != state {
+            state = updatedState
+            clearExpandedPermissionIfNeeded()
+            synchronizePresentedNotification()
         }
-    }
 
-    private func confirmNativePermissionIfNeeded(_ permission: CodexJobNotification) {
-        guard state.notifications.contains(where: {
-            $0.id == permission.id
-                && $0.createdAt == permission.createdAt
-                && !$0.nativePermissionConfirmed
-        }) else {
+        let expirations: [Date] = state.notifications.compactMap { notification -> Date? in
+            guard notification.status == .needsAction(.permission) else {
+                return nil
+            }
+            return notification.permissionCallback?.expiresAt
+        }
+        guard let expiration = expirations.min() else {
             return
         }
-        var updatedState = state
-        updatedState.confirmNativePermission(permission.id)
-        state = updatedState
-        synchronizePresentedNotification()
-    }
 
-    private func permissionMatchRequest(
-        for notification: CodexJobNotification
-    ) -> String {
-        var candidates = notification.permissionDetails?.accessibilityMatchCandidates ?? []
-        if candidates.isEmpty {
-            candidates.append(notification.resultSummary)
+        permissionExpirationTask = Task { [weak self] in
+            do {
+                try await Task.sleep(
+                    for: .seconds(max(0, expiration.timeIntervalSinceNow))
+                )
+            } catch {
+                return
+            }
+            guard let self else { return }
+            self.permissionExpirationTask = nil
+            var updatedState = self.state
+            updatedState.removeExpiredPermissionRequests()
+            self.state = updatedState
+            self.clearExpandedPermissionIfNeeded()
+            self.synchronizePresentedNotification()
+            self.schedulePermissionExpiration()
         }
-        return candidates.joined(separator: "\u{001F}")
     }
 }
 

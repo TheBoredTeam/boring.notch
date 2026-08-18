@@ -77,6 +77,14 @@ final class XPCHelperClient: NSObject {
         remoteService
     }
 
+    @MainActor
+    private func resetRemoteService() {
+        connection?.invalidate()
+        connection = nil
+        remoteService = nil
+        hasLunarListener = false
+    }
+
     private func makeLunarListenerInterface() -> NSXPCInterface {
         let interface = NSXPCInterface(with: (any BoringNotchXPCHelperLunarListener).self)
         interface.setClasses(
@@ -403,74 +411,23 @@ final class XPCHelperClient: NSObject {
         _ payload: String,
         signature: String
     ) async -> Bool {
-        do {
-            let service = ensureRemoteService()
-            return try await service.withContinuation { service, continuation in
-                service.validateCodexNotificationPayload(
-                    payload,
-                    signature: signature
-                ) { isValid in
-                    continuation.resume(returning: isValid)
+        for attempt in 0..<2 {
+            do {
+                let service = ensureRemoteService()
+                return try await service.withContinuation { service, continuation in
+                    service.validateCodexNotificationPayload(
+                        payload,
+                        signature: signature
+                    ) { isValid in
+                        continuation.resume(returning: isValid)
+                    }
                 }
+            } catch {
+                guard attempt == 0 else { return false }
+                resetRemoteService()
             }
-        } catch {
-            return false
         }
-    }
-
-    @MainActor
-    func codexPermissionPromptStatus(
-        matchingChatTitle chatTitle: String,
-        request: String
-    ) async -> (
-        inspected: Bool,
-        visible: Bool
-    ) {
-        do {
-            let service = ensureRemoteService()
-            return try await service.withContinuation { service, continuation in
-                service.codexPermissionPromptStatus(
-                    matchingChatTitle: chatTitle,
-                    request: request
-                ) { inspected, visible in
-                    continuation.resume(returning: (inspected, visible))
-                }
-            }
-        } catch {
-            return (false, false)
-        }
-    }
-
-    @MainActor
-    func performCodexPermissionDecision(
-        _ decision: CodexPermissionDecision,
-        matchingChatTitle chatTitle: String,
-        request: String
-    ) async -> Result<Void, Error> {
-        do {
-            let service = ensureRemoteService()
-            let result: (Bool, String?) = try await service.withContinuation {
-                service,
-                continuation in
-                service.performCodexPermissionDecision(
-                    decision.rawValue,
-                    matchingChatTitle: chatTitle,
-                    request: request
-                ) { success, message in
-                    continuation.resume(returning: (success, message))
-                }
-            }
-            guard result.0 else {
-                throw NSError(
-                    domain: "BoringNotch.CodexPermissions",
-                    code: 1,
-                    userInfo: [NSLocalizedDescriptionKey: result.1 ?? "The Codex permission prompt could not be answered."]
-                )
-            }
-            return .success(())
-        } catch {
-            return .failure(error)
-        }
+        return false
     }
 
     @MainActor

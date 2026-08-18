@@ -331,8 +331,7 @@ struct ContentView: View {
                     horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
                     isHoveringMusicArea: $isHoveringMusicArea,
                     gestureProgress: gestureProgress,
-                    permissionNotification: presentedCodexPermission,
-                    dismissPermissionRequest: dismissCodexPermissionRequest
+                    permissionNotification: presentedCodexPermission
                 )
             }
         }
@@ -373,10 +372,6 @@ struct ContentView: View {
             didOpen = vm.open()
         }
         return didOpen
-    }
-
-    private func dismissCodexPermissionRequest() {
-        collapseCodexPermission()
     }
 
     private func collapseCodexPermission() {

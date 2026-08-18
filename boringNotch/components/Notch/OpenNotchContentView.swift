@@ -11,14 +11,12 @@ struct OpenNotchContentView: View {
     @Binding var isHoveringMusicArea: Bool
     let gestureProgress: CGFloat
     let permissionNotification: CodexJobNotification?
-    let dismissPermissionRequest: () -> Void
 
     var body: some View {
         VStack {
             if let permissionNotification {
                 CodexPermissionApprovalView(
-                    notification: permissionNotification,
-                    onDismiss: dismissPermissionRequest
+                    notification: permissionNotification
                 )
                 .frame(maxWidth: .infinity, alignment: .topLeading)
                 .frame(height: Self.permissionViewportHeight, alignment: .topLeading)

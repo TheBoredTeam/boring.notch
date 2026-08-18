@@ -9,11 +9,15 @@ import AppKit
 import ApplicationServices
 import CryptoKit
 import IOKit
+import OSLog
 import Security
 
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
-    private static let maxAccessibilityElements = 10_000
+    private static let codexLogger = Logger(
+        subsystem: "theboringteam.boringnotch",
+        category: "CodexNotificationAuthentication"
+    )
 
     private weak var connection: NSXPCConnection?
 
@@ -80,532 +84,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             reply(AXIsProcessTrusted())
         }
-    }
-
-    @objc func codexPermissionPromptStatus(
-        matchingChatTitle chatTitle: String,
-        request: String,
-        with reply: @escaping (Bool, Bool) -> Void
-    ) {
-        guard AXIsProcessTrusted() else {
-            reply(false, false)
-            return
-        }
-        reply(
-            true,
-            codexPermissionControls(
-                matchingChatTitle: chatTitle,
-                request: request
-            ) != nil
-        )
-    }
-
-    @objc func performCodexPermissionDecision(
-        _ decision: String,
-        matchingChatTitle chatTitle: String,
-        request: String,
-        with reply: @escaping (Bool, String?) -> Void
-    ) {
-        guard AXIsProcessTrusted() else {
-            reply(false, "Accessibility access is required to answer the Codex prompt from Boring Notch.")
-            return
-        }
-        guard NSRunningApplication
-            .runningApplications(withBundleIdentifier: "com.openai.codex")
-            .first != nil else {
-            reply(false, "Codex is not running.")
-            return
-        }
-        guard decision == "allow" || decision == "deny" else {
-            reply(false, "The Codex permission decision is invalid.")
-            return
-        }
-
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self else {
-                reply(false, "The Codex permission response could not be verified.")
-                return
-            }
-            guard let controls = self.waitForCodexPermissionControls(
-                matchingChatTitle: chatTitle,
-                request: request,
-                timeout: 2
-            ) else {
-                reply(false, "The selected Codex permission prompt could not be matched.")
-                return
-            }
-
-            let control = decision == "allow" ? controls.allow : controls.deny
-            guard self.pressCodexPermissionControl(control) else {
-                reply(false, "Codex did not accept the permission choice. Respond in Codex to continue.")
-                return
-            }
-
-            if self.waitForCodexPermissionPromptToDisappear(
-                matchingChatTitle: chatTitle,
-                request: request,
-                timeout: 0.5
-            ) {
-                reply(true, nil)
-                return
-            }
-
-            // Chromium can report AXPress success without dispatching the
-            // control's web event while its window is in the background.
-            // Re-match the same chat/request, focus that exact accessibility
-            // control, and post Return only to the Codex process. Keep Codex
-            // in the background so this retry does not interrupt the user.
-            guard let focusedControls = self.codexPermissionControls(
-                matchingChatTitle: chatTitle,
-                request: request
-            ) else {
-                reply(true, nil)
-                return
-            }
-            let focusedControl = decision == "allow" ? focusedControls.allow : focusedControls.deny
-            guard self.confirmCodexPermissionControl(focusedControl),
-                  self.waitForCodexPermissionPromptToDisappear(
-                      matchingChatTitle: chatTitle,
-                      request: request,
-                      timeout: 2
-                  ) else {
-                reply(false, "Codex did not accept the permission choice. Respond in Codex to continue.")
-                return
-            }
-            reply(true, nil)
-        }
-    }
-
-    private struct CodexPermissionControls {
-        let allow: AXUIElement
-        let deny: AXUIElement
-    }
-
-    private struct CodexPermissionScan {
-        var text = ""
-        var allowButtons: [AXUIElement] = []
-        var denyButtons: [AXUIElement] = []
-        var requestMatches: [CodexPermissionControls] = []
-        var combinedMatches: [CodexPermissionControls] = []
-        var promptCandidates: [CodexPermissionControls] = []
-    }
-
-    private func codexPermissionControls(
-        matchingChatTitle chatTitle: String?,
-        request: String?
-    ) -> CodexPermissionControls? {
-        guard let application = NSRunningApplication
-            .runningApplications(withBundleIdentifier: "com.openai.codex")
-            .first else {
-            return nil
-        }
-
-        let applicationElement = AXUIElementCreateApplication(application.processIdentifier)
-        var windows = accessibilityElements(
-            of: applicationElement,
-            attribute: kAXWindowsAttribute as CFString
-        )
-        let focusedWindow = accessibilityElements(
-            of: applicationElement,
-            attribute: kAXFocusedWindowAttribute as CFString
-        ).first
-        if let focusedWindow {
-            windows.removeAll(where: { CFHash($0) == CFHash(focusedWindow) })
-            windows.insert(focusedWindow, at: 0)
-        }
-
-        let normalizedChatTitle = chatTitle.map(normalizedAccessibilityText)
-        let normalizedRequest = request.map(normalizedAccessibilityText)
-        var requestMatches: [CodexPermissionControls] = []
-        var combinedMatches: [CodexPermissionControls] = []
-        for window in windows {
-            var visited = Set<CFHashCode>()
-            var inspectedCount = 0
-            let scan = scanCodexPermissionControls(
-                in: window,
-                matchingChatTitle: normalizedChatTitle,
-                request: normalizedRequest,
-                visited: &visited,
-                inspectedCount: &inspectedCount
-            )
-            var windowPromptCandidates: [CodexPermissionControls] = []
-            for candidate in scan.promptCandidates {
-                appendUniquePermissionControls(candidate, to: &windowPromptCandidates)
-            }
-            if windowPromptCandidates.count == 1 {
-                let onlyPrompt = windowPromptCandidates[0]
-                if self.request(normalizedRequest, matches: scan.text) {
-                    appendUniquePermissionControls(onlyPrompt, to: &requestMatches)
-                }
-                if self.request(normalizedChatTitle, matches: scan.text),
-                   self.request(normalizedRequest, matches: scan.text) {
-                    appendUniquePermissionControls(onlyPrompt, to: &combinedMatches)
-                }
-            }
-            for match in scan.requestMatches {
-                appendUniquePermissionControls(match, to: &requestMatches)
-            }
-            for match in scan.combinedMatches {
-                appendUniquePermissionControls(match, to: &combinedMatches)
-            }
-        }
-        if combinedMatches.count == 1 {
-            return combinedMatches[0]
-        }
-        if requestMatches.count == 1 {
-            return requestMatches[0]
-        }
-        return nil
-    }
-
-    private func scanCodexPermissionControls(
-        in element: AXUIElement,
-        matchingChatTitle normalizedChatTitle: String?,
-        request normalizedRequest: String?,
-        visited: inout Set<CFHashCode>,
-        inspectedCount: inout Int
-    ) -> CodexPermissionScan {
-        guard inspectedCount < Self.maxAccessibilityElements else {
-            return CodexPermissionScan()
-        }
-        inspectedCount += 1
-        let identity = CFHash(element)
-        guard visited.insert(identity).inserted else { return CodexPermissionScan() }
-
-        var scan = CodexPermissionScan()
-        for child in accessibilityChildren(of: element) {
-            let childScan = scanCodexPermissionControls(
-                in: child,
-                matchingChatTitle: normalizedChatTitle,
-                request: normalizedRequest,
-                visited: &visited,
-                inspectedCount: &inspectedCount
-            )
-            for match in childScan.requestMatches {
-                appendUniquePermissionControls(match, to: &scan.requestMatches)
-            }
-            for match in childScan.combinedMatches {
-                appendUniquePermissionControls(match, to: &scan.combinedMatches)
-            }
-            for candidate in childScan.promptCandidates {
-                appendUniquePermissionControls(candidate, to: &scan.promptCandidates)
-            }
-            scan.allowButtons.append(contentsOf: childScan.allowButtons)
-            scan.denyButtons.append(contentsOf: childScan.denyButtons)
-            appendAccessibilityText(childScan.text, to: &scan.text)
-        }
-
-        let elementLabel = accessibilityLabel(of: element)
-        appendAccessibilityText(elementLabel, to: &scan.text)
-        if isAccessibilityButtonActive(element) {
-            let actionLabel = elementLabel.isEmpty && scan.text.split(separator: " ").count <= 4
-                ? scan.text
-                : elementLabel
-            if isCodexAllowLabel(actionLabel) {
-                scan.allowButtons.append(element)
-            } else if isCodexDenyLabel(actionLabel) {
-                scan.denyButtons.append(element)
-            }
-        }
-
-        guard let pair = nearestPermissionPair(
-            allowButtons: scan.allowButtons,
-            denyButtons: scan.denyButtons
-        ) else {
-            return scan
-        }
-        appendUniquePermissionControls(pair, to: &scan.promptCandidates)
-        let chatTitleMatches = request(normalizedChatTitle, matches: scan.text)
-        let requestMatches = request(normalizedRequest, matches: scan.text)
-        if requestMatches {
-            appendUniquePermissionControls(pair, to: &scan.requestMatches)
-        }
-        if chatTitleMatches && requestMatches {
-            appendUniquePermissionControls(pair, to: &scan.combinedMatches)
-        }
-        return scan
-    }
-
-    private func appendUniquePermissionControls(
-        _ controls: CodexPermissionControls,
-        to controlsList: inout [CodexPermissionControls]
-    ) {
-        guard !controlsList.contains(where: {
-            CFHash($0.allow) == CFHash(controls.allow)
-                && CFHash($0.deny) == CFHash(controls.deny)
-        }) else {
-            return
-        }
-        controlsList.append(controls)
-    }
-
-    private func nearestPermissionPair(
-        allowButtons: [AXUIElement],
-        denyButtons: [AXUIElement]
-    ) -> CodexPermissionControls? {
-        allowButtons.flatMap { allow in
-            denyButtons.map { deny in
-                (
-                    controls: CodexPermissionControls(allow: allow, deny: deny),
-                    distance: verticalDistance(between: allow, and: deny)
-                )
-            }
-        }
-        .min { $0.distance < $1.distance }?
-        .controls
-    }
-
-    private func verticalDistance(
-        between first: AXUIElement,
-        and second: AXUIElement
-    ) -> CGFloat {
-        guard let firstPosition = accessibilityPoint(
-            of: first,
-            attribute: kAXPositionAttribute as CFString
-        ), let secondPosition = accessibilityPoint(
-            of: second,
-            attribute: kAXPositionAttribute as CFString
-        ) else {
-            return .greatestFiniteMagnitude
-        }
-        return abs(firstPosition.y - secondPosition.y)
-    }
-
-    private func request(_ request: String?, matches text: String) -> Bool {
-        guard let request, !request.isEmpty else { return false }
-        let candidates = request.components(separatedBy: "\u{001F}")
-        return candidates.contains { candidate in
-            requestCandidate(candidate, matches: text)
-        }
-    }
-
-    private func requestCandidate(_ candidate: String, matches text: String) -> Bool {
-        let normalizedCandidate = normalizedAccessibilityText(candidate)
-        let normalizedText = normalizedAccessibilityText(text)
-        guard !normalizedCandidate.isEmpty, !normalizedText.isEmpty else { return false }
-        return normalizedText.contains(normalizedCandidate)
-    }
-
-    private func appendAccessibilityText(_ value: String, to text: inout String) {
-        guard !value.isEmpty, text.count < 32_000 else { return }
-        if !text.isEmpty { text.append(" ") }
-        text.append(contentsOf: value.prefix(32_000 - text.count))
-    }
-
-    private func normalizedAccessibilityText(_ value: String) -> String {
-        value
-            .lowercased()
-            .components(separatedBy: .whitespacesAndNewlines)
-            .filter { !$0.isEmpty }
-            .joined(separator: " ")
-    }
-
-    private func isAccessibilityButtonActive(_ element: AXUIElement) -> Bool {
-        guard let role = accessibilityString(
-            of: element,
-            attribute: kAXRoleAttribute as CFString
-        ) else {
-            return false
-        }
-        var actionNames: CFArray?
-        let supportsPress = AXUIElementCopyActionNames(element, &actionNames) == .success
-            && (actionNames as? [String])?.contains(kAXPressAction as String) == true
-        guard supportsPress || [
-            kAXButtonRole as String,
-            "AXLink",
-            "AXMenuButton",
-            kAXRadioButtonRole as String,
-        ].contains(role) else {
-            return false
-        }
-        var enabledValue: CFTypeRef?
-        if AXUIElementCopyAttributeValue(
-            element,
-            kAXEnabledAttribute as CFString,
-            &enabledValue
-        ) == .success,
-           let enabled = enabledValue as? Bool,
-           !enabled {
-            return false
-        }
-        return true
-    }
-
-    private func pressCodexPermissionControl(_ control: AXUIElement) -> Bool {
-        AXUIElementPerformAction(control, kAXPressAction as CFString) == .success
-    }
-
-    private func confirmCodexPermissionControl(_ control: AXUIElement) -> Bool {
-        var processIdentifier: pid_t = 0
-        guard AXUIElementGetPid(control, &processIdentifier) == .success,
-              processIdentifier > 0 else {
-            return false
-        }
-
-        guard AXUIElementSetAttributeValue(
-            control,
-            kAXFocusedAttribute as CFString,
-            kCFBooleanTrue
-        ) == .success else {
-            return false
-        }
-
-        guard let source = CGEventSource(stateID: .hidSystemState),
-              let keyDown = CGEvent(
-                  keyboardEventSource: source,
-                  virtualKey: 36,
-                  keyDown: true
-              ),
-              let keyUp = CGEvent(
-                  keyboardEventSource: source,
-                  virtualKey: 36,
-                  keyDown: false
-              ) else {
-            return false
-        }
-        keyDown.postToPid(processIdentifier)
-        keyUp.postToPid(processIdentifier)
-        return true
-    }
-
-    private func waitForCodexPermissionControls(
-        matchingChatTitle chatTitle: String,
-        request: String,
-        timeout: TimeInterval
-    ) -> CodexPermissionControls? {
-        let deadline = Date().addingTimeInterval(timeout)
-        repeat {
-            if let controls = codexPermissionControls(
-                matchingChatTitle: chatTitle,
-                request: request
-            ) {
-                return controls
-            }
-            Thread.sleep(forTimeInterval: 0.05)
-        } while Date() < deadline
-        return codexPermissionControls(
-            matchingChatTitle: chatTitle,
-            request: request
-        )
-    }
-
-    private func waitForCodexPermissionPromptToDisappear(
-        matchingChatTitle chatTitle: String,
-        request: String,
-        timeout: TimeInterval
-    ) -> Bool {
-        let deadline = Date().addingTimeInterval(timeout)
-        while Date() < deadline {
-            if codexPermissionControls(
-                matchingChatTitle: chatTitle,
-                request: request
-            ) == nil {
-                return true
-            }
-            Thread.sleep(forTimeInterval: 0.05)
-        }
-        return codexPermissionControls(
-            matchingChatTitle: chatTitle,
-            request: request
-        ) == nil
-    }
-
-    private func accessibilityPoint(
-        of element: AXUIElement,
-        attribute: CFString
-    ) -> CGPoint? {
-        var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, attribute, &value) == .success,
-              let value,
-              CFGetTypeID(value) == AXValueGetTypeID() else {
-            return nil
-        }
-        var point = CGPoint.zero
-        guard AXValueGetValue(
-            unsafeBitCast(value, to: AXValue.self),
-            .cgPoint,
-            &point
-        ) else {
-            return nil
-        }
-        return point
-    }
-
-    private func accessibilityElements(
-        of element: AXUIElement,
-        attribute: CFString
-    ) -> [AXUIElement] {
-        var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, attribute, &value) == .success,
-              let value else {
-            return []
-        }
-        if CFGetTypeID(value) == AXUIElementGetTypeID() {
-            return [unsafeBitCast(value, to: AXUIElement.self)]
-        }
-        return value as? [AXUIElement] ?? []
-    }
-
-    private func accessibilityChildren(of element: AXUIElement) -> [AXUIElement] {
-        var children = accessibilityElements(
-            of: element,
-            attribute: kAXVisibleChildrenAttribute as CFString
-        )
-        children.append(contentsOf: accessibilityElements(
-            of: element,
-            attribute: kAXChildrenAttribute as CFString
-        ))
-        children.append(contentsOf: accessibilityElements(
-            of: element,
-            attribute: kAXContentsAttribute as CFString
-        ))
-
-        var seen = Set<CFHashCode>()
-        return children.filter { seen.insert(CFHash($0)).inserted }
-    }
-
-    private func accessibilityString(
-        of element: AXUIElement,
-        attribute: CFString
-    ) -> String? {
-        var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, attribute, &value) == .success else {
-            return nil
-        }
-        return value as? String
-    }
-
-    private func accessibilityLabel(of element: AXUIElement) -> String {
-        [kAXTitleAttribute, kAXDescriptionAttribute, kAXValueAttribute, kAXHelpAttribute]
-            .compactMap { accessibilityString(of: element, attribute: $0 as CFString) }
-            .joined(separator: " ")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .lowercased()
-    }
-
-    private func isCodexAllowLabel(_ label: String) -> Bool {
-        let normalized = normalizedAccessibilityLabel(label)
-        let words = normalized.split(separator: " ")
-        guard !words.isEmpty, words.count <= 4 else { return false }
-        guard !isCodexDenyLabel(normalized) else { return false }
-        return words.contains("allow") || words.contains("approve")
-    }
-
-    private func isCodexDenyLabel(_ label: String) -> Bool {
-        let normalized = normalizedAccessibilityLabel(label)
-        let words = normalized.split(separator: " ")
-        guard !words.isEmpty, words.count <= 4 else { return false }
-        return words.contains("deny")
-            || words.contains("reject")
-            || (words.contains("allow") && (words.contains("not") || words.contains("dont")))
-    }
-
-    private func normalizedAccessibilityLabel(_ value: String) -> String {
-        value
-            .lowercased()
-            .components(separatedBy: CharacterSet.alphanumerics.inverted)
-            .filter { !$0.isEmpty }
-            .joined(separator: " ")
     }
 
     private class KeyboardBrightnessClient {
@@ -912,12 +390,15 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     import subprocess
     import sys
     import time
+    from http.server import BaseHTTPRequestHandler, HTTPServer
 
     MAX_PAYLOAD_BYTES = 256 * 1024
     MAX_PROMPT_CHARACTERS = 16_000
     MAX_DESCRIPTION_CHARACTERS = 16_000
     MAX_COMMAND_CHARACTERS = 96_000
     MAX_ADDITIONAL_INPUT_CHARACTERS = 64_000
+    DELIVERY_TIMEOUT_SECONDS = 5
+    DECISION_TIMEOUT_SECONDS = 60
 
     def short(value, limit=4000):
         if not isinstance(value, str):
@@ -986,6 +467,17 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             ) as state_file:
                 state = json.load(state_file)
 
+            atom_state = state.get("electron-persisted-atom-state", {})
+            permissions_by_id = atom_state.get(
+                "heartbeat-thread-permissions-by-id",
+                {},
+            )
+            permissions = permissions_by_id.get(session_id)
+            if isinstance(permissions, dict):
+                reviewer = permissions.get("approvalsReviewer")
+                if reviewer in ("auto_review", "user"):
+                    metadata["boring_notch_approval_reviewer"] = reviewer
+
             projectless = state.get("projectless-thread-ids", [])
             if session_id in projectless:
                 metadata["project_name"] = "No project"
@@ -1050,11 +542,225 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         )
         return result.returncode == 0
 
-    def mirror_permission_request(payload):
+    class PermissionDecisionHandler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            if self.path != "/decision":
+                self.respond(404)
+                return
+
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+            except ValueError:
+                self.respond(400)
+                return
+            if length <= 0 or length > 4096:
+                self.respond(413)
+                return
+
+            try:
+                body = json.loads(self.rfile.read(length))
+            except (TypeError, ValueError):
+                self.respond(400)
+                return
+            if not isinstance(body, dict):
+                self.respond(400)
+                return
+
+            token = body.get("token")
+            decision = body.get("decision")
+            if not isinstance(token, str) or not hmac.compare_digest(
+                token,
+                self.server.approval_token,
+            ):
+                self.respond(403)
+                return
+            if decision not in ("ready", "allow", "deny", "codex"):
+                self.respond(400)
+                return
+            if decision == "ready":
+                if self.server.decision is not None:
+                    self.respond(409)
+                    return
+                self.server.ready = True
+                self.respond(204)
+                return
+            if self.server.decision is not None:
+                self.respond(409)
+                return
+
+            self.server.decision = decision
+            self.respond(204)
+
+        def respond(self, status):
+            self.send_response(status)
+            self.send_header("Content-Length", "0")
+            self.send_header("Connection", "close")
+            self.end_headers()
+
+        def log_message(self, format, *args):
+            pass
+
+    def wait_for_permission_decision(payload):
+        token = secrets.token_urlsafe(32)
+        server = HTTPServer(("127.0.0.1", 0), PermissionDecisionHandler)
+        server.approval_token = token
+        server.ready = False
+        server.decision = None
+        started_at = time.monotonic()
+        delivery_deadline = started_at + DELIVERY_TIMEOUT_SECONDS
+        decision_deadline = started_at + DECISION_TIMEOUT_SECONDS
         payload["boring_notch_approval"] = {
-            "control": "accessibility",
+            "port": server.server_address[1],
+            "token": token,
+            "expires_at": time.time() + DECISION_TIMEOUT_SECONDS,
         }
-        open_notch(payload)
+
+        try:
+            if not open_notch(payload):
+                return None
+
+            while not server.ready and server.decision is None:
+                remaining = delivery_deadline - time.monotonic()
+                if remaining <= 0:
+                    return None
+                server.timeout = min(0.25, remaining)
+                server.handle_request()
+
+            while server.decision is None:
+                remaining = decision_deadline - time.monotonic()
+                if remaining <= 0:
+                    return None
+                server.timeout = min(0.25, remaining)
+                server.handle_request()
+            return server.decision
+        finally:
+            server.server_close()
+
+    def permission_hook_response(decision):
+        if decision not in ("allow", "deny"):
+            return {}
+        return {
+            "hookSpecificOutput": {
+                "hookEventName": "PermissionRequest",
+                "decision": {"behavior": decision},
+            }
+        }
+
+    def validated_transcript_path(value):
+        if not isinstance(value, str) or not value.endswith(".jsonl"):
+            return None
+
+        codex_home = os.path.dirname(os.path.abspath(__file__))
+        sessions_root = os.path.realpath(os.path.join(codex_home, "sessions"))
+        transcript_path = os.path.realpath(value)
+        try:
+            if os.path.commonpath((sessions_root, transcript_path)) != sessions_root:
+                return None
+        except ValueError:
+            return None
+        return transcript_path
+
+    def watch_for_turn_end(transcript_path, start_offset, session_id, turn_id, cwd):
+        deadline = time.monotonic() + (6 * 60 * 60)
+        position = max(start_offset, 0)
+
+        while time.monotonic() < deadline:
+            try:
+                current_size = os.path.getsize(transcript_path)
+                if current_size < position:
+                    position = 0
+
+                with open(transcript_path, "r", encoding="utf-8") as transcript:
+                    transcript.seek(position)
+                    while True:
+                        line = transcript.readline()
+                        if not line:
+                            break
+                        position = transcript.tell()
+                        try:
+                            record = json.loads(line)
+                        except (TypeError, ValueError):
+                            continue
+
+                        event = record.get("payload")
+                        if not isinstance(event, dict) or event.get("turn_id") != turn_id:
+                            continue
+
+                        event_type = event.get("type")
+                        if event_type == "turn_aborted":
+                            failure_payload = {
+                                "hook_event_name": "Stop",
+                                "session_id": session_id,
+                                "turn_id": turn_id,
+                                "last_assistant_message": (
+                                    "Codex task was interrupted before completion."
+                                ),
+                                "status": "failed",
+                            }
+                            if cwd:
+                                failure_payload["cwd"] = cwd
+                            failure_payload.update(thread_metadata(session_id))
+                            open_notch(failure_payload)
+                            return
+                        if event_type == "task_complete":
+                            return
+            except (FileNotFoundError, OSError, UnicodeError):
+                pass
+            time.sleep(0.5)
+
+    def start_turn_end_watcher(source):
+        transcript_path = validated_transcript_path(source.get("transcript_path"))
+        session_id = source.get("session_id")
+        turn_id = source.get("turn_id")
+        if transcript_path is None or not all(
+            isinstance(value, str) and 0 < len(value) <= 240
+            for value in (session_id, turn_id)
+        ):
+            return
+
+        try:
+            start_offset = os.path.getsize(transcript_path)
+        except OSError:
+            start_offset = 0
+
+        cwd = source.get("cwd")
+        if not isinstance(cwd, str):
+            cwd = ""
+        try:
+            subprocess.Popen(
+                [
+                    sys.executable,
+                    os.path.abspath(__file__),
+                    "--watch-turn",
+                    transcript_path,
+                    str(start_offset),
+                    session_id,
+                    turn_id,
+                    short(cwd, 4096),
+                ],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                close_fds=True,
+                start_new_session=True,
+            )
+        except (OSError, ValueError):
+            pass
+
+    if len(sys.argv) == 7 and sys.argv[1] == "--watch-turn":
+        try:
+            watched_path = validated_transcript_path(sys.argv[2])
+            if watched_path is not None:
+                watch_for_turn_end(
+                    watched_path,
+                    int(sys.argv[3]),
+                    sys.argv[4],
+                    sys.argv[5],
+                    sys.argv[6],
+                )
+        except (TypeError, ValueError, OSError, UnicodeError):
+            pass
+        sys.exit(0)
 
     try:
         source = json.load(sys.stdin)
@@ -1069,9 +775,14 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         if tool_input is not None:
             payload["tool_input"] = tool_input
         if source.get("hook_event_name") == "PermissionRequest":
-            mirror_permission_request(payload)
-            print("{}")
+            if payload.get("boring_notch_approval_reviewer") != "user":
+                print("{}")
+            else:
+                decision = wait_for_permission_decision(payload)
+                print(json.dumps(permission_hook_response(decision), separators=(",", ":")))
         else:
+            if source.get("hook_event_name") == "UserPromptSubmit":
+                start_turn_end_watcher(source)
             open_notch(payload)
             print("{}")
     except Exception:
@@ -1088,6 +799,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
               signature.count == 43,
               let signatureData = decodeBase64URL(signature),
               signatureData.count == SHA256.byteCount else {
+            Self.codexLogger.error("Rejected malformed Codex notification authentication input")
             reply(false)
             return
         }
@@ -1095,6 +807,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         do {
             let secret = try Data(contentsOf: codexHookURLs().secret)
             guard secret.count == 32 else {
+                Self.codexLogger.error("Rejected Codex notification because the hook secret is invalid")
                 reply(false)
                 return
             }
@@ -1103,19 +816,30 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
                 signatureData,
                 authenticating: Data(payload.utf8),
                 using: key
-            ), let decodedPayload = decodeBase64URL(payload),
-               let object = try JSONSerialization.jsonObject(with: decodedPayload) as? [String: Any],
+            ) else {
+                Self.codexLogger.error("Rejected Codex notification because its signature did not match")
+                reply(false)
+                return
+            }
+            guard let decodedPayload = decodeBase64URL(payload),
+                  let object = try JSONSerialization.jsonObject(with: decodedPayload) as? [String: Any],
                let authentication = object["boring_notch_auth"] as? [String: Any],
                let timestamp = authentication["timestamp"] as? TimeInterval,
                let nonce = authentication["nonce"] as? String,
-               nonce.count == 32,
-               Date().timeIntervalSince1970 - timestamp >= -5,
-               Date().timeIntervalSince1970 - timestamp <= Self.codexPayloadMaximumAge else {
+               nonce.count == 32 else {
+                Self.codexLogger.error("Rejected malformed authenticated Codex notification data")
+                reply(false)
+                return
+            }
+            let age = Date().timeIntervalSince1970 - timestamp
+            guard age >= -5, age <= Self.codexPayloadMaximumAge else {
+                Self.codexLogger.error("Rejected an expired Codex notification")
                 reply(false)
                 return
             }
             reply(true)
         } catch {
+            Self.codexLogger.error("Codex notification authentication failed: \(error.localizedDescription, privacy: .public)")
             reply(false)
         }
     }
@@ -1187,15 +911,11 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
                 }
                 groups.removeAll(where: isOwnedCodexHookGroup)
                 if installed {
-                    let isPermissionRequest = event == "PermissionRequest"
-                    var handler: [String: Any] = [
+                    let handler: [String: Any] = [
                         "type": "command",
                         "command": codexHookCommand(scriptURL: urls.script),
-                        "timeout": 5,
+                        "timeout": event == "PermissionRequest" ? 75 : 5,
                     ]
-                    if isPermissionRequest {
-                        handler["async"] = true
-                    }
                     groups.append(["hooks": [handler]])
                 }
                 hooks[event] = groups
@@ -1304,12 +1024,11 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
               handlers.count == 1 else { return false }
 
         let handler = handlers[0]
-        let expectedTimeout = 5
-        let expectedAsync = event == "PermissionRequest"
+        let expectedTimeout = event == "PermissionRequest" ? 75 : 5
         return handler["type"] as? String == "command"
             && handler["command"] as? String == codexHookCommand(scriptURL: scriptURL)
             && handler["timeout"] as? Int == expectedTimeout
-            && (handler["async"] as? Bool ?? false) == expectedAsync
+            && handler["async"] == nil
     }
 
     private func isOwnedCodexHookGroup(_ group: [String: Any]) -> Bool {

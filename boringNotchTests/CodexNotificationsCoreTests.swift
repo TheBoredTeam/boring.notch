@@ -2,6 +2,12 @@ import XCTest
 @testable import CodexNotificationsCore
 
 final class CodexNotificationsCoreTests: XCTestCase {
+    private let permissionCallback = CodexPermissionCallback(
+        port: 49_152,
+        token: "abcdefghijklmnopqrstuvwxyzABCDEF",
+        expiresAt: Date(timeIntervalSince1970: 4_102_444_800)
+    )
+
     private struct Candidate: Equatable {
         let id: String
         let visible: Bool
@@ -64,14 +70,13 @@ final class CodexNotificationsCoreTests: XCTestCase {
                 "sandbox_permissions":"require_escalated"
             },
             "boring_notch_approval": {
-                "control": "accessibility"
+                "port": 49152,
+                "token": "abcdefghijklmnopqrstuvwxyzABCDEF",
+                "expires_at": 4102444800
             }
         }
         """#))
 
-        XCTAssertNil(state.visibleNotification())
-        let pendingNotice = try XCTUnwrap(state.nativePermissionNotification())
-        state.confirmNativePermission(pendingNotice.id)
         let notice = try XCTUnwrap(state.visibleNotification())
         XCTAssertEqual(notice.jobTitle, "Fix the extension conflict in PR #970")
         XCTAssertEqual(notice.chatTitle, "Fix Codex permission relay")
@@ -93,31 +98,56 @@ final class CodexNotificationsCoreTests: XCTestCase {
                 """
             )
         )
-        XCTAssertEqual(
-            notice.permissionDetails?.accessibilityMatchCandidates,
-            [
-                "May I build the Debug app for visual verification?",
-                "xcodebuild -scheme boringNotch build"
-            ]
-        )
+        XCTAssertEqual(notice.permissionCallback, permissionCallback)
     }
 
-    func testPermissionMatchCandidatesKeepDescriptionAndDistinctRawCommand() {
-        let details = CodexPermissionDetails(
-            toolName: "Bash",
-            description: "Allow case3 to create, verify, and delete the test file?",
-            command: "touch /tmp/case3 && cat /tmp/case3 && rm /tmp/case3",
-            rawCommand: "/bin/zsh -lc 'touch /tmp/case3 && cat /tmp/case3 && rm /tmp/case3'"
-        )
+    func testPermissionRequestCarriesAutomaticReviewerMode() throws {
+        let event = try CodexHookEventParser.parse(#"""
+        {
+            "hook_event_name":"PermissionRequest",
+            "session_id":"auto-reviewed",
+            "tool_name":"Bash",
+            "tool_input":{"command":"xcodebuild -scheme boringNotch build"},
+            "boring_notch_approval":{
+                "port":49152,
+                "token":"abcdefghijklmnopqrstuvwxyzABCDEF",
+                "expires_at":4102444800
+            },
+            "boring_notch_approval_reviewer":"auto_review"
+        }
+        """#)
 
-        XCTAssertEqual(
-            details.accessibilityMatchCandidates,
-            [
-                "Allow case3 to create, verify, and delete the test file?",
-                "/bin/zsh -lc 'touch /tmp/case3 && cat /tmp/case3 && rm /tmp/case3'",
-                "touch /tmp/case3 && cat /tmp/case3 && rm /tmp/case3"
-            ]
-        )
+        guard case .permissionRequest(_, _, _, let details, _, _, _) = event else {
+            return XCTFail("Expected a permission request")
+        }
+        XCTAssertTrue(details.isAutoReviewed)
+
+        var state = CodexNotificationState()
+        state.reduce(event)
+        XCTAssertTrue(state.notifications.isEmpty)
+        XCTAssertNil(state.visibleNotification())
+    }
+
+    func testUserReviewedPermissionIsPresentedImmediately() throws {
+        var state = CodexNotificationState()
+        state.reduce(try CodexHookEventParser.parse(#"""
+        {
+            "hook_event_name":"PermissionRequest",
+            "session_id":"user-reviewed",
+            "turn_id":"turn-1",
+            "tool_name":"Bash",
+            "tool_input":{"command":"xcodebuild -scheme boringNotch build"},
+            "boring_notch_approval":{
+                "port":49152,
+                "token":"abcdefghijklmnopqrstuvwxyzABCDEF",
+                "expires_at":4102444800
+            },
+            "boring_notch_approval_reviewer":"user"
+        }
+        """#))
+
+        let pending = try XCTUnwrap(state.visibleNotification())
+        XCTAssertEqual(pending.permissionCallback, permissionCallback)
     }
 
     func testProjectlessPermissionUsesChatMetadataAndPlaceholder() throws {
@@ -134,13 +164,14 @@ final class CodexNotificationsCoreTests: XCTestCase {
             "tool_input":{
                 "command":"*** Begin Patch\n*** Update File: /Users/example/.codex/skills/new-project/SKILL.md\n*** End Patch"
             },
-            "boring_notch_approval":{"control":"accessibility"}
+            "boring_notch_approval":{
+                "port":49152,
+                "token":"abcdefghijklmnopqrstuvwxyzABCDEF",
+                "expires_at":4102444800
+            }
         }
         """#))
 
-        XCTAssertNil(state.visibleNotification())
-        let pendingNotice = try XCTUnwrap(state.nativePermissionNotification())
-        state.confirmNativePermission(pendingNotice.id)
         let notice = try XCTUnwrap(state.visibleNotification())
         XCTAssertEqual(notice.chatTitle, "Build project bootstrap skill")
         XCTAssertEqual(notice.jobTitle, "Build project bootstrap skill")
@@ -178,12 +209,9 @@ final class CodexNotificationsCoreTests: XCTestCase {
             turnID: "turn-1",
             cwd: "/tmp/project",
             details: CodexPermissionDetails(toolName: "Bash", description: "Build Debug"),
-            control: .accessibility
+            callback: permissionCallback
         ))
 
-        XCTAssertNil(state.visibleNotification())
-        let pendingNotice = try XCTUnwrap(state.nativePermissionNotification())
-        state.confirmNativePermission(pendingNotice.id)
         let notice = try XCTUnwrap(state.visibleNotification())
         XCTAssertEqual(
             notice.userPrompt,
@@ -195,7 +223,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         )
     }
 
-    func testParsesNonExpiringAccessibilityPermissionControl() throws {
+    func testParsesCurrentPermissionCallback() throws {
         var state = CodexNotificationState()
         state.reduce(try CodexHookEventParser.parse(#"""
         {
@@ -205,14 +233,15 @@ final class CodexNotificationsCoreTests: XCTestCase {
             "tool_name":"Bash",
             "tool_input":{"command":"xcodebuild -scheme boringNotch build"},
             "boring_notch_approval": {
-                "control": "accessibility"
+                "port": 49152,
+                "token": "abcdefghijklmnopqrstuvwxyzABCDEF",
+                "expires_at": 4102444800
             }
         }
         """#))
 
-        XCTAssertNil(state.visibleNotification())
-        let notice = try XCTUnwrap(state.nativePermissionNotification())
-        XCTAssertEqual(notice.permissionControl, .accessibility)
+        let notice = try XCTUnwrap(state.visibleNotification())
+        XCTAssertEqual(notice.permissionCallback, permissionCallback)
     }
 
     func testPostToolUseDismissesTheMatchingPermissionRequest() throws {
@@ -222,10 +251,9 @@ final class CodexNotificationsCoreTests: XCTestCase {
             turnID: "turn-1",
             cwd: "/tmp/project",
             details: CodexPermissionDetails(toolName: "Bash", description: "Run tests"),
-            control: .accessibility
+            callback: permissionCallback
         ))
-        XCTAssertNil(state.visibleNotification())
-        XCTAssertNotNil(state.nativePermissionNotification())
+        XCTAssertNotNil(state.visibleNotification())
 
         state.reduce(try CodexHookEventParser.parse(#"""
         {
@@ -237,14 +265,17 @@ final class CodexNotificationsCoreTests: XCTestCase {
         """#))
 
         XCTAssertNil(state.visibleNotification())
-        XCTAssertNil(state.nativePermissionNotification())
     }
 
-    func testPermissionRequestWithoutUsableControlIsNotPresented() throws {
+    func testPermissionRequestWithoutUsableCallbackIsNotPresented() throws {
         let payloads = [
             #"{"hook_event_name":"PermissionRequest","session_id":"absent"}"#,
-            #"{"hook_event_name":"PermissionRequest","session_id":"missing-control","boring_notch_approval":{}}"#,
-            #"{"hook_event_name":"PermissionRequest","session_id":"invalid-control","boring_notch_approval":{"control":"hook-output"}}"#
+            #"{"hook_event_name":"PermissionRequest","session_id":"missing-callback","boring_notch_approval":{}}"#,
+            #"{"hook_event_name":"PermissionRequest","session_id":"low-port","boring_notch_approval":{"port":1023,"token":"abcdefghijklmnopqrstuvwxyzABCDEF","expires_at":4102444800}}"#,
+            #"{"hook_event_name":"PermissionRequest","session_id":"high-port","boring_notch_approval":{"port":65536,"token":"abcdefghijklmnopqrstuvwxyzABCDEF","expires_at":4102444800}}"#,
+            #"{"hook_event_name":"PermissionRequest","session_id":"short-token","boring_notch_approval":{"port":49152,"token":"short","expires_at":4102444800}}"#,
+            #"{"hook_event_name":"PermissionRequest","session_id":"invalid-token","boring_notch_approval":{"port":49152,"token":"abcdefghijklmnopqrstuvwxyzABCDE!","expires_at":4102444800}}"#,
+            #"{"hook_event_name":"PermissionRequest","session_id":"missing-expiry","boring_notch_approval":{"port":49152,"token":"abcdefghijklmnopqrstuvwxyzABCDEF"}}"#
         ]
 
         for payload in payloads {
@@ -252,10 +283,27 @@ final class CodexNotificationsCoreTests: XCTestCase {
             state.reduce(try CodexHookEventParser.parse(payload))
             let notice = try XCTUnwrap(state.notifications.first, payload)
             XCTAssertEqual(notice.status, .needsAction(.permission), payload)
-            XCTAssertNil(notice.permissionControl, payload)
+            XCTAssertNil(notice.permissionCallback, payload)
             XCTAssertNil(state.visibleNotification(), payload)
-            XCTAssertNil(state.nativePermissionNotification(), payload)
         }
+    }
+
+    func testExpiredPermissionCallbackIsNotPresented() throws {
+        var state = CodexNotificationState()
+        state.reduce(try CodexHookEventParser.parse(#"""
+        {
+            "hook_event_name":"PermissionRequest",
+            "session_id":"expired",
+            "boring_notch_approval":{
+                "port":49152,
+                "token":"abcdefghijklmnopqrstuvwxyzABCDEF",
+                "expires_at":99
+            }
+        }
+        """#), at: Date(timeIntervalSince1970: 100))
+
+        XCTAssertNotNil(state.notifications.first)
+        XCTAssertNil(state.visibleNotification(at: Date(timeIntervalSince1970: 100)))
     }
 
     func testStopReplacesPermissionWithVerifiedSuccess() throws {
@@ -274,7 +322,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
                 toolName: "Bash",
                 description: "Run xcodebuild"
             ),
-            control: .accessibility
+            callback: permissionCallback
         ))
         let completedAt = Date(timeIntervalSince1970: 100)
         state.reduce(.stop(
@@ -403,6 +451,98 @@ final class CodexNotificationsCoreTests: XCTestCase {
         )
     }
 
+    func testDecisionMessageOutranksReportedSuccessStatus() throws {
+        var state = CodexNotificationState()
+        state.reduce(try CodexHookEventParser.parse(#"""
+        {
+            "hook_event_name":"Stop",
+            "session_id":"decision-reported-success",
+            "turn_id":"turn-1",
+            "last_assistant_message":"The work is ready. Please choose which option I should apply next.",
+            "status":"succeeded"
+        }
+        """#))
+
+        XCTAssertEqual(
+            state.visibleNotification()?.status,
+            .needsAction(.decision)
+        )
+
+        state.reduce(try CodexHookEventParser.parse(#"""
+        {
+            "hook_event_name":"Stop",
+            "session_id":"decision-question",
+            "turn_id":"turn-2",
+            "last_assistant_message":"Both approaches are ready. Which approach should I take?",
+            "status":"success"
+        }
+        """#))
+
+        XCTAssertEqual(
+            state.notifications.first { $0.sessionID == "decision-question" }?.status,
+            .needsAction(.decision)
+        )
+    }
+
+    func testDecisionResponseWithExplicitAOrBChoiceIsActionable() {
+        var state = CodexNotificationState()
+        state.reduce(.stop(
+            sessionID: "decision-a-or-b",
+            turnID: "turn-1",
+            cwd: "/tmp/project",
+            result: """
+            A. Minimal targeted change — faster and lower risk.
+            B. Broader modular refactor — more extensible but higher risk.
+            Choose A or B.
+            """,
+            reportedStatus: "succeeded"
+        ))
+
+        XCTAssertEqual(
+            state.visibleNotification()?.status,
+            .needsAction(.decision)
+        )
+    }
+
+    func testManualReviewResponseIsActionable() {
+        var state = CodexNotificationState()
+        state.reduce(.stop(
+            sessionID: "manual-review",
+            turnID: "turn-1",
+            cwd: "/tmp/project",
+            result: """
+            Proposed action: review the untracked directory before adding it.
+            Risks: it may contain generated files or unrelated work.
+            Please manually review this recommendation and approve or reject proceeding.
+            """,
+            reportedStatus: "succeeded"
+        ))
+
+        XCTAssertEqual(
+            state.visibleNotification()?.status,
+            .needsAction(.manualCheck)
+        )
+    }
+
+    func testFailureResponseWithStatusTextIsFailed() {
+        var state = CodexNotificationState()
+        state.reduce(.stop(
+            sessionID: "diagnostic-failure",
+            turnID: "turn-1",
+            cwd: "/tmp/project",
+            result: """
+            Command: cat /dev/null/codex-diagnostic-file
+            Error: Not a directory
+            Status: failed (exit code 1).
+            """
+        ))
+
+        XCTAssertEqual(
+            state.visibleNotification()?.status,
+            .failed
+        )
+    }
+
     func testPassiveNotificationCanStartItsDwellAfterPresentation() {
         var state = CodexNotificationState()
         let completedAt = Date(timeIntervalSince1970: 100)
@@ -483,10 +623,8 @@ final class CodexNotificationsCoreTests: XCTestCase {
             turnID: "turn-1",
             cwd: "/tmp/project",
             details: CodexPermissionDetails(toolName: "Bash", description: "Run tests"),
-            control: .accessibility
+            callback: permissionCallback
         ), at: Date(timeIntervalSince1970: 10))
-        let pendingPermission = try XCTUnwrap(state.nativePermissionNotification())
-        state.confirmNativePermission(pendingPermission.id)
         state.reduce(.stop(
             sessionID: "complete",
             turnID: "turn-2",
@@ -497,20 +635,18 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertEqual(state.visibleNotification()?.sessionID, "permission")
     }
 
-    func testPermissionControlPersistsUntilDismissed() throws {
+    func testPermissionCallbackPersistsUntilDismissed() throws {
         var state = CodexNotificationState()
         state.reduce(.permissionRequest(
             sessionID: "permission",
             turnID: "turn-1",
             cwd: "/tmp/project",
             details: CodexPermissionDetails(toolName: "Bash", description: "Run tests"),
-            control: .accessibility
+            callback: permissionCallback
         ), at: Date(timeIntervalSince1970: 100))
 
-        XCTAssertNil(state.visibleNotification())
-        let pendingNotice = try XCTUnwrap(state.nativePermissionNotification())
-        state.confirmNativePermission(pendingNotice.id)
-        XCTAssertEqual(state.visibleNotification()?.permissionControl, .accessibility)
+        let pendingNotice = try XCTUnwrap(state.visibleNotification())
+        XCTAssertEqual(pendingNotice.permissionCallback, permissionCallback)
         state.dismiss(pendingNotice.id)
         XCTAssertNil(state.visibleNotification())
     }
@@ -562,16 +698,4 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertEqual(Set(state.notifications.map(\.sessionID)), ["a", "a:b"])
     }
 
-    func testNativePermissionObservationHasBoundedAppearanceWindow() {
-        XCTAssertEqual(
-            CodexNotificationTiming.nativePermissionInspectionGrace,
-            0.75,
-            accuracy: 0.001
-        )
-        XCTAssertEqual(
-            CodexNotificationTiming.nativePermissionAppearanceTimeout,
-            10,
-            accuracy: 0.001
-        )
-    }
 }
