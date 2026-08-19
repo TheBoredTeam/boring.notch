@@ -56,7 +56,7 @@ struct CodexNotificationSettings: View {
                 )
                 CodexNotificationTypeRow(
                     title: "Permission Required",
-                    detail: "A shell command needs your Allow or Deny response.",
+                    detail: "A Codex tool needs your Allow or Deny response.",
                     icon: .asset("codexSettingsShield")
                 )
                 CodexNotificationTypeRow(

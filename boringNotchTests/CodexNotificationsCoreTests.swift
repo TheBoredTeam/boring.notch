@@ -135,6 +135,46 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertEqual(notice.permissionCallback, permissionCallback)
     }
 
+    func testParsesBrowserPermissionRequestAsActionableNotification() throws {
+        var state = CodexNotificationState()
+        state.reduce(try CodexHookEventParser.parse(#"""
+        {
+            "hook_event_name":"PermissionRequest",
+            "session_id":"browser-session",
+            "turn_id":"browser-turn",
+            "cwd":"/tmp/browser-project",
+            "tool_name":"Browser",
+            "tool_input":{
+                "description":"Open the documentation page in Browser",
+                "url":"https://example.com/docs"
+            },
+            "boring_notch_approval":{
+                "port":49152,
+                "token":"abcdefghijklmnopqrstuvwxyzABCDEF",
+                "expires_at":4102444800
+            }
+        }
+        """#))
+
+        let notice = try XCTUnwrap(state.visibleNotification())
+        XCTAssertEqual(notice.status, .needsAction(.permission))
+        XCTAssertEqual(notice.status.title, "Permission Required")
+        XCTAssertEqual(notice.permissionDetails?.toolName, "Browser")
+        XCTAssertEqual(
+            notice.permissionDetails?.description,
+            "Open the documentation page in Browser"
+        )
+        XCTAssertEqual(
+            notice.permissionDetails?.additionalInput,
+            """
+            {
+              "url" : "https:\\/\\/example.com\\/docs"
+            }
+            """
+        )
+        XCTAssertEqual(notice.permissionCallback, permissionCallback)
+    }
+
     func testPermissionRequestCarriesAutomaticReviewerMode() throws {
         let event = try CodexHookEventParser.parse(#"""
         {

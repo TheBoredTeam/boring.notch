@@ -233,8 +233,16 @@ struct CodexPermissionApprovalView: View {
             ?? CodexPermissionDetails(toolName: "Codex")
     }
 
+    private var normalizedToolName: String {
+        details.toolName.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+
     private var toolDisplayName: String {
-        details.toolName == "Bash" ? "Terminal" : details.toolName
+        switch normalizedToolName {
+        case "bash": "Terminal"
+        case "apply_patch": "File changes"
+        default: details.toolName
+        }
     }
 
     private var requestDescription: String {
@@ -300,7 +308,7 @@ struct CodexPermissionApprovalView: View {
                     VStack(alignment: .leading, spacing: 5) {
                         if let command = details.command {
                             expandableDetailSection(
-                                title: details.toolName == "apply_patch" ? "Files" : "Command",
+                                title: commandDetailTitle,
                                 value: command
                             )
                         }
@@ -373,7 +381,20 @@ struct CodexPermissionApprovalView: View {
     }
 
     private var toolIcon: String {
-        details.toolName == "Bash" ? "terminal" : "lock.shield"
+        switch normalizedToolName {
+        case "bash": "terminal"
+        case "browser": "globe"
+        case "apply_patch": "doc.badge.plus"
+        default: "lock.shield"
+        }
+    }
+
+    private var commandDetailTitle: String {
+        switch normalizedToolName {
+        case "bash": "Command"
+        case "apply_patch": "Files"
+        default: "Tool input"
+        }
     }
 
     private var expandablePrompt: some View {
