@@ -62,7 +62,7 @@ struct InlineOSD: View {
                                 .allowsTightening(true)
                                 .multilineTextAlignment(.trailing)
                         } else if Defaults[.showClosedNotchOSDPercentage] {
-                            Text("\(Int(value * 100))%")
+                            Text(value, format: .percent.precision(.fractionLength(0)))
                                 .font(.caption)
                                 .fontWeight(.medium)
                                 .foregroundStyle(.gray)
