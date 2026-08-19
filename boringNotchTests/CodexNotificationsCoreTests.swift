@@ -1,5 +1,6 @@
 import XCTest
 @testable import CodexNotificationsCore
+@testable import CodexHookTrustState
 
 final class CodexNotificationsCoreTests: XCTestCase {
     private let permissionCallback = CodexPermissionCallback(
@@ -13,6 +14,39 @@ final class CodexNotificationsCoreTests: XCTestCase {
         let visible: Bool
         let priority: Int
         let updatedAt: Date
+    }
+
+    func testDisabledHookIsNotTrustedEvenWithAValidHash() {
+        let section = "/Users/example/.codex/hooks.json:permission_request:0:0"
+        let configuration = """
+        [hooks.state."\(section)"]
+        trusted_hash = "sha256:\(String(repeating: "a", count: 64))"
+        enabled = false
+        """
+
+        let state = CodexHookTrustState(configuration: configuration)
+
+        XCTAssertFalse(state.areTrusted([section]))
+    }
+
+    func testHookWithValidHashAndNoDisabledFlagIsTrusted() {
+        let section = "/Users/example/.codex/hooks.json:stop:0:0"
+        let configuration = """
+        [hooks.state."\(section)"]
+        trusted_hash = "sha256:\(String(repeating: "b", count: 64))"
+        """
+
+        let state = CodexHookTrustState(configuration: configuration)
+
+        XCTAssertTrue(state.areTrusted([section]))
+    }
+
+    func testStatusIconsMatchNotchNotificationGlyphs() {
+        XCTAssertEqual(CodexJobStatus.succeeded.icon, "checkmark.circle.fill")
+        XCTAssertEqual(CodexJobStatus.failed.icon, "xmark.circle.fill")
+        XCTAssertEqual(CodexJobStatus.needsAction(.permission).icon, "lock.shield.fill")
+        XCTAssertEqual(CodexJobStatus.needsAction(.decision).icon, "questionmark.circle.fill")
+        XCTAssertEqual(CodexJobStatus.needsAction(.manualCheck).icon, "hand.tap.fill")
     }
 
     func testPriorityResolverSelectsHighestVisibleCandidate() {
@@ -521,6 +555,26 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertEqual(
             state.visibleNotification()?.status,
             .needsAction(.manualCheck)
+        )
+    }
+
+    func testSuccessfulReportMentioningManualTestReferenceRemainsSuccess() {
+        var state = CodexNotificationState()
+        state.reduce(.stop(
+            sessionID: "successful-report",
+            turnID: "turn-1",
+            cwd: "/tmp/project",
+            result: """
+            Done.
+            Updated the manual test reference in AGENT.md.
+            Verified 35 tests pass and the Debug build succeeds.
+            """,
+            reportedStatus: "succeeded"
+        ))
+
+        XCTAssertEqual(
+            state.visibleNotification()?.status,
+            .succeeded
         )
     }
 

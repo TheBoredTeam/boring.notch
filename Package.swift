@@ -10,12 +10,17 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "CodexHookTrustState",
+            path: "BoringNotchXPCHelper",
+            sources: ["CodexHookTrustState.swift"]
+        ),
+        .target(
             name: "CodexNotificationsCore",
             path: "boringNotch/features/CodexNotifications/Core"
         ),
         .testTarget(
             name: "CodexNotificationsCoreTests",
-            dependencies: ["CodexNotificationsCore"],
+            dependencies: ["CodexNotificationsCore", "CodexHookTrustState"],
             path: "boringNotchTests"
         )
     ]

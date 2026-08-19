@@ -1,0 +1,15 @@
+{
+  "images" : [
+    {
+      "filename" : "codexPermissionShield.png",
+      "idiom" : "mac"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "properties" : {
+    "template-rendering-intent" : "template"
+  }
+}

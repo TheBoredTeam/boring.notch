@@ -445,6 +445,20 @@ final class XPCHelperClient: NSObject {
     }
 
     @MainActor
+    func areCodexNotificationHooksTrusted() async -> Bool {
+        do {
+            let service = ensureRemoteService()
+            return try await service.withContinuation { service, continuation in
+                service.areCodexNotificationHooksTrusted { trusted in
+                    continuation.resume(returning: trusted)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
+
+    @MainActor
     func setCodexNotificationHookInstalled(
         _ installed: Bool
     ) async -> Result<Void, Error> {

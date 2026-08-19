@@ -51,6 +51,13 @@ enum CodexNotificationExtension {
 }
 
 private extension CodexJobStatus {
+    var notchIconAssetName: String? {
+        if case .needsAction(.permission) = self {
+            return "codexPermissionShield"
+        }
+        return nil
+    }
+
     var notchPriority: ClosedNotchPresentationPriority {
         switch self {
         case .needsAction(.permission), .needsAction(.decision), .failed:
@@ -62,19 +69,10 @@ private extension CodexJobStatus {
         }
     }
 
-    var icon: String {
-        switch self {
-        case .needsAction(.permission): "lock.shield.fill"
-        case .needsAction(.decision): "questionmark.circle.fill"
-        case .needsAction(.manualCheck): "hand.tap.fill"
-        case .failed: "xmark.circle.fill"
-        case .succeeded: "checkmark.circle.fill"
-        }
-    }
-
     var tint: Color {
         switch self {
-        case .needsAction(.permission), .needsAction(.decision): .orange
+        case .needsAction(.permission): .orange
+        case .needsAction(.decision): .purple
         case .needsAction(.manualCheck): .blue
         case .failed: .red
         case .succeeded: .green
@@ -92,6 +90,22 @@ private struct CodexNotificationStatusIcon: View {
 
     @State private var pulsing = false
 
+    @ViewBuilder
+    private var iconView: some View {
+        if let assetName = status.notchIconAssetName {
+            Image(assetName)
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 22, height: 22)
+                .foregroundStyle(status.tint)
+        } else {
+            Image(systemName: status.icon)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(status.tint)
+        }
+    }
+
     var body: some View {
         ZStack {
             if status.pulses {
@@ -102,9 +116,7 @@ private struct CodexNotificationStatusIcon: View {
                     .opacity(pulsing ? 0.15 : 0.8)
                     .accessibilityHidden(true)
             }
-            Image(systemName: status.icon)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(status.tint)
+            iconView
         }
         .frame(maxWidth: .infinity, alignment: .trailing)
         .onAppear {

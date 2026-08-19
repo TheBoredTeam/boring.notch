@@ -162,6 +162,16 @@ public enum CodexJobStatus: Equatable, Sendable {
         }
     }
 
+    public var icon: String {
+        switch self {
+        case .needsAction(.permission): "lock.shield.fill"
+        case .needsAction(.decision): "questionmark.circle.fill"
+        case .needsAction(.manualCheck): "hand.tap.fill"
+        case .failed: "xmark.circle.fill"
+        case .succeeded: "checkmark.circle.fill"
+        }
+    }
+
     public var nextAction: String {
         switch self {
         case .needsAction(.permission), .needsAction(.decision):
@@ -658,10 +668,14 @@ public struct CodexNotificationState: Equatable, Sendable {
         }
 
         let manualMarkers = [
-            "manual verification", "manually verify", "verify manually",
-            "manual test", "test manually", "please verify", "please test",
-            "manual review", "manually review", "review and approve",
-            "approve or reject"
+            "manually verify", "verify manually", "test manually",
+            "please verify", "please test", "please manually review",
+            "manually review", "review and approve", "approve or reject",
+            "wait for manual review", "wait for manual verification",
+            "manual review required", "manual verification required",
+            "manual test required", "requires manual review",
+            "requires manual verification", "needs manual review",
+            "needs manual verification", "manual review and approval"
         ]
         if manualMarkers.contains(where: text.contains) {
             return .needsAction(.manualCheck)

@@ -373,6 +373,12 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     // MARK: - Codex Notifications
 
     private static let codexHookEvents = ["UserPromptSubmit", "PermissionRequest", "PostToolUse", "Stop"]
+    private static let codexHookTrustEvents = [
+        ("PermissionRequest", "permission_request"),
+        ("UserPromptSubmit", "user_prompt_submit"),
+        ("PostToolUse", "post_tool_use"),
+        ("Stop", "stop"),
+    ]
     private static let codexHookMarker = "boring-notch-notify.py"
     private static let codexHookSecretMarker = "boring-notch-notify.secret"
     private static let maximumCodexPayloadBytes = 256 * 1024
@@ -872,6 +878,32 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         }
     }
 
+    @objc func areCodexNotificationHooksTrusted(with reply: @escaping (Bool) -> Void) {
+        do {
+            let urls = codexHookURLs()
+            let configURL = urls.configuration
+                .deletingLastPathComponent()
+                .appendingPathComponent("config.toml")
+            let configuration = try String(contentsOf: configURL, encoding: .utf8)
+            let root = try readCodexHookConfiguration(at: urls.configuration)
+            let expectedSections = Set(Self.codexHookTrustEvents.compactMap {
+                codexHookTrustSection(
+                    in: root,
+                    event: $0.0,
+                    trustEvent: $0.1,
+                    scriptURL: urls.script
+                )
+            })
+            guard expectedSections.count == Self.codexHookTrustEvents.count else {
+                reply(false)
+                return
+            }
+            reply(CodexHookTrustState(configuration: configuration).areTrusted(expectedSections))
+        } catch {
+            reply(false)
+        }
+    }
+
     @objc func setCodexNotificationHookInstalled(
         _ installed: Bool,
         with reply: @escaping (Bool, String?) -> Void
@@ -1029,6 +1061,28 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             && handler["command"] as? String == codexHookCommand(scriptURL: scriptURL)
             && handler["timeout"] as? Int == expectedTimeout
             && handler["async"] == nil
+    }
+
+    private func codexHookTrustSection(
+        in root: [String: Any],
+        event: String,
+        trustEvent: String,
+        scriptURL: URL
+    ) -> String? {
+        guard let hooks = root["hooks"] as? [String: Any],
+              let groups = hooks[event] as? [[String: Any]] else { return nil }
+
+        for (groupIndex, group) in groups.enumerated() {
+            guard isOwnedCodexHookGroup(group),
+                  let handlers = group["hooks"] as? [[String: Any]] else {
+                continue
+            }
+            for (handlerIndex, handler) in handlers.enumerated()
+                where handler["command"] as? String == codexHookCommand(scriptURL: scriptURL) {
+                return "\(codexHookURLs().configuration.path):\(trustEvent):\(groupIndex):\(handlerIndex)"
+            }
+        }
+        return nil
     }
 
     private func isOwnedCodexHookGroup(_ group: [String: Any]) -> Bool {

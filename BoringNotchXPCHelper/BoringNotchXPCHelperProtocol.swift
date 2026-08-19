@@ -66,6 +66,7 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     func setLunarOSDHidden(_ hide: Bool, with reply: @escaping (Bool) -> Void)
     // Codex notification hook configuration (performed by the unsandboxed helper)
     func isCodexNotificationHookInstalled(with reply: @escaping (Bool) -> Void)
+    func areCodexNotificationHooksTrusted(with reply: @escaping (Bool) -> Void)
     func setCodexNotificationHookInstalled(_ installed: Bool, with reply: @escaping (Bool, String?) -> Void)
 }
 
