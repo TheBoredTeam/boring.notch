@@ -124,6 +124,26 @@ final class XPCHelperClient: NSObject {
     var isMonitoring: Bool {
         return monitoringTask != nil
     }
+
+    // MARK: - System Metrics
+
+    nonisolated func systemMetrics(
+        requesting selection: BNSystemMetricSelection
+    ) async -> BNSystemMetricPayload? {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let data: Data = try await service.withContinuation { service, continuation in
+                service.systemMetrics(selection.rawValue) { data in
+                    continuation.resume(returning: data)
+                }
+            }
+            return try? JSONDecoder().decode(BNSystemMetricPayload.self, from: data)
+        } catch {
+            return nil
+        }
+    }
     
     // MARK: - Accessibility
     
@@ -366,4 +386,3 @@ final class XPCHelperClient: NSObject {
         }
     }
 }
-

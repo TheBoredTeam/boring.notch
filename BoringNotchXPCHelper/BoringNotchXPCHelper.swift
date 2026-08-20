@@ -7,6 +7,7 @@
 
 import AppKit
 import ApplicationServices
+import Darwin
 import IOKit
 
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
@@ -27,6 +28,15 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
     override init() {
         super.init()
+    }
+
+    // MARK: - System Metrics
+
+    @objc func systemMetrics(_ requestedMetrics: Int, with reply: @escaping (Data) -> Void) {
+        let metrics = SystemMetricSampler.sample(
+            requesting: BNSystemMetricSelection(rawValue: requestedMetrics)
+        )
+        reply((try? JSONEncoder().encode(metrics)) ?? Data())
     }
 
     deinit {
@@ -417,6 +427,286 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             }
             return nil
         }()
+    }
+}
+
+// MARK: - System Metrics
+
+// CPU, GPU, and memory sampling adapted from Stats by Serhiy Mytrovtsiy:
+// https://github.com/exelban/stats (MIT License)
+private enum SystemMetricSampler {
+    static func sample(requesting selection: BNSystemMetricSelection) -> BNSystemMetricPayload {
+        let cpu: (user: UInt32, system: UInt32, idle: UInt32, nice: UInt32) =
+            selection.contains(.cpu) ? cpuTicks() : (0, 0, 0, 0)
+        let memory: (used: UInt64, total: UInt64) =
+            selection.contains(.memory) || selection.contains(.memoryProcesses)
+                ? memoryUsage()
+                : (0, 0)
+        let processes = processMetrics(requesting: selection)
+
+        return BNSystemMetricPayload(
+            cpuUserTicks: cpu.user,
+            cpuSystemTicks: cpu.system,
+            cpuIdleTicks: cpu.idle,
+            cpuNiceTicks: cpu.nice,
+            gpuUsagePercent: selection.contains(.gpu) ? gpuUsagePercent() : nil,
+            memoryUsedBytes: memory.used,
+            memoryTotalBytes: memory.total,
+            cpuTemperatureCelsius: selection.contains(.cpuTemperature)
+                ? SMCReadOnly.shared.averageCPUTemperature()
+                : nil,
+            thermalState: selection.contains(.cpuTemperature)
+                ? ProcessInfo.processInfo.thermalState.rawValue
+                : -1,
+            sampleUptimeNanoseconds: DispatchTime.now().uptimeNanoseconds,
+            processes: processes
+        )
+    }
+
+    private struct ProcessSnapshot {
+        let pid: Int32
+        let name: String
+        let executablePath: String?
+        let cpuUsagePercent: Double
+        let memoryBytes: UInt64
+    }
+
+    private struct GPUProcessSnapshot {
+        var name: String
+        var accumulatedTimeNanoseconds: UInt64
+    }
+
+    private static func processMetrics(
+        requesting selection: BNSystemMetricSelection
+    ) -> [BNProcessMetricPayload] {
+        let wantsCPU = selection.contains(.cpuProcesses)
+        let wantsGPU = selection.contains(.gpuProcesses)
+        let wantsMemory = selection.contains(.memoryProcesses)
+        guard wantsCPU || wantsGPU || wantsMemory else { return [] }
+
+        // `ps` can see system-owned processes that libproc hides from an ordinary user,
+        // including WindowServer. It is only launched while a process list is visible.
+        let processSnapshots = psProcessSnapshots()
+        let snapshotsByPID = Dictionary(
+            uniqueKeysWithValues: processSnapshots.map { ($0.pid, $0) }
+        )
+        let gpuSnapshots = wantsGPU ? gpuProcessSnapshots() : [:]
+        let processIDs: Set<Int32> = wantsCPU || wantsMemory
+            ? Set(snapshotsByPID.keys).union(gpuSnapshots.keys)
+            : Set(gpuSnapshots.keys)
+
+        return processIDs.compactMap { pid in
+            let process = snapshotsByPID[pid]
+            let gpu = gpuSnapshots[pid]
+            guard process != nil || gpu != nil else { return nil }
+
+            return BNProcessMetricPayload(
+                pid: pid,
+                name: process?.name ?? gpu?.name ?? "Process \(pid)",
+                executablePath: process?.executablePath,
+                cpuUsagePercent: wantsCPU ? process?.cpuUsagePercent : nil,
+                gpuTimeNanoseconds: wantsGPU ? gpu?.accumulatedTimeNanoseconds : nil,
+                memoryBytes: wantsMemory ? process?.memoryBytes : nil
+            )
+        }
+    }
+
+    private static func psProcessSnapshots() -> [ProcessSnapshot] {
+        let process = Process()
+        let output = Pipe()
+        process.executableURL = URL(fileURLWithPath: "/bin/ps")
+        process.arguments = ["-axo", "pid=,pcpu=,rss=,comm="]
+        process.standardOutput = output
+        process.standardError = FileHandle.nullDevice
+        var environment = ProcessInfo.processInfo.environment
+        environment["LC_ALL"] = "C"
+        process.environment = environment
+
+        do {
+            try process.run()
+            let data = output.fileHandleForReading.readDataToEndOfFile()
+            process.waitUntilExit()
+            guard process.terminationStatus == 0,
+                  let text = String(data: data, encoding: .utf8)
+            else { return [] }
+
+            return text.split(whereSeparator: \.isNewline).compactMap { line in
+                let fields = line.split(
+                    maxSplits: 3,
+                    omittingEmptySubsequences: true,
+                    whereSeparator: \.isWhitespace
+                )
+                guard fields.count == 4,
+                      let pid = Int32(fields[0]),
+                      pid > 0,
+                      let cpu = Double(fields[1]),
+                      let residentKilobytes = UInt64(fields[2])
+                else { return nil }
+
+                let executablePath = String(fields[3])
+                let executableName = URL(fileURLWithPath: executablePath).lastPathComponent
+                let memoryBytes = residentKilobytes.multipliedReportingOverflow(by: 1_024)
+
+                return ProcessSnapshot(
+                    pid: pid,
+                    name: executableName.isEmpty ? "Process \(pid)" : executableName,
+                    executablePath: executablePath.hasPrefix("/") ? executablePath : nil,
+                    cpuUsagePercent: max(cpu, 0),
+                    memoryBytes: memoryBytes.overflow ? UInt64.max : memoryBytes.partialValue
+                )
+            }
+        } catch {
+            return []
+        }
+    }
+
+    private static func gpuProcessSnapshots() -> [Int32: GPUProcessSnapshot] {
+        var iterator: io_iterator_t = 0
+        let result = IORegistryCreateIterator(
+            kIOMainPortDefault,
+            kIOServicePlane,
+            IOOptionBits(kIORegistryIterateRecursively),
+            &iterator
+        )
+        guard result == KERN_SUCCESS else { return [:] }
+        defer { IOObjectRelease(iterator) }
+
+        var snapshots: [Int32: GPUProcessSnapshot] = [:]
+
+        while case let entry = IOIteratorNext(iterator), entry != 0 {
+            defer { IOObjectRelease(entry) }
+
+            guard
+                let creator = IORegistryEntryCreateCFProperty(
+                    entry,
+                    "IOUserClientCreator" as CFString,
+                    kCFAllocatorDefault,
+                    0
+                )?.takeRetainedValue() as? String,
+                let identity = parseGPUCreator(creator),
+                let appUsage = IORegistryEntryCreateCFProperty(
+                    entry,
+                    "AppUsage" as CFString,
+                    kCFAllocatorDefault,
+                    0
+                )?.takeRetainedValue() as? [[String: Any]]
+            else { continue }
+
+            let accumulatedTime = appUsage.reduce(UInt64.zero) { total, usage in
+                guard let value = usage["accumulatedGPUTime"] as? NSNumber else { return total }
+                let addition = total.addingReportingOverflow(value.uint64Value)
+                return addition.overflow ? UInt64.max : addition.partialValue
+            }
+            guard accumulatedTime > 0 else { continue }
+
+            if let current = snapshots[identity.pid] {
+                let addition = current.accumulatedTimeNanoseconds
+                    .addingReportingOverflow(accumulatedTime)
+                snapshots[identity.pid] = GPUProcessSnapshot(
+                    name: current.name,
+                    accumulatedTimeNanoseconds: addition.overflow
+                        ? UInt64.max
+                        : addition.partialValue
+                )
+            } else {
+                snapshots[identity.pid] = GPUProcessSnapshot(
+                    name: identity.name,
+                    accumulatedTimeNanoseconds: accumulatedTime
+                )
+            }
+        }
+
+        return snapshots
+    }
+
+    private static func parseGPUCreator(_ creator: String) -> (pid: Int32, name: String)? {
+        let fields = creator.split(separator: ",", maxSplits: 1)
+        guard let pidField = fields.first,
+              pidField.hasPrefix("pid "),
+              let pid = Int32(pidField.dropFirst(4)),
+              pid > 0
+        else { return nil }
+
+        let name = fields.count > 1
+            ? fields[1].trimmingCharacters(in: .whitespaces)
+            : "Process \(pid)"
+        return (pid, name.isEmpty ? "Process \(pid)" : name)
+    }
+
+    private static func cpuTicks() -> (user: UInt32, system: UInt32, idle: UInt32, nice: UInt32) {
+        var info = host_cpu_load_info()
+        var count = mach_msg_type_number_t(
+            MemoryLayout<host_cpu_load_info_data_t>.size / MemoryLayout<integer_t>.size
+        )
+        let result = withUnsafeMutablePointer(to: &info) { pointer in
+            pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { rebound in
+                host_statistics(mach_host_self(), HOST_CPU_LOAD_INFO, rebound, &count)
+            }
+        }
+        guard result == KERN_SUCCESS else { return (0, 0, 0, 0) }
+        return (
+            info.cpu_ticks.0,
+            info.cpu_ticks.1,
+            info.cpu_ticks.2,
+            info.cpu_ticks.3
+        )
+    }
+
+    private static func memoryUsage() -> (used: UInt64, total: UInt64) {
+        let total = ProcessInfo.processInfo.physicalMemory
+        var info = vm_statistics64()
+        var count = mach_msg_type_number_t(
+            MemoryLayout<vm_statistics64_data_t>.size / MemoryLayout<integer_t>.size
+        )
+        let result = withUnsafeMutablePointer(to: &info) { pointer in
+            pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { rebound in
+                host_statistics64(mach_host_self(), HOST_VM_INFO64, rebound, &count)
+            }
+        }
+        guard result == KERN_SUCCESS else { return (0, total) }
+
+        let pageSize = UInt64(vm_page_size)
+        let occupiedPages = UInt64(info.active_count)
+            + UInt64(info.inactive_count)
+            + UInt64(info.speculative_count)
+            + UInt64(info.wire_count)
+            + UInt64(info.compressor_page_count)
+        let reclaimablePages = UInt64(info.purgeable_count) + UInt64(info.external_page_count)
+        let usedPages = occupiedPages >= reclaimablePages
+            ? occupiedPages - reclaimablePages
+            : 0
+        return (min(usedPages * pageSize, total), total)
+    }
+
+    private static func gpuUsagePercent() -> Double? {
+        var iterator: io_iterator_t = 0
+        let result = IOServiceGetMatchingServices(
+            kIOMainPortDefault,
+            IOServiceMatching("IOAccelerator"),
+            &iterator
+        )
+        guard result == KERN_SUCCESS else { return nil }
+        defer { IOObjectRelease(iterator) }
+
+        var values: [Double] = []
+
+        while case let entry = IOIteratorNext(iterator), entry != 0 {
+            defer { IOObjectRelease(entry) }
+
+            guard
+                let statistics = IORegistryEntryCreateCFProperty(
+                    entry,
+                    "PerformanceStatistics" as CFString,
+                    kCFAllocatorDefault,
+                    0
+                )?.takeRetainedValue() as? [String: Any],
+                let usage = statistics["Device Utilization %"] as? NSNumber
+                    ?? statistics["GPU Activity(%)"] as? NSNumber
+            else { continue }
+            values.append(usage.doubleValue)
+        }
+
+        return values.max().map { min(max($0, 0), 100) }
     }
 }
 
