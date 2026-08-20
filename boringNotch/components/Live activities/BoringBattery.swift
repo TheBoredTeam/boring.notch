@@ -90,12 +90,44 @@ struct BatteryMenuView: View {
     var isPluggedIn: Bool
     var isCharging: Bool
     var levelBattery: Float
-    var maxCapacity: Float
+    var maxCapacity: Float?
     var timeToFullCharge: Int
+    var timeToDischarge: Int
     var isInLowPowerMode: Bool
+    var maxAdapterWatts: Int = 0
     var onDismiss: () -> Void
 
     @Environment(\.openURL) private var openURL
+
+    private var formattedTimeToDischarge: String {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.hour, .minute]
+        formatter.unitsStyle = .abbreviated
+        formatter.zeroFormattingBehavior = .dropAll
+        return formatter.string(from: TimeInterval(timeToDischarge * 60)) ?? ""
+    }
+
+    private var formattedTimeToFullCharge: String {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.hour, .minute]
+        formatter.unitsStyle = .abbreviated
+        formatter.zeroFormattingBehavior = .dropAll
+        return formatter.string(from: TimeInterval(timeToFullCharge * 60)) ?? ""
+    }
+
+    // Power status row ("Charging"/"Plugged In") with ": 140W" appended when the
+    // adapter wattage is known and enabled. Watts is a separate Text so the
+    // localized status key stays intact.
+    private func powerStatusLabel(_ title: LocalizedStringKey, icon: String) -> some View {
+        let suffix = (Defaults[.showChargingWattage] && maxAdapterWatts > 0) ? ": \(maxAdapterWatts)W" : ""
+        return Label {
+            Text(title) + Text(suffix)
+        } icon: {
+            Image(systemName: icon)
+        }
+        .font(.subheadline)
+        .fontWeight(.regular)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -105,32 +137,53 @@ struct BatteryMenuView: View {
                     .font(.headline)
                     .fontWeight(.semibold)
                 Spacer()
-                Text("\(Int(levelBattery))%")
+                Text(
+                    levelBattery / 100,
+                    format: .percent.precision(.fractionLength(0))
+                )
                     .font(.headline)
                     .fontWeight(.semibold)
             }
             
             VStack(alignment: .leading, spacing: 8) {
-                Text("Max Capacity: \(Int(maxCapacity))%")
-                    .font(.subheadline)
-                    .fontWeight(.regular)
+                if let maxCapacity {
+                    Text(
+                        "Max Capacity: \(maxCapacity / 100, format: .percent.precision(.fractionLength(0)))",
+                        comment: "Battery maximum capacity."
+                    )
+                        .font(.subheadline)
+                        .fontWeight(.regular)
+                } else {
+                    Text("Max Capacity: Not Available")
+                        .font(.subheadline)
+                        .fontWeight(.regular)
+                }
                 if isInLowPowerMode {
                     Label("Low Power Mode", systemImage: "bolt.circle")
                         .font(.subheadline)
                         .fontWeight(.regular)
                 }
                 if isCharging {
-                    Label("Charging", systemImage: "bolt.fill")
+                    powerStatusLabel("Charging", icon: "bolt.fill")
+                }
+                if isPluggedIn && !isCharging {
+                    powerStatusLabel("Plugged In", icon: "powerplug.fill")
+                }
+                if isCharging && timeToFullCharge > 0 {
+                    Label("Time to Full Charge: \(formattedTimeToFullCharge)", systemImage: "clock")
+                        .font(.subheadline)
+                        .fontWeight(.regular)
+                } else if isCharging && timeToFullCharge == -1 {
+                    Label("Time to Full Charge: Calculating...", systemImage: "clock")
                         .font(.subheadline)
                         .fontWeight(.regular)
                 }
-                if isPluggedIn {
-                    Label("Plugged In", systemImage: "powerplug.fill")
+                if !isCharging && !isPluggedIn && timeToDischarge > 0 {
+                    Label("Time Until Empty: \(formattedTimeToDischarge)", systemImage: "clock")
                         .font(.subheadline)
                         .fontWeight(.regular)
-                }
-                if timeToFullCharge > 0 {
-                    Label("Time to Full Charge: \(timeToFullCharge) min", systemImage: "clock")
+                } else if !isCharging && !isPluggedIn && timeToDischarge == -1 {
+                    Label("Time Until Empty: Calculating...", systemImage: "clock")
                         .font(.subheadline)
                         .fontWeight(.regular)
                 }
@@ -174,8 +227,10 @@ struct BoringBatteryView: View {
     var isInLowPowerMode: Bool = false
     var isPluggedIn: Bool = false
     var levelBattery: Float = 0
-    var maxCapacity: Float = 0
+    var maxCapacity: Float?
     var timeToFullCharge: Int = 0
+    var timeToDischarge: Int = 0
+    var maxAdapterWatts: Int = 0
     @State var isForNotification: Bool = false
     
     @State private var showPopupMenu: Bool = false
@@ -194,7 +249,10 @@ struct BoringBatteryView: View {
         }) {
             HStack {
                 if Defaults[.showBatteryPercentage] {
-                    Text("\(Int32(levelBattery))%")
+                    Text(
+                        levelBattery / 100,
+                        format: .percent.precision(.fractionLength(0))
+                    )
                         .font(.callout)
                         .foregroundStyle(.white)
                 }
@@ -218,8 +276,10 @@ struct BoringBatteryView: View {
                 levelBattery: levelBattery,
                 maxCapacity: maxCapacity,
                 timeToFullCharge: timeToFullCharge,
+                timeToDischarge: timeToDischarge,
                 isInLowPowerMode: isInLowPowerMode,
-                onDismiss: { 
+                maxAdapterWatts: maxAdapterWatts,
+                onDismiss: {
                     showPopupMenu = false
                 }
             )
@@ -262,6 +322,8 @@ struct BoringBatteryView: View {
         levelBattery: 80,
         maxCapacity: 100,
         timeToFullCharge: 10,
+        timeToDischarge: 10,
+        maxAdapterWatts: 140,
         isForNotification: false
     ).frame(width: 200, height: 200)
 }

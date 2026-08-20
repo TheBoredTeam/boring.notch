@@ -117,9 +117,9 @@ class AppleMusicController: MediaControllerProtocol {
 
     func setFavorite(_ favorite: Bool) async {
         let script = """
-        tell application \"Music\"
+        tell application "Music"
             try
-                set favorited of current track to " + (favorite ? "true" : "false") + "
+                set favorited of current track to \(favorite)
             end try
         end tell
         """

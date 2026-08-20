@@ -45,7 +45,10 @@ final class DragDetector {
             NSPasteboard.PasteboardType(UTType.url.identifier),
             .string
         ]
-        return dragPasteboard.types?.contains(where: validTypes.contains) ?? false
+        let isValid = dragPasteboard.pasteboardItems?.allSatisfy { item in
+            item.types.allSatisfy { validTypes.contains($0) }
+        }
+        return isValid ?? false
     }
 
     func startMonitoring() {

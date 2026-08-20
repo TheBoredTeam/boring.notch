@@ -78,4 +78,15 @@ final class ShelfPersistenceService {
             print("Failed to save shelf items: \(error.localizedDescription)")
         }
     }
+    
+    func saveAsync(_ items: [ShelfItem]) async {
+        await Task.detached(priority: .utility) { [fileURL, encoder] in
+            do {
+                let data = try encoder.encode(items)
+                try data.write(to: fileURL, options: Data.WritingOptions.atomic)
+            } catch {
+                print("Failed to save shelf items: \(error.localizedDescription)")
+            }
+        }.value
+    }
 }
