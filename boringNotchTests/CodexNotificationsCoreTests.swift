@@ -618,6 +618,22 @@ final class CodexNotificationsCoreTests: XCTestCase {
         )
     }
 
+    func testSuccessfulRepairSummaryWithPastTenseFailureRemainsSuccess() {
+        var state = CodexNotificationState()
+        state.reduce(.stop(
+            sessionID: "successful-repair",
+            turnID: "turn-1",
+            cwd: "/tmp/project",
+            result: "Fixed the command failed regression. All tests passed.",
+            reportedStatus: "succeeded"
+        ))
+
+        XCTAssertEqual(
+            state.visibleNotification()?.status,
+            .succeeded
+        )
+    }
+
     func testFailureResponseWithStatusTextIsFailed() {
         var state = CodexNotificationState()
         state.reduce(.stop(

@@ -662,8 +662,10 @@ public struct CodexNotificationState: Equatable, Sendable {
             "stopped before completing", "stopped by user", "error:",
             "command failed", "status: failed", "failed (exit code"
         ]
+        let hasExplicitSuccessStatus = ["succeeded", "success"].contains(normalizedStatus)
         if ["failed", "error", "cancelled", "canceled"].contains(normalizedStatus)
-            || failureMarkers.contains(where: failureText.contains) {
+            || (!hasExplicitSuccessStatus
+                && failureMarkers.contains(where: failureText.contains)) {
             return .failed
         }
 
