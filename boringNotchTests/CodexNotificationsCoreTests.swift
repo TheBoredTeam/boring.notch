@@ -55,6 +55,33 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertFalse(state.areTrusted([section], matching: [section: currentHash]))
     }
 
+    func testDisabledHookWithInlineCommentIsNotTrusted() {
+        let section = "/Users/example/.codex/hooks.json:permission_request:0:0"
+        let currentHash = "sha256:\(String(repeating: "a", count: 64))"
+        let configuration = """
+        [hooks.state."\(section)"]
+        trusted_hash = "\(currentHash)"
+        enabled = false # Disabled while reviewing this hook.
+        """
+
+        let state = CodexHookTrustState(configuration: configuration)
+
+        XCTAssertFalse(state.areTrusted([section], matching: [section: currentHash]))
+    }
+
+    func testInlineCommentsDoNotConsumeHashCharactersInsideQuotedSectionNames() {
+        let section = "/Users/example/#hooks.json:stop:0:0"
+        let currentHash = "sha256:\(String(repeating: "b", count: 64))"
+        let configuration = """
+        [hooks.state."\(section)"] # Path includes a hash character.
+        trusted_hash = "\(currentHash)" # Approved by the user.
+        """
+
+        let state = CodexHookTrustState(configuration: configuration)
+
+        XCTAssertTrue(state.areTrusted([section], matching: [section: currentHash]))
+    }
+
     func testHookWithValidHashAndNoDisabledFlagIsTrusted() {
         let section = "/Users/example/.codex/hooks.json:stop:0:0"
         let currentHash = "sha256:\(String(repeating: "b", count: 64))"

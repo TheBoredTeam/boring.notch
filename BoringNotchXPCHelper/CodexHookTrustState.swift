@@ -2,6 +2,11 @@ import CryptoKit
 import Foundation
 
 public struct CodexHookTrustState: Sendable {
+    private enum QuoteStyle {
+        case basic
+        case literal
+    }
+
     private let trustedHashes: [String: String]
     private let disabledSections: Set<String>
 
@@ -12,7 +17,8 @@ public struct CodexHookTrustState: Sendable {
         var disabledSections = Set<String>()
 
         for rawLine in configuration.components(separatedBy: .newlines) {
-            let line = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
+            let line = Self.removingInlineComment(from: rawLine)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
             if line.hasPrefix(sectionPrefix), line.hasSuffix("\"]") {
                 currentSection = String(
                     line.dropFirst(sectionPrefix.count).dropLast(2)
@@ -47,6 +53,42 @@ public struct CodexHookTrustState: Sendable {
 
         self.trustedHashes = trustedHashes
         self.disabledSections = disabledSections
+    }
+
+    private static func removingInlineComment(from line: String) -> String {
+        var quoteStyle: QuoteStyle?
+        var isEscaped = false
+
+        for index in line.indices {
+            let character = line[index]
+            switch quoteStyle {
+            case .basic:
+                if isEscaped {
+                    isEscaped = false
+                } else if character == "\\" {
+                    isEscaped = true
+                } else if character == "\"" {
+                    quoteStyle = nil
+                }
+            case .literal:
+                if character == "'" {
+                    quoteStyle = nil
+                }
+            case nil:
+                switch character {
+                case "#":
+                    return String(line[..<index])
+                case "\"":
+                    quoteStyle = .basic
+                case "'":
+                    quoteStyle = .literal
+                default:
+                    continue
+                }
+            }
+        }
+
+        return line
     }
 
     public func areTrusted(
