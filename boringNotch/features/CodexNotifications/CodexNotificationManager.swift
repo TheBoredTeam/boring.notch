@@ -206,23 +206,29 @@ final class CodexNotificationManager: ObservableObject {
     }
 
     func openCodex(for notification: CodexJobNotification? = nil) {
-        let bundleIdentifier = "com.openai.codex"
+        openCodex(at: notification.flatMap(codexThreadURL))
+    }
 
-        if let notification,
-           let threadURL = codexThreadURL(for: notification),
-           NSWorkspace.shared.open(threadURL) {
+    func openCodex(at url: URL?) {
+        let workspace = NSWorkspace.shared
+        guard let applicationURL = workspace.urlForApplication(
+            withBundleIdentifier: "com.openai.codex"
+        ) else {
             return
         }
+        let configuration = NSWorkspace.OpenConfiguration()
 
-        if let application = NSRunningApplication
-            .runningApplications(withBundleIdentifier: bundleIdentifier)
-            .first {
-            application.activate(options: [.activateAllWindows])
-        } else if let applicationURL = NSWorkspace.shared
-            .urlForApplication(withBundleIdentifier: bundleIdentifier) {
-            NSWorkspace.shared.openApplication(
+        if let url {
+            workspace.open(
+                [url],
+                withApplicationAt: applicationURL,
+                configuration: configuration,
+                completionHandler: nil
+            )
+        } else {
+            workspace.openApplication(
                 at: applicationURL,
-                configuration: NSWorkspace.OpenConfiguration()
+                configuration: configuration
             )
         }
     }

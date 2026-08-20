@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 
 struct CodexNotificationSettings: View {
@@ -116,12 +115,7 @@ struct CodexNotificationSettings: View {
 
     private func openCodexHooks() {
         guard let hooksURL = URL(string: "codex://settings") else { return }
-        if NSWorkspace.shared.open(hooksURL) { return }
-
-        if let applicationURL = NSWorkspace.shared
-            .urlForApplication(withBundleIdentifier: "com.openai.codex") {
-            NSWorkspace.shared.open(applicationURL)
-        }
+        CodexNotificationManager.shared.openCodex(at: hooksURL)
     }
 }
 
