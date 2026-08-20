@@ -937,10 +937,15 @@ public struct CodexNotificationState: Equatable, Sendable {
         let text = result
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
-        let failureText = text
-            .replacingOccurrences(of: "no tests failed", with: "")
-            .replacingOccurrences(of: "0 tests failed", with: "")
-            .replacingOccurrences(of: "zero tests failed", with: "")
+        let negatedFailurePhrases = [
+            "no tests failed", "0 tests failed", "zero tests failed",
+        ]
+        let failureText = negatedFailurePhrases.reduce(text) { result, phrase in
+            result.replacingOccurrences(
+                of: phrase,
+                with: String(repeating: " ", count: phrase.count)
+            )
+        }
         let failureMarkers = [
             "build failed", "tests failed", "test failed", "failed to",
             "could not complete", "couldn't complete", "unable to complete",
@@ -949,10 +954,19 @@ public struct CodexNotificationState: Equatable, Sendable {
             "stopped before completing", "stopped by user", "error:",
             "command failed", "status: failed", "failed (exit code"
         ]
+        let successMarkers = [
+            "build succeeded", "tests passed", "all tests passed",
+            "completed successfully", "successfully completed"
+        ]
         let hasExplicitSuccessStatus = ["succeeded", "success"].contains(normalizedStatus)
+        let lastFailureOffset = lastMarkerOffset(failureMarkers, in: failureText)
+        let lastSuccessOffset = lastMarkerOffset(successMarkers, in: text)
+        let hasUnresolvedFailure = lastFailureOffset.map { failureOffset in
+            lastSuccessOffset.map { failureOffset > $0 } ?? true
+        } ?? false
         if ["failed", "error", "cancelled", "canceled"].contains(normalizedStatus)
             || (!hasExplicitSuccessStatus
-                && failureMarkers.contains(where: failureText.contains)) {
+                && hasUnresolvedFailure) {
             return .failed
         }
 
@@ -1010,14 +1024,21 @@ public struct CodexNotificationState: Equatable, Sendable {
             return .succeeded
         }
 
-        let successMarkers = [
-            "build succeeded", "tests passed", "all tests passed",
-            "completed successfully", "successfully completed"
-        ]
         if successMarkers.contains(where: text.contains) {
             return .succeeded
         }
         return .succeeded
+    }
+
+    private static func lastMarkerOffset(
+        _ markers: [String],
+        in text: String
+    ) -> Int? {
+        markers.compactMap { marker in
+            text.range(of: marker, options: .backwards).map {
+                text.distance(from: text.startIndex, to: $0.lowerBound)
+            }
+        }.max()
     }
 
     private static func containsAffirmativeMarker(
@@ -1064,6 +1085,9 @@ public struct CodexNotificationState: Equatable, Sendable {
             "he", "i", "it", "please", "she", "that", "they", "this",
             "those", "we", "you", "your",
         ]
+        let finiteMarkerStarters: Set<String> = [
+            "awaiting", "need", "needs", "requires", "waiting",
+        ]
         let markerFirstToken = marker.components(
             separatedBy: tokenCharacters.inverted
         ).first { !$0.isEmpty }
@@ -1074,32 +1098,24 @@ public struct CodexNotificationState: Equatable, Sendable {
             let followingTokens = tokens[tokens.index(after: index)...]
             return followingTokens.contains(where: clauseStarters.contains)
                 || markerFirstToken.map(clauseStarters.contains) == true
+                || markerFirstToken.map(finiteMarkerStarters.contains) == true
         }
         if let boundaryIndex {
             tokens = Array(tokens[tokens.index(after: boundaryIndex)...])
         }
 
-        let negationReach: [String: Int] = [
-            "no": 2,
-            "not": 5,
-            "never": 5,
-            "without": 3,
-            "cannot": 5,
-            "don't": 5,
-            "doesn't": 5,
-            "didn't": 5,
-            "won't": 5,
-            "can't": 5,
+        let negations: Set<String> = [
+            "no", "not", "never", "without", "cannot", "don't",
+            "doesn't", "didn't", "won't", "can't",
         ]
         for index in tokens.indices.reversed() {
-            guard let reach = negationReach[tokens[index]] else { continue }
+            guard negations.contains(tokens[index]) else { continue }
             if tokens[index] == "not",
                tokens.indices.contains(index + 1),
                tokens[index + 1] == "only" {
                 continue
             }
-            let distance = tokens.distance(from: index, to: tokens.endIndex) - 1
-            return distance <= reach
+            return true
         }
         return false
     }
