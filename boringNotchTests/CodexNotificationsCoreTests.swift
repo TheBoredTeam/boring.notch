@@ -1183,6 +1183,51 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertNil(state.visibleNotification())
     }
 
+    func testHiddenCompactLaunchFailureKeepsNewerPassivePresentationTimer() {
+        let firstNotification = CodexJobNotification(
+            id: "first-launch",
+            sessionID: "first-launch",
+            turnID: "turn-1",
+            requestID: nil,
+            jobTitle: "First launch",
+            resultSummary: "Completed",
+            status: .succeeded,
+            createdAt: Date(timeIntervalSince1970: 10)
+        )
+        let secondNotification = CodexJobNotification(
+            id: "second-launch",
+            sessionID: "second-launch",
+            turnID: "turn-2",
+            requestID: nil,
+            jobTitle: "Second launch",
+            resultSummary: "Completed",
+            status: .succeeded,
+            createdAt: Date(timeIntervalSince1970: 20)
+        )
+        let firstToken = CodexNotificationPresentationToken(firstNotification)
+        let secondToken = CodexNotificationPresentationToken(secondNotification)
+        var policy = CodexPassivePresentationPolicy()
+        var passiveTimerOwner: CodexNotificationPresentationToken? = secondToken
+
+        XCTAssertTrue(policy.beginCompactLaunch(for: firstToken))
+        policy.recordCompactLaunchFailure(
+            "Codex could not be opened.",
+            for: firstToken
+        )
+        if policy.shouldCancelPassiveDismissalTask(
+            for: firstToken,
+            activePresentationToken: passiveTimerOwner
+        ) {
+            passiveTimerOwner = nil
+        }
+
+        XCTAssertEqual(passiveTimerOwner, secondToken)
+        XCTAssertTrue(policy.shouldCancelPassiveDismissalTask(
+            for: firstToken,
+            activePresentationToken: firstToken
+        ))
+    }
+
     func testPromptTransitionDurationUsesTheConfiguredAnimationResponse() {
         XCTAssertEqual(
             CodexNotificationTiming.transitionDuration(

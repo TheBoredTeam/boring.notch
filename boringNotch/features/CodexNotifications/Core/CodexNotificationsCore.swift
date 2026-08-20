@@ -210,6 +210,14 @@ public struct CodexPassivePresentationPolicy: Equatable, Sendable {
         return message
     }
 
+    func shouldCancelPassiveDismissalTask(
+        for token: CodexNotificationPresentationToken,
+        activePresentationToken: CodexNotificationPresentationToken?
+    ) -> Bool {
+        preventsAutomaticDismissal(of: token)
+            && activePresentationToken == token
+    }
+
     public mutating func discardCompactLaunch(
         for token: CodexNotificationPresentationToken
     ) {

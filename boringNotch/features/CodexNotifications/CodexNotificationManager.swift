@@ -281,8 +281,13 @@ final class CodexNotificationManager: ObservableObject {
                     self.lastError ?? "The official Codex app could not be opened.",
                     for: token
                 )
-                self.passivePresentationTask?.cancel()
-                self.passivePresentationTask = nil
+                if self.passivePresentationPolicy.shouldCancelPassiveDismissalTask(
+                    for: token,
+                    activePresentationToken: self.passivePresentationToken
+                ) {
+                    self.passivePresentationTask?.cancel()
+                    self.passivePresentationTask = nil
+                }
             }
         }
     }
