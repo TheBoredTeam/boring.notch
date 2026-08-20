@@ -73,7 +73,9 @@ class CodexNotificationHookTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary_directory:
             temporary_path = Path(temporary_directory)
             secret = bytes(range(32))
-            (temporary_path / "boring-notch-notify.secret").write_bytes(secret)
+            secret_path = temporary_path / "boring-notch-notify.secret"
+            secret_path.write_bytes(secret)
+            secret_path.chmod(0o600)
             namespace["__file__"] = str(temporary_path / "boring-notch-notify.py")
 
             calls: list[tuple[list[str], dict[str, object]]] = []
@@ -120,6 +122,63 @@ class CodexNotificationHookTests(unittest.TestCase):
             authentication = decoded_payload["boring_notch_auth"]
             self.assertIsInstance(authentication["timestamp"], (int, float))
             self.assertEqual(len(authentication["nonce"]), 32)
+
+    def test_open_notch_rejects_broad_secret_permissions(self) -> None:
+        namespace = embedded_hook_namespace()
+        hook = namespace["open_notch"]
+
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            temporary_path = Path(temporary_directory)
+            secret_path = temporary_path / "boring-notch-notify.secret"
+            secret_path.write_bytes(bytes(range(32)))
+            secret_path.chmod(0o644)
+            namespace["__file__"] = str(temporary_path / "boring-notch-notify.py")
+
+            calls: list[list[str]] = []
+
+            def fake_run(args: list[str], **_: object) -> types.SimpleNamespace:
+                calls.append(args)
+                return types.SimpleNamespace(returncode=0)
+
+            original_run = namespace["subprocess"].run
+            namespace["subprocess"].run = fake_run
+            try:
+                self.assertFalse(
+                    hook({"hook_event_name": "Stop", "session_id": "unsafe"})
+                )
+            finally:
+                namespace["subprocess"].run = original_run
+
+            self.assertEqual(calls, [])
+
+    def test_open_notch_rejects_secret_symlink_replacement(self) -> None:
+        namespace = embedded_hook_namespace()
+        hook = namespace["open_notch"]
+
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            temporary_path = Path(temporary_directory)
+            target_path = temporary_path / "target"
+            target_path.write_bytes(bytes(range(32)))
+            target_path.chmod(0o600)
+            (temporary_path / "boring-notch-notify.secret").symlink_to(target_path)
+            namespace["__file__"] = str(temporary_path / "boring-notch-notify.py")
+
+            calls: list[list[str]] = []
+
+            def fake_run(args: list[str], **_: object) -> types.SimpleNamespace:
+                calls.append(args)
+                return types.SimpleNamespace(returncode=0)
+
+            original_run = namespace["subprocess"].run
+            namespace["subprocess"].run = fake_run
+            try:
+                self.assertFalse(
+                    hook({"hook_event_name": "Stop", "session_id": "unsafe"})
+                )
+            finally:
+                namespace["subprocess"].run = original_run
+
+            self.assertEqual(calls, [])
 
     def test_permission_relay_rejects_bad_tokens_and_allows_one_decision(self) -> None:
         namespace = embedded_hook_namespace()

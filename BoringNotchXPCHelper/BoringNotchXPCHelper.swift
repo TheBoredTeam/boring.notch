@@ -387,6 +387,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     import json
     import os
     import secrets
+    import stat
     import subprocess
     import sys
     import time
@@ -494,6 +495,41 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             pass
         return metadata
 
+    def safe_secret_attributes(attributes):
+        return (
+            stat.S_ISREG(attributes.st_mode)
+            and attributes.st_uid == os.geteuid()
+            and attributes.st_nlink == 1
+            and stat.S_IMODE(attributes.st_mode) == 0o600
+            and attributes.st_size == 32
+        )
+
+    def read_hook_secret(secret_path):
+        try:
+            descriptor = os.open(
+                secret_path,
+                os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK,
+            )
+        except OSError:
+            return None
+
+        try:
+            if not safe_secret_attributes(os.fstat(descriptor)):
+                return None
+            secret = b""
+            while len(secret) < 32:
+                chunk = os.read(descriptor, 32 - len(secret))
+                if not chunk:
+                    return None
+                secret += chunk
+            if not safe_secret_attributes(os.fstat(descriptor)):
+                return None
+            return secret
+        except OSError:
+            return None
+        finally:
+            os.close(descriptor)
+
     def open_notch(payload):
         payload["boring_notch_auth"] = {
             "timestamp": time.time(),
@@ -514,12 +550,8 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             os.path.dirname(os.path.abspath(__file__)),
             "boring-notch-notify.secret",
         )
-        try:
-            with open(secret_path, "rb") as secret_file:
-                secret = secret_file.read()
-        except OSError:
-            return False
-        if len(secret) != 32:
+        secret = read_hook_secret(secret_path)
+        if secret is None:
             return False
 
         signature = base64.urlsafe_b64encode(
@@ -797,7 +829,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         with reply: @escaping (Bool) -> Void
     ) {
         do {
-            let secret = try Data(contentsOf: codexHookURLs().secret)
+            let secret = try CodexHookSecretStore.load(at: codexHookURLs().secret)
             switch CodexHookAuthenticator.validate(
                 payload: payload,
                 signature: signature,
@@ -835,10 +867,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
                 reply(false)
                 return
             }
-            guard try Data(contentsOf: urls.secret).count == 32 else {
-                reply(false)
-                return
-            }
+            _ = try CodexHookSecretStore.load(at: urls.secret)
             let root = try readCodexHookConfiguration(at: urls.configuration)
             reply(Self.codexHookEvents.allSatisfy {
                 containsCurrentOwnedCodexHook(

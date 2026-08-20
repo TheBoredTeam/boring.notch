@@ -88,6 +88,10 @@ public enum CodexHookSecretStore {
     private static let secretLength = 32
     private static let ownerOnlyPermissions: mode_t = 0o600
 
+    public static func load(at url: URL) throws -> Data {
+        try loadExistingSecret(at: url)
+    }
+
     public static func loadOrCreate(
         at url: URL,
         generator: () throws -> Data

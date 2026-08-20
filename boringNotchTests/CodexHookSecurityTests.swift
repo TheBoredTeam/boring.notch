@@ -293,6 +293,51 @@ final class CodexHookSecurityTests: XCTestCase {
         XCTAssertEqual(loaded, expected)
     }
 
+    func testHookSecretStoreRuntimeLoadRejectsBroadPermissions() throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let secretURL = directory.appendingPathComponent("hook.secret")
+        try Data(repeating: 0x5A, count: 32).write(to: secretURL)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o644],
+            ofItemAtPath: secretURL.path
+        )
+
+        XCTAssertThrowsError(try CodexHookSecretStore.load(at: secretURL))
+    }
+
+    func testHookSecretStoreRuntimeLoadRejectsSymlinkReplacement() throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let targetURL = directory.appendingPathComponent("target")
+        let secretURL = directory.appendingPathComponent("hook.secret")
+        try Data(repeating: 0x5A, count: 32).write(to: targetURL)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o600],
+            ofItemAtPath: targetURL.path
+        )
+        try FileManager.default.createSymbolicLink(
+            at: secretURL,
+            withDestinationURL: targetURL
+        )
+
+        XCTAssertThrowsError(try CodexHookSecretStore.load(at: secretURL))
+    }
+
+    func testHookSecretStoreRuntimeLoadReturnsSafeSecret() throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let secretURL = directory.appendingPathComponent("hook.secret")
+        let expected = Data(repeating: 0x5A, count: 32)
+        try expected.write(to: secretURL)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o600],
+            ofItemAtPath: secretURL.path
+        )
+
+        XCTAssertEqual(try CodexHookSecretStore.load(at: secretURL), expected)
+    }
+
     func testReplayGuardRejectsDuplicatesUntilTheirLifetimeExpires() {
         var guardState = CodexNotificationReplayGuard(lifetime: 120)
 
