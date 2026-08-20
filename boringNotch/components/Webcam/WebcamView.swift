@@ -70,10 +70,10 @@ struct CameraPreviewView: View {
         case .denied, .restricted:
             DispatchQueue.main.async {
                 let alert = NSAlert()
-                alert.messageText = "Camera Access Required"
-                alert.informativeText = "Please allow camera access in System Settings to use the mirror feature."
-                alert.addButton(withTitle: "Open System Settings")
-                alert.addButton(withTitle: "Cancel")
+                alert.messageText = NSLocalizedString("Camera Access Required", comment: "Camera permission alert title")
+                alert.informativeText = NSLocalizedString("Please allow camera access in System Settings to use the mirror feature.", comment: "Mirror camera permission alert message")
+                alert.addButton(withTitle: NSLocalizedString("Open System Settings", comment: "Button title that opens System Settings"))
+                alert.addButton(withTitle: NSLocalizedString("Cancel", comment: "Cancel button title"))
 
                 if alert.runModal() == .alertFirstButtonReturn {
                     if let settingsURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {

@@ -6,10 +6,10 @@
 //
 
 import Foundation
-import AppKit
 import Combine
 
-protocol MediaControllerProtocol: ObservableObject {
+@MainActor
+protocol MediaControllerProtocol: AnyObject {
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> { get }
     var supportsVolumeControl: Bool { get }
     var supportsFavorite: Bool { get }
@@ -26,4 +26,13 @@ protocol MediaControllerProtocol: ObservableObject {
     func setVolume(_ level: Double) async
     func isActive() -> Bool
     func updatePlaybackInfo() async
+}
+
+@MainActor
+protocol NowPlayingRuntimeControlling: MediaControllerProtocol {
+    var runtimeFailures: AsyncStream<NowPlayingRuntimeFailure> { get }
+
+    func startRuntimeStream()
+    func restartRuntimeStream()
+    func stopRuntimeStream()
 }
