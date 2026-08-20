@@ -42,6 +42,12 @@ build/
 *.vscode/
 *.idea/
 
+# Agent-only instructions and planning notes
+AGENT.md
+AGENTS.md
+docs/plans/
+sketches/
+
 # User-specific files
 *.xcuserdatad/
 *.xcscheme
@@ -52,4 +58,3 @@ build/
 *.ipa
 *.xcarchive
 *.dSYM
-

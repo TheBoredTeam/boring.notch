@@ -5,12 +5,17 @@
 //  Created by Alexander on 2025-11-16.
 //
 
+import AppKit
 import Foundation
 
 class ServiceDelegate: NSObject, NSXPCListenerDelegate {
     
     /// This method is where the NSXPCListener configures, accepts, and resumes a new incoming NSXPCConnection.
     func listener(_ listener: NSXPCListener, shouldAcceptNewConnection newConnection: NSXPCConnection) -> Bool {
+        guard isConnectionFromContainingApplication(newConnection) else {
+            newConnection.invalidate()
+            return false
+        }
         
         // Configure the connection.
         // First, set the interface that the exported object implements.
@@ -35,6 +40,22 @@ class ServiceDelegate: NSObject, NSXPCListenerDelegate {
         
         // Returning true from this method tells the system that you have accepted this connection. If you want to reject the connection for some reason, call invalidate() on the connection and return false.
         return true
+    }
+
+    private func isConnectionFromContainingApplication(_ connection: NSXPCConnection) -> Bool {
+        guard connection.processIdentifier > 0,
+              let clientBundleURL = NSRunningApplication(
+                  processIdentifier: connection.processIdentifier
+              )?.bundleURL else {
+            return false
+        }
+
+        let containingApplicationURL = Bundle.main.bundleURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        return clientBundleURL.resolvingSymlinksInPath().standardizedFileURL
+            == containingApplicationURL.resolvingSymlinksInPath().standardizedFileURL
     }
 }
 
