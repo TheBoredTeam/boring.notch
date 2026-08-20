@@ -141,7 +141,7 @@ public struct CodexClosedActivityAccessibility: Equatable, Sendable {
     }
 }
 
-public struct CodexNotificationPresentationToken: Equatable, Sendable {
+public struct CodexNotificationPresentationToken: Hashable, Sendable {
     public let id: String
     public let createdAt: Date
 
@@ -157,17 +157,11 @@ public struct CodexNotificationPresentationToken: Equatable, Sendable {
 
 public struct CodexPassivePresentationPolicy: Equatable, Sendable {
     private enum CompactLaunch: Equatable, Sendable {
-        case opening(CodexNotificationPresentationToken)
-        case failed(CodexNotificationPresentationToken, String)
-
-        var token: CodexNotificationPresentationToken {
-            switch self {
-            case .opening(let token), .failed(let token, _): token
-            }
-        }
+        case opening
+        case failed(String)
     }
 
-    private var compactLaunch: CompactLaunch?
+    private var compactLaunches = [CodexNotificationPresentationToken: CompactLaunch]()
 
     public init() {}
 
@@ -182,11 +176,10 @@ public struct CodexPassivePresentationPolicy: Equatable, Sendable {
     public mutating func beginCompactLaunch(
         for token: CodexNotificationPresentationToken
     ) -> Bool {
-        if case .opening(let openingToken) = compactLaunch,
-           openingToken == token {
+        if compactLaunches[token] == .opening {
             return false
         }
-        compactLaunch = .opening(token)
+        compactLaunches[token] = .opening
         return true
     }
 
@@ -194,9 +187,8 @@ public struct CodexPassivePresentationPolicy: Equatable, Sendable {
         _ message: String,
         for token: CodexNotificationPresentationToken
     ) {
-        guard case .opening(let openingToken) = compactLaunch,
-              openingToken == token else { return }
-        compactLaunch = .failed(token, message)
+        guard compactLaunches[token] == .opening else { return }
+        compactLaunches[token] = .failed(message)
     }
 
     public mutating func recordCompactLaunchSuccess(
@@ -208,26 +200,24 @@ public struct CodexPassivePresentationPolicy: Equatable, Sendable {
     public func preventsAutomaticDismissal(
         of token: CodexNotificationPresentationToken
     ) -> Bool {
-        compactLaunch?.token == token
+        compactLaunches[token] != nil
     }
 
     public func compactLaunchError(
         for token: CodexNotificationPresentationToken
     ) -> String? {
-        guard case .failed(let failedToken, let message) = compactLaunch,
-              failedToken == token else { return nil }
+        guard case .failed(let message) = compactLaunches[token] else { return nil }
         return message
     }
 
     public mutating func discardCompactLaunch(
         for token: CodexNotificationPresentationToken
     ) {
-        guard compactLaunch?.token == token else { return }
-        compactLaunch = nil
+        compactLaunches[token] = nil
     }
 
     public mutating func reset() {
-        compactLaunch = nil
+        compactLaunches.removeAll()
     }
 }
 

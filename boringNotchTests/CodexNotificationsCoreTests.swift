@@ -1043,6 +1043,94 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertNil(policy.compactLaunchError(for: token))
     }
 
+    func testOverlappingCompactLaunchSuccessesDismissIndependentlyWithoutResurfacing() throws {
+        var state = CodexNotificationState()
+        var policy = CodexPassivePresentationPolicy()
+        state.reduce(.stop(
+            sessionID: "first-launch",
+            turnID: "turn-1",
+            cwd: "/tmp/first-project",
+            result: "First task completed successfully.",
+            reportedStatus: "succeeded"
+        ), at: Date(timeIntervalSince1970: 10))
+        let firstNotification = try XCTUnwrap(state.visibleNotification())
+        state.reduce(.stop(
+            sessionID: "second-launch",
+            turnID: "turn-2",
+            cwd: "/tmp/second-project",
+            result: "Second task completed successfully.",
+            reportedStatus: "succeeded"
+        ), at: Date(timeIntervalSince1970: 20))
+        let secondNotification = try XCTUnwrap(state.visibleNotification())
+        let firstToken = CodexNotificationPresentationToken(firstNotification)
+        let secondToken = CodexNotificationPresentationToken(secondNotification)
+
+        XCTAssertTrue(policy.beginCompactLaunch(for: firstToken))
+        XCTAssertTrue(policy.beginCompactLaunch(for: secondToken))
+
+        XCTAssertTrue(policy.preventsAutomaticDismissal(of: firstToken))
+        if policy.preventsAutomaticDismissal(of: firstToken) {
+            policy.recordCompactLaunchSuccess(for: firstToken)
+            state.dismiss(firstToken)
+        }
+        XCTAssertEqual(state.visibleNotification()?.id, secondNotification.id)
+
+        XCTAssertTrue(policy.preventsAutomaticDismissal(of: secondToken))
+        policy.recordCompactLaunchSuccess(for: secondToken)
+        state.dismiss(secondToken)
+
+        XCTAssertNil(state.visibleNotification())
+    }
+
+    func testOverlappingCompactLaunchFailureResurfacesWithIndependentRetryState() throws {
+        var state = CodexNotificationState()
+        var policy = CodexPassivePresentationPolicy()
+        state.reduce(.stop(
+            sessionID: "first-launch",
+            turnID: "turn-1",
+            cwd: "/tmp/first-project",
+            result: "First task completed successfully.",
+            reportedStatus: "succeeded"
+        ), at: Date(timeIntervalSince1970: 10))
+        let firstNotification = try XCTUnwrap(state.visibleNotification())
+        state.reduce(.stop(
+            sessionID: "second-launch",
+            turnID: "turn-2",
+            cwd: "/tmp/second-project",
+            result: "Second task completed successfully.",
+            reportedStatus: "succeeded"
+        ), at: Date(timeIntervalSince1970: 20))
+        let secondNotification = try XCTUnwrap(state.visibleNotification())
+        let firstToken = CodexNotificationPresentationToken(firstNotification)
+        let secondToken = CodexNotificationPresentationToken(secondNotification)
+        let launchError = "Codex could not be opened."
+
+        XCTAssertTrue(policy.beginCompactLaunch(for: firstToken))
+        XCTAssertTrue(policy.beginCompactLaunch(for: secondToken))
+
+        XCTAssertTrue(policy.preventsAutomaticDismissal(of: firstToken))
+        policy.recordCompactLaunchFailure(launchError, for: firstToken)
+        XCTAssertEqual(policy.compactLaunchError(for: firstToken), launchError)
+
+        XCTAssertTrue(policy.preventsAutomaticDismissal(of: secondToken))
+        policy.recordCompactLaunchSuccess(for: secondToken)
+        state.dismiss(secondToken)
+
+        let resurfacedNotification = try XCTUnwrap(state.visibleNotification())
+        XCTAssertEqual(resurfacedNotification.id, firstNotification.id)
+        XCTAssertEqual(
+            policy.compactLaunchError(
+                for: CodexNotificationPresentationToken(resurfacedNotification)
+            ),
+            launchError
+        )
+        XCTAssertTrue(policy.beginCompactLaunch(for: firstToken))
+        policy.recordCompactLaunchSuccess(for: firstToken)
+        state.dismiss(firstToken)
+
+        XCTAssertNil(state.visibleNotification())
+    }
+
     func testPromptTransitionDurationUsesTheConfiguredAnimationResponse() {
         XCTAssertEqual(
             CodexNotificationTiming.transitionDuration(
