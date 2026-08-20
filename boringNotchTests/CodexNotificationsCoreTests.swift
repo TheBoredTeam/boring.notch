@@ -26,6 +26,23 @@ final class CodexNotificationsCoreTests: XCTestCase {
         )
     }
 
+    private func productionStopStatus(
+        _ message: String,
+        sessionID: String = UUID().uuidString
+    ) throws -> CodexJobStatus? {
+        let payload: [String: Any] = [
+            "hook_event_name": "Stop",
+            "session_id": sessionID,
+            "turn_id": "turn-1",
+            "last_assistant_message": message,
+        ]
+        var state = CodexNotificationState()
+        state.reduce(try CodexHookEventParser.parse(
+            JSONSerialization.data(withJSONObject: payload)
+        ))
+        return state.visibleNotification()?.status
+    }
+
     private struct Candidate: Equatable {
         let id: String
         let visible: Bool
@@ -896,21 +913,28 @@ final class CodexNotificationsCoreTests: XCTestCase {
         )
     }
 
-    func testProductionStopSummaryWithPastFailureRemainsSuccess() {
-        var state = CodexNotificationState()
-        state.reduce(.stop(
-            sessionID: "successful-repair",
-            turnID: "turn-1",
-            cwd: "/tmp/project",
-            // The Codex Stop hook wire schema has no status field, so production
-            // classification must rely on the assistant message alone.
-            result: "Fixed the command failed regression. All tests passed."
-        ))
-
+    func testProductionStopSummaryWithPastFailureRemainsSuccess() throws {
+        // The Codex Stop hook wire schema has no status field, so production
+        // classification must rely on the assistant message alone.
         XCTAssertEqual(
-            state.visibleNotification()?.status,
+            try productionStopStatus(
+                "Fixed the command failed regression. All tests passed."
+            ),
             .succeeded
         )
+    }
+
+    func testProductionStopKeepsAffirmativeFailuresDespiteLaterSuccessText() throws {
+        for message in [
+            "Tests failed, although the build succeeded.",
+            "The command failed. Not all tests passed.",
+        ] {
+            XCTAssertEqual(
+                try productionStopStatus(message),
+                .failed,
+                message
+            )
+        }
     }
 
     func testNegatedManualReviewDoesNotOverrideReportedSuccess() {
@@ -965,19 +989,12 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertEqual(state.visibleNotification()?.status, .needsAction(.decision))
     }
 
-    func testAffirmativeInputRequestAfterCoordinatedPredicateIsActionable() {
+    func testAffirmativeInputRequestAfterCoordinatedPredicateIsActionable() throws {
         for coordinator in ["", "still ", "also ", "now "] {
-            var state = CodexNotificationState()
-            state.reduce(.stop(
-                sessionID: "coordinated-predicate-\(coordinator)",
-                turnID: "turn-1",
-                cwd: "/tmp/project",
-                result: "I did not change the API and \(coordinator)need your input.",
-                reportedStatus: "succeeded"
-            ))
-
             XCTAssertEqual(
-                state.visibleNotification()?.status,
+                try productionStopStatus(
+                    "I did not change the API and \(coordinator)need your input."
+                ),
                 .needsAction(.decision),
                 "The affirmative clause after 'and \(coordinator)' must not inherit the earlier negation."
             )
@@ -997,6 +1014,17 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertEqual(state.visibleNotification()?.status, .needsAction(.decision))
     }
 
+    func testProductionStopFindsRequestsInAffirmativeSubordinateClauses() throws {
+        for conjunction in ["although", "since", "while", "whereas", "even though"] {
+            let message = "I did not change the API \(conjunction) I need your input."
+            XCTAssertEqual(
+                try productionStopStatus(message),
+                .needsAction(.decision),
+                message
+            )
+        }
+    }
+
     func testNotOnlyDoesNotNegateAnAffirmativeInputRequest() {
         var state = CodexNotificationState()
         state.reduce(.stop(
@@ -1010,35 +1038,21 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertEqual(state.visibleNotification()?.status, .needsAction(.decision))
     }
 
-    func testCoordinatedVerbsRemainInsideNegationScope() {
+    func testCoordinatedVerbsRemainInsideNegationScope() throws {
         for result in [
             "I do not need to build and manually verify this.",
             "I do not need to build and also manually verify this.",
             "I do not need to build the application locally and manually verify this.",
         ] {
-            var state = CodexNotificationState()
-            state.reduce(.stop(
-                sessionID: "coordinated-verbs",
-                turnID: "turn-1",
-                cwd: "/tmp/project",
-                result: result,
-                reportedStatus: "succeeded"
-            ))
-
-            XCTAssertEqual(state.visibleNotification()?.status, .succeeded)
+            XCTAssertEqual(try productionStopStatus(result), .succeeded)
         }
     }
 
-    func testLaterFailureOutranksEarlierSuccessWithoutReportedStatus() {
-        var state = CodexNotificationState()
-        state.reduce(.stop(
-            sessionID: "later-failure",
-            turnID: "turn-1",
-            cwd: "/tmp/project",
-            result: "All tests passed, but the command failed."
-        ))
-
-        XCTAssertEqual(state.visibleNotification()?.status, .failed)
+    func testLaterFailureOutranksEarlierSuccessWithoutReportedStatus() throws {
+        XCTAssertEqual(
+            try productionStopStatus("All tests passed, but the command failed."),
+            .failed
+        )
     }
 
     func testFailureResponseWithStatusTextIsFailed() {

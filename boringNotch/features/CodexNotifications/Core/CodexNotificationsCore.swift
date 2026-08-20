@@ -937,15 +937,6 @@ public struct CodexNotificationState: Equatable, Sendable {
         let text = result
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
-        let negatedFailurePhrases = [
-            "no tests failed", "0 tests failed", "zero tests failed",
-        ]
-        let failureText = negatedFailurePhrases.reduce(text) { result, phrase in
-            result.replacingOccurrences(
-                of: phrase,
-                with: String(repeating: " ", count: phrase.count)
-            )
-        }
         let failureMarkers = [
             "build failed", "tests failed", "test failed", "failed to",
             "could not complete", "couldn't complete", "unable to complete",
@@ -959,11 +950,12 @@ public struct CodexNotificationState: Equatable, Sendable {
             "completed successfully", "successfully completed"
         ]
         let hasExplicitSuccessStatus = ["succeeded", "success"].contains(normalizedStatus)
-        let lastFailureOffset = lastMarkerOffset(failureMarkers, in: failureText)
-        let lastSuccessOffset = lastMarkerOffset(successMarkers, in: text)
-        let hasUnresolvedFailure = lastFailureOffset.map { failureOffset in
-            lastSuccessOffset.map { failureOffset > $0 } ?? true
-        } ?? false
+        let hasUnresolvedFailure = failureMarkers.contains(where: {
+            containsUnresolvedFailureMarker($0, in: text)
+        })
+        let hasAffirmativeSuccess = successMarkers.contains(where: {
+            containsAffirmativeMarker($0, in: text)
+        })
         if ["failed", "error", "cancelled", "canceled"].contains(normalizedStatus)
             || (!hasExplicitSuccessStatus
                 && hasUnresolvedFailure) {
@@ -1024,21 +1016,29 @@ public struct CodexNotificationState: Equatable, Sendable {
             return .succeeded
         }
 
-        if successMarkers.contains(where: text.contains) {
+        if hasAffirmativeSuccess {
             return .succeeded
         }
         return .succeeded
     }
 
-    private static func lastMarkerOffset(
-        _ markers: [String],
+    private static func containsUnresolvedFailureMarker(
+        _ marker: String,
         in text: String
-    ) -> Int? {
-        markers.compactMap { marker in
-            text.range(of: marker, options: .backwards).map {
-                text.distance(from: text.startIndex, to: $0.lowerBound)
+    ) -> Bool {
+        var searchStart = text.startIndex
+
+        while let range = text.range(
+            of: marker,
+            range: searchStart..<text.endIndex
+        ) {
+            if !isNegated(at: range.lowerBound, marker: marker, in: text)
+                && !isFailureReference(at: range.lowerBound, in: text) {
+                return true
             }
-        }.max()
+            searchStart = range.upperBound
+        }
+        return false
     }
 
     private static func containsAffirmativeMarker(
@@ -1081,6 +1081,9 @@ public struct CodexNotificationState: Equatable, Sendable {
 
         let unconditionalBoundaries: Set<String> = ["but", "however", "yet"]
         let clauseBoundaries: Set<String> = ["and", "because", "so"]
+        let subordinateBoundaries: Set<String> = [
+            "although", "since", "though", "whereas", "while",
+        ]
         let clauseStarters: Set<String> = [
             "he", "i", "it", "please", "she", "that", "they", "this",
             "those", "we", "you", "your",
@@ -1094,8 +1097,12 @@ public struct CodexNotificationState: Equatable, Sendable {
         let boundaryIndex = tokens.indices.reversed().first { index in
             let token = tokens[index]
             if unconditionalBoundaries.contains(token) { return true }
-            guard clauseBoundaries.contains(token) else { return false }
             let followingTokens = tokens[tokens.index(after: index)...]
+            if subordinateBoundaries.contains(token) {
+                return followingTokens.contains(where: clauseStarters.contains)
+                    || markerFirstToken.map(clauseStarters.contains) == true
+            }
+            guard clauseBoundaries.contains(token) else { return false }
             return followingTokens.contains(where: clauseStarters.contains)
                 || markerFirstToken.map(clauseStarters.contains) == true
                 || markerFirstToken.map(finiteMarkerStarters.contains) == true
@@ -1105,7 +1112,7 @@ public struct CodexNotificationState: Equatable, Sendable {
         }
 
         let negations: Set<String> = [
-            "no", "not", "never", "without", "cannot", "don't",
+            "0", "no", "not", "never", "without", "zero", "cannot", "don't",
             "doesn't", "didn't", "won't", "can't",
         ]
         for index in tokens.indices.reversed() {
@@ -1118,6 +1125,36 @@ public struct CodexNotificationState: Equatable, Sendable {
             return true
         }
         return false
+    }
+
+    private static func isFailureReference(
+        at markerStart: String.Index,
+        in text: String
+    ) -> Bool {
+        let prefix = text[..<markerStart]
+        let clauseSeparators = CharacterSet(charactersIn: ".!?;:,\n\r")
+        let clauseStart = prefix.lastIndex { character in
+            character.unicodeScalars.contains { clauseSeparators.contains($0) }
+        }.map { text.index(after: $0) } ?? text.startIndex
+        let tokenCharacters = CharacterSet.alphanumerics.union(
+            CharacterSet(charactersIn: "'")
+        )
+        var tokens = text[clauseStart..<markerStart]
+            .replacingOccurrences(of: "’", with: "'")
+            .lowercased()
+            .components(separatedBy: tokenCharacters.inverted)
+            .filter { !$0.isEmpty }
+        let articles: Set<String> = ["a", "an", "the"]
+        while tokens.last.map(articles.contains) == true {
+            tokens.removeLast()
+        }
+        // Keep references narrow: the resolving word must immediately frame
+        // the failure phrase instead of relying on a later generic success.
+        let referenceMarkers: Set<String> = [
+            "addressed", "earlier", "fixed", "historical", "previous",
+            "prior", "repaired", "resolved",
+        ]
+        return tokens.last.map(referenceMarkers.contains) == true
     }
 }
 
