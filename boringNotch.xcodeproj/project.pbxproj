@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5CB17A1D0000000000000002 /* ScreenTimeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB17A1D0000000000000001 /* ScreenTimeModels.swift */; };
+		5CB17A1D0000000000000004 /* CategoryResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB17A1D0000000000000003 /* CategoryResolver.swift */; };
+		5CB17A1D0000000000000006 /* ScreenTimeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB17A1D0000000000000005 /* ScreenTimeManager.swift */; };
+		5CB17A1D0000000000000008 /* ScreenTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB17A1D0000000000000007 /* ScreenTimeView.swift */; };
+		5CB17A1D000000000000000A /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB17A1D0000000000000009 /* Color+Hex.swift */; };
+		5CB17A1D000000000000000C /* ScreenTimeSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB17A1D000000000000000B /* ScreenTimeSettingsView.swift */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -196,6 +202,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5CB17A1D0000000000000001 /* ScreenTimeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTimeModels.swift; sourceTree = "<group>"; };
+		5CB17A1D0000000000000003 /* CategoryResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryResolver.swift; sourceTree = "<group>"; };
+		5CB17A1D0000000000000005 /* ScreenTimeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTimeManager.swift; sourceTree = "<group>"; };
+		5CB17A1D0000000000000007 /* ScreenTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTimeView.swift; sourceTree = "<group>"; };
+		5CB17A1D0000000000000009 /* Color+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
+		5CB17A1D000000000000000B /* ScreenTimeSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTimeSettingsView.swift; sourceTree = "<group>"; };
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
 		110029292E8691B400035A57 /* FileShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShareView.swift; sourceTree = "<group>"; };
@@ -532,6 +544,7 @@
 				11DB266B2EDD0CDF001EA0CF /* CalendarSettingsView.swift */,
 				11DB266C2EDD0CDF001EA0CF /* GeneralSettingsView.swift */,
 				11DB266D2EDD0CDF001EA0CF /* OSDSettingsView.swift */,
+				5CB17A1D000000000000000B /* ScreenTimeSettingsView.swift */,
 				11DB266E2EDD0CDF001EA0CF /* MediaSettingsView.swift */,
 				11DB266F2EDD0CDF001EA0CF /* SettingsHelpers.swift */,
 				11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */,
@@ -594,6 +607,7 @@
 				B18654302C6F4590000B926A /* Settings */,
 				B186542F2C6F455E000B926A /* Notch */,
 				9A0887332C7AFF7E00C160EA /* Tabs */,
+				5CB17A1D000000000000000D /* ScreenTime */,
 				B186542E2C6F453B000B926A /* Music */,
 				14D570BF2C5EA5870011E668 /* AnimatedFace.swift */,
 				14288DE72C6E01C800B9F80C /* ProgressIndicator.swift */,
@@ -614,6 +628,8 @@
 				F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */,
 				149E0B962C737D00006418B1 /* WebcamManager.swift */,
 				14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */,
+				5CB17A1D0000000000000003 /* CategoryResolver.swift */,
+				5CB17A1D0000000000000005 /* ScreenTimeManager.swift */,
 			);
 			path = managers;
 			sourceTree = "<group>";
@@ -727,11 +743,20 @@
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
 				1163988C2DF5CAB40052E6AF /* EventModel.swift */,
 				B19016232CC15B4D00E3F12E /* Constants.swift */,
+				5CB17A1D0000000000000001 /* ScreenTimeModels.swift */,
 				14D570C82C5F38890011E668 /* BoringViewModel.swift */,
 				14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */,
 				1153BD902D986DB300979FB0 /* PlaybackState.swift */,
 			);
 			path = models;
+			sourceTree = "<group>";
+		};
+		5CB17A1D000000000000000D /* ScreenTime */ = {
+			isa = PBXGroup;
+			children = (
+				5CB17A1D0000000000000007 /* ScreenTimeView.swift */,
+			);
+			path = ScreenTime;
 			sourceTree = "<group>";
 		};
 		9A0887332C7AFF7E00C160EA /* Tabs */ = {
@@ -776,6 +801,7 @@
 				118EBE262E92DE7400D54B5A /* NSMenu+AssociatedObject.swift */,
 				1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */,
 				14C08BC02C8E03AD000F8AA0 /* NSImage+Extensions.swift */,
+				5CB17A1D0000000000000009 /* Color+Hex.swift */,
 				B17266DE2C64DFA00031BA0D /* BundleInfos.swift */,
 				B1B112922C6A577E00093D8F /* MouseTracker.swift */,
 				B1CE8CFD2C6F659400DD9871 /* KeyboardShortcutsHelper.swift */,
@@ -990,6 +1016,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5CB17A1D0000000000000002 /* ScreenTimeModels.swift in Sources */,
+				5CB17A1D0000000000000004 /* CategoryResolver.swift in Sources */,
+				5CB17A1D0000000000000006 /* ScreenTimeManager.swift in Sources */,
+				5CB17A1D0000000000000008 /* ScreenTimeView.swift in Sources */,
+				5CB17A1D000000000000000A /* Color+Hex.swift in Sources */,
+				5CB17A1D000000000000000C /* ScreenTimeSettingsView.swift in Sources */,
 				115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,
