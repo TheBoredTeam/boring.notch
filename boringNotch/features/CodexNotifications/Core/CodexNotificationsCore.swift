@@ -476,11 +476,14 @@ public struct CodexNotificationState: Equatable, Sendable {
     public private(set) var notifications: [CodexJobNotification]
 
     private var latestJobBySession: [String: JobContext]
+    private var recentJobSessionIDs: [String]
     private let maximumNotifications = 20
+    private let maximumJobContexts = 20
 
     public init(notifications: [CodexJobNotification] = []) {
         self.notifications = notifications
         latestJobBySession = [:]
+        recentJobSessionIDs = []
     }
 
     public mutating func reduce(_ event: CodexHookEvent, at date: Date = Date()) {
@@ -494,7 +497,7 @@ public struct CodexNotificationState: Equatable, Sendable {
             let projectName
         ):
             let userInstruction = CodexText.userInstruction(from: prompt)
-            latestJobBySession[sessionID] = JobContext(
+            storeJobContext(JobContext(
                 turnID: turnID,
                 cwd: cwd,
                 prompt: userInstruction,
@@ -502,7 +505,7 @@ public struct CodexNotificationState: Equatable, Sendable {
                 chatTitle: chatTitle
                     ?? CodexText.short(userInstruction, limit: 84),
                 projectName: projectName ?? Self.projectName(cwd: cwd)
-            )
+            ), for: sessionID)
 
         case .permissionRequest(
             let sessionID,
@@ -585,7 +588,7 @@ public struct CodexNotificationState: Equatable, Sendable {
         notifications.removeAll { $0.id == id }
     }
 
-    private func makeNotification(
+    private mutating func makeNotification(
         sessionID: String,
         turnID: String?,
         cwd: String?,
@@ -600,6 +603,9 @@ public struct CodexNotificationState: Equatable, Sendable {
         let context = latestJobBySession[sessionID].flatMap { context in
             guard let turnID else { return context }
             return context.turnID == turnID ? context : nil
+        }
+        if context != nil {
+            markJobContextRecentlyUsed(sessionID)
         }
         let effectiveTurnID = turnID ?? context?.turnID
         let resolvedChatTitle = chatTitle
@@ -636,10 +642,39 @@ public struct CodexNotificationState: Equatable, Sendable {
         }
         notifications.append(notification)
 
-        if notifications.count > maximumNotifications {
-            notifications.sort { $0.createdAt > $1.createdAt }
-            notifications.removeLast(notifications.count - maximumNotifications)
+        while notifications.count > maximumNotifications {
+            let evictionCandidates = notifications.indices.filter { index in
+                let existing = notifications[index]
+                return existing.status != .needsAction(.permission)
+                    || existing.permissionCallback?.isActive(
+                        at: notification.createdAt
+                    ) != true
+            }
+            guard let evictionIndex = evictionCandidates.min(by: {
+                notifications[$0].createdAt < notifications[$1].createdAt
+            }) else {
+                break
+            }
+            notifications.remove(at: evictionIndex)
         }
+    }
+
+    private mutating func storeJobContext(
+        _ context: JobContext,
+        for sessionID: String
+    ) {
+        latestJobBySession[sessionID] = context
+        markJobContextRecentlyUsed(sessionID)
+
+        while recentJobSessionIDs.count > maximumJobContexts {
+            let evictedSessionID = recentJobSessionIDs.removeFirst()
+            latestJobBySession.removeValue(forKey: evictedSessionID)
+        }
+    }
+
+    private mutating func markJobContextRecentlyUsed(_ sessionID: String) {
+        recentJobSessionIDs.removeAll { $0 == sessionID }
+        recentJobSessionIDs.append(sessionID)
     }
 
     private static func fallbackTitle(cwd: String?) -> String {
@@ -700,7 +735,9 @@ public struct CodexNotificationState: Equatable, Sendable {
             "requires manual verification", "needs manual review",
             "needs manual verification", "manual review and approval"
         ]
-        if manualMarkers.contains(where: text.contains) {
+        if manualMarkers.contains(where: {
+            containsAffirmativeMarker($0, in: text)
+        }) {
             return .needsAction(.manualCheck)
         }
 
@@ -731,7 +768,9 @@ public struct CodexNotificationState: Equatable, Sendable {
             "which ", "what ", "how ", "should i ", "would you ",
             "do you ", "can i ", "may i ", "shall i "
         ]
-        if decisionMarkers.contains(where: text.contains)
+        if decisionMarkers.contains(where: {
+            containsAffirmativeMarker($0, in: text)
+        })
             || (text.hasSuffix("?") && directQuestionMarkers.contains(where: text.contains)) {
             return .needsAction(.decision)
         }
@@ -748,6 +787,38 @@ public struct CodexNotificationState: Equatable, Sendable {
             return .succeeded
         }
         return .succeeded
+    }
+
+    private static func containsAffirmativeMarker(
+        _ marker: String,
+        in text: String
+    ) -> Bool {
+        let negatedPrefixes = [
+            "no ", "not ", "never ", "without ", "no longer ",
+            "don't ", "doesn't ", "didn't ", "won't ", "can't ",
+            "do not ", "does not ", "did not ", "will not ", "cannot ",
+        ]
+        var searchStart = text.startIndex
+
+        while let range = text.range(
+            of: marker,
+            range: searchStart..<text.endIndex
+        ) {
+            let availablePrefixLength = text.distance(
+                from: text.startIndex,
+                to: range.lowerBound
+            )
+            let prefixStart = text.index(
+                range.lowerBound,
+                offsetBy: -min(availablePrefixLength, 24)
+            )
+            let prefix = text[prefixStart..<range.lowerBound]
+            if !negatedPrefixes.contains(where: prefix.hasSuffix) {
+                return true
+            }
+            searchStart = range.upperBound
+        }
+        return false
     }
 }
 

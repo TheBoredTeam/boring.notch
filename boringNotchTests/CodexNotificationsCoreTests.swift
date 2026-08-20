@@ -773,6 +773,32 @@ final class CodexNotificationsCoreTests: XCTestCase {
         )
     }
 
+    func testNegatedManualReviewDoesNotOverrideReportedSuccess() {
+        var state = CodexNotificationState()
+        state.reduce(.stop(
+            sessionID: "negated-manual-review",
+            turnID: "turn-1",
+            cwd: "/tmp/project",
+            result: "All checks passed. No manual review required.",
+            reportedStatus: "succeeded"
+        ))
+
+        XCTAssertEqual(state.visibleNotification()?.status, .succeeded)
+    }
+
+    func testNegatedDecisionRequestDoesNotOverrideReportedSuccess() {
+        var state = CodexNotificationState()
+        state.reduce(.stop(
+            sessionID: "negated-decision",
+            turnID: "turn-1",
+            cwd: "/tmp/project",
+            result: "The defaults are applied; I do not need your input.",
+            reportedStatus: "succeeded"
+        ))
+
+        XCTAssertEqual(state.visibleNotification()?.status, .succeeded)
+    }
+
     func testFailureResponseWithStatusTextIsFailed() {
         var state = CodexNotificationState()
         state.reduce(.stop(
@@ -882,6 +908,134 @@ final class CodexNotificationsCoreTests: XCTestCase {
         ), at: Date(timeIntervalSince1970: 20))
 
         XCTAssertEqual(state.visibleNotification()?.sessionID, "permission")
+    }
+
+    func testNotificationCapPreservesLivePermissionRequests() {
+        var state = CodexNotificationState()
+        let callback = CodexPermissionCallback(
+            port: 49_152,
+            token: "abcdefghijklmnopqrstuvwxyzABCDEF",
+            expiresAt: Date(timeIntervalSince1970: 100)
+        )
+        state.reduce(.permissionRequest(
+            sessionID: "permission",
+            turnID: "permission-turn",
+            cwd: "/tmp/project",
+            details: CodexPermissionDetails(toolName: "Bash", description: "Run tests"),
+            callback: callback
+        ), at: Date(timeIntervalSince1970: 1))
+
+        for index in 1...20 {
+            state.reduce(.stop(
+                sessionID: "completed-\(index)",
+                turnID: "turn-\(index)",
+                cwd: "/tmp/project",
+                result: "Completed successfully.",
+                reportedStatus: "succeeded"
+            ), at: Date(timeIntervalSince1970: TimeInterval(index + 1)))
+        }
+
+        XCTAssertEqual(state.notifications.count, 20)
+        XCTAssertTrue(state.notifications.contains { $0.sessionID == "permission" })
+    }
+
+    func testNotificationCapAllowsOverflowWhenEveryNotificationIsALivePermission() {
+        var state = CodexNotificationState()
+        let callback = CodexPermissionCallback(
+            port: 49_152,
+            token: "abcdefghijklmnopqrstuvwxyzABCDEF",
+            expiresAt: Date(timeIntervalSince1970: 100)
+        )
+
+        for index in 1...21 {
+            state.reduce(.permissionRequest(
+                sessionID: "permission-\(index)",
+                turnID: "turn-\(index)",
+                cwd: "/tmp/project",
+                details: CodexPermissionDetails(toolName: "Bash", description: "Run tests"),
+                callback: callback
+            ), at: Date(timeIntervalSince1970: TimeInterval(index)))
+        }
+
+        XCTAssertEqual(state.notifications.count, 21)
+    }
+
+    func testPromptContextsAreBoundedToRecentSessions() throws {
+        var state = CodexNotificationState()
+        for index in 1...21 {
+            state.reduce(.userPrompt(
+                sessionID: "session-\(index)",
+                turnID: "turn-\(index)",
+                cwd: "/tmp/project-\(index)",
+                prompt: "Prompt \(index)"
+            ))
+        }
+
+        state.reduce(.permissionRequest(
+            sessionID: "session-1",
+            turnID: "turn-1",
+            cwd: "/tmp/project-1",
+            details: CodexPermissionDetails(toolName: "Bash", description: "Old request"),
+            callback: permissionCallback
+        ))
+        state.reduce(.permissionRequest(
+            sessionID: "session-21",
+            turnID: "turn-21",
+            cwd: "/tmp/project-21",
+            details: CodexPermissionDetails(toolName: "Bash", description: "Recent request"),
+            callback: permissionCallback
+        ))
+
+        let oldNotification = try XCTUnwrap(
+            state.notifications.first { $0.sessionID == "session-1" }
+        )
+        let recentNotification = try XCTUnwrap(
+            state.notifications.first { $0.sessionID == "session-21" }
+        )
+        XCTAssertEqual(oldNotification.userPrompt, "Request details unavailable")
+        XCTAssertEqual(recentNotification.userPrompt, "Prompt 21")
+    }
+
+    func testSameTurnPermissionAndStopRetainPromptCorrelation() throws {
+        var state = CodexNotificationState()
+        state.reduce(.userPrompt(
+            sessionID: "correlated-session",
+            turnID: "correlated-turn",
+            cwd: "/tmp/project",
+            prompt: "Keep this prompt through the terminal event"
+        ))
+        for index in 2...20 {
+            state.reduce(.userPrompt(
+                sessionID: "session-\(index)",
+                turnID: "turn-\(index)",
+                cwd: "/tmp/project-\(index)",
+                prompt: "Prompt \(index)"
+            ))
+        }
+        state.reduce(.permissionRequest(
+            sessionID: "correlated-session",
+            turnID: "correlated-turn",
+            cwd: "/tmp/project",
+            details: CodexPermissionDetails(toolName: "Bash", description: "Run tests"),
+            callback: permissionCallback
+        ))
+        state.reduce(.userPrompt(
+            sessionID: "session-21",
+            turnID: "turn-21",
+            cwd: "/tmp/project-21",
+            prompt: "Prompt 21"
+        ))
+        state.reduce(.stop(
+            sessionID: "correlated-session",
+            turnID: "correlated-turn",
+            cwd: "/tmp/project",
+            result: "Completed successfully.",
+            reportedStatus: "succeeded"
+        ))
+
+        let notification = try XCTUnwrap(state.visibleNotification())
+        XCTAssertEqual(notification.userPrompt, "Keep this prompt through the terminal event")
+        XCTAssertEqual(notification.status, .succeeded)
     }
 
     func testPermissionCallbackPersistsUntilDismissed() throws {
