@@ -46,6 +46,7 @@ build/
 AGENT.md
 AGENTS.md
 docs/plans/
+sketches/
 
 # User-specific files
 *.xcuserdatad/
