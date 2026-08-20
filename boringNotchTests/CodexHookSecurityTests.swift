@@ -395,6 +395,85 @@ final class CodexHookSecurityTests: XCTestCase {
         XCTAssertFalse(try hasExtendedACLEntries(at: secretURL))
     }
 
+    func testPublishingHookFilesRejectsAnInheritedEveryoneWriteACL() throws {
+        let directory = try makeACLTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o755],
+            ofItemAtPath: directory.path
+        )
+        try addInheritedEveryoneWriteACL(to: directory)
+
+        for filename in ["boring-notch-notify.py", "hooks.json"] {
+            let url = directory.appendingPathComponent(filename)
+            XCTAssertThrowsError(
+                try CodexHookFileStore.publish(Data("managed".utf8), at: url)
+            )
+            XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
+        }
+    }
+
+    func testHookFileLoadRejectsACLMetadataForScriptAndConfiguration() throws {
+        let directory = try makeACLTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        for filename in ["boring-notch-notify.py", "hooks.json"] {
+            let url = directory.appendingPathComponent(filename)
+            try Data("managed".utf8).write(to: url)
+            try FileManager.default.setAttributes(
+                [.posixPermissions: 0o600],
+                ofItemAtPath: url.path
+            )
+            try addExtendedReadACL(to: url)
+            XCTAssertTrue(try hasExtendedACLEntries(at: url))
+            XCTAssertThrowsError(try CodexHookFileStore.load(at: url))
+        }
+    }
+
+    func testPublishingHookFilesCreatesOwnerOnlyACLFreeFiles() throws {
+        let directory = try makeACLTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let expected = Data("managed".utf8)
+
+        for filename in ["boring-notch-notify.py", "hooks.json"] {
+            let url = directory.appendingPathComponent(filename)
+            try CodexHookFileStore.publish(expected, at: url)
+
+            XCTAssertEqual(try CodexHookFileStore.load(at: url), expected)
+            let attributes = try FileManager.default.attributesOfItem(
+                atPath: url.path
+            )
+            XCTAssertEqual(
+                (attributes[.posixPermissions] as? NSNumber)?.intValue,
+                0o600
+            )
+            XCTAssertFalse(try hasExtendedACLEntries(at: url))
+        }
+    }
+
+    func testPublishingHookFileRejectsSymlinkAndFIFOWithoutBlocking() throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let targetURL = directory.appendingPathComponent("target")
+        let symlinkURL = directory.appendingPathComponent("boring-notch-notify.py")
+        let fifoURL = directory.appendingPathComponent("hooks.json")
+        let targetContents = Data("target".utf8)
+        try targetContents.write(to: targetURL)
+        try FileManager.default.createSymbolicLink(
+            at: symlinkURL,
+            withDestinationURL: targetURL
+        )
+        XCTAssertEqual(fifoURL.path.withCString { Darwin.mkfifo($0, 0o600) }, 0)
+
+        XCTAssertThrowsError(
+            try CodexHookFileStore.publish(Data("managed".utf8), at: symlinkURL)
+        )
+        XCTAssertThrowsError(
+            try CodexHookFileStore.publish(Data("managed".utf8), at: fifoURL)
+        )
+        XCTAssertEqual(try Data(contentsOf: targetURL), targetContents)
+    }
+
     func testReplayGuardRejectsDuplicatesUntilTheirLifetimeExpires() {
         var guardState = CodexNotificationReplayGuard(lifetime: 120)
 
@@ -460,6 +539,61 @@ final class CodexHookSecurityTests: XCTestCase {
         defer { acl_free(UnsafeMutableRawPointer(accessList)) }
 
         guard acl_set_fd_np(descriptor, accessList, ACL_TYPE_EXTENDED) == 0 else {
+            throw systemError()
+        }
+    }
+
+    private func addInheritedEveryoneWriteACL(to url: URL) throws {
+        let descriptor = url.path.withCString {
+            Darwin.open($0, O_RDONLY | O_CLOEXEC | O_NOFOLLOW)
+        }
+        guard descriptor >= 0 else { throw systemError() }
+        defer { Darwin.close(descriptor) }
+
+        var accessList: acl_t? = acl_init(1)
+        guard accessList != nil else { throw systemError() }
+        defer {
+            if let accessList { acl_free(UnsafeMutableRawPointer(accessList)) }
+        }
+        var entry: acl_entry_t?
+        guard acl_create_entry(&accessList, &entry) == 0, let entry,
+              acl_set_tag_type(entry, ACL_EXTENDED_ALLOW) == 0 else {
+            throw systemError()
+        }
+        var principal = UUID(
+            uuidString: "ABCDEFAB-CDEF-ABCD-EFAB-CDEF0000000C"
+        )!.uuid
+        guard withUnsafePointer(to: &principal, { acl_set_qualifier(entry, $0) }) == 0 else {
+            throw systemError()
+        }
+        var permissions: acl_permset_t?
+        guard acl_get_permset(entry, &permissions) == 0, let permissions,
+              acl_clear_perms(permissions) == 0 else {
+            throw systemError()
+        }
+        for permission in [
+            ACL_READ_DATA,
+            ACL_WRITE_DATA,
+            ACL_APPEND_DATA,
+            ACL_READ_ATTRIBUTES,
+            ACL_WRITE_ATTRIBUTES,
+            ACL_READ_EXTATTRIBUTES,
+            ACL_WRITE_EXTATTRIBUTES,
+        ] where acl_add_perm(permissions, permission) != 0 {
+            throw systemError()
+        }
+        guard acl_set_permset(entry, permissions) == 0 else { throw systemError() }
+        var flags: acl_flagset_t?
+        guard acl_get_flagset_np(UnsafeMutableRawPointer(entry), &flags) == 0,
+              let flags,
+              acl_clear_flags_np(flags) == 0,
+              acl_add_flag_np(flags, ACL_ENTRY_FILE_INHERIT) == 0,
+              acl_add_flag_np(flags, ACL_ENTRY_ONLY_INHERIT) == 0,
+              acl_set_flagset_np(UnsafeMutableRawPointer(entry), flags) == 0 else {
+            throw systemError()
+        }
+        guard let accessList,
+              acl_set_fd_np(descriptor, accessList, ACL_TYPE_EXTENDED) == 0 else {
             throw systemError()
         }
     }

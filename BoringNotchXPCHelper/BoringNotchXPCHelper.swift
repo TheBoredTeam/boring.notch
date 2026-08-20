@@ -890,7 +890,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
                 reply(false)
                 return
             }
-            guard try Data(contentsOf: urls.script) == Data(Self.codexNotificationScript.utf8) else {
+            guard try CodexHookFileStore.load(at: urls.script) == Data(Self.codexNotificationScript.utf8) else {
                 reply(false)
                 return
             }
@@ -911,10 +911,19 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     @objc func areCodexNotificationHooksTrusted(with reply: @escaping (Bool) -> Void) {
         do {
             let urls = codexHookURLs()
+            guard try CodexHookFileStore.load(at: urls.script)
+                == Data(Self.codexNotificationScript.utf8) else {
+                reply(false)
+                return
+            }
             let configURL = urls.configuration
                 .deletingLastPathComponent()
                 .appendingPathComponent("config.toml")
-            let configuration = try String(contentsOf: configURL, encoding: .utf8)
+            let configurationData = try CodexHookFileStore.load(at: configURL)
+            guard let configuration = String(data: configurationData, encoding: .utf8) else {
+                reply(false)
+                return
+            }
             let root = try readCodexHookConfiguration(at: urls.configuration)
             let trustEntries = Self.codexHookTrustEvents.compactMap {
                 codexHookTrustEntry(
@@ -956,6 +965,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
                 at: urls.configuration.deletingLastPathComponent(),
                 withIntermediateDirectories: true
             )
+            try CodexHookFileStore.validateParent(of: urls.configuration)
             let root = try CodexHookConfiguration.updating(
                 readCodexHookConfiguration(at: urls.configuration),
                 installed: installed,
@@ -967,9 +977,12 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             )
             if installed {
                 _ = try ensureCodexHookSecret(at: urls.secret)
-                try Data(Self.codexNotificationScript.utf8).write(to: urls.script, options: .atomic)
+                try CodexHookFileStore.publish(
+                    Data(Self.codexNotificationScript.utf8),
+                    at: urls.script
+                )
             }
-            try data.write(to: urls.configuration, options: .atomic)
+            try CodexHookFileStore.publish(data, at: urls.configuration)
 
             if !installed {
                 for url in [urls.script, urls.secret]
@@ -1016,7 +1029,9 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
     private func readCodexHookConfiguration(at url: URL) throws -> [String: Any] {
         guard FileManager.default.fileExists(atPath: url.path) else { return [:] }
-        let object = try JSONSerialization.jsonObject(with: Data(contentsOf: url))
+        let object = try JSONSerialization.jsonObject(
+            with: CodexHookFileStore.load(at: url)
+        )
         guard let root = object as? [String: Any] else {
             throw codexHookConfigurationError(
                 code: 1,
