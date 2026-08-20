@@ -9,6 +9,7 @@ import Foundation
 import Combine
 import SwiftUI
 
+@MainActor
 class SpotifyController: MediaControllerProtocol {
     func setFavorite(_ favorite: Bool) async {
         //Placeholder

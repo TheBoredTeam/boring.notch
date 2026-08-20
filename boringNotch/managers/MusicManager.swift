@@ -14,26 +14,126 @@ let defaultImage: NSImage = .init(
     accessibilityDescription: "Album Art"
 )!
 
-class MusicManager: ObservableObject {
+@MainActor
+protocol MediaControllerCreating {
+    func makeController(for type: MediaControllerType) throws -> any MediaControllerProtocol
+}
+
+@MainActor
+struct DefaultMediaControllerFactory: MediaControllerCreating {
+    func makeController(for type: MediaControllerType) throws -> any MediaControllerProtocol {
+        switch type {
+        case .nowPlaying:
+            return try NowPlayingController()
+        case .appleMusic:
+            return AppleMusicController()
+        case .spotify:
+            return SpotifyController()
+        case .youtubeMusic:
+            return YouTubeMusicController()
+        }
+    }
+}
+
+@MainActor
+protocol MediaControllerPreferenceStoring: AnyObject {
+    var preferredController: MediaControllerType { get set }
+    var didChooseController: Bool { get set }
+    var lastSupportedBundleIdentifier: String? { get set }
+
+    func migrateIfNeeded()
+}
+
+@MainActor
+final class DefaultsMediaControllerPreferences: MediaControllerPreferenceStoring {
+    var preferredController: MediaControllerType {
+        get { Defaults[.mediaController] }
+        set { Defaults[.mediaController] = newValue }
+    }
+
+    var didChooseController: Bool {
+        get { Defaults[.didChooseMediaController] }
+        set { Defaults[.didChooseMediaController] = newValue }
+    }
+
+    var lastSupportedBundleIdentifier: String? {
+        get { Defaults[.lastSupportedNowPlayingBundleIdentifier] }
+        set { Defaults[.lastSupportedNowPlayingBundleIdentifier] = newValue }
+    }
+
+    func migrateIfNeeded() {
+        guard !Defaults[.didMigrateMediaControllerChoice] else { return }
+
+        let firstLaunch = UserDefaults.standard.object(forKey: "firstLaunch") as? Bool ?? true
+        let hasStoredController = UserDefaults.standard.object(forKey: "mediaController") != nil
+        didChooseController = didChooseController || hasStoredController || !firstLaunch
+        Defaults[.didMigrateMediaControllerChoice] = true
+    }
+}
+
+struct NowPlayingFallbackNotice: Identifiable, Equatable {
+    let id = UUID()
+    let fallbackSource: MediaControllerType
+    let isTemporary: Bool
+
+    var title: LocalizedStringResource {
+        LocalizedStringResource(
+            "Now Playing unavailable",
+            comment: "Title of the passive notice shown when the Now Playing media source cannot be used."
+        )
+    }
+
+    var subtitle: LocalizedStringResource {
+        if isTemporary {
+            LocalizedStringResource(
+                "Using \(fallbackSource.localizedString) temporarily",
+                comment: "Temporary Now Playing fallback notice. The placeholder is the fallback music source name."
+            )
+        } else {
+            LocalizedStringResource(
+                "Switched to \(fallbackSource.localizedString)",
+                comment: "Now Playing fallback notice for a persistent source change. The placeholder is the new music source name."
+            )
+        }
+    }
+}
+
+@MainActor
+final class MusicManager: ObservableObject {
     // MARK: - Properties
     static let shared = MusicManager()
-    private var cancellables = Set<AnyCancellable>()
     private var controllerCancellables = Set<AnyCancellable>()
     private var debounceIdleTask: Task<Void, Never>?
+    private var availabilityTask: Task<Void, Never>?
+    private var runtimeFailureTask: Task<Void, Never>?
+    private var runtimeRetryTask: Task<Void, Never>?
+    private var noticeDismissalTask: Task<Void, Never>?
+    private var runtimeRecoveryPolicy = NowPlayingRuntimeRecoveryPolicy()
+    private var availabilityRequestID: UUID?
+    private var isDestroyed = false
+    private var didShowNoticeForCurrentFailure = false
 
-    // Helper to check if macOS has removed support for NowPlayingController
-    public private(set) var isNowPlayingDeprecated: Bool = false
-    private let mediaChecker = MediaChecker()
+    private let preferences: any MediaControllerPreferenceStoring
+    private let availabilityChecker: any NowPlayingAvailabilityChecking
+    private let controllerFactory: any MediaControllerCreating
+    private let noticeDuration: Duration
+
+    // Helper to check if macOS can use NowPlayingController
+    @Published private(set) var preferredMediaController: MediaControllerType
+    @Published private(set) var nowPlayingAvailability: NowPlayingAvailability = .unchecked
+    @Published private(set) var isCheckingNowPlayingAvailability = false
+    @Published private(set) var effectiveMediaController: MediaControllerType?
+    @Published private(set) var nowPlayingNotice: NowPlayingFallbackNotice?
 
     // Active controller
     private var activeController: (any MediaControllerProtocol)?
 
     // Published properties for UI
-    @Published var songTitle: String = "I'm Handsome"
-    @Published var artistName: String = "Me"
+    @Published var songTitle: String = ""
+    @Published var artistName: String = ""
     @Published var albumArt: NSImage = defaultImage
     @Published var isPlaying = false
-    @Published var album: String = "Self Love"
+    @Published var album: String = ""
     @Published var isPlayerIdle: Bool = true
     @Published var animations: BoringAnimations = .init()
     @Published var avgColor: NSColor = .white
@@ -47,7 +147,7 @@ class MusicManager: ObservableObject {
     @Published var repeatMode: RepeatMode = .off
     @Published var volume: Double = 0.5
     @Published var volumeControlSupported: Bool = true
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
+    private let coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
     @Published var canFavoriteTrack: Bool = false
     
@@ -61,9 +161,9 @@ class MusicManager: ObservableObject {
     private var artworkData: Data? = nil
 
     // Store last values at the time artwork was changed
-    private var lastArtworkTitle: String = "I'm Handsome"
-    private var lastArtworkArtist: String = "Me"
-    private var lastArtworkAlbum: String = "Self Love"
+    private var lastArtworkTitle: String = ""
+    private var lastArtworkArtist: String = ""
+    private var lastArtworkAlbum: String = ""
     private var lastArtworkBundleIdentifier: String? = nil
 
     @Published var isFlipping: Bool = false
@@ -73,118 +173,365 @@ class MusicManager: ObservableObject {
     private var transitionWorkItem: DispatchWorkItem?
 
     // MARK: - Initialization
-    init() {
-        // Listen for changes to the default controller preference
-        NotificationCenter.default.publisher(for: Notification.Name.mediaControllerChanged)
-            .sink { [weak self] _ in
-                self?.setActiveControllerBasedOnPreference()
-            }
-            .store(in: &cancellables)
+    convenience init() {
+        self.init(
+            preferences: DefaultsMediaControllerPreferences(),
+            availabilityChecker: MediaChecker(),
+            controllerFactory: DefaultMediaControllerFactory()
+        )
+    }
 
-        // Initialize deprecation check asynchronously
-        Task { @MainActor in
-            do {
-                self.isNowPlayingDeprecated = try await self.mediaChecker.checkDeprecationStatus()
-                print("Deprecation check completed: \(self.isNowPlayingDeprecated)")
-            } catch {
-                print("Failed to check deprecation status: \(error). Defaulting to false.")
-                self.isNowPlayingDeprecated = false
-            }
-            
-            // Initialize the active controller after deprecation check
-            self.setActiveControllerBasedOnPreference()
+    init(
+        preferences: any MediaControllerPreferenceStoring,
+        availabilityChecker: any NowPlayingAvailabilityChecking,
+        controllerFactory: any MediaControllerCreating,
+        noticeDuration: Duration = .seconds(6)
+    ) {
+        self.preferences = preferences
+        self.availabilityChecker = availabilityChecker
+        self.controllerFactory = controllerFactory
+        self.noticeDuration = noticeDuration
+
+        preferences.migrateIfNeeded()
+        preferredMediaController = preferences.preferredController
+
+        if preferredMediaController == .nowPlaying {
+            activateFallback(showNotice: false)
+            ensureNowPlayingAvailabilityChecked()
+        } else {
+            activateControllerIfNeeded(preferredMediaController)
         }
     }
 
     deinit {
-        destroy()
-    }
-    
-    public func destroy() {
         debounceIdleTask?.cancel()
-        cancellables.removeAll()
+        availabilityTask?.cancel()
+        runtimeFailureTask?.cancel()
+        runtimeRetryTask?.cancel()
+        noticeDismissalTask?.cancel()
         controllerCancellables.removeAll()
         flipWorkItem?.cancel()
         transitionWorkItem?.cancel()
-
-        // Release active controller
-        activeController = nil
     }
 
-    // MARK: - Setup Methods
-    private func createController(for type: MediaControllerType) -> (any MediaControllerProtocol)? {
-        // Cleanup previous controller
-        if activeController != nil {
-            controllerCancellables.removeAll()
-            activeController = nil
-        }
+    func destroy() {
+        guard !isDestroyed else { return }
+        isDestroyed = true
+        availabilityRequestID = nil
 
-        let newController: (any MediaControllerProtocol)?
-
-        switch type {
-        case .nowPlaying:
-            // Only create NowPlayingController if not deprecated on this macOS version
-            if !self.isNowPlayingDeprecated {
-                newController = NowPlayingController()
-            } else {
-                return nil
-            }
-        case .appleMusic:
-            newController = AppleMusicController()
-        case .spotify:
-            newController = SpotifyController()
-        case .youtubeMusic:
-            newController = YouTubeMusicController()
-        }
-
-        // Set up state observation for the new controller
-        if let controller = newController {
-            controller.playbackStatePublisher
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] state in
-                    guard let self = self,
-                          self.activeController === controller else { return }
-                    self.updateFromPlaybackState(state)
-                }
-                .store(in: &controllerCancellables)
-        }
-
-        return newController
-    }
-
-    private func setActiveControllerBasedOnPreference() {
-        let preferredType = Defaults[.mediaController]
-        print("Preferred Media Controller: \(preferredType)")
-
-        // If NowPlaying is deprecated but that's the preference, use Apple Music instead
-        let controllerType = (self.isNowPlayingDeprecated && preferredType == .nowPlaying)
-            ? .appleMusic
-            : preferredType
-
-        if let controller = createController(for: controllerType) {
-            setActiveController(controller)
-        } else if controllerType != .appleMusic, let fallbackController = createController(for: .appleMusic) {
-            // Fallback to Apple Music if preferred controller couldn't be created
-            setActiveController(fallbackController)
-        }
-    }
-
-    private func setActiveController(_ controller: any MediaControllerProtocol) {
-        // Cancel any existing flip animation
+        debounceIdleTask?.cancel()
+        availabilityTask?.cancel()
+        runtimeFailureTask?.cancel()
+        runtimeRetryTask?.cancel()
+        noticeDismissalTask?.cancel()
+        availabilityTask = nil
+        runtimeFailureTask = nil
+        runtimeRetryTask = nil
+        noticeDismissalTask = nil
+        isCheckingNowPlayingAvailability = false
+        controllerCancellables.removeAll()
         flipWorkItem?.cancel()
+        transitionWorkItem?.cancel()
+        (activeController as? any NowPlayingRuntimeControlling)?.stopRuntimeStream()
 
-        // Set new active controller
+        activeController = nil
+        effectiveMediaController = nil
+        nowPlayingNotice = nil
+    }
+
+    func selectMediaController(_ type: MediaControllerType) {
+        guard !isDestroyed else { return }
+        if case .setupFailure = nowPlayingAvailability, type == .nowPlaying {
+            return
+        }
+
+        preferences.preferredController = type
+        preferences.didChooseController = true
+        preferredMediaController = type
+        runtimeRecoveryPolicy.reset()
+        clearNotice(resetEpisode: true)
+
+        if type == .nowPlaying {
+            if nowPlayingAvailability == .available {
+                activateControllerIfNeeded(.nowPlaying)
+            } else {
+                activateFallback(showNotice: false)
+                refreshNowPlayingAvailability()
+            }
+        } else {
+            activateControllerIfNeeded(type)
+        }
+    }
+
+    private func resolvedNowPlayingFallback() -> MediaControllerType {
+        guard let bundleIdentifier = preferences.lastSupportedBundleIdentifier,
+              let controller = MediaControllerType(nowPlayingBundleIdentifier: bundleIdentifier)
+        else {
+            return .appleMusic
+        }
+
+        return controller
+    }
+
+    func ensureNowPlayingAvailabilityChecked() {
+        guard nowPlayingAvailability == .unchecked else { return }
+        startAvailabilityCheck()
+    }
+
+    func refreshNowPlayingAvailability() {
+        startAvailabilityCheck()
+    }
+
+    private func startAvailabilityCheck() {
+        guard !isDestroyed, availabilityTask == nil else { return }
+
+        let requestID = UUID()
+        let checker = availabilityChecker
+        availabilityRequestID = requestID
+        isCheckingNowPlayingAvailability = true
+
+        availabilityTask = Task { @MainActor [weak self, checker] in
+            do {
+                let availability = try await checker.checkAvailability(maxAttempts: 3)
+                self?.finishAvailabilityCheck(availability, requestID: requestID)
+            } catch is CancellationError {
+                self?.finishCancelledAvailabilityCheck(requestID: requestID)
+            } catch {
+                self?.finishAvailabilityCheck(
+                    .temporaryFailure(.launchFailed),
+                    requestID: requestID
+                )
+            }
+        }
+    }
+
+    private func finishCancelledAvailabilityCheck(requestID: UUID) {
+        guard availabilityRequestID == requestID else { return }
+        availabilityTask = nil
+        availabilityRequestID = nil
+        isCheckingNowPlayingAvailability = false
+    }
+
+    private func finishAvailabilityCheck(
+        _ availability: NowPlayingAvailability,
+        requestID: UUID
+    ) {
+        guard !isDestroyed, availabilityRequestID == requestID else { return }
+
+        availabilityTask = nil
+        availabilityRequestID = nil
+        isCheckingNowPlayingAvailability = false
+        nowPlayingAvailability = availability
+
+        if availability == .available {
+            runtimeRecoveryPolicy.reset()
+            clearNotice(resetEpisode: true)
+            if preferredMediaController == .nowPlaying {
+                activateControllerIfNeeded(.nowPlaying)
+            }
+        } else if availability.requiresFallback,
+                  preferredMediaController == .nowPlaying {
+            activateFallback(
+                for: availability,
+                showNotice: preferences.didChooseController
+            )
+        }
+    }
+
+    private func activateFallback(
+        for availability: NowPlayingAvailability? = nil,
+        showNotice: Bool
+    ) {
+        let fallbackController = resolvedNowPlayingFallback()
+        let isTemporary = availability?.isRecoverableFailure ?? true
+
+        if let availability, availability.requiresFallback, !isTemporary {
+            preferences.preferredController = fallbackController
+            preferredMediaController = fallbackController
+        }
+
+        if showNotice, availability != nil {
+            requestNotice(
+                fallbackController: fallbackController,
+                isTemporary: isTemporary
+            )
+        }
+
+        activateControllerIfNeeded(fallbackController)
+    }
+
+    private func requestNotice(
+        fallbackController: MediaControllerType,
+        isTemporary: Bool
+    ) {
+        guard !didShowNoticeForCurrentFailure else { return }
+        didShowNoticeForCurrentFailure = true
+
+        let notice = NowPlayingFallbackNotice(
+            fallbackSource: fallbackController,
+            isTemporary: isTemporary
+        )
+        nowPlayingNotice = notice
+    }
+
+    @discardableResult
+    func markNowPlayingNoticePresented(_ noticeID: UUID) -> Bool {
+        guard nowPlayingNotice?.id == noticeID,
+              noticeDismissalTask == nil
+        else {
+            return false
+        }
+
+        noticeDismissalTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            do {
+                try await Task.sleep(for: self.noticeDuration)
+            } catch {
+                return
+            }
+            guard self.nowPlayingNotice?.id == noticeID else { return }
+            self.nowPlayingNotice = nil
+            self.noticeDismissalTask = nil
+        }
+        return true
+    }
+
+    private func clearNotice(resetEpisode: Bool) {
+        noticeDismissalTask?.cancel()
+        noticeDismissalTask = nil
+        nowPlayingNotice = nil
+        if resetEpisode {
+            didShowNoticeForCurrentFailure = false
+        }
+    }
+
+    private func activateControllerIfNeeded(_ type: MediaControllerType) {
+        guard !isDestroyed,
+              activeController == nil || effectiveMediaController != type
+        else {
+            return
+        }
+
+        do {
+            let controller = try controllerFactory.makeController(for: type)
+            activateController(controller, type: type)
+        } catch let failure as NowPlayingSetupFailure where type == .nowPlaying {
+            let availability = NowPlayingAvailability.setupFailure(failure)
+            nowPlayingAvailability = availability
+            activateFallback(
+                for: availability,
+                showNotice: preferences.didChooseController
+            )
+        } catch {
+            guard type != .appleMusic else { return }
+            do {
+                let controller = try controllerFactory.makeController(for: .appleMusic)
+                activateController(controller, type: .appleMusic)
+            } catch {
+                return
+            }
+        }
+    }
+
+    private func activateController(
+        _ controller: any MediaControllerProtocol,
+        type: MediaControllerType
+    ) {
+        runtimeFailureTask?.cancel()
+        runtimeRetryTask?.cancel()
+        runtimeFailureTask = nil
+        runtimeRetryTask = nil
+        (activeController as? any NowPlayingRuntimeControlling)?.stopRuntimeStream()
+        controllerCancellables.removeAll()
+
+        flipWorkItem?.cancel()
         activeController = controller
-        
-        self.canFavoriteTrack = controller.supportsFavorite
+        effectiveMediaController = type
+        canFavoriteTrack = controller.supportsFavorite
 
-        // Get current state from active controller
+        controller.playbackStatePublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self, controller] state in
+                guard let self,
+                      self.activeController === controller,
+                      state.lastUpdated != .distantPast
+                else {
+                    return
+                }
+                self.updateFromPlaybackState(state)
+            }
+            .store(in: &controllerCancellables)
+
+        if let runtimeController = controller as? any NowPlayingRuntimeControlling {
+            runtimeFailureTask = Task { @MainActor [weak self, runtimeController] in
+                for await failure in runtimeController.runtimeFailures {
+                    guard let self else { return }
+                    self.handleRuntimeFailure(failure, from: runtimeController)
+                }
+            }
+        }
+
         forceUpdate()
+        (controller as? any NowPlayingRuntimeControlling)?.startRuntimeStream()
+    }
+
+    private func handleRuntimeFailure(
+        _ failure: NowPlayingRuntimeFailure,
+        from controller: any NowPlayingRuntimeControlling
+    ) {
+        guard activeController === controller,
+              effectiveMediaController == .nowPlaying,
+              preferredMediaController == .nowPlaying
+        else {
+            return
+        }
+
+        print("Now Playing runtime stream failed: \(failure)")
+
+        switch runtimeRecoveryPolicy.action(at: .now) {
+        case .restart(let delay):
+            runtimeRetryTask?.cancel()
+            runtimeRetryTask = Task { @MainActor [weak self, controller] in
+                do {
+                    try await Task.sleep(for: delay)
+                } catch {
+                    return
+                }
+
+                guard let self,
+                      !self.isDestroyed,
+                      self.preferredMediaController == .nowPlaying,
+                      self.effectiveMediaController == .nowPlaying,
+                      self.activeController === controller
+                else {
+                    return
+                }
+
+                self.runtimeRetryTask = nil
+                controller.restartRuntimeStream()
+            }
+
+        case .fallback:
+            runtimeRetryTask?.cancel()
+            runtimeRetryTask = nil
+            nowPlayingAvailability = .runtimeStreamFailed
+            activateFallback(
+                for: .runtimeStreamFailed,
+                showNotice: preferences.didChooseController
+            )
+        }
     }
 
     // MARK: - Update Methods
-    @MainActor
     private func updateFromPlaybackState(_ state: PlaybackState) {
+        guard state.lastUpdated != .distantPast else { return }
+
+        if effectiveMediaController == .nowPlaying,
+           MediaControllerType(nowPlayingBundleIdentifier: state.bundleIdentifier) != nil,
+           preferences.lastSupportedBundleIdentifier != state.bundleIdentifier {
+            preferences.lastSupportedBundleIdentifier = state.bundleIdentifier
+        }
+
         // Check for playback state changes (playing/paused)
         if state.isPlaying != self.isPlaying {
             NSLog("Playback state changed: \(state.isPlaying ? "Playing" : "Paused")")
