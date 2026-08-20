@@ -13,10 +13,21 @@ struct BoringHeader: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = ShelfStateViewModel.shared
+    @ObservedObject var cvm = ClipboardStore.shared
+
+    /// The tab bar used to be gated on the Shelf alone, which would have made a Clipboard tab
+    /// unreachable whenever the Shelf was turned off. Each feature now vouches for itself.
+    private var shouldShowTabs: Bool {
+        let shelfAvailable = Defaults[.boringShelf] && (!tvm.isEmpty || coordinator.alwaysShowTabs)
+        let clipboardAvailable = Defaults[.clipboardHistoryEnabled]
+            && (!cvm.isEmpty || coordinator.alwaysShowTabs)
+        return shelfAvailable || clipboardAvailable
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
+                if shouldShowTabs {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()
