@@ -118,7 +118,7 @@ final class CodexNotificationManager: ObservableObject {
 
         do {
             let event = try CodexHookEventParser.parse(payload)
-            if case .permissionRequest(_, _, _, let details, let callback, _, _) = event {
+            if case .permissionRequest(_, _, _, _, let details, let callback, _, _) = event {
                 guard let callback, !details.isAutoReviewed else { return }
                 do {
                     try await CodexPermissionRelay.acknowledge(callback: callback)

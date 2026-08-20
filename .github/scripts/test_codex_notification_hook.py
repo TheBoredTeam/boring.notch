@@ -123,6 +123,46 @@ class CodexNotificationHookTests(unittest.TestCase):
             self.assertIsInstance(authentication["timestamp"], (int, float))
             self.assertEqual(len(authentication["nonce"]), 32)
 
+    def test_same_turn_permission_requests_receive_distinct_signed_ids(self) -> None:
+        namespace = embedded_hook_namespace()
+        hook = namespace["open_notch"]
+
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            temporary_path = Path(temporary_directory)
+            secret_path = temporary_path / "boring-notch-notify.secret"
+            secret_path.write_bytes(bytes(range(32)))
+            secret_path.chmod(0o600)
+            namespace["__file__"] = str(temporary_path / "boring-notch-notify.py")
+            commands: list[list[str]] = []
+
+            def fake_run(args: list[str], **_: object) -> types.SimpleNamespace:
+                commands.append(args)
+                return types.SimpleNamespace(returncode=0)
+
+            original_run = namespace["subprocess"].run
+            namespace["subprocess"].run = fake_run
+            try:
+                for command in ("first", "second"):
+                    self.assertTrue(hook({
+                        "hook_event_name": "PermissionRequest",
+                        "session_id": "shared-session",
+                        "turn_id": "shared-turn",
+                        "tool_input": {"command": command},
+                    }))
+            finally:
+                namespace["subprocess"].run = original_run
+
+            request_ids = []
+            for command in commands:
+                encoded = parse_qs(urlparse(command[-1]).query)["payload"][0]
+                padded = encoded + "=" * (-len(encoded) % 4)
+                payload = json.loads(base64.urlsafe_b64decode(padded))
+                request_ids.append(payload["boring_notch_auth"]["nonce"])
+
+            self.assertEqual(len(request_ids), 2)
+            self.assertEqual(len(set(request_ids)), 2)
+            self.assertTrue(all(len(request_id) == 32 for request_id in request_ids))
+
     def test_open_notch_rejects_broad_secret_permissions(self) -> None:
         namespace = embedded_hook_namespace()
         hook = namespace["open_notch"]

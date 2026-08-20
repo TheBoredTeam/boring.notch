@@ -3,11 +3,28 @@ import XCTest
 @testable import CodexHookTrustState
 
 final class CodexNotificationsCoreTests: XCTestCase {
+    private let permissionRequestID = "0123456789abcdef0123456789abcdef"
     private let permissionCallback = CodexPermissionCallback(
         port: 49_152,
         token: "abcdefghijklmnopqrstuvwxyzABCDEF",
         expiresAt: Date(timeIntervalSince1970: 4_102_444_800)
     )
+
+    private func parsePermissionPayload(
+        _ payload: String,
+        requestID: String? = nil
+    ) throws -> CodexHookEvent {
+        var object = try XCTUnwrap(
+            try JSONSerialization.jsonObject(with: Data(payload.utf8)) as? [String: Any]
+        )
+        object["boring_notch_auth"] = [
+            "timestamp": 1_000,
+            "nonce": requestID ?? permissionRequestID,
+        ]
+        return try CodexHookEventParser.parse(
+            JSONSerialization.data(withJSONObject: object)
+        )
+    }
 
     private struct Candidate: Equatable {
         let id: String
@@ -204,7 +221,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
             "prompt":"Fix the extension conflict in PR #970"
         }
         """#))
-        state.reduce(try CodexHookEventParser.parse(#"""
+        state.reduce(try parsePermissionPayload(#"""
         {
             "hook_event_name":"PermissionRequest",
             "session_id":"session-1",
@@ -252,7 +269,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
 
     func testParsesBrowserPermissionRequestAsActionableNotification() throws {
         var state = CodexNotificationState()
-        state.reduce(try CodexHookEventParser.parse(#"""
+        state.reduce(try parsePermissionPayload(#"""
         {
             "hook_event_name":"PermissionRequest",
             "session_id":"browser-session",
@@ -291,7 +308,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
     }
 
     func testPermissionRequestCarriesAutomaticReviewerMode() throws {
-        let event = try CodexHookEventParser.parse(#"""
+        let event = try parsePermissionPayload(#"""
         {
             "hook_event_name":"PermissionRequest",
             "session_id":"auto-reviewed",
@@ -306,7 +323,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         }
         """#)
 
-        guard case .permissionRequest(_, _, _, let details, _, _, _) = event else {
+        guard case .permissionRequest(_, _, _, _, let details, _, _, _) = event else {
             return XCTFail("Expected a permission request")
         }
         XCTAssertTrue(details.isAutoReviewed)
@@ -319,7 +336,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
 
     func testUserReviewedPermissionIsPresentedImmediately() throws {
         var state = CodexNotificationState()
-        state.reduce(try CodexHookEventParser.parse(#"""
+        state.reduce(try parsePermissionPayload(#"""
         {
             "hook_event_name":"PermissionRequest",
             "session_id":"user-reviewed",
@@ -341,7 +358,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
 
     func testProjectlessPermissionUsesChatMetadataAndPlaceholder() throws {
         var state = CodexNotificationState()
-        state.reduce(try CodexHookEventParser.parse(#"""
+        state.reduce(try parsePermissionPayload(#"""
         {
             "hook_event_name":"PermissionRequest",
             "session_id":"projectless-session",
@@ -396,6 +413,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         state.reduce(.permissionRequest(
             sessionID: "session-attachment",
             turnID: "turn-1",
+            requestID: permissionRequestID,
             cwd: "/tmp/project",
             details: CodexPermissionDetails(toolName: "Bash", description: "Build Debug"),
             callback: permissionCallback
@@ -414,7 +432,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
 
     func testParsesCurrentPermissionCallback() throws {
         var state = CodexNotificationState()
-        state.reduce(try CodexHookEventParser.parse(#"""
+        state.reduce(try parsePermissionPayload(#"""
         {
             "hook_event_name":"PermissionRequest",
             "session_id":"session-1",
@@ -430,14 +448,31 @@ final class CodexNotificationsCoreTests: XCTestCase {
         """#))
 
         let notice = try XCTUnwrap(state.visibleNotification())
+        XCTAssertEqual(notice.requestID, permissionRequestID)
         XCTAssertEqual(notice.permissionCallback, permissionCallback)
     }
 
-    func testPostToolUseDismissesTheMatchingPermissionRequest() throws {
+    func testPermissionRequestRequiresAuthenticatedRequestID() {
+        XCTAssertThrowsError(try CodexHookEventParser.parse(#"""
+        {
+            "hook_event_name":"PermissionRequest",
+            "session_id":"session-1",
+            "turn_id":"turn-1"
+        }
+        """#)) { error in
+            XCTAssertEqual(
+                error as? CodexHookEventParserError,
+                .missingField("boring_notch_auth.nonce")
+            )
+        }
+    }
+
+    func testPostToolUseWithoutSharedRequestIdentityPreservesPermissionRequest() throws {
         var state = CodexNotificationState()
         state.reduce(.permissionRequest(
             sessionID: "session-1",
             turnID: "turn-1",
+            requestID: permissionRequestID,
             cwd: "/tmp/project",
             details: CodexPermissionDetails(toolName: "Bash", description: "Run tests"),
             callback: permissionCallback
@@ -453,7 +488,73 @@ final class CodexNotificationsCoreTests: XCTestCase {
         }
         """#))
 
-        XCTAssertNil(state.visibleNotification())
+        XCTAssertNotNil(state.visibleNotification())
+    }
+
+    func testConcurrentSameTurnPermissionRequestsRemainIndependentlyActionable() throws {
+        var state = CodexNotificationState()
+        let firstCallback = permissionCallback
+        let secondCallback = CodexPermissionCallback(
+            port: 49_153,
+            token: "0123456789abcdef0123456789abcdef",
+            expiresAt: permissionCallback.expiresAt
+        )
+        state.reduce(.permissionRequest(
+            sessionID: "shared-session",
+            turnID: "shared-turn",
+            requestID: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            cwd: "/tmp/project",
+            details: CodexPermissionDetails(toolName: "Bash", command: "first"),
+            callback: firstCallback
+        ))
+        state.reduce(.permissionRequest(
+            sessionID: "shared-session",
+            turnID: "shared-turn",
+            requestID: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            cwd: "/tmp/project",
+            details: CodexPermissionDetails(toolName: "Bash", command: "second"),
+            callback: secondCallback
+        ))
+
+        XCTAssertEqual(state.notifications.count, 2)
+        XCTAssertTrue(state.notifications.contains { $0.permissionCallback == firstCallback })
+        XCTAssertTrue(state.notifications.contains { $0.permissionCallback == secondCallback })
+
+        let chosen = try XCTUnwrap(
+            state.notifications.first { $0.permissionCallback == firstCallback }
+        )
+        state.dismiss(chosen.id)
+
+        XCTAssertEqual(state.notifications.count, 1)
+        XCTAssertEqual(state.notifications.first?.permissionCallback, secondCallback)
+    }
+
+    func testStopClearsEveryOutstandingPermissionForTheCompletedTurn() {
+        var state = CodexNotificationState()
+        for requestID in [
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        ] {
+            state.reduce(.permissionRequest(
+                sessionID: "shared-session",
+                turnID: "shared-turn",
+                requestID: requestID,
+                cwd: "/tmp/project",
+                details: CodexPermissionDetails(toolName: "Bash", command: requestID),
+                callback: permissionCallback
+            ))
+        }
+
+        state.reduce(.stop(
+            sessionID: "shared-session",
+            turnID: "shared-turn",
+            cwd: "/tmp/project",
+            result: "Completed successfully.",
+            reportedStatus: "succeeded"
+        ))
+
+        XCTAssertEqual(state.notifications.count, 1)
+        XCTAssertEqual(state.notifications.first?.status, .succeeded)
     }
 
     func testPermissionRequestWithoutUsableCallbackIsNotPresented() throws {
@@ -469,7 +570,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
 
         for payload in payloads {
             var state = CodexNotificationState()
-            state.reduce(try CodexHookEventParser.parse(payload))
+            state.reduce(try parsePermissionPayload(payload))
             let notice = try XCTUnwrap(state.notifications.first, payload)
             XCTAssertEqual(notice.status, .needsAction(.permission), payload)
             XCTAssertNil(notice.permissionCallback, payload)
@@ -479,7 +580,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
 
     func testExpiredPermissionCallbackIsNotPresented() throws {
         var state = CodexNotificationState()
-        state.reduce(try CodexHookEventParser.parse(#"""
+        state.reduce(try parsePermissionPayload(#"""
         {
             "hook_event_name":"PermissionRequest",
             "session_id":"expired",
@@ -495,6 +596,43 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertNil(state.visibleNotification(at: Date(timeIntervalSince1970: 100)))
     }
 
+    func testExpiryRemovesOnlyTheExpiredSameTurnPermissionRequest() throws {
+        var state = CodexNotificationState()
+        let expiredCallback = CodexPermissionCallback(
+            port: 49_152,
+            token: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            expiresAt: Date(timeIntervalSince1970: 100)
+        )
+        let liveCallback = CodexPermissionCallback(
+            port: 49_153,
+            token: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            expiresAt: Date(timeIntervalSince1970: 200)
+        )
+        state.reduce(.permissionRequest(
+            sessionID: "shared-session",
+            turnID: "shared-turn",
+            requestID: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            cwd: "/tmp/project",
+            details: CodexPermissionDetails(toolName: "Bash", command: "expired"),
+            callback: expiredCallback
+        ))
+        state.reduce(.permissionRequest(
+            sessionID: "shared-session",
+            turnID: "shared-turn",
+            requestID: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            cwd: "/tmp/project",
+            details: CodexPermissionDetails(toolName: "Bash", command: "live"),
+            callback: liveCallback
+        ))
+
+        state.removeExpiredPermissionRequests(at: Date(timeIntervalSince1970: 150))
+
+        XCTAssertEqual(state.notifications.count, 1)
+        let remaining = try XCTUnwrap(state.notifications.first)
+        XCTAssertEqual(remaining.requestID, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+        XCTAssertEqual(remaining.permissionCallback, liveCallback)
+    }
+
     func testStopReplacesPermissionWithVerifiedSuccess() throws {
         var state = CodexNotificationState()
         state.reduce(.userPrompt(
@@ -506,6 +644,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         state.reduce(.permissionRequest(
             sessionID: "session-1",
             turnID: "turn-1",
+            requestID: permissionRequestID,
             cwd: "/tmp/project",
             details: CodexPermissionDetails(
                 toolName: "Bash",
@@ -792,11 +931,24 @@ final class CodexNotificationsCoreTests: XCTestCase {
             sessionID: "negated-decision",
             turnID: "turn-1",
             cwd: "/tmp/project",
-            result: "The defaults are applied; I do not need your input.",
+            result: "All checks passed; I do not think I need your input.",
             reportedStatus: "succeeded"
         ))
 
         XCTAssertEqual(state.visibleNotification()?.status, .succeeded)
+    }
+
+    func testAffirmativeChoiceAfterNegatedClauseRemainsActionable() {
+        var state = CodexNotificationState()
+        state.reduce(.stop(
+            sessionID: "affirmative-after-negation",
+            turnID: "turn-1",
+            cwd: "/tmp/project",
+            result: "I do not need more context, but please choose A or B.",
+            reportedStatus: "succeeded"
+        ))
+
+        XCTAssertEqual(state.visibleNotification()?.status, .needsAction(.decision))
     }
 
     func testFailureResponseWithStatusTextIsFailed() {
@@ -955,6 +1107,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         state.reduce(.permissionRequest(
             sessionID: "permission",
             turnID: "turn-1",
+            requestID: permissionRequestID,
             cwd: "/tmp/project",
             details: CodexPermissionDetails(toolName: "Bash", description: "Run tests"),
             callback: permissionCallback
@@ -979,6 +1132,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         state.reduce(.permissionRequest(
             sessionID: "permission",
             turnID: "permission-turn",
+            requestID: permissionRequestID,
             cwd: "/tmp/project",
             details: CodexPermissionDetails(toolName: "Bash", description: "Run tests"),
             callback: callback
@@ -1010,6 +1164,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
             state.reduce(.permissionRequest(
                 sessionID: "permission-\(index)",
                 turnID: "turn-\(index)",
+                requestID: String(format: "%032x", index),
                 cwd: "/tmp/project",
                 details: CodexPermissionDetails(toolName: "Bash", description: "Run tests"),
                 callback: callback
@@ -1033,6 +1188,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         state.reduce(.permissionRequest(
             sessionID: "session-1",
             turnID: "turn-1",
+            requestID: "11111111111111111111111111111111",
             cwd: "/tmp/project-1",
             details: CodexPermissionDetails(toolName: "Bash", description: "Old request"),
             callback: permissionCallback
@@ -1040,6 +1196,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         state.reduce(.permissionRequest(
             sessionID: "session-21",
             turnID: "turn-21",
+            requestID: "21212121212121212121212121212121",
             cwd: "/tmp/project-21",
             details: CodexPermissionDetails(toolName: "Bash", description: "Recent request"),
             callback: permissionCallback
@@ -1074,6 +1231,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         state.reduce(.permissionRequest(
             sessionID: "correlated-session",
             turnID: "correlated-turn",
+            requestID: permissionRequestID,
             cwd: "/tmp/project",
             details: CodexPermissionDetails(toolName: "Bash", description: "Run tests"),
             callback: permissionCallback
@@ -1102,6 +1260,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         state.reduce(.permissionRequest(
             sessionID: "permission",
             turnID: "turn-1",
+            requestID: permissionRequestID,
             cwd: "/tmp/project",
             details: CodexPermissionDetails(toolName: "Bash", description: "Run tests"),
             callback: permissionCallback

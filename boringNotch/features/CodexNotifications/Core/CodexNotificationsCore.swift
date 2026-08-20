@@ -393,6 +393,7 @@ public struct CodexJobNotification: Equatable, Identifiable, Sendable {
     public let id: String
     public let sessionID: String
     public let turnID: String?
+    public let requestID: String?
     public let chatTitle: String
     public let jobTitle: String
     public let userPrompt: String
@@ -407,6 +408,7 @@ public struct CodexJobNotification: Equatable, Identifiable, Sendable {
         id: String,
         sessionID: String,
         turnID: String?,
+        requestID: String?,
         jobTitle: String,
         resultSummary: String,
         chatTitle: String? = nil,
@@ -420,6 +422,7 @@ public struct CodexJobNotification: Equatable, Identifiable, Sendable {
         self.id = id
         self.sessionID = sessionID
         self.turnID = turnID
+        self.requestID = requestID
         self.chatTitle = chatTitle ?? jobTitle
         self.jobTitle = jobTitle
         self.userPrompt = userPrompt ?? jobTitle
@@ -444,6 +447,7 @@ public enum CodexHookEvent: Equatable, Sendable {
     case permissionRequest(
         sessionID: String,
         turnID: String?,
+        requestID: String,
         cwd: String?,
         details: CodexPermissionDetails,
         callback: CodexPermissionCallback? = nil,
@@ -527,10 +531,14 @@ public enum CodexHookEventParser {
             )
 
         case "PermissionRequest":
+            guard let requestID = authenticatedRequestID(from: object) else {
+                throw CodexHookEventParserError.missingField("boring_notch_auth.nonce")
+            }
             let toolName = nonemptyString(object["tool_name"]) ?? "Codex"
             return .permissionRequest(
                 sessionID: sessionID,
                 turnID: turnID,
+                requestID: requestID,
                 cwd: cwd,
                 details: permissionDetails(from: object, toolName: toolName),
                 callback: permissionCallback(from: object),
@@ -636,6 +644,21 @@ public enum CodexHookEventParser {
         )
     }
 
+    private static func authenticatedRequestID(
+        from object: [String: Any]
+    ) -> String? {
+        guard let auth = object["boring_notch_auth"] as? [String: Any],
+              let nonce = nonemptyString(auth["nonce"]),
+              nonce.utf8.count == 32,
+              nonce.unicodeScalars.allSatisfy({ scalar in
+                  scalar.isASCII
+                      && CharacterSet(charactersIn: "0123456789abcdef").contains(scalar)
+              }) else {
+            return nil
+        }
+        return nonce
+    }
+
     private static func applyPatchTargets(from command: String?) -> String? {
         guard let command else { return nil }
         let prefixes = ["*** Add File: ", "*** Update File: ", "*** Delete File: "]
@@ -699,6 +722,7 @@ public struct CodexNotificationState: Equatable, Sendable {
         case .permissionRequest(
             let sessionID,
             let turnID,
+            let requestID,
             let cwd,
             let details,
             let callback,
@@ -709,6 +733,7 @@ public struct CodexNotificationState: Equatable, Sendable {
             let notification = makeNotification(
                 sessionID: sessionID,
                 turnID: turnID,
+                requestID: requestID,
                 cwd: cwd,
                 result: details.summary,
                 status: .needsAction(.permission),
@@ -720,15 +745,10 @@ public struct CodexNotificationState: Equatable, Sendable {
             )
             upsert(notification)
 
-        case .toolCompleted(let sessionID, let turnID, _, _, _):
-            notifications.removeAll { notification in
-                guard notification.status == .needsAction(.permission),
-                      notification.sessionID == sessionID else {
-                    return false
-                }
-                guard let turnID else { return true }
-                return notification.turnID == turnID
-            }
+        case .toolCompleted:
+            // PermissionRequest and PostToolUse do not share a reliable request ID.
+            // Keep live approvals until an explicit decision, terminal event, or expiry.
+            break
 
         case .stop(
             let sessionID,
@@ -739,10 +759,19 @@ public struct CodexNotificationState: Equatable, Sendable {
             let chatTitle,
             let projectName
         ):
+            notifications.removeAll { notification in
+                guard notification.status == .needsAction(.permission),
+                      notification.sessionID == sessionID else {
+                    return false
+                }
+                guard let turnID else { return true }
+                return notification.turnID == turnID
+            }
             let status = Self.classify(result: result, reportedStatus: reportedStatus)
             let notification = makeNotification(
                 sessionID: sessionID,
                 turnID: turnID,
+                requestID: nil,
                 cwd: cwd,
                 result: result,
                 status: status,
@@ -784,6 +813,7 @@ public struct CodexNotificationState: Equatable, Sendable {
     private mutating func makeNotification(
         sessionID: String,
         turnID: String?,
+        requestID: String?,
         cwd: String?,
         result: String,
         status: CodexJobStatus,
@@ -810,12 +840,17 @@ public struct CodexNotificationState: Equatable, Sendable {
         let resolvedProjectName = projectName
             ?? context?.projectName
             ?? Self.projectName(cwd: cwd ?? context?.cwd)
-        let id = Self.correlationID(sessionID: sessionID, turnID: effectiveTurnID)
+        let id = Self.correlationID(
+            sessionID: sessionID,
+            turnID: effectiveTurnID,
+            requestID: requestID
+        )
 
         return CodexJobNotification(
             id: id,
             sessionID: sessionID,
             turnID: effectiveTurnID,
+            requestID: requestID,
             jobTitle: title,
             resultSummary: CodexText.short(result, limit: 180),
             chatTitle: resolvedChatTitle,
@@ -831,7 +866,9 @@ public struct CodexNotificationState: Equatable, Sendable {
     private mutating func upsert(_ notification: CodexJobNotification) {
         notifications.removeAll { existing in
             existing.id == notification.id
-                || (notification.turnID == nil && existing.sessionID == notification.sessionID)
+                || (notification.requestID == nil
+                    && notification.turnID == nil
+                    && existing.sessionID == notification.sessionID)
         }
         notifications.append(notification)
 
@@ -882,11 +919,14 @@ public struct CodexNotificationState: Equatable, Sendable {
         return name.isEmpty ? "Codex" : name
     }
 
-    private static func correlationID(sessionID: String, turnID: String?) -> String {
-        if let turnID, !turnID.isEmpty {
-            return "s\(sessionID.utf8.count):\(sessionID)|t\(turnID.utf8.count):\(turnID)"
-        }
-        return "s\(sessionID.utf8.count):\(sessionID)|t0:"
+    private static func correlationID(
+        sessionID: String,
+        turnID: String?,
+        requestID: String?
+    ) -> String {
+        let turnComponent = turnID.map { "t\($0.utf8.count):\($0)" } ?? "t0:"
+        let requestComponent = requestID.map { "r\($0.utf8.count):\($0)" } ?? "r0:"
+        return "s\(sessionID.utf8.count):\(sessionID)|\(turnComponent)|\(requestComponent)"
     }
 
     private static func classify(
@@ -986,30 +1026,65 @@ public struct CodexNotificationState: Equatable, Sendable {
         _ marker: String,
         in text: String
     ) -> Bool {
-        let negatedPrefixes = [
-            "no ", "not ", "never ", "without ", "no longer ",
-            "don't ", "doesn't ", "didn't ", "won't ", "can't ",
-            "do not ", "does not ", "did not ", "will not ", "cannot ",
-        ]
         var searchStart = text.startIndex
 
         while let range = text.range(
             of: marker,
             range: searchStart..<text.endIndex
         ) {
-            let availablePrefixLength = text.distance(
-                from: text.startIndex,
-                to: range.lowerBound
-            )
-            let prefixStart = text.index(
-                range.lowerBound,
-                offsetBy: -min(availablePrefixLength, 24)
-            )
-            let prefix = text[prefixStart..<range.lowerBound]
-            if !negatedPrefixes.contains(where: prefix.hasSuffix) {
+            if !isNegated(at: range.lowerBound, in: text) {
                 return true
             }
             searchStart = range.upperBound
+        }
+        return false
+    }
+
+    private static func isNegated(
+        at markerStart: String.Index,
+        in text: String
+    ) -> Bool {
+        let prefix = text[..<markerStart]
+        let clauseSeparators = CharacterSet(charactersIn: ".!?;:,\n\r")
+        let clauseStart = prefix.lastIndex { character in
+            character.unicodeScalars.contains { clauseSeparators.contains($0) }
+        }.map { text.index(after: $0) } ?? text.startIndex
+        let clause = text[clauseStart..<markerStart]
+            .replacingOccurrences(of: "’", with: "'")
+            .lowercased()
+        let tokenCharacters = CharacterSet.alphanumerics.union(
+            CharacterSet(charactersIn: "'")
+        )
+        var tokens = clause.components(
+            separatedBy: tokenCharacters.inverted
+        ).filter { !$0.isEmpty }
+
+        let contrastWords: Set<String> = ["but", "however", "yet"]
+        if let contrastIndex = tokens.lastIndex(where: { contrastWords.contains($0) }) {
+            tokens = Array(tokens[tokens.index(after: contrastIndex)...])
+        }
+
+        let negationReach: [String: Int] = [
+            "no": 2,
+            "not": 5,
+            "never": 5,
+            "without": 3,
+            "cannot": 5,
+            "don't": 5,
+            "doesn't": 5,
+            "didn't": 5,
+            "won't": 5,
+            "can't": 5,
+        ]
+        for index in tokens.indices.reversed() {
+            guard let reach = negationReach[tokens[index]] else { continue }
+            if tokens[index] == "not",
+               tokens.indices.contains(index + 1),
+               tokens[index + 1] == "only" {
+                continue
+            }
+            let distance = tokens.distance(from: index, to: tokens.endIndex) - 1
+            return distance <= reach
         }
         return false
     }
