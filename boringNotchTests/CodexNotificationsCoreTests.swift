@@ -928,6 +928,8 @@ final class CodexNotificationsCoreTests: XCTestCase {
         for message in [
             "Tests failed, although the build succeeded.",
             "The command failed. Not all tests passed.",
+            "Earlier tests failed and remain unresolved.",
+            "Addressed command failed again.",
         ] {
             XCTAssertEqual(
                 try productionStopStatus(message),

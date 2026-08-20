@@ -1033,7 +1033,7 @@ public struct CodexNotificationState: Equatable, Sendable {
             range: searchStart..<text.endIndex
         ) {
             if !isNegated(at: range.lowerBound, marker: marker, in: text)
-                && !isFailureReference(at: range.lowerBound, in: text) {
+                && !isFailureReference(range, in: text) {
                 return true
             }
             searchStart = range.upperBound
@@ -1128,10 +1128,10 @@ public struct CodexNotificationState: Equatable, Sendable {
     }
 
     private static func isFailureReference(
-        at markerStart: String.Index,
+        _ markerRange: Range<String.Index>,
         in text: String
     ) -> Bool {
-        let prefix = text[..<markerStart]
+        let prefix = text[..<markerRange.lowerBound]
         let clauseSeparators = CharacterSet(charactersIn: ".!?;:,\n\r")
         let clauseStart = prefix.lastIndex { character in
             character.unicodeScalars.contains { clauseSeparators.contains($0) }
@@ -1139,22 +1139,39 @@ public struct CodexNotificationState: Equatable, Sendable {
         let tokenCharacters = CharacterSet.alphanumerics.union(
             CharacterSet(charactersIn: "'")
         )
-        var tokens = text[clauseStart..<markerStart]
+        var prefixTokens = text[clauseStart..<markerRange.lowerBound]
             .replacingOccurrences(of: "’", with: "'")
             .lowercased()
             .components(separatedBy: tokenCharacters.inverted)
             .filter { !$0.isEmpty }
         let articles: Set<String> = ["a", "an", "the"]
-        while tokens.last.map(articles.contains) == true {
-            tokens.removeLast()
+        while prefixTokens.last.map(articles.contains) == true {
+            prefixTokens.removeLast()
         }
         // Keep references narrow: the resolving word must immediately frame
-        // the failure phrase instead of relying on a later generic success.
-        let referenceMarkers: Set<String> = [
-            "addressed", "earlier", "fixed", "historical", "previous",
-            "prior", "repaired", "resolved",
+        // a named failure regression instead of describing a fresh failure.
+        let resolutionVerbs: Set<String> = [
+            "addressed", "fixed", "repaired", "resolved",
         ]
-        return tokens.last.map(referenceMarkers.contains) == true
+        guard prefixTokens.last.map(resolutionVerbs.contains) == true else {
+            return false
+        }
+
+        let suffix = text[markerRange.upperBound...]
+            .prefix { character in
+                !character.unicodeScalars.contains {
+                    clauseSeparators.contains($0)
+                }
+            }
+        let suffixTokens = suffix
+            .lowercased()
+            .components(separatedBy: tokenCharacters.inverted)
+            .filter { !$0.isEmpty }
+        let referenceNouns: Set<String> = [
+            "bug", "case", "issue", "message", "regression", "scenario",
+            "text", "wording",
+        ]
+        return suffixTokens.first.map(referenceNouns.contains) == true
     }
 }
 
