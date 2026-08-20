@@ -21,6 +21,7 @@ enum CodexNotificationExtension {
             let notchWidth = context.closedNotchWidth + 10
             let promptWidth: CGFloat = 236
             let isPermissionRequest = notification.status == .needsAction(.permission)
+            let tapRouting = CodexClosedActivityTapRouting(status: notification.status)
             let metrics = ClosedNotchLayoutMetrics(
                 exclusionWidth: notchWidth,
                 leadingWidth: 0,
@@ -41,10 +42,12 @@ enum CodexNotificationExtension {
                     metrics: metrics
                 )),
                 opensNotchOnHover: isPermissionRequest,
-                opensNotchOnTap: false,
-                onSelect: {
-                    CodexNotificationManager.shared.openCodex(for: notification)
-                }
+                opensNotchOnTap: tapRouting == .expandNotch,
+                onSelect: tapRouting == .openCodex ? {
+                    Task {
+                        await CodexNotificationManager.shared.openCodex(for: notification)
+                    }
+                } : nil
             )]
         }
     )
@@ -370,7 +373,9 @@ struct CodexPermissionApprovalView: View {
         if canRespondInNotch {
             submit(.reviewInCodex)
         } else {
-            manager.openCodex(for: notification)
+            Task {
+                await manager.openCodex(for: notification)
+            }
         }
     }
 

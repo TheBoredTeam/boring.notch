@@ -42,6 +42,83 @@ public enum CodexNotificationTiming {
     }
 }
 
+public enum CodexApplicationRoute {
+    public static let officialBundleIdentifier = "com.openai.codex"
+    public static let settingsURL = URL(string: "codex://settings")!
+
+    public static func threadURL(sessionID: String) -> URL? {
+        guard !sessionID.isEmpty else { return nil }
+        let allowedCharacters = CharacterSet.alphanumerics.union(
+            CharacterSet(charactersIn: "-_")
+        )
+        guard let encodedSessionID = sessionID.addingPercentEncoding(
+            withAllowedCharacters: allowedCharacters
+        ) else {
+            return nil
+        }
+        return URL(string: "codex://threads/\(encodedSessionID)")
+    }
+}
+
+public enum CodexApplicationLaunchError: LocalizedError, Equatable {
+    case applicationUnavailable
+
+    public var errorDescription: String? {
+        switch self {
+        case .applicationUnavailable:
+            "The official Codex app could not be found. Install or reopen Codex, then try again."
+        }
+    }
+}
+
+@MainActor
+public protocol CodexApplicationWorkspace: AnyObject {
+    func urlForApplication(withBundleIdentifier bundleIdentifier: String) -> URL?
+    func open(_ url: URL?, withApplicationAt applicationURL: URL) async throws
+}
+
+@MainActor
+public struct CodexApplicationLauncher {
+    private let workspace: any CodexApplicationWorkspace
+
+    public init(workspace: any CodexApplicationWorkspace) {
+        self.workspace = workspace
+    }
+
+    public func open(_ url: URL?) async throws {
+        guard let applicationURL = workspace.urlForApplication(
+            withBundleIdentifier: CodexApplicationRoute.officialBundleIdentifier
+        ) else {
+            throw CodexApplicationLaunchError.applicationUnavailable
+        }
+        try await workspace.open(url, withApplicationAt: applicationURL)
+    }
+}
+
+@MainActor
+public enum CodexPermissionReviewHandoff {
+    public static func perform(
+        openCodex: () async throws -> Void,
+        handOffPermission: () async throws -> Void
+    ) async throws {
+        try await openCodex()
+        try await handOffPermission()
+    }
+}
+
+public enum CodexClosedActivityTapRouting: Equatable, Sendable {
+    case expandNotch
+    case openCodex
+
+    public init(status: CodexJobStatus) {
+        if status == .needsAction(.permission) {
+            self = .expandNotch
+        } else {
+            self = .openCodex
+        }
+    }
+}
+
 public struct CodexNotificationReplayGuard: Sendable {
     private let lifetime: TimeInterval
     private var acceptedPayloads = [String: Date]()

@@ -1,41 +1,146 @@
 import Foundation
 import XCTest
+@testable import CodexNotificationsCore
 
+@MainActor
 final class CodexCallbackRoutingTests: XCTestCase {
-    func testCodexDeepLinksAreOpenedWithTheOfficialApplication() throws {
-        let repositoryRoot = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-        let managerSource = try String(
-            contentsOf: repositoryRoot.appendingPathComponent(
-                "boringNotch/features/CodexNotifications/CodexNotificationManager.swift"
-            ),
-            encoding: .utf8
-        )
-        let settingsSource = try String(
-            contentsOf: repositoryRoot.appendingPathComponent(
-                "boringNotch/components/Settings/Views/CodexNotificationSettingsView.swift"
-            ),
-            encoding: .utf8
+    func testThreadRouteTargetsTheOfficialCodexApplication() async throws {
+        let workspace = RecordingCodexWorkspace()
+        workspace.applicationURL = URL(fileURLWithPath: "/Applications/Codex.app")
+        let launcher = CodexApplicationLauncher(workspace: workspace)
+        let threadURL = try XCTUnwrap(
+            CodexApplicationRoute.threadURL(sessionID: "thread:with/slashes")
         )
 
-        XCTAssertTrue(
-            managerSource.contains("withApplicationAt: applicationURL"),
-            "Codex deep links must be opened with the official Codex application URL."
+        try await launcher.open(threadURL)
+
+        XCTAssertEqual(workspace.requestedBundleIdentifiers, ["com.openai.codex"])
+        XCTAssertEqual(
+            workspace.openedRequests,
+            [.init(applicationURL: workspace.applicationURL!, url: threadURL)]
         )
-        XCTAssertFalse(
-            managerSource.contains("NSWorkspace.shared.open(threadURL)"),
-            "Thread URLs must not be sent to the machine's generic codex: scheme handler."
-        )
-        XCTAssertTrue(
-            settingsSource.contains(
-                "CodexNotificationManager.shared.openCodex(at: hooksURL)"
-            ),
-            "The settings action must use the same targeted Codex launcher."
-        )
-        XCTAssertFalse(
-            settingsSource.contains("NSWorkspace.shared.open(hooksURL)"),
-            "Settings URLs must not be sent to the machine's generic codex: scheme handler."
+        XCTAssertEqual(threadURL.absoluteString, "codex://threads/thread%3Awith%2Fslashes")
+    }
+
+    func testSettingsRouteUsesTheSameOfficialApplicationTarget() async throws {
+        let workspace = RecordingCodexWorkspace()
+        workspace.applicationURL = URL(fileURLWithPath: "/Applications/Codex.app")
+        let launcher = CodexApplicationLauncher(workspace: workspace)
+
+        try await launcher.open(CodexApplicationRoute.settingsURL)
+
+        XCTAssertEqual(workspace.requestedBundleIdentifiers, ["com.openai.codex"])
+        XCTAssertEqual(
+            workspace.openedRequests,
+            [.init(
+                applicationURL: workspace.applicationURL!,
+                url: CodexApplicationRoute.settingsURL
+            )]
         )
     }
+
+    func testMissingOfficialApplicationFailsWithoutOpeningAGenericHandler() async {
+        let workspace = RecordingCodexWorkspace()
+        let launcher = CodexApplicationLauncher(workspace: workspace)
+
+        do {
+            try await launcher.open(CodexApplicationRoute.settingsURL)
+            XCTFail("Expected the official Codex application lookup to fail")
+        } catch {
+            XCTAssertEqual(error as? CodexApplicationLaunchError, .applicationUnavailable)
+        }
+
+        XCTAssertEqual(workspace.requestedBundleIdentifiers, ["com.openai.codex"])
+        XCTAssertTrue(workspace.openedRequests.isEmpty)
+    }
+
+    func testTargetedOpenFailureIsPropagated() async {
+        let workspace = RecordingCodexWorkspace()
+        workspace.applicationURL = URL(fileURLWithPath: "/Applications/Codex.app")
+        workspace.openError = TestError.openFailed
+        let launcher = CodexApplicationLauncher(workspace: workspace)
+
+        do {
+            try await launcher.open(CodexApplicationRoute.settingsURL)
+            XCTFail("Expected the targeted Codex launch to fail")
+        } catch {
+            XCTAssertEqual(error as? TestError, .openFailed)
+        }
+
+        XCTAssertEqual(workspace.openedRequests.count, 1)
+    }
+
+    func testPermissionTapExpandsWhilePassiveNotificationTapOpensCodex() {
+        XCTAssertEqual(
+            CodexClosedActivityTapRouting(status: .needsAction(.permission)),
+            .expandNotch
+        )
+        XCTAssertEqual(
+            CodexClosedActivityTapRouting(status: .succeeded),
+            .openCodex
+        )
+        XCTAssertEqual(
+            CodexClosedActivityTapRouting(status: .failed),
+            .openCodex
+        )
+    }
+
+    func testReviewHandoffLaunchesCodexBeforeConsumingThePermission() async throws {
+        var events: [String] = []
+
+        try await CodexPermissionReviewHandoff.perform(
+            openCodex: { events.append("open") },
+            handOffPermission: { events.append("handoff") }
+        )
+
+        XCTAssertEqual(events, ["open", "handoff"])
+    }
+
+    func testReviewHandoffDoesNotConsumePermissionWhenLaunchFails() async {
+        var events: [String] = []
+
+        do {
+            try await CodexPermissionReviewHandoff.perform(
+                openCodex: {
+                    events.append("open")
+                    throw TestError.openFailed
+                },
+                handOffPermission: { events.append("handoff") }
+            )
+            XCTFail("Expected the Codex launch to fail")
+        } catch {
+            XCTAssertEqual(error as? TestError, .openFailed)
+        }
+
+        XCTAssertEqual(events, ["open"])
+    }
+}
+
+@MainActor
+private final class RecordingCodexWorkspace: CodexApplicationWorkspace {
+    struct OpenRequest: Equatable {
+        let applicationURL: URL
+        let url: URL?
+    }
+
+    var applicationURL: URL?
+    var openError: Error?
+    private(set) var requestedBundleIdentifiers: [String] = []
+    private(set) var openedRequests: [OpenRequest] = []
+
+    func urlForApplication(withBundleIdentifier bundleIdentifier: String) -> URL? {
+        requestedBundleIdentifiers.append(bundleIdentifier)
+        return applicationURL
+    }
+
+    func open(_ url: URL?, withApplicationAt applicationURL: URL) async throws {
+        openedRequests.append(.init(applicationURL: applicationURL, url: url))
+        if let openError {
+            throw openError
+        }
+    }
+}
+
+private enum TestError: Error, Equatable {
+    case openFailed
 }

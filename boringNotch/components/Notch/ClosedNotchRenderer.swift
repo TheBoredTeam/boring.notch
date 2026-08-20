@@ -95,15 +95,19 @@ struct ClosedNotchRenderer: View {
 
         case .extensionActivity(let id):
             if let activity = snapshot.extensionActivities[id] {
-                activity.content
-                    .transition(extensionActivityTransition)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        if let onSelect = activity.onSelect {
+                if let onSelect = activity.onSelect {
+                    activity.content
+                        .transition(extensionActivityTransition)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
                             onActivitySelect?()
                             onSelect()
                         }
-                    }
+                } else {
+                    activity.content
+                        .transition(extensionActivityTransition)
+                        .contentShape(Rectangle())
+                }
             }
 
         case .idle:

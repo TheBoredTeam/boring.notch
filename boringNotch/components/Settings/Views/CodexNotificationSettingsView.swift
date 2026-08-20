@@ -114,8 +114,16 @@ struct CodexNotificationSettings: View {
     }
 
     private func openCodexHooks() {
-        guard let hooksURL = URL(string: "codex://settings") else { return }
-        CodexNotificationManager.shared.openCodex(at: hooksURL)
+        Task {
+            let manager = CodexNotificationManager.shared
+            guard await manager.openCodex(
+                at: CodexApplicationRoute.settingsURL
+            ) else {
+                errorMessage = manager.lastError
+                return
+            }
+            errorMessage = nil
+        }
     }
 }
 

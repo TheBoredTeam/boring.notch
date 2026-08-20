@@ -32,6 +32,9 @@ final class CodexNotificationManager: ObservableObject {
     private var replayGuard = CodexNotificationReplayGuard(
         lifetime: CodexNotificationManager.authenticatedPayloadLifetime
     )
+    private let applicationLauncher = CodexApplicationLauncher(
+        workspace: NSWorkspaceCodexApplicationWorkspace()
+    )
 
     var visibleNotification: CodexJobNotification? {
         presentedNotification
@@ -180,7 +183,21 @@ final class CodexNotificationManager: ObservableObject {
         defer { submittingNotificationIDs.remove(notification.id) }
 
         do {
-            try await CodexPermissionRelay.submit(decision, callback: callback)
+            if decision == .reviewInCodex {
+                let threadURL = CodexApplicationRoute.threadURL(
+                    sessionID: notification.sessionID
+                )
+                try await CodexPermissionReviewHandoff.perform(
+                    openCodex: {
+                        try await self.applicationLauncher.open(threadURL)
+                    },
+                    handOffPermission: {
+                        try await CodexPermissionRelay.submit(decision, callback: callback)
+                    }
+                )
+            } else {
+                try await CodexPermissionRelay.submit(decision, callback: callback)
+            }
         } catch {
             lastError = error.localizedDescription
             return false
@@ -199,56 +216,28 @@ final class CodexNotificationManager: ObservableObject {
         clearExpandedPermissionIfNeeded()
         schedulePermissionExpiration()
         synchronizePresentedNotification()
-        if decision == .reviewInCodex {
-            openCodex(for: notification)
-        }
         return true
     }
 
-    func openCodex(for notification: CodexJobNotification? = nil) {
-        openCodex(at: notification.flatMap(codexThreadURL))
-    }
-
-    func openCodex(at url: URL?) {
-        let workspace = NSWorkspace.shared
-        guard let applicationURL = workspace.urlForApplication(
-            withBundleIdentifier: "com.openai.codex"
-        ) else {
-            return
-        }
-        let configuration = NSWorkspace.OpenConfiguration()
-
-        if let url {
-            workspace.open(
-                [url],
-                withApplicationAt: applicationURL,
-                configuration: configuration,
-                completionHandler: nil
-            )
-        } else {
-            workspace.openApplication(
-                at: applicationURL,
-                configuration: configuration
-            )
-        }
-    }
-
-    func openCodexAndDismiss() {
-        openCodex()
-        dismissVisibleNotification()
-    }
-
-    private func codexThreadURL(for notification: CodexJobNotification) -> URL? {
-        guard !notification.sessionID.isEmpty else { return nil }
-        let allowedCharacters = CharacterSet.alphanumerics.union(
-            CharacterSet(charactersIn: "-_")
+    @discardableResult
+    func openCodex(for notification: CodexJobNotification? = nil) async -> Bool {
+        await openCodex(
+            at: notification.flatMap {
+                CodexApplicationRoute.threadURL(sessionID: $0.sessionID)
+            }
         )
-        guard let encodedSessionID = notification.sessionID.addingPercentEncoding(
-            withAllowedCharacters: allowedCharacters
-        ) else {
-            return nil
+    }
+
+    @discardableResult
+    func openCodex(at url: URL?) async -> Bool {
+        do {
+            try await applicationLauncher.open(url)
+            lastError = nil
+            return true
+        } catch {
+            lastError = error.localizedDescription
+            return false
         }
-        return URL(string: "codex://threads/\(encodedSessionID)")
     }
 
     func setPassivePresentationHovered(
@@ -513,6 +502,44 @@ final class CodexNotificationManager: ObservableObject {
             self.clearExpandedPermissionIfNeeded()
             self.synchronizePresentedNotification()
             self.schedulePermissionExpiration()
+        }
+    }
+}
+
+@MainActor
+private final class NSWorkspaceCodexApplicationWorkspace: CodexApplicationWorkspace {
+    private let workspace = NSWorkspace.shared
+
+    func urlForApplication(withBundleIdentifier bundleIdentifier: String) -> URL? {
+        workspace.urlForApplication(withBundleIdentifier: bundleIdentifier)
+    }
+
+    func open(_ url: URL?, withApplicationAt applicationURL: URL) async throws {
+        let configuration = NSWorkspace.OpenConfiguration()
+        try await withCheckedThrowingContinuation {
+            (continuation: CheckedContinuation<Void, Error>) in
+            let completion: @Sendable (NSRunningApplication?, Error?) -> Void = { _, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }
+
+            if let url {
+                workspace.open(
+                    [url],
+                    withApplicationAt: applicationURL,
+                    configuration: configuration,
+                    completionHandler: completion
+                )
+            } else {
+                workspace.openApplication(
+                    at: applicationURL,
+                    configuration: configuration,
+                    completionHandler: completion
+                )
+            }
         }
     }
 }
