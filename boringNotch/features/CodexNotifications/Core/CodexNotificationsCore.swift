@@ -1022,7 +1022,7 @@ public struct CodexNotificationState: Equatable, Sendable {
             of: marker,
             range: searchStart..<text.endIndex
         ) {
-            if !isNegated(at: range.lowerBound, in: text) {
+            if !isNegated(at: range.lowerBound, marker: marker, in: text) {
                 return true
             }
             searchStart = range.upperBound
@@ -1032,6 +1032,7 @@ public struct CodexNotificationState: Equatable, Sendable {
 
     private static func isNegated(
         at markerStart: String.Index,
+        marker: String,
         in text: String
     ) -> Bool {
         let prefix = text[..<markerStart]
@@ -1049,9 +1050,25 @@ public struct CodexNotificationState: Equatable, Sendable {
             separatedBy: tokenCharacters.inverted
         ).filter { !$0.isEmpty }
 
-        let contrastWords: Set<String> = ["but", "however", "yet"]
-        if let contrastIndex = tokens.lastIndex(where: { contrastWords.contains($0) }) {
-            tokens = Array(tokens[tokens.index(after: contrastIndex)...])
+        let unconditionalBoundaries: Set<String> = ["but", "however", "yet"]
+        let clauseBoundaries: Set<String> = ["and", "because", "so"]
+        let clauseStarters: Set<String> = [
+            "he", "i", "it", "please", "she", "that", "they", "this",
+            "those", "we", "you", "your",
+        ]
+        let markerFirstToken = marker.components(
+            separatedBy: tokenCharacters.inverted
+        ).first { !$0.isEmpty }
+        let boundaryIndex = tokens.indices.reversed().first { index in
+            let token = tokens[index]
+            if unconditionalBoundaries.contains(token) { return true }
+            guard clauseBoundaries.contains(token) else { return false }
+            let followingTokens = tokens[tokens.index(after: index)...]
+            return followingTokens.contains(where: clauseStarters.contains)
+                || markerFirstToken.map(clauseStarters.contains) == true
+        }
+        if let boundaryIndex {
+            tokens = Array(tokens[tokens.index(after: boundaryIndex)...])
         }
 
         let negationReach: [String: Int] = [

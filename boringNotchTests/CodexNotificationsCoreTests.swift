@@ -951,6 +951,58 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertEqual(state.visibleNotification()?.status, .needsAction(.decision))
     }
 
+    func testAffirmativeInputRequestAfterCoordinatedNegatedClauseIsActionable() {
+        var state = CodexNotificationState()
+        state.reduce(.stop(
+            sessionID: "coordinated-negation",
+            turnID: "turn-1",
+            cwd: "/tmp/project",
+            result: "I did not change the API and I need your input.",
+            reportedStatus: "succeeded"
+        ))
+
+        XCTAssertEqual(state.visibleNotification()?.status, .needsAction(.decision))
+    }
+
+    func testAffirmativeInputRequestAfterCausalNegatedClauseIsActionable() {
+        var state = CodexNotificationState()
+        state.reduce(.stop(
+            sessionID: "causal-negation",
+            turnID: "turn-1",
+            cwd: "/tmp/project",
+            result: "Tests did not run because I need your input.",
+            reportedStatus: "succeeded"
+        ))
+
+        XCTAssertEqual(state.visibleNotification()?.status, .needsAction(.decision))
+    }
+
+    func testNotOnlyDoesNotNegateAnAffirmativeInputRequest() {
+        var state = CodexNotificationState()
+        state.reduce(.stop(
+            sessionID: "not-only",
+            turnID: "turn-1",
+            cwd: "/tmp/project",
+            result: "I do not only need your input; I also need your decision.",
+            reportedStatus: "succeeded"
+        ))
+
+        XCTAssertEqual(state.visibleNotification()?.status, .needsAction(.decision))
+    }
+
+    func testCoordinatedVerbsRemainInsideNegationScope() {
+        var state = CodexNotificationState()
+        state.reduce(.stop(
+            sessionID: "coordinated-verbs",
+            turnID: "turn-1",
+            cwd: "/tmp/project",
+            result: "I do not need to build and manually verify this.",
+            reportedStatus: "succeeded"
+        ))
+
+        XCTAssertEqual(state.visibleNotification()?.status, .succeeded)
+    }
+
     func testFailureResponseWithStatusTextIsFailed() {
         var state = CodexNotificationState()
         state.reduce(.stop(
