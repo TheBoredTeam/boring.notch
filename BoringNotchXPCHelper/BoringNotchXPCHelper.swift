@@ -432,6 +432,8 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
 // MARK: - System Metrics
 
+// CPU, GPU, and memory sampling adapted from Stats by Serhiy Mytrovtsiy:
+// https://github.com/exelban/stats (MIT License)
 private enum SystemMetricSampler {
     static func sample(requesting selection: BNSystemMetricSelection) -> BNSystemMetricPayload {
         let cpu: (user: UInt32, system: UInt32, idle: UInt32, nice: UInt32) =
