@@ -1,13 +1,14 @@
+import CryptoKit
 import Foundation
 
 public struct CodexHookTrustState: Sendable {
-    private let trustedSections: Set<String>
+    private let trustedHashes: [String: String]
     private let disabledSections: Set<String>
 
     public init(configuration: String) {
         let sectionPrefix = "[hooks.state.\""
         var currentSection: String?
-        var trustedSections = Set<String>()
+        var trustedHashes = [String: String]()
         var disabledSections = Set<String>()
 
         for rawLine in configuration.components(separatedBy: .newlines) {
@@ -36,7 +37,7 @@ public struct CodexHookTrustState: Sendable {
                       value.dropFirst("sha256:".count).allSatisfy(\.isHexDigit) else {
                     continue
                 }
-                trustedSections.insert(currentSection)
+                trustedHashes[currentSection] = value
             case "enabled" where value.lowercased() == "false":
                 disabledSections.insert(currentSection)
             default:
@@ -44,13 +45,60 @@ public struct CodexHookTrustState: Sendable {
             }
         }
 
-        self.trustedSections = trustedSections
+        self.trustedHashes = trustedHashes
         self.disabledSections = disabledSections
     }
 
-    public func areTrusted(_ expectedSections: Set<String>) -> Bool {
+    public func areTrusted(
+        _ expectedSections: Set<String>,
+        matching currentHashes: [String: String]
+    ) -> Bool {
         !expectedSections.isEmpty
-            && expectedSections.isSubset(of: trustedSections)
+            && expectedSections.allSatisfy {
+                trustedHashes[$0] == currentHashes[$0]
+            }
             && expectedSections.isDisjoint(with: disabledSections)
+    }
+
+    public static func currentHash(
+        eventName: String,
+        matcher: String? = nil,
+        command: String,
+        timeout: Int,
+        asynchronous: Bool = false,
+        statusMessage: String? = nil,
+        additionalContextLimit: Int? = nil
+    ) -> String {
+        var handler: [String: Any] = [
+            "type": "command",
+            "command": command,
+            "timeout": timeout,
+            "async": asynchronous,
+        ]
+        if let statusMessage {
+            handler["statusMessage"] = statusMessage
+        }
+        if let additionalContextLimit {
+            handler["additionalContextLimit"] = additionalContextLimit
+        }
+
+        var identity: [String: Any] = [
+            "event_name": eventName,
+            "hooks": [handler],
+        ]
+        if let matcher {
+            identity["matcher"] = matcher
+        }
+
+        guard let serialized = try? JSONSerialization.data(
+            withJSONObject: identity,
+            options: [.sortedKeys]
+        ) else {
+            return "sha256:"
+        }
+        let digest = SHA256.hash(data: serialized)
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
     }
 }

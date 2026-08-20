@@ -888,19 +888,31 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
                 .appendingPathComponent("config.toml")
             let configuration = try String(contentsOf: configURL, encoding: .utf8)
             let root = try readCodexHookConfiguration(at: urls.configuration)
-            let expectedSections = Set(Self.codexHookTrustEvents.compactMap {
-                codexHookTrustSection(
+            let trustEntries = Self.codexHookTrustEvents.compactMap {
+                codexHookTrustEntry(
                     in: root,
                     event: $0.0,
                     trustEvent: $0.1,
                     scriptURL: urls.script
                 )
-            })
-            guard expectedSections.count == Self.codexHookTrustEvents.count else {
+            }
+            guard trustEntries.count == Self.codexHookTrustEvents.count,
+                  Set(trustEntries.map(\.section)).count == Self.codexHookTrustEvents.count else {
                 reply(false)
                 return
             }
-            reply(CodexHookTrustState(configuration: configuration).areTrusted(expectedSections))
+            let expectedSections = Set(trustEntries.map(\.section))
+            let currentHashes = Dictionary(
+                uniqueKeysWithValues: trustEntries.map {
+                    ($0.section, $0.currentHash)
+                }
+            )
+            reply(
+                CodexHookTrustState(configuration: configuration).areTrusted(
+                    expectedSections,
+                    matching: currentHashes
+                )
+            )
         } catch {
             reply(false)
         }
@@ -1065,12 +1077,12 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             && handler["async"] == nil
     }
 
-    private func codexHookTrustSection(
+    private func codexHookTrustEntry(
         in root: [String: Any],
         event: String,
         trustEvent: String,
         scriptURL: URL
-    ) -> String? {
+    ) -> (section: String, currentHash: String)? {
         guard let hooks = root["hooks"] as? [String: Any],
               let groups = hooks[event] as? [[String: Any]] else { return nil }
 
@@ -1081,7 +1093,28 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             }
             for (handlerIndex, handler) in handlers.enumerated()
                 where handler["command"] as? String == codexHookCommand(scriptURL: scriptURL) {
-                return "\(codexHookURLs().configuration.path):\(trustEvent):\(groupIndex):\(handlerIndex)"
+                let timeout = max(handler["timeout"] as? Int ?? 600, 1)
+                let additionalContextLimit: Int?
+                if ["post_tool_use", "user_prompt_submit"].contains(trustEvent),
+                   let limit = handler["additionalContextLimit"] as? Int,
+                   limit != 2_500 {
+                    additionalContextLimit = limit
+                } else {
+                    additionalContextLimit = nil
+                }
+                let currentHash = CodexHookTrustState.currentHash(
+                    eventName: trustEvent,
+                    matcher: group["matcher"] as? String,
+                    command: codexHookCommand(scriptURL: scriptURL),
+                    timeout: timeout,
+                    asynchronous: handler["async"] as? Bool ?? false,
+                    statusMessage: handler["statusMessage"] as? String,
+                    additionalContextLimit: additionalContextLimit
+                )
+                return (
+                    "\(codexHookURLs().configuration.path):\(trustEvent):\(groupIndex):\(handlerIndex)",
+                    currentHash
+                )
             }
         }
         return nil

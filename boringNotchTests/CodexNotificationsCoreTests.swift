@@ -41,29 +41,56 @@ final class CodexNotificationsCoreTests: XCTestCase {
         )
     }
 
-    func testDisabledHookIsNotTrustedEvenWithAValidHash() {
+    func testDisabledHookIsNotTrustedEvenWithAMatchingHash() {
         let section = "/Users/example/.codex/hooks.json:permission_request:0:0"
+        let currentHash = "sha256:\(String(repeating: "a", count: 64))"
         let configuration = """
         [hooks.state."\(section)"]
-        trusted_hash = "sha256:\(String(repeating: "a", count: 64))"
+        trusted_hash = "\(currentHash)"
         enabled = false
         """
 
         let state = CodexHookTrustState(configuration: configuration)
 
-        XCTAssertFalse(state.areTrusted([section]))
+        XCTAssertFalse(state.areTrusted([section], matching: [section: currentHash]))
     }
 
     func testHookWithValidHashAndNoDisabledFlagIsTrusted() {
         let section = "/Users/example/.codex/hooks.json:stop:0:0"
+        let currentHash = "sha256:\(String(repeating: "b", count: 64))"
         let configuration = """
         [hooks.state."\(section)"]
-        trusted_hash = "sha256:\(String(repeating: "b", count: 64))"
+        trusted_hash = "\(currentHash)"
         """
 
         let state = CodexHookTrustState(configuration: configuration)
 
-        XCTAssertTrue(state.areTrusted([section]))
+        XCTAssertTrue(state.areTrusted([section], matching: [section: currentHash]))
+    }
+
+    func testHookWithMismatchedCurrentHashIsNotTrusted() {
+        let section = "/Users/example/.codex/hooks.json:stop:0:0"
+        let trustedHash = "sha256:\(String(repeating: "b", count: 64))"
+        let currentHash = "sha256:\(String(repeating: "c", count: 64))"
+        let configuration = """
+        [hooks.state."\(section)"]
+        trusted_hash = "\(trustedHash)"
+        """
+
+        let state = CodexHookTrustState(configuration: configuration)
+
+        XCTAssertFalse(state.areTrusted([section], matching: [section: currentHash]))
+    }
+
+    func testCurrentHashMatchesCodexNormalizedHookFingerprint() {
+        XCTAssertEqual(
+            CodexHookTrustState.currentHash(
+                eventName: "stop",
+                command: "echo hello",
+                timeout: 5
+            ),
+            "sha256:c6fba7cbd9f8faf1955357f62b47f4c4463889ebab2f1a7ddf3473acf4fe6837"
+        )
     }
 
     func testStatusIconsMatchNotchNotificationGlyphs() {
