@@ -12,10 +12,12 @@ from __future__ import annotations
 
 import ast
 import base64
+import ctypes
 import hashlib
 import hmac
 import io
 import json
+import os
 from pathlib import Path
 import tempfile
 import textwrap
@@ -29,6 +31,30 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 HELPER_SOURCE_PATH = REPOSITORY_ROOT / "BoringNotchXPCHelper" / "BoringNotchXPCHelper.swift"
 SCRIPT_START = 'private static let codexNotificationScript = #"""\n'
 SCRIPT_END = '\n    """#'
+
+
+def add_extended_read_acl(path: Path) -> None:
+    libc = ctypes.CDLL(None, use_errno=True)
+    libc.acl_from_text.argtypes = [ctypes.c_char_p]
+    libc.acl_from_text.restype = ctypes.c_void_p
+    libc.acl_set_fd_np.argtypes = [ctypes.c_int, ctypes.c_void_p, ctypes.c_int]
+    libc.acl_free.argtypes = [ctypes.c_void_p]
+
+    access_list = libc.acl_from_text(
+        b"!#acl 1\n"
+        b"group:ABCDEFAB-CDEF-ABCD-EFAB-CDEF00000014:staff:20:allow:read\n"
+    )
+    if not access_list:
+        raise OSError(ctypes.get_errno(), "acl_from_text failed")
+    try:
+        descriptor = os.open(path, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW)
+        try:
+            if libc.acl_set_fd_np(descriptor, access_list, 0x100) != 0:
+                raise OSError(ctypes.get_errno(), "acl_set_fd_np failed")
+        finally:
+            os.close(descriptor)
+    finally:
+        libc.acl_free(access_list)
 
 
 def embedded_hook_source() -> str:
@@ -201,6 +227,35 @@ class CodexNotificationHookTests(unittest.TestCase):
             target_path.write_bytes(bytes(range(32)))
             target_path.chmod(0o600)
             (temporary_path / "boring-notch-notify.secret").symlink_to(target_path)
+            namespace["__file__"] = str(temporary_path / "boring-notch-notify.py")
+
+            calls: list[list[str]] = []
+
+            def fake_run(args: list[str], **_: object) -> types.SimpleNamespace:
+                calls.append(args)
+                return types.SimpleNamespace(returncode=0)
+
+            original_run = namespace["subprocess"].run
+            namespace["subprocess"].run = fake_run
+            try:
+                self.assertFalse(
+                    hook({"hook_event_name": "Stop", "session_id": "unsafe"})
+                )
+            finally:
+                namespace["subprocess"].run = original_run
+
+            self.assertEqual(calls, [])
+
+    def test_open_notch_rejects_secret_with_extended_acl(self) -> None:
+        namespace = embedded_hook_namespace()
+        hook = namespace["open_notch"]
+
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            temporary_path = Path(temporary_directory)
+            secret_path = temporary_path / "boring-notch-notify.secret"
+            secret_path.write_bytes(bytes(range(32)))
+            secret_path.chmod(0o600)
+            add_extended_read_acl(secret_path)
             namespace["__file__"] = str(temporary_path / "boring-notch-notify.py")
 
             calls: list[list[str]] = []

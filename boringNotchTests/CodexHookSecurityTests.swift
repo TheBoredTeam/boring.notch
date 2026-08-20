@@ -293,6 +293,26 @@ final class CodexHookSecurityTests: XCTestCase {
         XCTAssertEqual(loaded, expected)
     }
 
+    func testHookSecretStoreLoadOrCreateRejectsExtendedACL() throws {
+        let directory = try makeACLTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let secretURL = directory.appendingPathComponent("hook.secret")
+        try Data(repeating: 0x5A, count: 32).write(to: secretURL)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o600],
+            ofItemAtPath: secretURL.path
+        )
+        try addExtendedReadACL(to: secretURL)
+        XCTAssertTrue(try hasExtendedACLEntries(at: secretURL))
+
+        XCTAssertThrowsError(
+            try CodexHookSecretStore.loadOrCreate(at: secretURL) {
+                XCTFail("An ACL-bearing secret must not be regenerated")
+                return Data(repeating: 0xA5, count: 32)
+            }
+        )
+    }
+
     func testHookSecretStoreRuntimeLoadRejectsBroadPermissions() throws {
         let directory = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -338,6 +358,43 @@ final class CodexHookSecurityTests: XCTestCase {
         XCTAssertEqual(try CodexHookSecretStore.load(at: secretURL), expected)
     }
 
+    func testHookSecretStoreRuntimeLoadRejectsExtendedACL() throws {
+        let directory = try makeACLTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let secretURL = directory.appendingPathComponent("hook.secret")
+        try Data(repeating: 0x5A, count: 32).write(to: secretURL)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o600],
+            ofItemAtPath: secretURL.path
+        )
+        try addExtendedReadACL(to: secretURL)
+        XCTAssertTrue(try hasExtendedACLEntries(at: secretURL))
+
+        XCTAssertThrowsError(try CodexHookSecretStore.load(at: secretURL))
+    }
+
+    func testClearingExtendedACLRemovesEntriesFromDescriptor() throws {
+        let directory = try makeACLTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let secretURL = directory.appendingPathComponent("hook.secret")
+        try Data(repeating: 0xA5, count: 32).write(to: secretURL)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o600],
+            ofItemAtPath: secretURL.path
+        )
+        try addExtendedReadACL(to: secretURL)
+        XCTAssertTrue(try hasExtendedACLEntries(at: secretURL))
+
+        let descriptor = secretURL.path.withCString {
+            Darwin.open($0, O_RDWR | O_CLOEXEC | O_NOFOLLOW)
+        }
+        guard descriptor >= 0 else { throw systemError() }
+        defer { Darwin.close(descriptor) }
+        try CodexHookSecretStore.clearExtendedACL(from: descriptor)
+
+        XCTAssertFalse(try hasExtendedACLEntries(at: secretURL))
+    }
+
     func testReplayGuardRejectsDuplicatesUntilTheirLifetimeExpires() {
         var guardState = CodexNotificationReplayGuard(lifetime: 120)
 
@@ -377,5 +434,52 @@ final class CodexHookSecurityTests: XCTestCase {
             withIntermediateDirectories: false
         )
         return directory
+    }
+
+    private func makeACLTemporaryDirectory() throws -> URL {
+        let directory = URL(fileURLWithPath: "/tmp", isDirectory: true)
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(
+            at: directory,
+            withIntermediateDirectories: false
+        )
+        return directory
+    }
+
+    private func addExtendedReadACL(to url: URL) throws {
+        let descriptor = url.path.withCString {
+            Darwin.open($0, O_RDONLY | O_CLOEXEC | O_NOFOLLOW)
+        }
+        guard descriptor >= 0 else { throw systemError() }
+        defer { Darwin.close(descriptor) }
+
+        let text = "!#acl 1\ngroup:ABCDEFAB-CDEF-ABCD-EFAB-CDEF00000014:staff:20:allow:read\n"
+        guard let accessList = text.withCString(acl_from_text) else {
+            throw systemError()
+        }
+        defer { acl_free(UnsafeMutableRawPointer(accessList)) }
+
+        guard acl_set_fd_np(descriptor, accessList, ACL_TYPE_EXTENDED) == 0 else {
+            throw systemError()
+        }
+    }
+
+    private func hasExtendedACLEntries(at url: URL) throws -> Bool {
+        let descriptor = url.path.withCString {
+            Darwin.open($0, O_RDONLY | O_CLOEXEC | O_NOFOLLOW | O_NONBLOCK)
+        }
+        guard descriptor >= 0 else { throw systemError() }
+        defer { Darwin.close(descriptor) }
+
+        if let accessList = acl_get_fd_np(descriptor, ACL_TYPE_EXTENDED) {
+            acl_free(UnsafeMutableRawPointer(accessList))
+            return true
+        }
+        if errno == ENOENT { return false }
+        throw systemError()
+    }
+
+    private func systemError() -> NSError {
+        NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
     }
 }

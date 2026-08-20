@@ -138,6 +138,7 @@ public enum CodexHookSecretStore {
         guard Darwin.fchmod(createdDescriptor, ownerOnlyPermissions) == 0 else {
             throw CodexHookSecretStoreError.system(errno)
         }
+        try clearExtendedACL(from: createdDescriptor)
         try write(secret, to: createdDescriptor)
         guard Darwin.fsync(createdDescriptor) == 0 else {
             throw CodexHookSecretStoreError.system(errno)
@@ -177,8 +178,30 @@ public enum CodexHookSecretStore {
               attributes.st_uid == geteuid(),
               attributes.st_nlink == 1,
               permissions == ownerOnlyPermissions,
-              attributes.st_size == off_t(secretLength) else {
+              attributes.st_size == off_t(secretLength),
+              try !hasExtendedACLEntries(on: descriptor) else {
             throw CodexHookSecretStoreError.unsafeExistingFile
+        }
+    }
+
+    private static func hasExtendedACLEntries(on descriptor: Int32) throws -> Bool {
+        errno = 0
+        if let accessList = acl_get_fd_np(descriptor, ACL_TYPE_EXTENDED) {
+            acl_free(UnsafeMutableRawPointer(accessList))
+            return true
+        }
+        let accessListError = errno
+        if accessListError == ENOENT { return false }
+        throw CodexHookSecretStoreError.system(accessListError)
+    }
+
+    static func clearExtendedACL(from descriptor: Int32) throws {
+        guard let emptyAccessList = acl_init(0) else {
+            throw CodexHookSecretStoreError.system(errno)
+        }
+        defer { acl_free(UnsafeMutableRawPointer(emptyAccessList)) }
+        guard acl_set_fd_np(descriptor, emptyAccessList, ACL_TYPE_EXTENDED) == 0 else {
+            throw CodexHookSecretStoreError.system(errno)
         }
     }
 

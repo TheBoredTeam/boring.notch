@@ -382,6 +382,8 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     private static let codexHookSecretMarker = "boring-notch-notify.secret"
     private static let codexNotificationScript = #"""
     import base64
+    import ctypes
+    import errno
     import hashlib
     import hmac
     import json
@@ -504,6 +506,25 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             and attributes.st_size == 32
         )
 
+    def descriptor_has_extended_acl(descriptor):
+        libc = ctypes.CDLL(None, use_errno=True)
+        libc.acl_get_fd_np.argtypes = [ctypes.c_int, ctypes.c_int]
+        libc.acl_get_fd_np.restype = ctypes.c_void_p
+        libc.acl_free.argtypes = [ctypes.c_void_p]
+        libc.acl_free.restype = ctypes.c_int
+
+        ctypes.set_errno(0)
+        access_list = libc.acl_get_fd_np(descriptor, 0x100)
+        if not access_list:
+            error_number = ctypes.get_errno()
+            if error_number == errno.ENOENT:
+                return False
+            raise OSError(error_number, os.strerror(error_number))
+        try:
+            return True
+        finally:
+            libc.acl_free(access_list)
+
     def read_hook_secret(secret_path):
         try:
             descriptor = os.open(
@@ -514,7 +535,10 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             return None
 
         try:
-            if not safe_secret_attributes(os.fstat(descriptor)):
+            if (
+                not safe_secret_attributes(os.fstat(descriptor))
+                or descriptor_has_extended_acl(descriptor)
+            ):
                 return None
             secret = b""
             while len(secret) < 32:
@@ -522,7 +546,10 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
                 if not chunk:
                     return None
                 secret += chunk
-            if not safe_secret_attributes(os.fstat(descriptor)):
+            if (
+                not safe_secret_attributes(os.fstat(descriptor))
+                or descriptor_has_extended_acl(descriptor)
+            ):
                 return None
             return secret
         except OSError:
