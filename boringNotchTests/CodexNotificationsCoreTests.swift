@@ -920,6 +920,10 @@ final class CodexNotificationsCoreTests: XCTestCase {
             "Fixed the command failed regression. All tests passed.",
             "Fixed the issue where the command failed. All tests passed.",
             "The command failed initially; after fixing it, all tests passed.",
+            "The command failed and I fixed it. All tests passed.",
+            "Tests failed. Fixed the test runner. All tests passed.",
+            "The command failed. Fixed the issue. All tests passed.",
+            "Tests failed. Fixed that. All tests passed.",
         ] {
             XCTAssertEqual(
                 try productionStopStatus(message),
@@ -937,6 +941,13 @@ final class CodexNotificationsCoreTests: XCTestCase {
             "Addressed command failed again.",
             "Fixed lint but the command failed. All tests passed.",
             "The command failed and was not fixed. All tests passed.",
+            "Fixed lint and tests failed. Build succeeded.",
+            "Tests failed. Fixed documentation. Build succeeded.",
+            "Fixed documentation and the command failed. Build succeeded.",
+            "Tests failed. Fixed a command issue. Build succeeded.",
+            "Fixed a test issue where the command failed. Build succeeded.",
+            "Tests failed. Fixed documentation so that the build succeeded.",
+            "The command failed and wasn't fixed. All tests passed.",
             "Fixed the issue where the command failed. Tests are still failing.",
             "The command failed initially; after fixing it, not all tests passed.",
         ] {
@@ -953,6 +964,10 @@ final class CodexNotificationsCoreTests: XCTestCase {
             "Not all tests passed.",
             "The build did not succeed.",
             "Tests are still failing.",
+            "The tests did not pass.",
+            "The tests haven't passed.",
+            "The build wasn't successful.",
+            "Tests still fail.",
         ] {
             XCTAssertEqual(
                 try productionStopStatus(message),

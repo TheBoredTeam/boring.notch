@@ -945,9 +945,14 @@ public struct CodexNotificationState: Equatable, Sendable {
             "stopped before completing", "stopped by user", "error:",
             "command failed", "status: failed", "failed (exit code",
             "not all tests passed", "did not succeed",
+            "did not pass", "haven't passed", "hasn't passed",
+            "was not successful", "were not successful",
+            "wasn't successful", "weren't successful",
             "tests are failing", "tests are still failing",
             "test is failing", "test is still failing",
-            "build is failing", "build is still failing"
+            "build is failing", "build is still failing",
+            "tests still fail", "test still fails", "build still fails",
+            "command still fails", "task still fails"
         ]
         let successMarkers = [
             "build succeeded", "tests passed", "all tests passed",
@@ -1157,7 +1162,8 @@ public struct CodexNotificationState: Equatable, Sendable {
 
         let negations: Set<String> = [
             "0", "no", "not", "never", "without", "zero", "cannot", "don't",
-            "doesn't", "didn't", "won't", "can't",
+            "doesn't", "didn't", "won't", "can't", "haven't", "hasn't",
+            "wasn't", "weren't",
         ]
         for index in tokens.indices.reversed() {
             guard negations.contains(tokens[index]) else { continue }
@@ -1183,7 +1189,10 @@ public struct CodexNotificationState: Equatable, Sendable {
             character.unicodeScalars.contains { clauseSeparators.contains($0) }
         }.map { text.index(after: $0) } ?? text.startIndex
         let resolutionFrameBoundaries = wordRanges(
-            ["although", "but", "however", "though", "whereas", "while", "yet"],
+            [
+                "although", "and", "because", "but", "however", "since", "so",
+                "though", "whereas", "while", "yet",
+            ],
             in: text
         )
         let isFramedByResolution = resolutionRanges.contains { resolutionRange in
@@ -1191,10 +1200,17 @@ public struct CodexNotificationState: Equatable, Sendable {
                   resolutionRange.upperBound <= failureRange.lowerBound else {
                 return false
             }
-            return !resolutionFrameBoundaries.contains { boundaryRange in
+            guard !resolutionFrameBoundaries.contains(where: { boundaryRange in
                 boundaryRange.lowerBound >= resolutionRange.upperBound
                     && boundaryRange.upperBound <= failureRange.lowerBound
+            }) else {
+                return false
             }
+            return hasFailureReference(
+                between: resolutionRange.upperBound..<failureRange.lowerBound,
+                andAfter: failureRange,
+                in: text
+            )
         }
 
         return successRanges.contains { successRange in
@@ -1203,10 +1219,151 @@ public struct CodexNotificationState: Equatable, Sendable {
             }
             return isFramedByResolution
                 || resolutionRanges.contains { resolutionRange in
-                    resolutionRange.lowerBound >= failureRange.upperBound
-                        && resolutionRange.upperBound <= successRange.lowerBound
+                    guard resolutionRange.lowerBound >= failureRange.upperBound,
+                          resolutionRange.upperBound <= successRange.lowerBound else {
+                        return false
+                    }
+                    return resolutionRefersToFailure(
+                        resolutionRange,
+                        failureRange: failureRange,
+                        successRange: successRange,
+                        in: text
+                    )
                 }
         }
+    }
+
+    private static func hasFailureReference(
+        between leadingRange: Range<String.Index>,
+        andAfter failureRange: Range<String.Index>,
+        in text: String
+    ) -> Bool {
+        let referenceNouns: Set<String> = [
+            "bug", "case", "failure", "issue", "message", "problem",
+            "regression", "scenario", "text", "wording",
+        ]
+        let relationWords: Set<String> = ["that", "when", "where", "which"]
+        let leadingTokens = Set(tokens(in: leadingRange, of: text))
+        let clauseEnd = nextClauseBoundary(after: failureRange.upperBound, in: text)
+        let trailingTokens = tokens(
+            in: failureRange.upperBound..<clauseEnd,
+            of: text
+        )
+        let nearbyTrailingTokens = Set(trailingTokens.prefix(3))
+        let referenceDomains = normalizedDomains(
+            in: Array(leadingTokens.union(nearbyTrailingTokens))
+        )
+        let failureDomains = normalizedFailureDomains(
+            in: failureRange,
+            of: text
+        )
+        if !referenceDomains.isEmpty,
+           !failureDomains.isEmpty,
+           referenceDomains.isDisjoint(with: failureDomains) {
+            return false
+        }
+        return (!leadingTokens.isDisjoint(with: referenceNouns)
+            && !leadingTokens.isDisjoint(with: relationWords))
+            || !nearbyTrailingTokens.isDisjoint(with: referenceNouns)
+    }
+
+    private static func resolutionRefersToFailure(
+        _ resolutionRange: Range<String.Index>,
+        failureRange: Range<String.Index>,
+        successRange: Range<String.Index>,
+        in text: String
+    ) -> Bool {
+        let clauseStart = previousClauseBoundary(before: resolutionRange.lowerBound, in: text)
+        let localStart = max(clauseStart, failureRange.upperBound)
+        let clauseEnd = nextClauseBoundary(after: resolutionRange.upperBound, in: text)
+        let localEnd = min(clauseEnd, successRange.lowerBound)
+        guard localStart <= resolutionRange.lowerBound,
+              resolutionRange.upperBound <= localEnd else {
+            return false
+        }
+
+        let leadingTokens = tokens(
+            in: localStart..<resolutionRange.lowerBound,
+            of: text
+        )
+        let trailingTokens = tokens(
+            in: resolutionRange.upperBound..<localEnd,
+            of: text
+        )
+        let localTokens = Set(leadingTokens + trailingTokens)
+        let localDomains = normalizedDomains(in: Array(localTokens))
+        let failureDomains = normalizedFailureDomains(
+            in: failureRange,
+            of: text
+        )
+        if !localDomains.isEmpty,
+           !failureDomains.isEmpty {
+            return !localDomains.isDisjoint(with: failureDomains)
+        }
+        let referenceNouns: Set<String> = [
+            "bug", "case", "error", "failure", "issue", "message", "problem",
+            "regression", "scenario", "wording",
+        ]
+        if !localTokens.isDisjoint(with: referenceNouns) {
+            return true
+        }
+        let pronouns: Set<String> = ["it", "that", "them", "this", "those"]
+        let nearbyTokens = Set(
+            leadingTokens.suffix(2) + trailingTokens.prefix(2)
+        )
+        return !nearbyTokens.isDisjoint(with: pronouns)
+    }
+
+    private static func normalizedFailureDomains(
+        in range: Range<String.Index>,
+        of text: String
+    ) -> Set<String> {
+        normalizedDomains(in: tokens(in: range, of: text))
+    }
+
+    private static func normalizedDomains(in tokens: [String]) -> Set<String> {
+        Set(tokens.compactMap { token in
+            switch token {
+            case "test", "tests": "test"
+            case "build", "command", "task": token
+            default: nil
+            }
+        })
+    }
+
+    private static func tokens(
+        in range: Range<String.Index>,
+        of text: String
+    ) -> [String] {
+        let tokenCharacters = CharacterSet.alphanumerics.union(
+            CharacterSet(charactersIn: "'")
+        )
+        return text[range]
+            .replacingOccurrences(of: "’", with: "'")
+            .lowercased()
+            .components(separatedBy: tokenCharacters.inverted)
+            .filter { !$0.isEmpty }
+            .map { $0 == "tests" ? "test" : $0 }
+    }
+
+    private static func previousClauseBoundary(
+        before index: String.Index,
+        in text: String
+    ) -> String.Index {
+        let separators = CharacterSet(charactersIn: ".!?;:,\n\r")
+        return text[..<index].lastIndex { character in
+            character.unicodeScalars.contains { separators.contains($0) }
+        }.map { text.index(after: $0) } ?? text.startIndex
+    }
+
+    private static func nextClauseBoundary(
+        after index: String.Index,
+        in text: String
+    ) -> String.Index {
+        let separators = CharacterSet(charactersIn: ".!?;:,\n\r")
+        return text[index...].firstIndex { character in
+            character.unicodeScalars.contains { separators.contains($0) }
+        } ?? text.endIndex
     }
 }
 
