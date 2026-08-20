@@ -27,6 +27,7 @@ final class CodexNotificationManager: ObservableObject {
     private var passiveDismissalTransitionTask: Task<Void, Never>?
     private var passivePresentationToken: CodexNotificationPresentationToken?
     private var passivePresentationSurfaces = CodexNotificationPresentationSurfaces()
+    private var passivePresentationPolicy = CodexPassivePresentationPolicy()
     private var permissionExpirationTask: Task<Void, Never>?
     private var eventIngestionTask: Task<Void, Never>?
     private var replayGuard = CodexNotificationReplayGuard(
@@ -66,6 +67,7 @@ final class CodexNotificationManager: ObservableObject {
         passiveDismissalTransitionTask = nil
         passivePresentationToken = nil
         passivePresentationSurfaces.reset()
+        passivePresentationPolicy.reset()
         permissionExpirationTask?.cancel()
         permissionExpirationTask = nil
         eventIngestionTask?.cancel()
@@ -240,6 +242,57 @@ final class CodexNotificationManager: ObservableObject {
         }
     }
 
+    func selectCompactActivity(for notification: CodexJobNotification) {
+        let token = CodexNotificationPresentationToken(notification)
+        guard !notification.status.isPersistent,
+              presentedNotificationToken == token,
+              passivePresentationToken == token,
+              state.notifications.contains(where: token.matches),
+              passivePresentationPolicy.beginCompactLaunch(for: token) else {
+            return
+        }
+
+        lastError = nil
+        passivePresentationTask?.cancel()
+        passivePresentationTask = nil
+
+        Task { [weak self] in
+            guard let self else { return }
+            let didOpen = await self.openCodex(for: notification)
+            guard self.passivePresentationPolicy.preventsAutomaticDismissal(
+                of: token
+            ) else {
+                return
+            }
+
+            guard self.state.notifications.contains(where: token.matches) else {
+                self.passivePresentationPolicy.discardCompactLaunch(for: token)
+                return
+            }
+
+            if didOpen {
+                self.passivePresentationPolicy.recordCompactLaunchSuccess(for: token)
+                var updatedState = self.state
+                updatedState.dismiss(token)
+                self.state = updatedState
+                self.synchronizePresentedNotification()
+            } else {
+                self.passivePresentationPolicy.recordCompactLaunchFailure(
+                    self.lastError ?? "The official Codex app could not be opened.",
+                    for: token
+                )
+                self.passivePresentationTask?.cancel()
+                self.passivePresentationTask = nil
+            }
+        }
+    }
+
+    func compactLaunchError(for notification: CodexJobNotification) -> String? {
+        passivePresentationPolicy.compactLaunchError(
+            for: CodexNotificationPresentationToken(notification)
+        )
+    }
+
     func setPassivePresentationHovered(
         _ isHovered: Bool,
         for notification: CodexJobNotification,
@@ -334,6 +387,14 @@ final class CodexNotificationManager: ObservableObject {
         for token: CodexNotificationPresentationToken,
         after delay: TimeInterval
     ) {
+        guard !passivePresentationPolicy.preventsAutomaticDismissal(
+            of: token
+        ) else {
+            passivePresentationTask?.cancel()
+            passivePresentationTask = nil
+            return
+        }
+
         passivePresentationTask?.cancel()
         passivePresentationTask = Task { [weak self] in
             do {
@@ -355,7 +416,10 @@ final class CodexNotificationManager: ObservableObject {
         for token: CodexNotificationPresentationToken
     ) {
         guard passivePresentationToken == token,
-              presentedNotificationToken == token else {
+              presentedNotificationToken == token,
+              !passivePresentationPolicy.preventsAutomaticDismissal(
+                  of: token
+              ) else {
             return
         }
 
@@ -366,6 +430,10 @@ final class CodexNotificationManager: ObservableObject {
         withAnimation(StandardAnimations.open) {
             presentedNotification = nil
         }
+
+        var updatedState = state
+        passivePresentationPolicy.consumeBeforeFade(token, from: &updatedState)
+        state = updatedState
 
         passivePresentationTask = nil
         passiveDismissalTransitionTask?.cancel()
@@ -380,9 +448,6 @@ final class CodexNotificationManager: ObservableObject {
             self.passiveDismissalTransitionTask = nil
             self.passivePresentationToken = nil
             self.passivePresentationSurfaces.reset()
-            var updatedState = self.state
-            updatedState.dismiss(token.id)
-            self.state = updatedState
             self.synchronizePresentedNotification()
         }
     }
@@ -399,6 +464,9 @@ final class CodexNotificationManager: ObservableObject {
     }
 
     private func dismiss(notification: CodexJobNotification) {
+        passivePresentationPolicy.discardCompactLaunch(
+            for: CodexNotificationPresentationToken(notification)
+        )
         var updatedState = state
         updatedState.dismiss(notification.id)
         state = updatedState
@@ -541,15 +609,5 @@ private final class NSWorkspaceCodexApplicationWorkspace: CodexApplicationWorksp
                 )
             }
         }
-    }
-}
-
-struct CodexNotificationPresentationToken: Equatable {
-    let id: String
-    let createdAt: Date
-
-    init(_ notification: CodexJobNotification) {
-        id = notification.id
-        createdAt = notification.createdAt
     }
 }

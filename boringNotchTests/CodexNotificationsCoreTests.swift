@@ -832,6 +832,65 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertEqual(CodexNotificationTiming.passiveDwellDuration, 3)
     }
 
+    func testNewArrivalDuringPassiveFadeCannotResurfaceConsumedNotification() throws {
+        var state = CodexNotificationState()
+        var policy = CodexPassivePresentationPolicy()
+        state.reduce(.stop(
+            sessionID: "consumed-session",
+            turnID: "turn-1",
+            cwd: "/tmp/project",
+            result: "First task failed.",
+            reportedStatus: "failed"
+        ), at: Date(timeIntervalSince1970: 10))
+        let consumed = try XCTUnwrap(state.visibleNotification())
+
+        policy.consumeBeforeFade(
+            CodexNotificationPresentationToken(consumed),
+            from: &state
+        )
+        state.reduce(.stop(
+            sessionID: "new-session",
+            turnID: "turn-2",
+            cwd: "/tmp/project",
+            result: "Second task completed successfully.",
+            reportedStatus: "succeeded"
+        ), at: Date(timeIntervalSince1970: 20))
+
+        let newNotification = try XCTUnwrap(state.visibleNotification())
+        XCTAssertEqual(newNotification.sessionID, "new-session")
+        state.dismiss(newNotification.id)
+        XCTAssertNil(state.visibleNotification())
+        XCTAssertFalse(state.notifications.contains { $0.id == consumed.id })
+    }
+
+    func testCompactLaunchFailureRetainsOnlyTheMatchingNotificationForRetry() throws {
+        var state = CodexNotificationState()
+        var policy = CodexPassivePresentationPolicy()
+        state.reduce(.stop(
+            sessionID: "failed-launch",
+            turnID: "turn-1",
+            cwd: "/tmp/project",
+            result: "Task completed successfully.",
+            reportedStatus: "succeeded"
+        ), at: Date(timeIntervalSince1970: 10))
+        let notification = try XCTUnwrap(state.visibleNotification())
+        let token = CodexNotificationPresentationToken(notification)
+
+        XCTAssertTrue(policy.beginCompactLaunch(for: token))
+        XCTAssertTrue(policy.preventsAutomaticDismissal(of: token))
+        policy.recordCompactLaunchFailure("Codex could not be opened.", for: token)
+
+        XCTAssertTrue(policy.preventsAutomaticDismissal(of: token))
+        XCTAssertEqual(
+            policy.compactLaunchError(for: token),
+            "Codex could not be opened."
+        )
+        XCTAssertTrue(policy.beginCompactLaunch(for: token), "A failed launch must be retryable")
+        policy.recordCompactLaunchSuccess(for: token)
+        XCTAssertFalse(policy.preventsAutomaticDismissal(of: token))
+        XCTAssertNil(policy.compactLaunchError(for: token))
+    }
+
     func testPromptTransitionDurationUsesTheConfiguredAnimationResponse() {
         XCTAssertEqual(
             CodexNotificationTiming.transitionDuration(

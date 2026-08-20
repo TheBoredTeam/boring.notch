@@ -119,6 +119,118 @@ public enum CodexClosedActivityTapRouting: Equatable, Sendable {
     }
 }
 
+public struct CodexClosedActivityAccessibility: Equatable, Sendable {
+    public let value: String
+    public let hint: String
+
+    public init(
+        status: CodexJobStatus,
+        projectName: String,
+        launchError: String? = nil
+    ) {
+        if status == .needsAction(.permission) {
+            value = "Permission required."
+            hint = "Activate to review this permission in Boring Notch."
+        } else if let launchError {
+            value = launchError
+            hint = "Activate to retry opening this task in Codex."
+        } else {
+            value = "\(status.title). \(projectName)"
+            hint = "Activate to open this task in Codex."
+        }
+    }
+}
+
+public struct CodexNotificationPresentationToken: Equatable, Sendable {
+    public let id: String
+    public let createdAt: Date
+
+    public init(_ notification: CodexJobNotification) {
+        id = notification.id
+        createdAt = notification.createdAt
+    }
+
+    public func matches(_ notification: CodexJobNotification) -> Bool {
+        id == notification.id && createdAt == notification.createdAt
+    }
+}
+
+public struct CodexPassivePresentationPolicy: Equatable, Sendable {
+    private enum CompactLaunch: Equatable, Sendable {
+        case opening(CodexNotificationPresentationToken)
+        case failed(CodexNotificationPresentationToken, String)
+
+        var token: CodexNotificationPresentationToken {
+            switch self {
+            case .opening(let token), .failed(let token, _): token
+            }
+        }
+    }
+
+    private var compactLaunch: CompactLaunch?
+
+    public init() {}
+
+    public mutating func consumeBeforeFade(
+        _ token: CodexNotificationPresentationToken,
+        from state: inout CodexNotificationState
+    ) {
+        state.dismiss(token)
+        discardCompactLaunch(for: token)
+    }
+
+    public mutating func beginCompactLaunch(
+        for token: CodexNotificationPresentationToken
+    ) -> Bool {
+        if case .opening(let openingToken) = compactLaunch,
+           openingToken == token {
+            return false
+        }
+        compactLaunch = .opening(token)
+        return true
+    }
+
+    public mutating func recordCompactLaunchFailure(
+        _ message: String,
+        for token: CodexNotificationPresentationToken
+    ) {
+        guard case .opening(let openingToken) = compactLaunch,
+              openingToken == token else { return }
+        compactLaunch = .failed(token, message)
+    }
+
+    public mutating func recordCompactLaunchSuccess(
+        for token: CodexNotificationPresentationToken
+    ) {
+        discardCompactLaunch(for: token)
+    }
+
+    public func preventsAutomaticDismissal(
+        of token: CodexNotificationPresentationToken
+    ) -> Bool {
+        compactLaunch?.token == token
+    }
+
+    public func compactLaunchError(
+        for token: CodexNotificationPresentationToken
+    ) -> String? {
+        guard case .failed(let failedToken, let message) = compactLaunch,
+              failedToken == token else { return nil }
+        return message
+    }
+
+    public mutating func discardCompactLaunch(
+        for token: CodexNotificationPresentationToken
+    ) {
+        guard compactLaunch?.token == token else { return }
+        compactLaunch = nil
+    }
+
+    public mutating func reset() {
+        compactLaunch = nil
+    }
+}
+
 public struct CodexNotificationReplayGuard: Sendable {
     private let lifetime: TimeInterval
     private var acceptedPayloads = [String: Date]()
@@ -663,6 +775,10 @@ public struct CodexNotificationState: Equatable, Sendable {
 
     public mutating func dismiss(_ id: String) {
         notifications.removeAll { $0.id == id }
+    }
+
+    public mutating func dismiss(_ token: CodexNotificationPresentationToken) {
+        notifications.removeAll { token.matches($0) }
     }
 
     private mutating func makeNotification(

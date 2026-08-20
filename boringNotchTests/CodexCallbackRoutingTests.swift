@@ -85,6 +85,37 @@ final class CodexCallbackRoutingTests: XCTestCase {
         )
     }
 
+    func testPermissionAccessibilityDescribesReviewInsideBoringNotch() {
+        let accessibility = CodexClosedActivityAccessibility(
+            status: .needsAction(.permission),
+            projectName: "Example"
+        )
+
+        XCTAssertEqual(accessibility.value, "Permission required.")
+        XCTAssertEqual(
+            accessibility.hint,
+            "Activate to review this permission in Boring Notch."
+        )
+        XCTAssertFalse(accessibility.hint.contains("open Codex"))
+    }
+
+    func testFailedCompactLaunchAccessibilityOffersRetry() {
+        let accessibility = CodexClosedActivityAccessibility(
+            status: .failed,
+            projectName: "Example",
+            launchError: "The official Codex app could not be found."
+        )
+
+        XCTAssertEqual(
+            accessibility.value,
+            "The official Codex app could not be found."
+        )
+        XCTAssertEqual(
+            accessibility.hint,
+            "Activate to retry opening this task in Codex."
+        )
+    }
+
     func testReviewHandoffLaunchesCodexBeforeConsumingThePermission() async throws {
         var events: [String] = []
 

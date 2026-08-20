@@ -44,9 +44,9 @@ enum CodexNotificationExtension {
                 opensNotchOnHover: isPermissionRequest,
                 opensNotchOnTap: tapRouting == .expandNotch,
                 onSelect: tapRouting == .openCodex ? {
-                    Task {
-                        await CodexNotificationManager.shared.openCodex(for: notification)
-                    }
+                    CodexNotificationManager.shared.selectCompactActivity(
+                        for: notification
+                    )
                 } : nil
             )]
         }
@@ -136,8 +136,22 @@ private struct CodexClosedNotchPrompt: View {
     let presentationSurfaceID: String
     let metrics: ClosedNotchLayoutMetrics
 
+    @ObservedObject private var manager = CodexNotificationManager.shared
+
     private var isPermissionRequest: Bool {
         notification.status == .needsAction(.permission)
+    }
+
+    private var launchError: String? {
+        manager.compactLaunchError(for: notification)
+    }
+
+    private var accessibility: CodexClosedActivityAccessibility {
+        CodexClosedActivityAccessibility(
+            status: notification.status,
+            projectName: notification.projectName,
+            launchError: launchError
+        )
     }
 
     var body: some View {
@@ -145,11 +159,8 @@ private struct CodexClosedNotchPrompt: View {
             .id("\(notification.id):\(notification.createdAt.timeIntervalSinceReferenceDate)")
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(notification.jobTitle)
-            .accessibilityValue(
-                isPermissionRequest
-                    ? "Permission required. Hover to review, or click to open Codex."
-                    : "\(notification.status.title). \(notification.projectName)"
-            )
+            .accessibilityValue(accessibility.value)
+            .accessibilityHint(accessibility.hint)
             .onAppear {
                 CodexNotificationManager.shared.beginPassivePresentation(
                     for: notification,
@@ -213,7 +224,10 @@ private struct CodexClosedNotchPrompt: View {
     }
 
     private var summary: String {
-        "\(notification.status.title) · \(notification.projectName)"
+        if let launchError {
+            return "\(launchError) · Click to retry"
+        }
+        return "\(notification.status.title) · \(notification.projectName)"
     }
 }
 
