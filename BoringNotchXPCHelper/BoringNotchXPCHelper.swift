@@ -903,7 +903,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             let root = try CodexHookConfiguration.updating(
                 readCodexHookConfiguration(at: urls.configuration),
                 installed: installed,
-                ownedCommandFragment: Self.codexHookMarker,
                 command: codexHookCommand(scriptURL: urls.script)
             )
             let data = try JSONSerialization.data(
@@ -939,37 +938,24 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     }
 
     private func ensureCodexHookSecret(at url: URL) throws -> Data {
-        if FileManager.default.fileExists(atPath: url.path) {
-            let existing = try Data(contentsOf: url)
-            guard existing.count == 32 else {
+        try CodexHookSecretStore.loadOrCreate(at: url) {
+            var bytes = [UInt8](repeating: 0, count: 32)
+            guard SecRandomCopyBytes(
+                kSecRandomDefault,
+                bytes.count,
+                &bytes
+            ) == errSecSuccess else {
                 throw NSError(
                     domain: "BoringNotch.CodexHooks",
-                    code: 2,
-                    userInfo: [NSLocalizedDescriptionKey: "The Codex hook secret is invalid. Disconnect and reconnect Codex."]
+                    code: 3,
+                    userInfo: [
+                        NSLocalizedDescriptionKey:
+                            "A secure Codex hook secret could not be generated."
+                    ]
                 )
             }
-            try FileManager.default.setAttributes(
-                [.posixPermissions: 0o600],
-                ofItemAtPath: url.path
-            )
-            return existing
+            return Data(bytes)
         }
-
-        var bytes = [UInt8](repeating: 0, count: 32)
-        guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else {
-            throw NSError(
-                domain: "BoringNotch.CodexHooks",
-                code: 3,
-                userInfo: [NSLocalizedDescriptionKey: "A secure Codex hook secret could not be generated."]
-            )
-        }
-        let secret = Data(bytes)
-        try secret.write(to: url, options: [.atomic])
-        try FileManager.default.setAttributes(
-            [.posixPermissions: 0o600],
-            ofItemAtPath: url.path
-        )
-        return secret
     }
 
     private func readCodexHookConfiguration(at url: URL) throws -> [String: Any] {
@@ -991,7 +977,9 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     ) -> Bool {
         guard let hooks = root["hooks"] as? [String: Any],
               let groups = hooks[event] as? [[String: Any]] else { return false }
-        let ownedGroups = groups.filter(isOwnedCodexHookGroup)
+        let ownedGroups = groups.filter {
+            isOwnedCodexHookGroup($0, scriptURL: scriptURL)
+        }
         guard ownedGroups.count == 1,
               let handlers = ownedGroups[0]["hooks"] as? [[String: Any]],
               handlers.count == 1 else { return false }
@@ -1014,7 +1002,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
               let groups = hooks[event] as? [[String: Any]] else { return nil }
 
         for (groupIndex, group) in groups.enumerated() {
-            guard isOwnedCodexHookGroup(group),
+            guard isOwnedCodexHookGroup(group, scriptURL: scriptURL),
                   let handlers = group["hooks"] as? [[String: Any]] else {
                 continue
             }
@@ -1047,10 +1035,13 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         return nil
     }
 
-    private func isOwnedCodexHookGroup(_ group: [String: Any]) -> Bool {
+    private func isOwnedCodexHookGroup(
+        _ group: [String: Any],
+        scriptURL: URL
+    ) -> Bool {
         CodexHookConfiguration.isOwnedGroup(
             group,
-            commandFragment: Self.codexHookMarker
+            command: codexHookCommand(scriptURL: scriptURL)
         )
     }
 

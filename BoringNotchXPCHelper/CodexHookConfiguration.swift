@@ -11,7 +11,6 @@ public enum CodexHookConfiguration {
     public static func updating(
         _ root: [String: Any],
         installed: Bool,
-        ownedCommandFragment: String,
         command: String
     ) throws -> [String: Any] {
         var updatedRoot = root
@@ -47,7 +46,7 @@ public enum CodexHookConfiguration {
                     return group
                 }
                 let remainingHandlers = handlers.filter { handler in
-                    (handler["command"] as? String)?.contains(ownedCommandFragment) != true
+                    handler["command"] as? String != command
                 }
                 guard remainingHandlers.count != handlers.count else {
                     return group
@@ -75,11 +74,11 @@ public enum CodexHookConfiguration {
 
     public static func isOwnedGroup(
         _ group: [String: Any],
-        commandFragment: String
+        command: String
     ) -> Bool {
         guard let handlers = group["hooks"] as? [[String: Any]] else { return false }
         return handlers.contains { handler in
-            (handler["command"] as? String)?.contains(commandFragment) == true
+            handler["command"] as? String == command
         }
     }
 

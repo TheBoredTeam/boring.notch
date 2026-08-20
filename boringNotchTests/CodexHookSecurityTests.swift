@@ -1,4 +1,5 @@
 import CryptoKit
+import Darwin
 import XCTest
 @testable import CodexHookSupport
 @testable import CodexNotificationsCore
@@ -56,7 +57,11 @@ final class CodexHookSecurityTests: XCTestCase {
             "hooks": [["type": "command", "command": "notify-send done", "timeout": 9]],
         ]
         let staleOwnedGroup: [String: Any] = [
-            "hooks": [["type": "command", "command": "python boring-notch-notify.py", "timeout": 1]],
+            "hooks": [[
+                "type": "command",
+                "command": "/usr/bin/python3 '/tmp/boring-notch-notify.py'",
+                "timeout": 1,
+            ]],
         ]
         let root: [String: Any] = [
             "version": 1,
@@ -69,7 +74,6 @@ final class CodexHookSecurityTests: XCTestCase {
         let updated = try CodexHookConfiguration.updating(
             root,
             installed: true,
-            ownedCommandFragment: "boring-notch-notify.py",
             command: "/usr/bin/python3 '/tmp/boring-notch-notify.py'"
         )
 
@@ -106,7 +110,11 @@ final class CodexHookSecurityTests: XCTestCase {
             "hooks": [["type": "command", "command": "notify-send done", "timeout": 9]],
         ]
         let ownedGroup: [String: Any] = [
-            "hooks": [["type": "command", "command": "python boring-notch-notify.py", "timeout": 5]],
+            "hooks": [[
+                "type": "command",
+                "command": "/usr/bin/python3 '/tmp/boring-notch-notify.py'",
+                "timeout": 5,
+            ]],
         ]
         var originalHooks = Dictionary(
             uniqueKeysWithValues: CodexHookConfiguration.events.map {
@@ -120,7 +128,6 @@ final class CodexHookSecurityTests: XCTestCase {
         let updated = try CodexHookConfiguration.updating(
             root,
             installed: false,
-            ownedCommandFragment: "boring-notch-notify.py",
             command: "/usr/bin/python3 '/tmp/boring-notch-notify.py'"
         )
 
@@ -142,7 +149,11 @@ final class CodexHookSecurityTests: XCTestCase {
             "matcher": "Bash",
             "hooks": [
                 ["type": "command", "command": "notify-send done", "timeout": 9],
-                ["type": "command", "command": "python boring-notch-notify.py", "timeout": 5],
+                [
+                    "type": "command",
+                    "command": "/usr/bin/python3 '/tmp/boring-notch-notify.py'",
+                    "timeout": 5,
+                ],
             ],
         ]
         let root: [String: Any] = [
@@ -152,7 +163,6 @@ final class CodexHookSecurityTests: XCTestCase {
         let updated = try CodexHookConfiguration.updating(
             root,
             installed: false,
-            ownedCommandFragment: "boring-notch-notify.py",
             command: "/usr/bin/python3 '/tmp/boring-notch-notify.py'"
         )
 
@@ -165,6 +175,122 @@ final class CodexHookSecurityTests: XCTestCase {
         XCTAssertEqual(handlers.count, 1)
         XCTAssertEqual(handlers[0]["command"] as? String, "notify-send done")
         XCTAssertEqual(handlers[0]["timeout"] as? Int, 9)
+    }
+
+    func testInstallingHooksPreservesHandlersThatOnlyMentionTheOwnedFilename() throws {
+        let mentionOnlyCommand = "echo diagnostic boring-notch-notify.py marker"
+        let root: [String: Any] = [
+            "hooks": [
+                "Stop": [[
+                    "hooks": [[
+                        "type": "command",
+                        "command": mentionOnlyCommand,
+                        "timeout": 9,
+                    ]],
+                ]],
+            ],
+        ]
+
+        let updated = try CodexHookConfiguration.updating(
+            root,
+            installed: true,
+            command: "/usr/bin/python3 '/tmp/boring-notch-notify.py'"
+        )
+
+        let hooks = try XCTUnwrap(updated["hooks"] as? [String: Any])
+        let groups = try XCTUnwrap(hooks["Stop"] as? [[String: Any]])
+        XCTAssertEqual(groups.count, 2)
+        let handlers = try XCTUnwrap(groups[0]["hooks"] as? [[String: Any]])
+        XCTAssertEqual(handlers[0]["command"] as? String, mentionOnlyCommand)
+    }
+
+    func testNewHookSecretIsCreatedWithOwnerOnlyPermissions() throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let secretURL = directory.appendingPathComponent("hook.secret")
+        let expected = Data(repeating: 0xA5, count: 32)
+
+        let loaded = try CodexHookSecretStore.loadOrCreate(at: secretURL) { expected }
+
+        XCTAssertEqual(loaded, expected)
+        let attributes = try FileManager.default.attributesOfItem(atPath: secretURL.path)
+        XCTAssertEqual((attributes[.posixPermissions] as? NSNumber)?.intValue, 0o600)
+    }
+
+    func testHookSecretStoreRejectsSymlinksWithoutReadingTheirTarget() throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let targetURL = directory.appendingPathComponent("target")
+        let secretURL = directory.appendingPathComponent("hook.secret")
+        let targetContents = Data(repeating: 0x5A, count: 32)
+        try targetContents.write(to: targetURL)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o600],
+            ofItemAtPath: targetURL.path
+        )
+        try FileManager.default.createSymbolicLink(
+            at: secretURL,
+            withDestinationURL: targetURL
+        )
+
+        XCTAssertThrowsError(
+            try CodexHookSecretStore.loadOrCreate(at: secretURL) {
+                Data(repeating: 0xA5, count: 32)
+            }
+        )
+        XCTAssertEqual(try Data(contentsOf: targetURL), targetContents)
+    }
+
+    func testHookSecretStoreRejectsBroadExistingPermissions() throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let secretURL = directory.appendingPathComponent("hook.secret")
+        try Data(repeating: 0x5A, count: 32).write(to: secretURL)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o644],
+            ofItemAtPath: secretURL.path
+        )
+
+        XCTAssertThrowsError(
+            try CodexHookSecretStore.loadOrCreate(at: secretURL) {
+                Data(repeating: 0xA5, count: 32)
+            }
+        )
+    }
+
+    func testHookSecretStoreRejectsNonRegularFilesWithoutBlocking() throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let secretURL = directory.appendingPathComponent("hook.secret")
+        let result = secretURL.path.withCString {
+            Darwin.mkfifo($0, 0o600)
+        }
+        XCTAssertEqual(result, 0)
+
+        XCTAssertThrowsError(
+            try CodexHookSecretStore.loadOrCreate(at: secretURL) {
+                Data(repeating: 0xA5, count: 32)
+            }
+        )
+    }
+
+    func testHookSecretStoreLoadsSafeExistingSecretWithoutRegenerating() throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let secretURL = directory.appendingPathComponent("hook.secret")
+        let expected = Data(repeating: 0x5A, count: 32)
+        try expected.write(to: secretURL)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o600],
+            ofItemAtPath: secretURL.path
+        )
+
+        let loaded = try CodexHookSecretStore.loadOrCreate(at: secretURL) {
+            XCTFail("A safe existing secret must not be regenerated")
+            return Data()
+        }
+
+        XCTAssertEqual(loaded, expected)
     }
 
     func testReplayGuardRejectsDuplicatesUntilTheirLifetimeExpires() {
@@ -196,5 +322,15 @@ final class CodexHookSecurityTests: XCTestCase {
             .replacingOccurrences(of: "+", with: "-")
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")
+    }
+
+    private func makeTemporaryDirectory() throws -> URL {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(
+            at: directory,
+            withIntermediateDirectories: false
+        )
+        return directory
     }
 }
