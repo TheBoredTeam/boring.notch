@@ -597,7 +597,10 @@ public struct CodexNotificationState: Equatable, Sendable {
         projectName: String? = nil,
         date: Date
     ) -> CodexJobNotification {
-        let context = latestJobBySession[sessionID]
+        let context = latestJobBySession[sessionID].flatMap { context in
+            guard let turnID else { return context }
+            return context.turnID == turnID ? context : nil
+        }
         let effectiveTurnID = turnID ?? context?.turnID
         let resolvedChatTitle = chatTitle
             ?? context?.chatTitle

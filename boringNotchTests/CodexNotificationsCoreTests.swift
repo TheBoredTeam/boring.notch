@@ -578,6 +578,30 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertTrue(notice.jobTitle.hasSuffix("..."))
     }
 
+    func testEventFromNewTurnDoesNotReusePreviousTurnPromptContext() throws {
+        var state = CodexNotificationState()
+        state.reduce(.userPrompt(
+            sessionID: "session-1",
+            turnID: "turn-1",
+            cwd: "/tmp/first-project",
+            prompt: "Only belongs to the first turn"
+        ))
+
+        state.reduce(.stop(
+            sessionID: "session-1",
+            turnID: "turn-2",
+            cwd: "/tmp/second-project",
+            result: "Second turn completed successfully."
+        ))
+
+        let notice = try XCTUnwrap(state.visibleNotification())
+        XCTAssertEqual(notice.turnID, "turn-2")
+        XCTAssertEqual(notice.jobTitle, "Codex · second-project")
+        XCTAssertEqual(notice.chatTitle, "Codex · second-project")
+        XCTAssertEqual(notice.userPrompt, "Request details unavailable")
+        XCTAssertEqual(notice.projectName, "second-project")
+    }
+
     func testManualVerificationAndDecisionAreActionable() {
         var state = CodexNotificationState()
         state.reduce(.stop(
