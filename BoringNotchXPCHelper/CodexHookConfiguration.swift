@@ -42,8 +42,21 @@ public enum CodexHookConfiguration {
                 groups = []
             }
 
-            groups.removeAll {
-                isOwnedGroup($0, commandFragment: ownedCommandFragment)
+            groups = groups.compactMap { group in
+                guard let handlers = group["hooks"] as? [[String: Any]] else {
+                    return group
+                }
+                let remainingHandlers = handlers.filter { handler in
+                    (handler["command"] as? String)?.contains(ownedCommandFragment) != true
+                }
+                guard remainingHandlers.count != handlers.count else {
+                    return group
+                }
+                guard !remainingHandlers.isEmpty else { return nil }
+
+                var updatedGroup = group
+                updatedGroup["hooks"] = remainingHandlers
+                return updatedGroup
             }
             if installed {
                 let handler: [String: Any] = [

@@ -137,6 +137,36 @@ final class CodexHookSecurityTests: XCTestCase {
         XCTAssertEqual((hooks["CustomEvent"] as? [[String: Any]])?.count, 1)
     }
 
+    func testUninstallingHooksPreservesUnrelatedHandlersInOwnedGroups() throws {
+        let mixedGroup: [String: Any] = [
+            "matcher": "Bash",
+            "hooks": [
+                ["type": "command", "command": "notify-send done", "timeout": 9],
+                ["type": "command", "command": "python boring-notch-notify.py", "timeout": 5],
+            ],
+        ]
+        let root: [String: Any] = [
+            "hooks": ["Stop": [mixedGroup]],
+        ]
+
+        let updated = try CodexHookConfiguration.updating(
+            root,
+            installed: false,
+            ownedCommandFragment: "boring-notch-notify.py",
+            command: "/usr/bin/python3 '/tmp/boring-notch-notify.py'"
+        )
+
+        let hooks = try XCTUnwrap(updated["hooks"] as? [String: Any])
+        let stopGroups = try XCTUnwrap(hooks["Stop"] as? [[String: Any]])
+        XCTAssertEqual(stopGroups.count, 1)
+        let stopGroup = try XCTUnwrap(stopGroups.first)
+        XCTAssertEqual(stopGroup["matcher"] as? String, "Bash")
+        let handlers = try XCTUnwrap(stopGroup["hooks"] as? [[String: Any]])
+        XCTAssertEqual(handlers.count, 1)
+        XCTAssertEqual(handlers[0]["command"] as? String, "notify-send done")
+        XCTAssertEqual(handlers[0]["timeout"] as? Int, 9)
+    }
+
     func testReplayGuardRejectsDuplicatesUntilTheirLifetimeExpires() {
         var guardState = CodexNotificationReplayGuard(lifetime: 120)
 
