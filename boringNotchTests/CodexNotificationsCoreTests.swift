@@ -916,12 +916,17 @@ final class CodexNotificationsCoreTests: XCTestCase {
     func testProductionStopSummaryWithPastFailureRemainsSuccess() throws {
         // The Codex Stop hook wire schema has no status field, so production
         // classification must rely on the assistant message alone.
-        XCTAssertEqual(
-            try productionStopStatus(
-                "Fixed the command failed regression. All tests passed."
-            ),
-            .succeeded
-        )
+        for message in [
+            "Fixed the command failed regression. All tests passed.",
+            "Fixed the issue where the command failed. All tests passed.",
+            "The command failed initially; after fixing it, all tests passed.",
+        ] {
+            XCTAssertEqual(
+                try productionStopStatus(message),
+                .succeeded,
+                message
+            )
+        }
     }
 
     func testProductionStopKeepsAffirmativeFailuresDespiteLaterSuccessText() throws {
@@ -930,6 +935,24 @@ final class CodexNotificationsCoreTests: XCTestCase {
             "The command failed. Not all tests passed.",
             "Earlier tests failed and remain unresolved.",
             "Addressed command failed again.",
+            "Fixed lint but the command failed. All tests passed.",
+            "The command failed and was not fixed. All tests passed.",
+            "Fixed the issue where the command failed. Tests are still failing.",
+            "The command failed initially; after fixing it, not all tests passed.",
+        ] {
+            XCTAssertEqual(
+                try productionStopStatus(message),
+                .failed,
+                message
+            )
+        }
+    }
+
+    func testProductionStopTreatsNegativeOutcomesAsFailures() throws {
+        for message in [
+            "Not all tests passed.",
+            "The build did not succeed.",
+            "Tests are still failing.",
         ] {
             XCTAssertEqual(
                 try productionStopStatus(message),

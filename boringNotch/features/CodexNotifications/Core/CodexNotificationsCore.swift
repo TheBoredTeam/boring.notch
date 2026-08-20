@@ -943,19 +943,32 @@ public struct CodexNotificationState: Equatable, Sendable {
             "the task failed", "encountered an error", "interrupted",
             "aborted", "cancelled", "canceled", "terminated",
             "stopped before completing", "stopped by user", "error:",
-            "command failed", "status: failed", "failed (exit code"
+            "command failed", "status: failed", "failed (exit code",
+            "not all tests passed", "did not succeed",
+            "tests are failing", "tests are still failing",
+            "test is failing", "test is still failing",
+            "build is failing", "build is still failing"
         ]
         let successMarkers = [
             "build succeeded", "tests passed", "all tests passed",
             "completed successfully", "successfully completed"
         ]
         let hasExplicitSuccessStatus = ["succeeded", "success"].contains(normalizedStatus)
-        let hasUnresolvedFailure = failureMarkers.contains(where: {
-            containsUnresolvedFailureMarker($0, in: text)
-        })
-        let hasAffirmativeSuccess = successMarkers.contains(where: {
-            containsAffirmativeMarker($0, in: text)
-        })
+        let affirmativeFailures = affirmativeMarkerRanges(failureMarkers, in: text)
+        let affirmativeSuccesses = affirmativeMarkerRanges(successMarkers, in: text)
+        let resolutionRanges = affirmativeWordRanges(
+            ["addressed", "corrected", "fixed", "fixing", "repaired", "resolved"],
+            in: text
+        )
+        let hasUnresolvedFailure = affirmativeFailures.contains { failureRange in
+            !isResolved(
+                failureRange,
+                by: resolutionRanges,
+                before: affirmativeSuccesses,
+                in: text
+            )
+        }
+        let hasAffirmativeSuccess = !affirmativeSuccesses.isEmpty
         if ["failed", "error", "cancelled", "canceled"].contains(normalizedStatus)
             || (!hasExplicitSuccessStatus
                 && hasUnresolvedFailure) {
@@ -1022,41 +1035,72 @@ public struct CodexNotificationState: Equatable, Sendable {
         return .succeeded
     }
 
-    private static func containsUnresolvedFailureMarker(
-        _ marker: String,
+    private static func affirmativeMarkerRanges(
+        _ markers: [String],
         in text: String
-    ) -> Bool {
-        var searchStart = text.startIndex
-
-        while let range = text.range(
-            of: marker,
-            range: searchStart..<text.endIndex
-        ) {
-            if !isNegated(at: range.lowerBound, marker: marker, in: text)
-                && !isFailureReference(range, in: text) {
-                return true
+    ) -> [Range<String.Index>] {
+        markers.flatMap { marker in
+            var ranges: [Range<String.Index>] = []
+            var searchStart = text.startIndex
+            while let range = text.range(
+                of: marker,
+                range: searchStart..<text.endIndex
+            ) {
+                if !isNegated(at: range.lowerBound, marker: marker, in: text) {
+                    ranges.append(range)
+                }
+                searchStart = range.upperBound
             }
-            searchStart = range.upperBound
+            return ranges
+        }.sorted { $0.lowerBound < $1.lowerBound }
+    }
+
+    private static func wordRanges(
+        _ words: Set<String>,
+        in text: String
+    ) -> [Range<String.Index>] {
+        let tokenCharacters = CharacterSet.alphanumerics.union(
+            CharacterSet(charactersIn: "'")
+        )
+        var ranges: [Range<String.Index>] = []
+        var index = text.startIndex
+
+        while index < text.endIndex {
+            while index < text.endIndex,
+                  !text[index].unicodeScalars.contains(where: tokenCharacters.contains) {
+                index = text.index(after: index)
+            }
+            let tokenStart = index
+            while index < text.endIndex,
+                  text[index].unicodeScalars.contains(where: tokenCharacters.contains) {
+                index = text.index(after: index)
+            }
+            if tokenStart < index,
+               words.contains(String(text[tokenStart..<index])) {
+                ranges.append(tokenStart..<index)
+            }
         }
-        return false
+        return ranges
     }
 
     private static func containsAffirmativeMarker(
         _ marker: String,
         in text: String
     ) -> Bool {
-        var searchStart = text.startIndex
+        !affirmativeMarkerRanges([marker], in: text).isEmpty
+    }
 
-        while let range = text.range(
-            of: marker,
-            range: searchStart..<text.endIndex
-        ) {
-            if !isNegated(at: range.lowerBound, marker: marker, in: text) {
-                return true
-            }
-            searchStart = range.upperBound
+    private static func affirmativeWordRanges(
+        _ words: Set<String>,
+        in text: String
+    ) -> [Range<String.Index>] {
+        wordRanges(words, in: text).filter { range in
+            !isNegated(
+                at: range.lowerBound,
+                marker: String(text[range]),
+                in: text
+            )
         }
-        return false
     }
 
     private static func isNegated(
@@ -1127,51 +1171,42 @@ public struct CodexNotificationState: Equatable, Sendable {
         return false
     }
 
-    private static func isFailureReference(
-        _ markerRange: Range<String.Index>,
+    private static func isResolved(
+        _ failureRange: Range<String.Index>,
+        by resolutionRanges: [Range<String.Index>],
+        before successRanges: [Range<String.Index>],
         in text: String
     ) -> Bool {
-        let prefix = text[..<markerRange.lowerBound]
+        let prefix = text[..<failureRange.lowerBound]
         let clauseSeparators = CharacterSet(charactersIn: ".!?;:,\n\r")
         let clauseStart = prefix.lastIndex { character in
             character.unicodeScalars.contains { clauseSeparators.contains($0) }
         }.map { text.index(after: $0) } ?? text.startIndex
-        let tokenCharacters = CharacterSet.alphanumerics.union(
-            CharacterSet(charactersIn: "'")
+        let resolutionFrameBoundaries = wordRanges(
+            ["although", "but", "however", "though", "whereas", "while", "yet"],
+            in: text
         )
-        var prefixTokens = text[clauseStart..<markerRange.lowerBound]
-            .replacingOccurrences(of: "’", with: "'")
-            .lowercased()
-            .components(separatedBy: tokenCharacters.inverted)
-            .filter { !$0.isEmpty }
-        let articles: Set<String> = ["a", "an", "the"]
-        while prefixTokens.last.map(articles.contains) == true {
-            prefixTokens.removeLast()
-        }
-        // Keep references narrow: the resolving word must immediately frame
-        // a named failure regression instead of describing a fresh failure.
-        let resolutionVerbs: Set<String> = [
-            "addressed", "fixed", "repaired", "resolved",
-        ]
-        guard prefixTokens.last.map(resolutionVerbs.contains) == true else {
-            return false
+        let isFramedByResolution = resolutionRanges.contains { resolutionRange in
+            guard resolutionRange.lowerBound >= clauseStart,
+                  resolutionRange.upperBound <= failureRange.lowerBound else {
+                return false
+            }
+            return !resolutionFrameBoundaries.contains { boundaryRange in
+                boundaryRange.lowerBound >= resolutionRange.upperBound
+                    && boundaryRange.upperBound <= failureRange.lowerBound
+            }
         }
 
-        let suffix = text[markerRange.upperBound...]
-            .prefix { character in
-                !character.unicodeScalars.contains {
-                    clauseSeparators.contains($0)
-                }
+        return successRanges.contains { successRange in
+            guard successRange.lowerBound >= failureRange.upperBound else {
+                return false
             }
-        let suffixTokens = suffix
-            .lowercased()
-            .components(separatedBy: tokenCharacters.inverted)
-            .filter { !$0.isEmpty }
-        let referenceNouns: Set<String> = [
-            "bug", "case", "issue", "message", "regression", "scenario",
-            "text", "wording",
-        ]
-        return suffixTokens.first.map(referenceNouns.contains) == true
+            return isFramedByResolution
+                || resolutionRanges.contains { resolutionRange in
+                    resolutionRange.lowerBound >= failureRange.upperBound
+                        && resolutionRange.upperBound <= successRange.lowerBound
+                }
+        }
     }
 }
 
