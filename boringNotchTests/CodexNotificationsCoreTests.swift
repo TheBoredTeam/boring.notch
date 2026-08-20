@@ -93,6 +93,42 @@ final class CodexNotificationsCoreTests: XCTestCase {
         )
     }
 
+    func testCurrentHashIgnoresMatcherForEventsWithoutMatcherSupport() {
+        for eventName in ["stop", "user_prompt_submit"] {
+            let withoutMatcher = CodexHookTrustState.currentHash(
+                eventName: eventName,
+                command: "echo hello",
+                timeout: 5
+            )
+            let withMatcher = CodexHookTrustState.currentHash(
+                eventName: eventName,
+                matcher: "^ignored$",
+                command: "echo hello",
+                timeout: 5
+            )
+
+            XCTAssertEqual(withMatcher, withoutMatcher, eventName)
+        }
+    }
+
+    func testCurrentHashPreservesMatcherForEventsWithMatcherSupport() {
+        for eventName in ["permission_request", "post_tool_use"] {
+            let withoutMatcher = CodexHookTrustState.currentHash(
+                eventName: eventName,
+                command: "echo hello",
+                timeout: 5
+            )
+            let withMatcher = CodexHookTrustState.currentHash(
+                eventName: eventName,
+                matcher: "Bash",
+                command: "echo hello",
+                timeout: 5
+            )
+
+            XCTAssertNotEqual(withMatcher, withoutMatcher, eventName)
+        }
+    }
+
     func testStatusIconsMatchNotchNotificationGlyphs() {
         XCTAssertEqual(CodexJobStatus.succeeded.icon, "checkmark.circle.fill")
         XCTAssertEqual(CodexJobStatus.failed.icon, "xmark.circle.fill")

@@ -86,7 +86,9 @@ public struct CodexHookTrustState: Sendable {
             "event_name": eventName,
             "hooks": [handler],
         ]
-        if let matcher {
+        if let matcher,
+           eventName != "user_prompt_submit",
+           eventName != "stop" {
             identity["matcher"] = matcher
         }
 
