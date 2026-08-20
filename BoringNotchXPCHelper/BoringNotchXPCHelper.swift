@@ -539,6 +539,8 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             [
                 "/usr/bin/open",
                 "-g",
+                "-b",
+                "theboringteam.boringnotch",
                 "boringnotch://codex-event?payload=" + encoded + "&signature=" + signature,
             ],
             stdout=subprocess.DEVNULL,

@@ -16,6 +16,31 @@ final class CodexNotificationsCoreTests: XCTestCase {
         let updatedAt: Date
     }
 
+    func testCodexHookTargetsBoringNotchWhenOpeningAuthenticatedEventURL() throws {
+        let repositoryRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let helperSource = try String(
+            contentsOf: repositoryRoot
+                .appendingPathComponent("BoringNotchXPCHelper")
+                .appendingPathComponent("BoringNotchXPCHelper.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(
+            helperSource.contains(
+                """
+                                "/usr/bin/open",
+                                "-g",
+                                "-b",
+                                "theboringteam.boringnotch",
+                                "boringnotch://codex-event?payload="
+                """
+            ),
+            "Authenticated Codex URLs must be delivered to Boring Notch by bundle identifier."
+        )
+    }
+
     func testDisabledHookIsNotTrustedEvenWithAValidHash() {
         let section = "/Users/example/.codex/hooks.json:permission_request:0:0"
         let configuration = """
