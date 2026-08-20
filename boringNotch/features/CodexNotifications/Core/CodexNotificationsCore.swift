@@ -42,6 +42,24 @@ public enum CodexNotificationTiming {
     }
 }
 
+public struct CodexNotificationReplayGuard: Sendable {
+    private let lifetime: TimeInterval
+    private var acceptedPayloads = [String: Date]()
+
+    public init(lifetime: TimeInterval) {
+        self.lifetime = lifetime
+    }
+
+    public mutating func accept(_ payload: String, now: Date = Date()) -> Bool {
+        acceptedPayloads = acceptedPayloads.filter {
+            now.timeIntervalSince($0.value) <= lifetime
+        }
+        guard acceptedPayloads[payload] == nil else { return false }
+        acceptedPayloads[payload] = now
+        return true
+    }
+}
+
 public struct CodexNotificationPresentationSurfaces: Equatable, Sendable {
     private(set) var activeSurfaceIDs: Set<String> = []
     private(set) var hoveredSurfaceIDs: Set<String> = []

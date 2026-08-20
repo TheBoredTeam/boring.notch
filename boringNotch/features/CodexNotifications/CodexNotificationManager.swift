@@ -29,7 +29,9 @@ final class CodexNotificationManager: ObservableObject {
     private var passivePresentationSurfaces = CodexNotificationPresentationSurfaces()
     private var permissionExpirationTask: Task<Void, Never>?
     private var eventIngestionTask: Task<Void, Never>?
-    private var acceptedPayloads: [String: Date] = [:]
+    private var replayGuard = CodexNotificationReplayGuard(
+        lifetime: CodexNotificationManager.authenticatedPayloadLifetime
+    )
 
     var visibleNotification: CodexJobNotification? {
         presentedNotification
@@ -104,15 +106,10 @@ final class CodexNotificationManager: ObservableObject {
             Self.logger.error("Rejected a Codex notification with invalid payload encoding")
             return
         }
-        let now = Date()
-        acceptedPayloads = acceptedPayloads.filter {
-            now.timeIntervalSince($0.value) <= Self.authenticatedPayloadLifetime
-        }
-        guard acceptedPayloads[encodedPayload] == nil else {
+        guard replayGuard.accept(encodedPayload) else {
             Self.logger.error("Rejected a replayed Codex notification")
             return
         }
-        acceptedPayloads[encodedPayload] = now
 
         do {
             let event = try CodexHookEventParser.parse(payload)

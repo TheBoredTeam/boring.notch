@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """Exercise the repository-owned Codex hook boundary without launching the app.
 
-The hook is embedded in the unsandboxed XPC helper as a Swift raw string, so it
-is not currently importable by the SwiftPM test target.  These tests extract the
-production string, execute its definitions, and drive the real launch and
-permission relay code with local fakes and in-memory requests.  The source-contract test
-covers the helper's install/update path, which is likewise not an Xcode test
-target today.
+The hook is embedded in the unsandboxed XPC helper as a Swift raw string. These
+tests extract the production string, execute its definitions, and drive the real
+launch and permission relay code with local fakes and in-memory requests. Swift
+authentication, configuration, trust, and replay behavior is covered by the
+SwiftPM test target.
 """
 
 from __future__ import annotations
@@ -28,7 +27,6 @@ from urllib.parse import parse_qs, urlparse
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 HELPER_SOURCE_PATH = REPOSITORY_ROOT / "BoringNotchXPCHelper" / "BoringNotchXPCHelper.swift"
-TRUST_STATE_SOURCE_PATH = REPOSITORY_ROOT / "BoringNotchXPCHelper" / "CodexHookTrustState.swift"
 SCRIPT_START = 'private static let codexNotificationScript = #"""\n'
 SCRIPT_END = '\n    """#'
 
@@ -156,41 +154,6 @@ class CodexNotificationHookTests(unittest.TestCase):
         self.assertEqual(post({"token": "test-token", "decision": "allow"}), 204)
         self.assertEqual(server.decision, "allow")
         self.assertEqual(post({"token": "test-token", "decision": "deny"}), 409)
-
-
-class CodexNotificationHelperContractTests(unittest.TestCase):
-    def test_trust_state_contract_reads_hash_and_disabled_config(self) -> None:
-        source = TRUST_STATE_SOURCE_PATH.read_text(encoding="utf-8")
-
-        self.assertIn("trusted_hash", source)
-        self.assertIn("enabled", source)
-        self.assertIn("disabled", source)
-
-    def test_hook_installation_preserves_unowned_configuration(self) -> None:
-        source = HELPER_SOURCE_PATH.read_text(encoding="utf-8")
-        remove_owned = source.index("groups.removeAll(where: isOwnedCodexHookGroup)")
-        append_owned = source.index('groups.append(["hooks": [handler]])')
-
-        self.assertLess(remove_owned, append_owned)
-        self.assertIn("if let existingGroups = hooks[event]", source)
-        self.assertIn("groups = typedGroups", source)
-        self.assertIn('root["hooks"] = hooks', source)
-        self.assertIn(
-            'try data.write(to: urls.configuration, options: .atomic)',
-            source,
-        )
-        self.assertIn(
-            'for url in [urls.script, urls.secret]',
-            source,
-        )
-
-    def test_helper_authentication_keeps_signature_and_freshness_checks(self) -> None:
-        source = HELPER_SOURCE_PATH.read_text(encoding="utf-8")
-
-        self.assertIn("HMAC<SHA256>.isValidAuthenticationCode", source)
-        self.assertIn("nonce.count == 32", source)
-        self.assertIn("age >= -5, age <= Self.codexPayloadMaximumAge", source)
-
 
 if __name__ == "__main__":
     unittest.main()
