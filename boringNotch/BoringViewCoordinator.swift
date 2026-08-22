@@ -54,6 +54,29 @@ class BoringViewCoordinator: ObservableObject {
 
     @Published var currentView: NotchViews = .home
     @Published var helloAnimationRunning: Bool = false
+    /// Drives the one-shot lock → open morph shown in the notch on unlock.
+    /// Self-healing: a backup timeout clears it even if the view is torn down
+    /// (display change / window recreation) before `onFinish` fires.
+    @Published var unlockAnimationRunning: Bool = false {
+        didSet {
+            guard unlockAnimationRunning, !oldValue else {
+                if !unlockAnimationRunning { unlockAnimationTask?.cancel() }
+                return
+            }
+            unlockAnimationTask?.cancel()
+            unlockAnimationTask = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(3))
+                guard let self, !Task.isCancelled else { return }
+                self.unlockAnimationRunning = false
+            }
+        }
+    }
+    private var unlockAnimationTask: Task<Void, Never>?
+    /// True for the ENTIRE duration the Mac is locked while we keep the notch on the lock
+    /// screen. No timeout — a Mac can stay locked for hours. Gates ALL notch content and
+    /// interactivity so nothing private is shown or reachable over the lock screen.
+    /// Set on lock, cleared on unlock / wake.
+    @Published var screenLocked: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
     private var osdEnableTask: Task<Void, Never>?
