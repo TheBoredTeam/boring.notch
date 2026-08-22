@@ -114,6 +114,8 @@ struct ContentView: View {
     private var displayClosedNotchHeight: CGFloat { isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight }
 
     var body: some View {
+        @Bindable var dropInteraction = vm.dropInteraction
+
         // Calculate scale based on gesture progress only
         let gestureScale: CGFloat = {
             guard gestureProgress != 0 else { return 1.0 }
@@ -158,7 +160,9 @@ struct ContentView: View {
                         handleHover(hovering)
                     }
                     .onTapGesture {
-                        doOpen()
+                        if vm.notchState == .closed {
+                            doOpen()
+                        }
                     }
                     .conditionalModifier(Defaults[.enableGestures]) { view in
                         view
@@ -250,7 +254,7 @@ struct ContentView: View {
         .background(dragDetector)
         .preferredColorScheme(.dark)
         .environmentObject(vm)
-        .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
+        .onChange(of: dropInteraction.anyDropZoneTargeting) { _, isTargeted in
             anyDropDebounceTask?.cancel()
 
             if isTargeted {
@@ -266,12 +270,12 @@ struct ContentView: View {
                 try? await Task.sleep(for: .milliseconds(500))
                 guard !Task.isCancelled else { return }
 
-                if vm.dropEvent {
-                    vm.dropEvent = false
+                if dropInteraction.dropEvent {
+                    dropInteraction.dropEvent = false
                     return
                 }
 
-                vm.dropEvent = false
+                dropInteraction.dropEvent = false
                 if !SharingStateManager.shared.preventNotchClose {
                     vm.close()
                 }
@@ -281,6 +285,8 @@ struct ContentView: View {
 
     @ViewBuilder
     func NotchLayout() -> some View {
+        @Bindable var dropInteraction = vm.dropInteraction
+
         VStack(alignment: .leading) {
             VStack(alignment: .leading) {
                 if coordinator.helloAnimationRunning {
@@ -402,7 +408,10 @@ struct ContentView: View {
                             isHoveringMusicArea: $isHoveringMusicArea
                         )
                     case .shelf:
-                        ShelfView()
+                        ShelfView(
+                            dropInteraction: vm.dropInteraction,
+                            animation: vm.animation
+                        )
                     }
                 }
                 .transition(
@@ -415,7 +424,7 @@ struct ContentView: View {
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
         }
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
+        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))
     }
 
     @ViewBuilder
@@ -541,12 +550,14 @@ struct ContentView: View {
 
     @ViewBuilder
     var dragDetector: some View {
+        @Bindable var dropInteraction = vm.dropInteraction
+
         if Defaults[.boringShelf] && vm.notchState == .closed {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
-            vm.dropEvent = true
+        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
+            dropInteraction.dropEvent = true
             ShelfStateViewModel.shared.load(providers)
             return true
         }
