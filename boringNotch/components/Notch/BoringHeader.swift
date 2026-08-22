@@ -15,11 +15,12 @@ struct BoringHeader: View {
     @StateObject var tvm = ShelfStateViewModel.shared
     var body: some View {
         HStack(spacing: 0) {
+            // Left: tabs (when shelf has content)
             HStack {
-                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
+                if !tvm.isEmpty && Defaults[.boringShelf] {
                     TabSelectionView()
-                } else if vm.notchState == .open {
-                    EmptyView()
+                } else if coordinator.alwaysShowTabs && Defaults[.boringShelf] {
+                    TabSelectionView()
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -36,6 +37,7 @@ struct BoringHeader: View {
                     }
             }
 
+            // Right: camera, settings, then background app icons (blending with system status bar)
             HStack(spacing: 4) {
                 if vm.notchState == .open {
                     if isHUDType(coordinator.sneakPeek.type) && coordinator.sneakPeek.show && Defaults[.showOpenNotchHUD] {
@@ -63,7 +65,7 @@ struct BoringHeader: View {
                                 DispatchQueue.main.async {
                                     SettingsWindowController.shared.showWindow()
                                 }
-                                
+
                             }) {
                                 Capsule()
                                     .fill(.black)
@@ -77,22 +79,12 @@ struct BoringHeader: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
-                        if Defaults[.showBatteryIndicator] {
-                            BoringBatteryView(
-                                batteryWidth: 30,
-                                isCharging: batteryModel.isCharging,
-                                isInLowPowerMode: batteryModel.isInLowPowerMode,
-                                isPluggedIn: batteryModel.isPluggedIn,
-                                levelBattery: batteryModel.levelBattery,
-                                maxCapacity: batteryModel.maxCapacity,
-                                timeToFullCharge: batteryModel.timeToFullCharge,
-                                isForNotification: false
-                            )
+                        if Defaults[.showBackgroundAppIcons] {
+                            BackgroundAppStrip()
                         }
                     }
                 }
             }
-            .font(.system(.headline, design: .rounded))
             .frame(maxWidth: .infinity, alignment: .trailing)
             .opacity(vm.notchState == .closed ? 0 : 1)
             .blur(radius: vm.notchState == .closed ? 20 : 0)
