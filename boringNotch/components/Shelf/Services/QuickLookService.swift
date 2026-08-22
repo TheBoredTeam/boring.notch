@@ -6,8 +6,10 @@
 //
 
 import Foundation
+import Combine
 import UniformTypeIdentifiers
 import SwiftUI
+import QuickLook
 import QuickLookUI
 import AppKit
 
@@ -21,6 +23,15 @@ final class QuickLookService: ObservableObject {
     private var previewPanel: QLPreviewPanel?
     private var accessingURLs: [URL] = []
     private var previewPanelObserver: Any?
+    private var selectionCancellable: AnyCancellable?
+
+    init() {
+        selectionCancellable = ShelfSelectionModel.shared.$selectedIDs
+            .dropFirst()
+            .sink { [weak self] selectedIDs in
+                self?.updateFromShelfSelection(selectedIDs: selectedIDs)
+            }
+    }
 
     func show(urls: [URL], selectFirst: Bool = true, slideshow: Bool = false) {
         guard !urls.isEmpty else { return }
@@ -82,6 +93,25 @@ final class QuickLookService: ObservableObject {
         guard isQuickLookOpen else { return }
         show(urls: urls, selectFirst: true)
     }
+
+    private func updateFromShelfSelection(selectedIDs: Set<UUID>) {
+        guard isQuickLookOpen && !selectedIDs.isEmpty else { return }
+
+        let urls: [URL] = ShelfStateViewModel.shared.items.compactMap { item in
+            guard selectedIDs.contains(item.id) else { return nil }
+            if let fileURL = item.fileURL {
+                return fileURL
+            }
+            if case .link(let url) = item.kind {
+                return url
+            }
+            return nil
+        }
+
+        if !urls.isEmpty {
+            updateSelection(urls: urls)
+        }
+    }
 }
 
 extension QuickLookService {
@@ -114,4 +144,3 @@ extension View {
         self.modifier(QuickLookPresenter(service: service))
     }
 }
-

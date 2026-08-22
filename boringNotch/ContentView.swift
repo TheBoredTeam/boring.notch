@@ -408,7 +408,10 @@ struct ContentView: View {
                             isHoveringMusicArea: $isHoveringMusicArea
                         )
                     case .shelf:
-                        ShelfView()
+                        ShelfView(
+                            dropInteraction: vm.dropInteraction,
+                            animation: vm.animation
+                        )
                     }
                 }
                 .transition(

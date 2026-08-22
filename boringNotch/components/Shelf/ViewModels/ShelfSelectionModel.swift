@@ -7,22 +7,30 @@
 
 import Foundation
 import Combine
-
-private let _shelfTypeAnchor: Bool = {
-    _ = String(describing: ShelfItem.self)
-    return true
-}()
+import Observation
 
 @MainActor
 final class ShelfSelectionModel: ObservableObject {
     static let shared = ShelfSelectionModel()
 
     @Published private(set) var selectedIDs: Set<UUID> = []
+    private var itemStates: [UUID: WeakSelectionState] = [:]
 
     // Anchor for shift-range selection
     private var lastAnchorID: UUID? = nil
 
     func isSelected(_ id: UUID) -> Bool { selectedIDs.contains(id) }
+
+    func state(for id: UUID) -> ShelfItemSelectionState {
+        pruneUnusedItemStates()
+        if let state = itemStates[id]?.value {
+            return state
+        }
+
+        let state = ShelfItemSelectionState(isSelected: selectedIDs.contains(id))
+        itemStates[id] = WeakSelectionState(state)
+        return state
+    }
 
     var hasSelection: Bool { !selectedIDs.isEmpty }
 
@@ -36,16 +44,18 @@ final class ShelfSelectionModel: ObservableObject {
     }
 
     func selectSingle(_ item: ShelfItem) {
-        selectedIDs = [item.id]
+        updateSelection(to: [item.id])
         lastAnchorID = item.id
     }
 
     func toggle(_ item: ShelfItem) {
-        if selectedIDs.contains(item.id) {
-            selectedIDs.remove(item.id)
+        var newSelection = selectedIDs
+        if newSelection.contains(item.id) {
+            newSelection.remove(item.id)
         } else {
-            selectedIDs.insert(item.id)
+            newSelection.insert(item.id)
         }
+        updateSelection(to: newSelection)
         lastAnchorID = item.id
     }
 
@@ -60,12 +70,28 @@ final class ShelfSelectionModel: ObservableObject {
         let lower = min(startIndex, endIndex)
         let upper = max(startIndex, endIndex)
         let rangeIDs = allItems[lower...upper].map { $0.id }
-        selectedIDs = Set(rangeIDs)
+        updateSelection(to: Set(rangeIDs))
     }
 
     func clear() {
-        selectedIDs.removeAll()
+        updateSelection(to: [])
         lastAnchorID = nil
+    }
+
+    private func updateSelection(to newSelection: Set<UUID>) {
+        guard newSelection != selectedIDs else { return }
+
+        let changedIDs = selectedIDs.symmetricDifference(newSelection)
+        selectedIDs = newSelection
+
+        for id in changedIDs {
+            itemStates[id]?.value?.isSelected = newSelection.contains(id)
+        }
+        pruneUnusedItemStates()
+    }
+
+    private func pruneUnusedItemStates() {
+        itemStates = itemStates.filter { $0.value.value != nil }
     }
 
     // Keep anchor sane if items array changed drastically (optional helper)
@@ -83,5 +109,23 @@ final class ShelfSelectionModel: ObservableObject {
 
     func endDrag() {
         isDragging = false
+    }
+}
+
+private final class WeakSelectionState {
+    weak var value: ShelfItemSelectionState?
+
+    init(_ value: ShelfItemSelectionState) {
+        self.value = value
+    }
+}
+
+@Observable
+@MainActor
+final class ShelfItemSelectionState {
+    fileprivate(set) var isSelected: Bool
+
+    init(isSelected: Bool) {
+        self.isSelected = isSelected
     }
 }
