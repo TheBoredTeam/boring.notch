@@ -145,9 +145,6 @@
         }
       }
     },
-    "%@x" : {
-      "comment" : "Animation speed multiplier."
-    },
     "%@" : {
       "localizations" : {
         "en" : {
@@ -163,6 +160,9 @@
           }
         }
       }
+    },
+    "%@x" : {
+      "comment" : "Animation speed multiplier."
     },
     "%lld" : {
       "localizations" : {
@@ -1850,6 +1850,18 @@
         }
       }
     },
+    "Apple Music" : {
+      "comment" : "Apple Music service name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Music"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
     "Auto-scroll to next event" : {
       "localizations" : {
         "de" : {
@@ -3106,6 +3118,28 @@
         }
       }
     },
+    "Boring Notch could not check Now Playing. Try again, or reopen the app if it keeps happening." : {
+      "comment" : "Generic recoverable Now Playing availability message.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch could not check Now Playing. Try again, or reopen the app if it keeps happening."
+          }
+        }
+      }
+    },
+    "Boring Notch is missing a required Now Playing component. Reinstalling the app should fix this." : {
+      "comment" : "Now Playing availability message when a bundled component is missing.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch is missing a required Now Playing component. Reinstalling the app should fix this."
+          }
+        }
+      }
+    },
     "boring.notch" : {
       "localizations" : {
         "cs" : {
@@ -3709,8 +3743,19 @@
     "Camera" : {
       "comment" : "A label for the camera picker."
     },
+    "Camera Access Required" : {
+      "comment" : "Camera permission alert title",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera Access Required"
+          }
+        }
+      }
+    },
     "Cancel" : {
-      "extractionState" : "stale",
+      "comment" : "Cancel button title",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -3824,251 +3869,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "取消"
-          }
-        }
-      }
-    },
-    "Apple Music" : {
-      "comment" : "Apple Music service name.",
-      "shouldTranslate" : false,
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple Music"
-          }
-        }
-      }
-    },
-    "Boring Notch could not check Now Playing. Try again, or reopen the app if it keeps happening." : {
-      "comment" : "Generic recoverable Now Playing availability message.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Boring Notch could not check Now Playing. Try again, or reopen the app if it keeps happening."
-          }
-        }
-      }
-    },
-    "Boring Notch is missing a required Now Playing component. Reinstalling the app should fix this." : {
-      "comment" : "Now Playing availability message when a bundled component is missing.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Boring Notch is missing a required Now Playing component. Reinstalling the app should fix this."
-          }
-        }
-      }
-    },
-    "Connects directly to the Apple Music app." : {
-      "comment" : "Onboarding description of the Apple Music source.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connects directly to the Apple Music app."
-          }
-        }
-      }
-    },
-    "Connects directly to the Spotify app." : {
-      "comment" : "Onboarding description of the Spotify music source.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connects directly to the Spotify app."
-          }
-        }
-      }
-    },
-    "Now Playing stopped responding. Boring Notch switched music sources temporarily. Check again to restore Now Playing." : {
-      "comment" : "Media settings footer shown after the Now Playing runtime stream repeatedly stops.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Now Playing stopped responding. Boring Notch switched music sources temporarily. Check again to restore Now Playing."
-          }
-        }
-      }
-    },
-    "Now Playing unavailable" : {
-      "comment" : "Title of the passive notice shown when the Now Playing media source cannot be used.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Now Playing unavailable"
-          }
-        }
-      }
-    },
-    "Now Playing is not supported by this version of macOS. Choose another music source." : {
-      "comment" : "Now Playing availability message when required private macOS APIs are unavailable.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Now Playing is not supported by this version of macOS. Choose another music source."
-          }
-        }
-      }
-    },
-    "Requires a third-party client with API plugin enabled." : {
-      "comment" : "Onboarding description of the YouTube Music source.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Requires a third-party client with API plugin enabled."
-          }
-        }
-      }
-    },
-    "Switched to %@" : {
-      "comment" : "Now Playing fallback notice for a persistent source change. The placeholder is the new music source name.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Switched to %@"
-          }
-        }
-      }
-    },
-    "Spotify" : {
-      "comment" : "Spotify service name.",
-      "shouldTranslate" : false,
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spotify"
-          }
-        }
-      }
-    },
-    "macOS did not return data to the Now Playing self-check. Try again, or reopen Boring Notch if it keeps happening." : {
-      "comment" : "Now Playing availability message when the self-check receives no test data.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOS did not return data to the Now Playing self-check. Try again, or reopen Boring Notch if it keeps happening."
-          }
-        }
-      }
-    },
-    "The Now Playing check took too long. Try again in a moment." : {
-      "comment" : "Now Playing availability message when the self-check times out.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The Now Playing check took too long. Try again in a moment."
-          }
-        }
-      }
-    },
-    "Works with most media apps, including browsers, to detect what's playing. Note: This may be removed in a future macOS version." : {
-      "comment" : "Onboarding description of the universal macOS Now Playing music source.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Works with most media apps, including browsers, to detect what's playing. Note: This may be removed in a future macOS version."
-          }
-        }
-      }
-    },
-    "Using %@ temporarily" : {
-      "comment" : "Temporary Now Playing fallback notice. The placeholder is the fallback music source name.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Using %@ temporarily"
-          }
-        }
-      }
-    },
-    "Using %@ temporarily. Your Now Playing preference is preserved." : {
-      "comment" : "Media settings footer for a temporary Now Playing fallback. The placeholder is the active fallback source.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Using %@ temporarily. Your Now Playing preference is preserved."
-          }
-        }
-      }
-    },
-    "YouTube Music" : {
-      "comment" : "YouTube Music service name.",
-      "shouldTranslate" : false,
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "YouTube Music"
-          }
-        }
-      }
-    },
-    "Camera Access Required" : {
-      "comment" : "Camera permission alert title",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Camera Access Required"
-          }
-        }
-      }
-    },
-    "Open Settings" : {
-      "comment" : "Button title that opens app or system settings",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open Settings"
-          }
-        }
-      }
-    },
-    "Open System Settings" : {
-      "comment" : "Button title that opens System Settings",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open System Settings"
-          }
-        }
-      }
-    },
-    "Please allow camera access in System Settings." : {
-      "comment" : "Camera permission alert message",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Please allow camera access in System Settings."
-          }
-        }
-      }
-    },
-    "Please allow camera access in System Settings to use the mirror feature." : {
-      "comment" : "Mirror camera permission alert message",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Please allow camera access in System Settings to use the mirror feature."
           }
         }
       }
@@ -6110,6 +5910,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "即將推出"
+          }
+        }
+      }
+    },
+    "Connects directly to the Apple Music app." : {
+      "comment" : "Onboarding description of the Apple Music source.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connects directly to the Apple Music app."
+          }
+        }
+      }
+    },
+    "Connects directly to the Spotify app." : {
+      "comment" : "Onboarding description of the Spotify music source.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connects directly to the Spotify app."
           }
         }
       }
@@ -12924,6 +12746,17 @@
         }
       }
     },
+    "macOS did not return data to the Now Playing self-check. Try again, or reopen Boring Notch if it keeps happening." : {
+      "comment" : "Now Playing availability message when the self-check receives no test data.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS did not return data to the Now Playing self-check. Try again, or reopen Boring Notch if it keeps happening."
+          }
+        }
+      }
+    },
     "Made with 🫶🏻 by not so boring not.people" : {
       "localizations" : {
         "cs" : {
@@ -16416,6 +16249,39 @@
         }
       }
     },
+    "Now Playing is not supported by this version of macOS. Choose another music source." : {
+      "comment" : "Now Playing availability message when required private macOS APIs are unavailable.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now Playing is not supported by this version of macOS. Choose another music source."
+          }
+        }
+      }
+    },
+    "Now Playing stopped responding. Boring Notch switched music sources temporarily. Check again to restore Now Playing." : {
+      "comment" : "Media settings message after the Now Playing runtime stream repeatedly stops.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now Playing stopped responding. Boring Notch switched music sources temporarily. Check again to restore Now Playing."
+          }
+        }
+      }
+    },
+    "Now Playing unavailable" : {
+      "comment" : "Title of the passive notice shown when the Now Playing media source cannot be used.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now Playing unavailable"
+          }
+        }
+      }
+    },
     "Open Calendar Settings" : {
       "localizations" : {
         "cs" : {
@@ -16862,6 +16728,17 @@
         }
       }
     },
+    "Open Settings" : {
+      "comment" : "Button title that opens app or system settings",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        }
+      }
+    },
     "Open shelf by default if items are present" : {
       "localizations" : {
         "de" : {
@@ -16970,6 +16847,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "有項目時預設開中轉站"
+          }
+        }
+      }
+    },
+    "Open System Settings" : {
+      "comment" : "Button title that opens System Settings",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open System Settings"
           }
         }
       }
@@ -17755,6 +17643,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "播放界面主題"
+          }
+        }
+      }
+    },
+    "Please allow camera access in System Settings to use the mirror feature." : {
+      "comment" : "Mirror camera permission alert message",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please allow camera access in System Settings to use the mirror feature."
+          }
+        }
+      }
+    },
+    "Please allow camera access in System Settings." : {
+      "comment" : "Camera permission alert message",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please allow camera access in System Settings."
           }
         }
       }
@@ -19323,6 +19233,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "申請輔助功能"
+          }
+        }
+      }
+    },
+    "Requires a third-party client with API plugin enabled." : {
+      "comment" : "Onboarding description of the YouTube Music source.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requires a third-party client with API plugin enabled."
           }
         }
       }
@@ -21944,6 +21865,10 @@
         }
       }
     },
+    "Show charging wattage" : {
+      "comment" : "A checkbox to show the wattage of the charging port.",
+      "isCommentAutoGenerated" : true
+    },
     "Show cool face animation while inactive" : {
       "localizations" : {
         "de" : {
@@ -24361,6 +24286,18 @@
         }
       }
     },
+    "Spotify" : {
+      "comment" : "Spotify service name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spotify"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
     "Square" : {
       "localizations" : {
         "cs" : {
@@ -24594,6 +24531,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已停止"
+          }
+        }
+      }
+    },
+    "Switched to %@" : {
+      "comment" : "Now Playing fallback notice for a persistent source change. The placeholder is the new music source name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switched to %@"
           }
         }
       }
@@ -24888,7 +24836,7 @@
       }
     },
     "System Setting" : {
-      "comment" : "Week starts on: follow the macOS system setting (shown with the resolved day in parentheses)",
+      "comment" : "Week starts on: follow the macOS system setting",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -24924,6 +24872,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "系统设置"
+          }
+        }
+      }
+    },
+    "The Now Playing check took too long. Try again in a moment." : {
+      "comment" : "Now Playing availability message when the self-check times out.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Now Playing check took too long. Try again in a moment."
           }
         }
       }
@@ -26389,6 +26348,28 @@
         }
       }
     },
+    "Using %@ temporarily" : {
+      "comment" : "Temporary Now Playing fallback notice. The placeholder is the fallback music source name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Using %@ temporarily"
+          }
+        }
+      }
+    },
+    "Using %@ temporarily. Your Now Playing preference is preserved." : {
+      "comment" : "Media settings footer for a temporary Now Playing fallback. The placeholder is the active fallback source.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Using %@ temporarily. Your Now Playing preference is preserved."
+          }
+        }
+      }
+    },
     "Using System Accent" : {
       "localizations" : {
         "de" : {
@@ -27465,6 +27446,17 @@
         }
       }
     },
+    "Works with most media apps, including browsers, to detect what's playing. Note: This may be removed in a future macOS version." : {
+      "comment" : "Onboarding description of the universal macOS Now Playing music source.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Works with most media apps, including browsers, to detect what's playing. Note: This may be removed in a future macOS version."
+          }
+        }
+      }
+    },
     "You can now enjoy the app. If you want to tweak things further, you can always visit the settings." : {
       "localizations" : {
         "de" : {
@@ -27800,6 +27792,18 @@
           }
         }
       }
+    },
+    "YouTube Music" : {
+      "comment" : "YouTube Music service name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "YouTube Music"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "YouTube Music requires this third-party app to be installed: " : {
       "extractionState" : "stale",
