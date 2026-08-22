@@ -39,6 +39,13 @@ final class AudioCaptureManager: ObservableObject {
         kAudioHardwareBadObjectError,
         kAudioHardwareUnknownPropertyError
     ]
+    /// Sources that render their audio in a separate WebKit helper process (com.apple.WebKit.GPU),
+    /// not in their own process. A process tap on their main app therefore captures silence, which
+    /// would show as a flat waveform. Skip real-time capture for these so the visualizer keeps its
+    /// synthetic animation instead. (Kaset is a WKWebView YouTube Music client.)
+    private static let audioUncapturableBundleIdentifiers: Set<String> = [
+        "com.sertacozercan.Kaset"
+    ]
 
     @Published private(set) var isCapturing: Bool = false
 
@@ -189,6 +196,19 @@ final class AudioCaptureManager: ObservableObject {
               enabled, isPlaying,
               let resolvedDisplayBundleID = displayBundleID,
               !resolvedDisplayBundleID.isEmpty else {
+            stopCaptureAsync()
+            return
+        }
+        // If every candidate source renders its audio out-of-process (e.g. a WKWebView app),
+        // there's nothing on its own process to tap — don't switch the visualizer to a flat
+        // real-time waveform; leave capture off so it keeps the synthetic animation.
+        let candidateCaptureBundleIDs = captureBundleIDs.isEmpty
+            ? [resolvedDisplayBundleID]
+            : captureBundleIDs
+        let hasCapturableSource = candidateCaptureBundleIDs.contains {
+            !Self.audioUncapturableBundleIdentifiers.contains($0)
+        }
+        guard hasCapturableSource else {
             stopCaptureAsync()
             return
         }
