@@ -24,11 +24,13 @@ struct FileShareView: View {
     }
 
     var body: some View {
+        @Bindable var dropInteraction = vm.dropInteraction
+
         dropArea
             .background(NSViewHost(view: $hostView))
-            .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data, .image], isTargeted: $vm.dropZoneTargeting) { providers in
+            .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data, .image], isTargeted: $dropInteraction.dropZoneTargeting) { providers in
                 interactionNonce = .init()
-                vm.dropEvent = true
+                dropInteraction.dropEvent = true
                 Task { await handleDrop(providers) }
                 return true
             }
@@ -48,7 +50,7 @@ struct FileShareView: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(
-                            vm.dropZoneTargeting
+                            vm.dropInteraction.dropZoneTargeting
                                 ? Color.accentColor.opacity(0.9)
                                 : Color.white.opacity(0.1),
                             style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [10])
@@ -61,7 +63,7 @@ struct FileShareView: View {
                 ZStack {
                     Circle()
                         .fill(Color.white.opacity(
-                            vm.dropZoneTargeting ? 0.11 : 0.09
+                            vm.dropInteraction.dropZoneTargeting ? 0.11 : 0.09
                         ))
                         .frame(width: 55, height: 55)
                     Group {
@@ -75,12 +77,12 @@ struct FileShareView: View {
                     }
                     .frame(width: 34, height: 34)
                         .foregroundStyle(
-                            vm.dropZoneTargeting ? Color.accentColor : Color.gray
+                            vm.dropInteraction.dropZoneTargeting ? Color.accentColor : Color.gray
                         )
                         .scaleEffect(
-                            vm.dropZoneTargeting ? 1.06 : 1.0
+                            vm.dropInteraction.dropZoneTargeting ? 1.06 : 1.0
                         )
-                        .animation(.spring(response: 0.36, dampingFraction: 0.7), value: vm.dropZoneTargeting)
+                        .animation(.spring(response: 0.36, dampingFraction: 0.7), value: vm.dropInteraction.dropZoneTargeting)
                 }
 
                 Text(selectedProvider.id)
