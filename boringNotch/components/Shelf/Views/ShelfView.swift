@@ -17,12 +17,14 @@ struct ShelfView: View {
     private let spacing: CGFloat = 8
 
     var body: some View {
+        @Bindable var dropInteraction = vm.dropInteraction
+
         HStack(spacing: 12) {
             FileShareView()
                 .aspectRatio(1, contentMode: .fit)
                 .environmentObject(vm)
             panel
-                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
+                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
                     handleDrop(providers: providers)
                 }
         }
@@ -35,7 +37,7 @@ struct ShelfView: View {
     
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
         guard !selection.isDragging else { return false }
-        vm.dropEvent = true
+        vm.dropInteraction.dropEvent = true
         ShelfStateViewModel.shared.load(providers)
         return true
     }
@@ -62,7 +64,7 @@ struct ShelfView: View {
     var panel: some View {
         RoundedRectangle(cornerRadius: 16)
             .stroke(
-                vm.dragDetectorTargeting
+                vm.dropInteraction.dragDetectorTargeting
                     ? Color.accentColor.opacity(0.9)
                     : Color.white.opacity(0.1),
                 style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [10])
@@ -79,7 +81,9 @@ struct ShelfView: View {
     }
 
     var content: some View {
-        Group {
+        @Bindable var dropInteraction = vm.dropInteraction
+
+        return Group {
             if tvm.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "tray.and.arrow.down")
@@ -104,7 +108,7 @@ struct ShelfView: View {
                 }
                 .padding(-spacing)
                 .scrollIndicators(.never)
-                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
+                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
                     handleDrop(providers: providers)
                 }
             }
