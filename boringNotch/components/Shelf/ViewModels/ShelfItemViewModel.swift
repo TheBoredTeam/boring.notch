@@ -34,6 +34,11 @@ final class ShelfItemViewModel: ObservableObject {
         static let copy = NSLocalizedString("Shelf.ContextMenu.Copy", comment: "Context menu item: Copy")
         static let copyPath = NSLocalizedString("Shelf.ContextMenu.CopyPath", comment: "Context menu item: Copy Path")
         static let remove = NSLocalizedString("Shelf.ContextMenu.Remove", comment: "Context menu item: Remove")
+
+        static var convertImageMenu: String {
+            let resolved = convertImage == "Shelf.ContextMenu.ConvertImage" ? "Convert Image…" : convertImage
+            return resolved.replacingOccurrences(of: "…", with: "").replacingOccurrences(of: "...", with: "")
+        }
     }
 
     private enum ContextMenuAction: String {
@@ -257,7 +262,6 @@ final class ShelfItemViewModel: ObservableObject {
             if case .link(let url) = itm.kind { return url }
             return nil
         }
-        let selectedFolderURLs = selectedFileURLs.filter { isDirectory($0) }
         // URLs valid for Open/Open With (exclude folders)
         let selectedOpenableURLs = selectedItems.compactMap { itm -> URL? in
             if let u = itm.fileURL { return isDirectory(u) ? nil : u }
@@ -362,6 +366,10 @@ final class ShelfItemViewModel: ObservableObject {
 
             let imageActions = NSMenuItem(title: "Image Actions", action: nil, keyEquivalent: "")
             let imageSubmenu = NSMenu()
+            let hasSingleImageSelection = selectedItems.count == 1 && imageURLs.count == 1
+            let availableConversionFormats = hasSingleImageSelection
+                ? ImageProcessingService.shared.availableConversionFormats(for: imageURLs.first)
+                : []
 
             // Remove Background - only for single images
             if imageURLs.count == 1 {
@@ -369,9 +377,18 @@ final class ShelfItemViewModel: ObservableObject {
                 imageSubmenu.addItem(removeBg)
             }
 
-            // Convert Image - only for single images
-            if imageURLs.count == 1 {
-                let convertItem = NSMenuItem(title: "Convert Image…", action: nil, keyEquivalent: "")
+            // Convert Image - only for single images and only for formats this macOS can write.
+            if !availableConversionFormats.isEmpty {
+                let convertItem = NSMenuItem(title: Strings.convertImageMenu, action: nil, keyEquivalent: "")
+                let convertSubmenu = NSMenu()
+
+                for format in availableConversionFormats {
+                    let formatItem = NSMenuItem(title: format.displayName, action: nil, keyEquivalent: "")
+                    formatItem.representedObject = "__CONVERT__:\(format.utType.identifier)"
+                    convertSubmenu.addItem(formatItem)
+                }
+
+                convertItem.submenu = convertSubmenu
                 imageSubmenu.addItem(convertItem)
             }
 
@@ -407,20 +424,19 @@ final class ShelfItemViewModel: ObservableObject {
 
         let actionTarget = MenuActionTarget(item: item, view: view, viewModel: self)
 
-        for menuItem in menu.items {
-            if menuItem.isSeparatorItem { continue }
-            menuItem.target = actionTarget
-            menuItem.action = #selector(MenuActionTarget.handle(_:))
+        func bindActions(in menu: NSMenu) {
+            for menuItem in menu.items {
+                if menuItem.isSeparatorItem { continue }
+                menuItem.target = actionTarget
+                menuItem.action = #selector(MenuActionTarget.handle(_:))
 
-            if let submenu = menuItem.submenu {
-                for subItem in submenu.items {
-                    if !subItem.isSeparatorItem {
-                        subItem.target = actionTarget
-                        subItem.action = #selector(MenuActionTarget.handle(_:))
-                    }
+                if let submenu = menuItem.submenu {
+                    bindActions(in: submenu)
                 }
             }
         }
+
+        bindActions(in: menu)
         
         menu.retainActionTarget(actionTarget)
         
@@ -452,6 +468,13 @@ final class ShelfItemViewModel: ObservableObject {
 
             if let marker = sender.representedObject as? String, marker == "__OTHER__" {
                 openWithPanel()
+                return
+            }
+
+            if let marker = sender.representedObject as? String,
+               marker.hasPrefix("__CONVERT__:") {
+                let typeIdentifier = String(marker.dropFirst("__CONVERT__:".count))
+                handleConvertImage(typeIdentifier: typeIdentifier)
                 return
             }
 
@@ -581,9 +604,6 @@ final class ShelfItemViewModel: ObservableObject {
                 
             case "Remove Background":
                 handleRemoveBackground()
-                
-            case "Convert Image…":
-                showConvertImageDialog()
                 
             case "Create PDF":
                 handleCreatePDF()
@@ -879,49 +899,49 @@ final class ShelfItemViewModel: ObservableObject {
         }
         
         @MainActor
-        private func showConvertImageDialog() {
+        private func handleConvertImage(typeIdentifier: String) {
             let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
             let imageURLs = selected.compactMap { $0.fileURL }.filter { ImageProcessingService.shared.isImageFile($0) }
-            
-            guard let imageURL = imageURLs.first else { return }
-            
+
+            guard let imageURL = imageURLs.first,
+                  let format = ImageProcessingService.shared.availableConversionFormats(for: imageURL)
+                    .first(where: { $0.utType.identifier == typeIdentifier }) else {
+                return
+            }
+
+            showConvertImageDialog(for: imageURL, format: format)
+        }
+
+        @MainActor
+        private func showConvertImageDialog(for imageURL: URL, format: ImageConversionFormat) {
+            let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+            guard selected.count == 1 else { return }
+
             // Create and show conversion options dialog with better layout
             let alert = NSAlert()
-            alert.messageText = "Convert Image"
+            alert.messageText = "Convert to \(format.displayName)"
             alert.alertStyle = .informational
             alert.addButton(withTitle: "Convert")
             alert.addButton(withTitle: "Cancel")
             
             // Create accessory view with better spacing and organization
-            let accessoryView = NSView(frame: NSRect(x: 0, y: 0, width: 380, height: 180))
+            let accessoryView = NSView(frame: NSRect(x: 0, y: 0, width: 380, height: 145))
             accessoryView.wantsLayer = true
-            
-            // MARK: Format Row
-            let formatLabel = NSTextField(labelWithString: "Format:")
-            formatLabel.frame = NSRect(x: 0, y: 145, width: 100, height: 20)
-            formatLabel.font = .systemFont(ofSize: 12, weight: .medium)
-            accessoryView.addSubview(formatLabel)
-            
-            let formatPopup = NSPopUpButton(frame: NSRect(x: 120, y: 140, width: 250, height: 28))
-            formatPopup.addItems(withTitles: ["PNG", "JPEG", "HEIC", "TIFF", "BMP"])
-            formatPopup.selectItem(at: 0)
-            formatPopup.font = .systemFont(ofSize: 12)
-            accessoryView.addSubview(formatPopup)
             
             // MARK: Image Size Row
             let imageSizeLabel = NSTextField(labelWithString: "Image Size:")
-            imageSizeLabel.frame = NSRect(x: 0, y: 105, width: 100, height: 20)
+            imageSizeLabel.frame = NSRect(x: 0, y: 110, width: 100, height: 20)
             imageSizeLabel.font = .systemFont(ofSize: 12, weight: .medium)
             accessoryView.addSubview(imageSizeLabel)
             
-            let imageSizePopup = NSPopUpButton(frame: NSRect(x: 120, y: 100, width: 160, height: 28))
+            let imageSizePopup = NSPopUpButton(frame: NSRect(x: 120, y: 105, width: 160, height: 28))
             imageSizePopup.addItems(withTitles: ["Actual Size", "Large", "Medium", "Small", "Custom..."])
             imageSizePopup.selectItem(at: 0)
             imageSizePopup.font = .systemFont(ofSize: 12)
             accessoryView.addSubview(imageSizePopup)
             
             // Custom size field (initially hidden)
-            let customSizeField = NSTextField(frame: NSRect(x: 285, y: 103, width: 85, height: 22))
+            let customSizeField = NSTextField(frame: NSRect(x: 285, y: 108, width: 85, height: 22))
             customSizeField.placeholderString = "e.g., 1920"
             customSizeField.font = .systemFont(ofSize: 12)
             customSizeField.isHidden = true
@@ -929,25 +949,21 @@ final class ShelfItemViewModel: ObservableObject {
             
             // MARK: Preserve Metadata Checkbox
             let metadataCheckbox = NSButton(checkboxWithTitle: "Preserve Metadata", target: nil, action: nil)
-            metadataCheckbox.frame = NSRect(x: 120, y: 65, width: 200, height: 20)
+            metadataCheckbox.frame = NSRect(x: 120, y: 70, width: 200, height: 20)
             metadataCheckbox.font = .systemFont(ofSize: 12)
             metadataCheckbox.state = .on
             accessoryView.addSubview(metadataCheckbox)
             
             // MARK: Separator line
-            let separatorLine = NSView(frame: NSRect(x: 0, y: 50, width: 380, height: 1))
+            let separatorLine = NSView(frame: NSRect(x: 0, y: 55, width: 380, height: 1))
             separatorLine.wantsLayer = true
             separatorLine.layer?.backgroundColor = NSColor.separatorColor.cgColor
             accessoryView.addSubview(separatorLine)
             
-            // MARK: Format-specific options (shown/hidden based on format selection)
-            let qualityRow = NSView(frame: NSRect(x: 0, y: 15, width: 380, height: 30))
-            qualityRow.wantsLayer = true
-            
             let qualityLabel = NSTextField(labelWithString: "Compression:")
             qualityLabel.frame = NSRect(x: 0, y: 7, width: 100, height: 20)
             qualityLabel.font = .systemFont(ofSize: 12, weight: .medium)
-            qualityRow.addSubview(qualityLabel)
+            accessoryView.addSubview(qualityLabel)
             
             let qualitySlider = NSSlider(frame: NSRect(x: 120, y: 12, width: 200, height: 20))
             qualitySlider.minValue = 0.0
@@ -968,8 +984,7 @@ final class ShelfItemViewModel: ObservableObject {
             }
             
             let updateCompressionVisibility = {
-                let formatIndex = formatPopup.indexOfSelectedItem
-                let showCompression = formatIndex == 1 || formatIndex == 2 // JPEG or HEIC
+                let showCompression = format.supportsCompressionQuality
                 qualitySlider.isHidden = !showCompression
                 qualityValueLabel.isHidden = !showCompression
                 qualityLabel.isHidden = !showCompression
@@ -983,32 +998,24 @@ final class ShelfItemViewModel: ObservableObject {
             // Create a target object to handle slider value changes
             class SliderHandler: NSObject {
                 let updateLabel: () -> Void
-                let updateVisibility: () -> Void
                 let updateCustomSize: () -> Void
-                init(updateLabel: @escaping () -> Void, updateVisibility: @escaping () -> Void, updateCustomSize: @escaping () -> Void) {
+                init(updateLabel: @escaping () -> Void, updateCustomSize: @escaping () -> Void) {
                     self.updateLabel = updateLabel
-                    self.updateVisibility = updateVisibility
                     self.updateCustomSize = updateCustomSize
                 }
                 @objc func sliderChanged(_ sender: NSSlider) {
                     updateLabel()
-                }
-                @objc func formatChanged(_ sender: NSPopUpButton) {
-                    updateVisibility()
                 }
                 @objc func sizeChanged(_ sender: NSPopUpButton) {
                     updateCustomSize()
                 }
             }
             
-            let handler = SliderHandler(updateLabel: updateQualityLabel, updateVisibility: updateCompressionVisibility, updateCustomSize: updateCustomSizeVisibility)
+            let handler = SliderHandler(updateLabel: updateQualityLabel, updateCustomSize: updateCustomSizeVisibility)
             qualitySlider.target = handler
             qualitySlider.action = #selector(SliderHandler.sliderChanged(_:))
             qualitySlider.isContinuous = true
-            
-            formatPopup.target = handler
-            formatPopup.action = #selector(SliderHandler.formatChanged(_:))
-            
+
             imageSizePopup.target = handler
             imageSizePopup.action = #selector(SliderHandler.sizeChanged(_:))
             
@@ -1024,18 +1031,6 @@ final class ShelfItemViewModel: ObservableObject {
             let response = alert.runModal()
             
             if response == .alertFirstButtonReturn {
-                // Get selected options
-                let formatIndex = formatPopup.indexOfSelectedItem
-                let format: ImageConversionOptions.ImageFormat
-                switch formatIndex {
-                case 0: format = .png
-                case 1: format = .jpeg
-                case 2: format = .heic
-                case 3: format = .tiff
-                case 4: format = .bmp
-                default: format = .png
-                }
-                
                 let quality = qualitySlider.doubleValue
                 
                 // Get max dimension based on image size selection
@@ -1060,7 +1055,7 @@ final class ShelfItemViewModel: ObservableObject {
                     format: format,
                     compressionQuality: quality,
                     maxDimension: maxDimension,
-                    removeMetadata: removeMetadata
+                    preserveMetadata: !removeMetadata
                 )
                 
                 Task {
