@@ -3828,6 +3828,171 @@
         }
       }
     },
+    "Actual Size" : {
+      "comment" : "Image conversion size option",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actual Size"
+          }
+        }
+      }
+    },
+    "Background Removal Failed" : {
+      "comment" : "Background removal error alert title",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Background Removal Failed"
+          }
+        }
+      }
+    },
+    "Compression:" : {
+      "comment" : "Image conversion compression field label",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compression:"
+          }
+        }
+      }
+    },
+    "Convert" : {
+      "comment" : "Button title that starts image conversion",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Convert"
+          }
+        }
+      }
+    },
+    "Convert Image" : {
+      "comment" : "Image conversion alert title",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Convert Image"
+          }
+        }
+      }
+    },
+    "Custom..." : {
+      "comment" : "Image conversion custom size option",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom..."
+          }
+        }
+      }
+    },
+    "e.g., 1920" : {
+      "comment" : "Image conversion custom size placeholder",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "e.g., 1920"
+          }
+        }
+      }
+    },
+    "Format:" : {
+      "comment" : "Image conversion format field label",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Format:"
+          }
+        }
+      }
+    },
+    "Image Conversion Failed" : {
+      "comment" : "Image conversion error alert title",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image Conversion Failed"
+          }
+        }
+      }
+    },
+    "Image Size:" : {
+      "comment" : "Image conversion size field label",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image Size:"
+          }
+        }
+      }
+    },
+    "Large" : {
+      "comment" : "Image conversion size option",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Large"
+          }
+        }
+      }
+    },
+    "OK" : {
+      "comment" : "OK button title",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "PDF Creation Failed" : {
+      "comment" : "PDF creation error alert title",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF Creation Failed"
+          }
+        }
+      }
+    },
+    "Preserve Metadata" : {
+      "comment" : "Image conversion metadata checkbox title",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preserve Metadata"
+          }
+        }
+      }
+    },
+    "Small" : {
+      "comment" : "Image conversion size option",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Small"
+          }
+        }
+      }
+    },
     "Change media with horizontal gestures" : {
       "localizations" : {
         "de" : {
