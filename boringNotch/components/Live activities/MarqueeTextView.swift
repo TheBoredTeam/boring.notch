@@ -23,32 +23,76 @@ struct MeasureSizeModifier: ViewModifier {
 }
 
 struct MarqueeText: View {
-    let text: String
+    @Binding var text: String
     let font: Font
     let nsFont: NSFont.TextStyle
     let color: Color
     let delayDuration: Double
     let frameWidth: CGFloat
+    let textHeight: CGFloat?
     
     @State private var animate = false
     @State private var textSize: CGSize = .zero
     @State private var offset: CGFloat = 0
+    @State private var restartToken: UInt = 0
     
-    init(_ text: String, font: Font = .body, nsFont: NSFont.TextStyle = .body, color: Color = .primary, delayDuration: Double = 3.0, frameWidth: CGFloat) {
-        self.text = text
+    init(
+        _ text: Binding<String>,
+        font: Font = .body,
+        nsFont: NSFont.TextStyle = .body,
+        textColor: Color = .primary,
+        delayDuration: Double = 3.0,
+        frameWidth: CGFloat = 200,
+        textHeight: CGFloat? = nil
+    ) {
+        _text = text
+        self.font = font
+        self.nsFont = nsFont
+        self.color = textColor
+        self.delayDuration = delayDuration
+        self.frameWidth = frameWidth
+        self.textHeight = textHeight
+    }
+
+    init(
+        _ text: String,
+        font: Font = .body,
+        nsFont: NSFont.TextStyle = .body,
+        color: Color = .primary,
+        delayDuration: Double = 3.0,
+        frameWidth: CGFloat = 200,
+        textHeight: CGFloat? = nil
+    ) {
+        _text = .constant(text)
         self.font = font
         self.nsFont = nsFont
         self.color = color
         self.delayDuration = delayDuration
         self.frameWidth = frameWidth
+        self.textHeight = textHeight
     }
     
     private var needsScrolling: Bool {
         textSize.width > frameWidth
     }
+
+    private func restartAnimation() {
+        restartToken &+= 1
+        let token = restartToken
+        animate = false
+        offset = 0
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            guard token == restartToken else { return }
+            if needsScrolling {
+                offset = -(textSize.width + 10)
+                animate = true
+            }
+        }
+    }
     
     var body: some View {
-        GeometryReader { geometry in
+        GeometryReader { _ in
             ZStack(alignment: .leading) {
                 HStack(spacing: 20) {
                     Text(text)
@@ -69,22 +113,23 @@ struct MarqueeText: View {
                 )
                 .modifier(MeasureSizeModifier())
                 .onPreferenceChange(SizePreferenceKey.self) { size in
-                    self.textSize = CGSize(width: size.width / 2, height: NSFont.preferredFont(forTextStyle: nsFont).pointSize)
-                    self.animate = false
-                    self.offset = 0
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.01){
-                        if needsScrolling {
-                            self.animate = true
-                            self.offset = -(textSize.width + 10)
-                            
-                        }
-                    }
+                    self.textSize = CGSize(
+                        width: size.width / 2,
+                        height: textHeight ?? NSFont.preferredFont(forTextStyle: nsFont).pointSize
+                    )
+                    restartAnimation()
                 }
             }
             .frame(width: frameWidth, alignment: .leading)
             .clipped()
         }
         .frame(height: textSize.height * 1.3)
+        .onChange(of: frameWidth) {
+            restartAnimation()
+        }
+        .onChange(of: textHeight) {
+            restartAnimation()
+        }
         
     }
 }
@@ -185,9 +230,9 @@ struct TimedLyricText: View {
                     textSize = CGSize(width: size.width, height: NSFont.preferredFont(forTextStyle: nsFont).pointSize)
                     restartAnimationIfNeeded()
                 }
-                .onChange(of: text) { _ in restartAnimationIfNeeded() }
-                .onChange(of: frameWidth) { _ in restartAnimationIfNeeded() }
-                .onChange(of: animationID) { _ in restartAnimationIfNeeded() }
+                .onChange(of: text) { restartAnimationIfNeeded() }
+                .onChange(of: frameWidth) { restartAnimationIfNeeded() }
+                .onChange(of: animationID) { restartAnimationIfNeeded() }
         }
         .frame(width: frameWidth, alignment: .leading)
         .clipped()
