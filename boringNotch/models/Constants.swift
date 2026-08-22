@@ -102,9 +102,6 @@ struct AppLanguage: RawRepresentable, Hashable, Identifiable, Defaults.Serializa
 
 // Define notification names at file scope
 extension Notification.Name {
-    // MARK: - Media
-    static let mediaControllerChanged = Notification.Name("mediaControllerChanged")
-    
     // MARK: - Display
     static let selectedScreenChanged = Notification.Name("SelectedScreenChanged")
     static let notchHeightChanged = Notification.Name("NotchHeightChanged")
@@ -133,17 +130,34 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
     
     var id: String { self.rawValue }
 
-    var localizedString: String {
+    init?(nowPlayingBundleIdentifier bundleIdentifier: String) {
+        switch bundleIdentifier {
+        case "com.apple.Music":
+            self = .appleMusic
+        case "com.spotify.client":
+            self = .spotify
+        case YouTubeMusicConfiguration.default.bundleIdentifier:
+            self = .youtubeMusic
+        default:
+            return nil
+        }
+    }
+
+    var localizedResource: LocalizedStringResource {
         switch self {
         case .nowPlaying:
-            return NSLocalizedString("Now Playing", comment: "")
+            "Now Playing"
         case .appleMusic:
-            return "Apple Music"
+            "Apple Music"
         case .spotify:
-            return "Spotify"
+            "Spotify"
         case .youtubeMusic:
-            return "YouTube Music"
+            "YouTube Music"
         }
+    }
+
+    var localizedString: String {
+        String(localized: localizedResource)
     }
 }
 
@@ -328,6 +342,12 @@ extension Defaults.Keys {
     
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
+    static let didChooseMediaController = Key<Bool>("didChooseMediaController", default: false)
+    static let didMigrateMediaControllerChoice = Key<Bool>("didMigrateMediaControllerChoice", default: false)
+    static let lastSupportedNowPlayingBundleIdentifier = Key<String?>(
+        "lastSupportedNowPlayingBundleIdentifier",
+        default: nil
+    )
     
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
@@ -338,13 +358,9 @@ extension Defaults.Keys {
     // Normalize scroll/gesture direction so when macOS "Natural scrolling" is disabled, it doesn't invert gestures
     static let normalizeGestureDirection = Key<Bool>("normalizeGestureDirection", default: true)
     
-    // Helper to determine the default media controller based on NowPlaying deprecation status
+    // Keep the default stable. Runtime availability is handled by MusicManager.
     static var defaultMediaController: MediaControllerType {
-        if MusicManager.shared.isNowPlayingDeprecated {
-            return .appleMusic
-        } else {
-            return .nowPlaying
-        }
+        .nowPlaying
     }
 
     static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)

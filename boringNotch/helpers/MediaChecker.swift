@@ -7,61 +7,85 @@
 
 import Foundation
 
-final class MediaChecker: Sendable {
+struct MediaChecker: NowPlayingAvailabilityChecking {
+    func checkAvailability(maxAttempts: Int = 3) async throws -> NowPlayingAvailability {
+        let attempts = max(1, maxAttempts)
 
-    enum MediaCheckerError: Error {
-        case missingResources
-        case processExecutionFailed
-        case timeout
+        for attempt in 1...attempts {
+            try Task.checkCancellation()
+            let availability = try await runAvailabilityCheck()
+            guard availability.shouldRetry, attempt < attempts else {
+                return availability
+            }
+
+            try await Task.sleep(for: .milliseconds(350 * attempt))
+        }
+
+        return .unchecked
     }
 
-    func checkDeprecationStatus() async throws -> Bool {
-        try await Task.detached(priority: .userInitiated) {
-            guard let scriptURL = Bundle.main.url(forResource: "mediaremote-adapter", withExtension: "pl"),
-                  let nowPlayingTestClientPath = Bundle.main.url(forResource: "MediaRemoteAdapterTestClient", withExtension: nil)?.path,
-                  let frameworkPath = Bundle.main.privateFrameworksPath?.appending("/MediaRemoteAdapter.framework")
-            else {
-                throw MediaCheckerError.missingResources
-            }
+    private func runAvailabilityCheck() async throws -> NowPlayingAvailability {
+        let resources: NowPlayingResources
+        do {
+            resources = try NowPlayingResources.load(requiresTestClient: true)
+        } catch let failure as NowPlayingSetupFailure {
+            return .setupFailure(failure)
+        } catch {
+            return .setupFailure(.missingAdapterScript)
+        }
 
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
-            process.arguments = [scriptURL.path, frameworkPath, nowPlayingTestClientPath, "test"]
+        guard let testClientURL = resources.testClientURL else {
+            return .setupFailure(.missingTestClient)
+        }
 
-            do {
-                try process.run()
-            } catch {
-                throw MediaCheckerError.processExecutionFailed
-            }
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
+        process.arguments = [
+            resources.adapterScriptURL.path,
+            resources.adapterFrameworkPath,
+            testClientURL.path,
+            "test",
+        ]
 
-            // Timeout after 10 seconds
-            let didExit: Bool = try await withThrowingTaskGroup(of: Bool.self) { group in
-                group.addTask {
-                    process.waitUntilExit()
-                    return true
-                }
-                group.addTask {
-                    try await Task.sleep(for: .seconds(10))
-                    if process.isRunning {
-                        process.terminate()
-                    }
-                    return false // Timed out
-                }
-                for try await exited in group {
-                    if exited {
-                        group.cancelAll()
-                        return true
-                    }
-                }
-                throw MediaCheckerError.timeout
-            }
+        let result: TimedProcessResult
+        do {
+            result = try await TimedProcessRunner.run(process, timeout: .seconds(10))
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            return .temporaryFailure(.launchFailed)
+        }
 
-            if !didExit {
-                throw MediaCheckerError.timeout
-            }
+        switch result {
+        case .timedOut:
+            return .temporaryFailure(.timedOut)
+        case .terminated(let termination):
+            return Self.availability(for: termination)
+        }
+    }
 
-            let isDeprecated = process.terminationStatus == 1
-            return isDeprecated
-        }.value
+    static func availability(
+        for termination: ChildProcessTermination
+    ) -> NowPlayingAvailability {
+        switch termination {
+        case .exited(0):
+            return .available
+        case .exited(1):
+            return .temporaryFailure(.helperPathMissing)
+        case .exited(2):
+            return .temporaryFailure(.helperLaunchFailed)
+        case .exited(3):
+            return .temporaryFailure(.helperSetupTimedOut)
+        case .exited(4):
+            return .temporaryFailure(.noData)
+        case .exited(64):
+            return .temporaryFailure(.wrapperFailed)
+        case .exited(let status):
+            return .temporaryFailure(.unexpectedExit(status))
+        case .signaled(let signal):
+            return .temporaryFailure(.signaled(signal))
+        case .unknown(let status):
+            return .temporaryFailure(.unexpectedExit(status))
+        }
     }
 }

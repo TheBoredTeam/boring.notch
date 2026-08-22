@@ -10,6 +10,7 @@ import Foundation
 import Combine
 import SwiftUI
 
+@MainActor
 final class YouTubeMusicController: MediaControllerProtocol {
     // MARK: - Published Properties
     @Published var playbackState = PlaybackState(
@@ -69,10 +70,15 @@ final class YouTubeMusicController: MediaControllerProtocol {
 
     deinit {
         artworkFetchTask?.cancel()
-        cancelReconnect(resetDelay: false)
+        reconnectTask?.cancel()
         appStateObserver?.cancel()
-        stopPeriodicUpdates()
-        disconnectClient(takeWebSocketClient())
+        updateTimer?.invalidate()
+
+        if let webSocketClient {
+            Task {
+                await webSocketClient.disconnect()
+            }
+        }
     }
     
     // MARK: - MediaControllerProtocol Implementation
@@ -106,7 +112,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
     func toggleShuffle() async { await sendCommand(endpoint: "/shuffle", method: "POST") }
     func toggleRepeat() async { await sendCommand(endpoint: "/switch-repeat", method: "POST") }
 
-    nonisolated func isActive() -> Bool {
+    func isActive() -> Bool {
         NSWorkspace.shared.runningApplications.contains {
             $0.bundleIdentifier == configuration.bundleIdentifier
         }
