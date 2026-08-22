@@ -19,6 +19,10 @@ on:
   schedule:
     - cron: '31 15 * * 1'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
@@ -27,7 +31,7 @@ jobs:
     #   - https://gh.io/supported-runners-and-hardware-resources
     #   - https://gh.io/using-larger-runners (GitHub.com only)
     # Consider using larger runners or machines with greater resources for possible analysis time improvements.
-    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-15') || 'ubuntu-latest' }}
     permissions:
       # required for all workflows
       security-events: write
@@ -63,6 +67,19 @@ jobs:
       with:
         persist-credentials: false
 
+    # Resolve packages before CodeQL initializes compiler tracing. Package
+    # resolution evaluates Swift manifests and plugins but does not compile the
+    # application source that CodeQL needs to observe.
+    - name: Resolve Swift package dependencies
+      if: matrix.language == 'swift'
+      run: |
+        xcodebuild \
+          -resolvePackageDependencies \
+          -project boringNotch.xcodeproj \
+          -scheme boringNotch \
+          -clonedSourcePackagesDirPath "$RUNNER_TEMP/boringNotch-source-packages" \
+          -onlyUsePackageVersionsFromResolvedFile
+
     # Add any setup steps before running the `github/codeql-action/init` action.
     # This includes steps like installing compilers or runtimes (`actions/setup-node`
     # or others). This is typically only required for manual builds.
@@ -82,25 +99,25 @@ jobs:
         # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
         # queries: security-extended,security-and-quality
 
-    - name: Resolve Swift package dependencies
-      if: matrix.language == 'swift'
-      run: |
-        xcodebuild \
-          -resolvePackageDependencies \
-          -project boringNotch.xcodeproj \
-          -scheme boringNotch
-
     - name: Build Boring Notch
       if: matrix.language == 'swift'
       run: |
         set -o pipefail
 
+        BUILD_ARCH="$(uname -m)"
+
         xcodebuild \
           -project boringNotch.xcodeproj \
           -scheme boringNotch \
           -configuration Release \
-          -destination "platform=macOS" \
+          -destination "platform=macOS,arch=${BUILD_ARCH}" \
           -derivedDataPath "$RUNNER_TEMP/boringNotch-derived-data" \
+          -clonedSourcePackagesDirPath "$RUNNER_TEMP/boringNotch-source-packages" \
+          -onlyUsePackageVersionsFromResolvedFile \
+          ARCHS="${BUILD_ARCH}" \
+          ONLY_ACTIVE_ARCH=YES \
+          SWIFT_OPTIMIZATION_LEVEL=-Onone \
+          SWIFT_COMPILATION_MODE=singlefile \
           CODE_SIGNING_ALLOWED=NO \
           CODE_SIGNING_REQUIRED=NO \
           build
