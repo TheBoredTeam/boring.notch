@@ -15,14 +15,9 @@ class BoringViewModel: NSObject, ObservableObject {
 
     let animationLibrary: BoringAnimations = .init()
     let animation: Animation?
+    let dropInteraction = DropInteractionState()
 
     @Published private(set) var notchState: NotchState = .closed
-
-    @Published var dragDetectorTargeting: Bool = false
-    @Published var generalDropTargeting: Bool = false
-    @Published var dropZoneTargeting: Bool = false
-    @Published var dropEvent: Bool = false
-    @Published var anyDropZoneTargeting: Bool = false
     var cancellables: Set<AnyCancellable> = []
     
     @Published var hideOnClosed: Bool = true
@@ -58,13 +53,6 @@ class BoringViewModel: NSObject, ObservableObject {
         notchSize = getClosedNotchSize(screenUUID: screenUUID)
         closedNotchSize = notchSize
 
-        Publishers.CombineLatest3($dropZoneTargeting, $dragDetectorTargeting, $generalDropTargeting)
-            .map { shelf, drag, general in
-                shelf || drag || general
-            }
-            .assign(to: \.anyDropZoneTargeting, on: self)
-            .store(in: &cancellables)
-        
         setupDetectorObserver()
     }
     
@@ -196,7 +184,7 @@ class BoringViewModel: NSObject, ObservableObject {
 
     @discardableResult
     func open() -> Bool {
-        guard !coordinator.firstLaunch else { return false }
+        guard !coordinator.firstLaunch, notchState != .open else { return false }
 
         self.notchSize = openNotchSize
         self.notchState = .open
