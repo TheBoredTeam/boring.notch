@@ -27,7 +27,7 @@ jobs:
     #   - https://gh.io/supported-runners-and-hardware-resources
     #   - https://gh.io/using-larger-runners (GitHub.com only)
     # Consider using larger runners or machines with greater resources for possible analysis time improvements.
-    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    runs-on: ${{ (matrix.language == 'swift' && 'xcode-27') || 'ubuntu-latest' }}
     permissions:
       # required for all workflows
       security-events: write
@@ -63,6 +63,16 @@ jobs:
       with:
         persist-credentials: false
 
+    - name: Resolve Swift package dependencies
+      if: matrix.language == 'swift'
+      run: |
+        xcodebuild \
+          -resolvePackageDependencies \
+          -project boringNotch.xcodeproj \
+          -scheme boringNotch \
+          -clonedSourcePackagesDirPath "$RUNNER_TEMP/boringNotch-source-packages" \
+          -onlyUsePackageVersionsFromResolvedFile
+
     # Add any setup steps before running the `github/codeql-action/init` action.
     # This includes steps like installing compilers or runtimes (`actions/setup-node`
     # or others). This is typically only required for manual builds.
@@ -82,14 +92,6 @@ jobs:
         # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
         # queries: security-extended,security-and-quality
 
-    - name: Resolve Swift package dependencies
-      if: matrix.language == 'swift'
-      run: |
-        xcodebuild \
-          -resolvePackageDependencies \
-          -project boringNotch.xcodeproj \
-          -scheme boringNotch
-
     - name: Build Boring Notch
       if: matrix.language == 'swift'
       run: |
@@ -101,6 +103,8 @@ jobs:
           -configuration Release \
           -destination "platform=macOS" \
           -derivedDataPath "$RUNNER_TEMP/boringNotch-derived-data" \
+          -clonedSourcePackagesDirPath "$RUNNER_TEMP/boringNotch-source-packages" \
+          -onlyUsePackageVersionsFromResolvedFile \
           CODE_SIGNING_ALLOWED=NO \
           CODE_SIGNING_REQUIRED=NO \
           build
