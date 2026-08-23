@@ -146,7 +146,15 @@
       }
     },
     "%@x" : {
-      "comment" : "Animation speed multiplier."
+      "comment" : "Animation speed multiplier.",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@x"
+          }
+        }
+      }
     },
     "%@" : {
       "localizations" : {
@@ -3707,7 +3715,15 @@
       }
     },
     "Camera" : {
-      "comment" : "A label for the camera picker."
+      "comment" : "A label for the camera picker.",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cámara"
+          }
+        }
+      }
     },
     "Cancel" : {
       "extractionState" : "stale",
@@ -3952,6 +3968,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Changing the app language requires restarting Boring Notch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambiar el idioma de la aplicación requiere reiniciar Boring Notch."
           }
         },
         "fr" : {
@@ -4322,6 +4344,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Automatisch nach Updates suchen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar actualizaciones automáticamente"
           }
         },
         "fr" : {
@@ -4851,7 +4879,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Elija qué servicio usar al compartir archivos de la estantería. Haga clic en el botón de la estantería para seleccionar archivos, o arrástrelos a ella para compartirlos inmediatamente."
+            "value" : "Elija qué servicio usar al compartir archivos de la bandeja. Haga clic en el botón de la bandeja para seleccionar archivos, o arrástrelos a ella para compartirlos inmediatamente."
           }
         },
         "fr" : {
@@ -5987,6 +6015,12 @@
             "value" : "Steuerungs-Quellen"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Control de fuentes"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6486,7 +6520,15 @@
       }
     },
     "Custom notch size - %@" : {
-      "comment" : "Slider label showing the custom notch height."
+      "comment" : "Slider label showing the custom notch height.",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamaño personalizado del notch - %@"
+          }
+        }
+      }
     },
     "Customize in Settings" : {
       "localizations" : {
@@ -7312,6 +7354,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Automatisches herunterladen und installieren von Updates"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descargar e instalar actualizaciones automáticamente"
           }
         },
         "fr" : {
@@ -9282,7 +9330,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los archivos que suelte en la estantería se compartirán con este servicio"
+            "value" : "Los archivos que suelte en la bandeja se compartirán con este servicio"
           }
         },
         "fr" : {
@@ -9490,10 +9538,26 @@
       }
     },
     "Flip video" : {
-      "comment" : "A toggle to flip the video."
+      "comment" : "A toggle to flip the video.",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voltear vídeo"
+          }
+        }
+      }
     },
     "Frame shape" : {
-      "comment" : "A label for the shape of the mirror frame."
+      "comment" : "A label for the shape of the mirror frame.",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forma del marco"
+          }
+        }
+      }
     },
     "Full charge" : {
       "localizations" : {
@@ -11134,6 +11198,12 @@
             "value" : "Fenster auf Bildschirmen ohne Notch in Mission Control ausblenden"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar ventanas en pantallas sin notch desde Mission Control"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11901,6 +11971,12 @@
             "value" : "Interaktion"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interacciones"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11960,6 +12036,12 @@
             "value" : "Immer Boring Notch aktualisiert haben"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantener Boring Notch actualizado"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12011,6 +12093,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Neuere Artikel im Regal vorne halten"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantener los elementos nuevos de la bandeja primero"
           }
         },
         "ja" : {
@@ -12115,6 +12203,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Language"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idioma"
           }
         },
         "fr" : {
@@ -13222,7 +13316,15 @@
       }
     },
     "Max Capacity: %@" : {
-      "comment" : "Battery maximum capacity."
+      "comment" : "Battery maximum capacity.",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capacidad máxima: %@"
+          }
+        }
+      }
     },
     "Max Capacity: Not Available" : {
       "comment" : "A label displayed when the maximum capacity of the battery is not available.",
@@ -13231,6 +13333,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Maximale Kapazität: Nicht verfügbar"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capacidad máxima: No disponible"
           }
         },
         "fr" : {
@@ -17273,6 +17381,12 @@
             "value" : "OSD.ValueLabel"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OSD.ValueLabel"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18268,6 +18382,12 @@
             "value" : "Echtzeit-Audio-Wellenform"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forma de onda de audio en tiempo real"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18801,7 +18921,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Eliminar de la estantería después de arrastrar"
+            "value" : "Eliminar de la bandeja después de arrastrar"
           }
         },
         "fr" : {
@@ -19067,6 +19187,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Erfordert macOS 14.2 oder neuer. Aktualisiere macOS, um die Echtzeit-Audiowellenform zu aktivieren."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requiere macOS 14.2 o posterior. Actualice macOS para activar la forma de onda de audio en tiempo real."
           }
         },
         "fr" : {
@@ -19476,6 +19602,12 @@
             "value" : "Restart Now"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reiniciar ahora"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19538,6 +19670,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Restart to apply language"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reiniciar para cambiar el idioma"
           }
         },
         "fr" : {
@@ -20325,6 +20463,12 @@
             "value" : "Shelf.ContextMenu.Compress"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf.ContextMenu.Compress"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20373,6 +20517,12 @@
       "comment" : "Context menu item: Convert Image…",
       "localizations" : {
         "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf.ContextMenu.ConvertImage"
+          }
+        },
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shelf.ContextMenu.ConvertImage"
@@ -20431,6 +20581,12 @@
             "value" : "Shelf.ContextMenu.Copy"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf.ContextMenu.Copy"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20479,6 +20635,12 @@
       "comment" : "Context menu item: Copy Path",
       "localizations" : {
         "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf.ContextMenu.CopyPath"
+          }
+        },
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shelf.ContextMenu.CopyPath"
@@ -20537,6 +20699,12 @@
             "value" : "Shelf.ContextMenu.CreatePDF"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf.ContextMenu.CreatePDF"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20585,6 +20753,12 @@
       "comment" : "Context menu item: Image Actions",
       "localizations" : {
         "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf.ContextMenu.ImageActions"
+          }
+        },
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shelf.ContextMenu.ImageActions"
@@ -20643,6 +20817,12 @@
             "value" : "Shelf.ContextMenu.NoCompatibleAppsFound"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf.ContextMenu.NoCompatibleAppsFound"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20691,6 +20871,12 @@
       "comment" : "Context menu item: Open",
       "localizations" : {
         "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf.ContextMenu.Open"
+          }
+        },
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shelf.ContextMenu.Open"
@@ -20749,6 +20935,12 @@
             "value" : "Shelf.ContextMenu.OpenWith"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf.ContextMenu.OpenWith"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20797,6 +20989,12 @@
       "comment" : "Context menu item: Other…",
       "localizations" : {
         "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf.ContextMenu.Other"
+          }
+        },
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shelf.ContextMenu.Other"
@@ -20861,6 +21059,12 @@
             "value" : "Shelf.ContextMenu.QuickLook"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf.ContextMenu.QuickLook"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20915,6 +21119,12 @@
       "comment" : "Context menu item: Remove",
       "localizations" : {
         "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf.ContextMenu.Remove"
+          }
+        },
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shelf.ContextMenu.Remove"
@@ -20979,6 +21189,12 @@
             "value" : "Shelf.ContextMenu.RemoveBackground"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf.ContextMenu.RemoveBackground"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21033,6 +21249,12 @@
       "comment" : "Context menu item: Rename",
       "localizations" : {
         "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf.ContextMenu.Rename"
+          }
+        },
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shelf.ContextMenu.Rename"
@@ -21097,6 +21319,12 @@
             "value" : "Shelf.ContextMenu.Share"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf.ContextMenu.Share"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21151,6 +21379,12 @@
       "comment" : "Context menu item: Show in Finder",
       "localizations" : {
         "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelf.ContextMenu.ShowInFinder"
+          }
+        },
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shelf.ContextMenu.ShowInFinder"
@@ -23300,6 +23534,12 @@
             "value" : "Accent color"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Color de resaltado"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23749,6 +23989,12 @@
             "value" : "Inline"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incrustado"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23806,6 +24052,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Default"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por defecto"
           }
         },
         "fr" : {
@@ -24459,6 +24711,12 @@
             "value" : "System default"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Predeterminado del sistema"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24636,6 +24894,12 @@
             "value" : "System Setting"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes del sistema"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24674,6 +24938,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Time to Full Charge: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiempo para cargar completamente: %@"
           }
         },
         "fr" : {
@@ -24729,6 +24999,12 @@
             "value" : "Zeit bis zur vollständigen Ladung: Wird berechnet..."
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiempo para cargar completamente: Calculando..."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24782,6 +25058,12 @@
             "value" : "Zeit bis Leer: %@"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiempo hasta agotarse: %@"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24833,6 +25115,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zeit bis leer: Wird berechnet..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiempo hasta agotarse: Calculando..."
           }
         },
         "fr" : {
@@ -26079,6 +26367,12 @@
             "value" : "Nutzt Accelerate FFT für das Audio der aktiven App. Erfordert die Berechtigung zur Audioaufnahme und beansprucht etwas mehr CPU-Leistung."
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliza Accelerate FFT en el audio de la aplicación de reproducción. Requiere permiso de captura de audio y utiliza un poco más de CPU."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -26802,6 +27096,12 @@
             "value" : "Week starts on"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La semana comienza el"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -26835,6 +27135,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Weekly view"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vista semanal"
           }
         },
         "ja" : {
