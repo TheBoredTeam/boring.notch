@@ -160,7 +160,8 @@ final class YouTubeMusicController: MediaControllerProtocol {
                     )
                     
                     for await notification in launchNotifications {
-                        await self?.handleAppLaunched(notification)
+                        let bundleIdentifier = (notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier
+                        await self?.handleAppLaunched(bundleIdentifier: bundleIdentifier)
                     }
                 }
                 
@@ -170,16 +171,16 @@ final class YouTubeMusicController: MediaControllerProtocol {
                     )
                     
                     for await notification in terminateNotifications {
-                        await self?.handleAppTerminated(notification)
+                        let bundleIdentifier = (notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier
+                        await self?.handleAppTerminated(bundleIdentifier: bundleIdentifier)
                     }
                 }
             }
         }
     }
     
-    private func handleAppLaunched(_ notification: Notification) async {
-        guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
-              app.bundleIdentifier == configuration.bundleIdentifier else {
+    private func handleAppLaunched(bundleIdentifier: String?) async {
+        guard bundleIdentifier == configuration.bundleIdentifier else {
             return
         }
         
@@ -187,9 +188,8 @@ final class YouTubeMusicController: MediaControllerProtocol {
         await initializeIfAppActive()
     }
     
-    private func handleAppTerminated(_ notification: Notification) async {
-        guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
-              app.bundleIdentifier == configuration.bundleIdentifier else {
+    private func handleAppTerminated(bundleIdentifier: String?) async {
+        guard bundleIdentifier == configuration.bundleIdentifier else {
             return
         }
 

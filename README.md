@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  <a href="http://theboring.name"><img src="https://framerusercontent.com/images/RFK4vs0kn8pRMuOO58JeyoemXA.png?scale-down-to=256" alt="Boring Notch" width="150"></a>
+  <a href="http://theboring.name"><img src="Configuration/icon/boring-notch-icon-master.png" alt="Boring Notch" width="150"></a>
   <br>
   Boring Notch
   <br>
@@ -42,7 +42,7 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 ## Installation
 
 **System Requirements:**
-- macOS **14 Sonoma** or later
+- macOS **15 Sequoia** or later
 - Apple Silicon or Intel Mac
 
 ---
@@ -112,14 +112,16 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch
 - [x] Shelf functionality with AirDrop 📚
 - [x] Notch sizing customization, finetuning on different display sizes 🖥️
 - [x] System OSD replacements (volume, brightness, backlight) 🎚️💡⌨️
-- [ ] Bluetooth Live Activity (connect/disconnect for bluetooth devices) 
-- [ ] Weather integration ⛅️
-- [ ] Customizable Layout options 🛠️
+- [x] Browser download progress (Safari, Chromium, Firefox) 🌍
+- [x] Bluetooth and AirPods Live Activity 🔵
+- [x] WeatherKit integration with current or manual location ⛅️
+- [x] Customizable Glances layout 🛠️
+- [x] Privacy-first local clipboard history 📋
+- [x] Focus / Pomodoro timer ⏱️
+- [x] Next-meeting card with secure join links 🎥
 - [ ] Lock Screen Widgets 🔒
 - [ ] Extension system 🧩
 - [ ] Notifications (under consideration) 🔔
-<!-- - [ ] Clipboard history manager 📌 `Extension` -->
-<!-- - [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`-->
 <!-- - [ ] Customizable function buttons 🎛️ -->
 <!-- - [ ] App switcher 🪄 -->
 
@@ -131,7 +133,7 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch
 
 ### Prerequisites
 
-- **macOS 15.6 or later**
+- **macOS 15 or later**
 - **Xcode 26 or later**
 
 ### Installation
@@ -142,12 +144,22 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch
    cd boring.notch
    ```
 
-2. **Open the Project in Xcode**:
+2. **Resolve dependencies and build a local Debug app**:
+   ```bash
+   ./Configuration/local/setup.sh
+   ```
+
+   The built app will be available at:
+   ```text
+   .build/DerivedData/Build/Products/Debug/boringNotch.app
+   ```
+
+3. **Open the Project in Xcode** (optional):
    ```bash
    open boringNotch.xcodeproj
    ```
 
-3. **Build and Run**:
+4. **Build and Run from Xcode**:
     - Click the "Run" button or press `Cmd + R`. Watch the magic unfold!
 
 ## 🤝 Contributing
@@ -180,12 +192,9 @@ We would like to express our gratitude to the authors and maintainers of the ope
 - **[MediaRemoteAdapter](https://github.com/ungive/mediaremote-adapter)** –  An open-source project that allowed us to use the Now Playing source in macOS 15.4+
 - **[NotchDrop](https://github.com/Lakr233/NotchDrop)** – An open-source project that has been instrumental in developing the first version of the "Shelf" feature in Boring Notch.
 
-For a full list of licenses and attributions, please see the [Third-Party Licenses](./THIRD_PARTY_LICENSES.md) file.
+For a full list of licenses and attributions, please see the [Third-Party Licenses](./THIRD_PARTY_LICENSES) file.
 
-### Icon credits: [@maxtron95](https://github.com/maxtron95)
 ### Website credits: [@himanshhhhuv](https://github.com/himanshhhhuv)
 
 - **SwiftUI**: For making us look like coding wizards.
 - **You**: For being awesome and checking out **boring.notch**!
-
-

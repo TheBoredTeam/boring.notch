@@ -35,10 +35,6 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var isCameraExpanded: Bool = false
     @Published var isRequestingAuthorization: Bool = false
     
-    deinit {
-        destroy()
-    }
-
     func destroy() {
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()

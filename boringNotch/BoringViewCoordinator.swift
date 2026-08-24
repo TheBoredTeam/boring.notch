@@ -18,6 +18,9 @@ enum SneakContentType {
     case mic
     case battery
     case download
+    case bluetooth
+    case timer
+    case meeting
 }
 
 struct sneakPeek {
@@ -184,10 +187,13 @@ class BoringViewCoordinator: ObservableObject {
     }
     
     @objc func sneakPeekEvent(_ notification: Notification) {
-        let decoder = JSONDecoder()
-        if let decodedData = try? decoder.decode(
-            SharedSneakPeek.self, from: notification.userInfo?.first?.value as! Data)
-        {
+        guard let data = notification.userInfo?.values.first as? Data else {
+            NSLog("⚠️ Ignored sneak peek event without a Data payload")
+            return
+        }
+
+        do {
+            let decodedData = try JSONDecoder().decode(SharedSneakPeek.self, from: data)
             let contentType =
                 decodedData.type == "brightness"
                 ? SneakContentType.brightness
@@ -204,12 +210,9 @@ class BoringViewCoordinator: ObservableObject {
             let value = CGFloat((formatter.number(from: decodedData.value) ?? 0.0).floatValue)
             let icon = decodedData.icon
 
-            print("Decoded: \(decodedData), Parsed value: \(value)")
-
             toggleSneakPeek(status: decodedData.show, type: contentType, value: value, icon: icon)
-
-        } else {
-            print("Failed to decode JSON data")
+        } catch {
+            NSLog("❌ Failed to decode sneak peek event: %@", error.localizedDescription)
         }
     }
 

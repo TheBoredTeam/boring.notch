@@ -117,7 +117,4 @@ final class DragDetector {
         hasEnteredNotchRegion = false
     }
 
-    deinit {
-        stopMonitoring()
-    }
 }

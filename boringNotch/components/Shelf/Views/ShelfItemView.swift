@@ -186,8 +186,11 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         // Fallback to icon if rendering fails
         return viewModel.thumbnail ?? item.icon
     }
-    
-    final class DraggableClickView: NSView, NSDraggingSource {
+}
+
+// Keep this AppKit view outside the generic representable. Swift 6.3's optimizer
+// can crash while specializing the synthesized deinitializer of a nested class.
+private final class DraggableClickView: NSView, NSDraggingSource {
         var item: ShelfItem!
         weak var viewModel: ShelfItemViewModel?
         var getDragPreview: (() -> NSImage)?
@@ -342,5 +345,4 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         func ignoreModifierKeys(for session: NSDraggingSession) -> Bool {
             return false
         }
-    }
 }

@@ -23,6 +23,8 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var downloadWatcher = DownloadWatcher.shared
+    @ObservedObject var focusTimer = FocusTimerManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -33,7 +35,6 @@ struct ContentView: View {
     @State private var isHoveringMusicArea = false
 
     @State private var haptics: Bool = false
-
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
@@ -92,6 +93,16 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
+        } else if Defaults[.enableDownloadListener] && !downloadWatcher.downloadFiles.isEmpty
+            && vm.notchState == .closed
+        {
+            chinWidth = 360
+        } else if focusTimer.isRunning && vm.notchState == .closed {
+            chinWidth = 320
+        } else if coordinator.expandingView.show && vm.notchState == .closed
+            && isProductivityActivity(coordinator.expandingView.type)
+        {
+            chinWidth = 420
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -338,6 +349,16 @@ struct ContentView: View {
                               gestureProgress: $gestureProgress
                           )
                               .transition(.opacity)
+                      } else if vm.notchState == .closed && Defaults[.enableDownloadListener]
+                          && !downloadWatcher.downloadFiles.isEmpty
+                      {
+                          CompactDownloadActivity()
+                      } else if vm.notchState == .closed && focusTimer.isRunning {
+                          CompactProductivityActivity(type: .timer)
+                      } else if vm.notchState == .closed && coordinator.expandingView.show
+                          && isProductivityActivity(coordinator.expandingView.type)
+                      {
+                          CompactProductivityActivity(type: coordinator.expandingView.type)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
@@ -409,6 +430,8 @@ struct ContentView: View {
                         )
                     case .shelf:
                         ShelfView()
+                    case .productivity:
+                        ProductivityDashboardView()
                     }
                 }
                 .transition(
@@ -673,7 +696,6 @@ struct ContentView: View {
             }
         }
     }
-
     private func handleNextTrackGesture(translation: CGFloat, phase: NSEvent.Phase) {
         handleHorizontalMediaGesture(translation: translation, phase: phase, feedback: -1) {
             musicManager.nextTrack()
@@ -752,6 +774,15 @@ struct ContentView: View {
 
         case .open:
             return coordinator.currentView == .home && !musicManager.isPlayerIdle && isHoveringMusicArea
+        }
+    }
+
+    private func isProductivityActivity(_ type: SneakContentType) -> Bool {
+        switch type {
+        case .bluetooth, .timer, .meeting:
+            true
+        default:
+            false
         }
     }
 }

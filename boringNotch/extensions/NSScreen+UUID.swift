@@ -53,19 +53,15 @@ final class NSScreenUUIDCache {
         setupObserver()
     }
     
-    deinit {
-        if let observer = observer {
-            NotificationCenter.default.removeObserver(observer)
-        }
-    }
-    
     private func setupObserver() {
         observer = NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.rebuildCache()
+            Task { @MainActor in
+                self?.rebuildCache()
+            }
         }
     }
     

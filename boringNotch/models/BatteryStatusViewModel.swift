@@ -166,11 +166,4 @@ class BatteryStatusViewModel: ObservableObject {
         }
     }
 
-    deinit {
-        print("🔌 Cleaning up battery monitoring...")
-        if let managerBatteryId: Int = managerBatteryId {
-            managerBattery.removeObserver(byId: managerBatteryId)
-        }
-    }
-
 }

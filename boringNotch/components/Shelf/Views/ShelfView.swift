@@ -33,6 +33,7 @@ struct ShelfView: View {
             updateQuickLookSelection()
         }
         .quickLookPresenter(using: quickLookService)
+        .accessibilityIdentifier("shelf-view")
     }
     
     private func handleDrop(providers: [NSItemProvider]) -> Bool {

@@ -6,7 +6,7 @@
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-		<key>NSAllowsArbitraryLoads</key>
+		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
 	<key>SUBundleName</key>
@@ -17,6 +17,10 @@
 	<string>boring.notch analyzes audio from your music app to draw a real-time waveform in the notch. Audio is processed locally and never leaves your Mac.</string>
 	<key>SUEnableDownloaderService</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Boring Notch shows connected Bluetooth devices and AirPods in live activities.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Boring Notch uses your location only to request local weather from Apple WeatherKit.</string>
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
 	<key>SUFeedURL</key>
