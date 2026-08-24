@@ -917,6 +917,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         // The Codex Stop hook wire schema has no status field, so production
         // classification must rely on the assistant message alone.
         for message in [
+            "Fixed the issue where the command failed.",
             "Fixed the command failed regression. All tests passed.",
             "Fixed the issue where the command failed. All tests passed.",
             "The command failed initially; after fixing it, all tests passed.",

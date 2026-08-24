@@ -1218,24 +1218,26 @@ public struct CodexNotificationState: Equatable, Sendable {
                 in: text
             )
         }
+        if isFramedByResolution {
+            return true
+        }
 
         return successRanges.contains { successRange in
             guard successRange.lowerBound >= failureRange.upperBound else {
                 return false
             }
-            return isFramedByResolution
-                || resolutionRanges.contains { resolutionRange in
-                    guard resolutionRange.lowerBound >= failureRange.upperBound,
-                          resolutionRange.upperBound <= successRange.lowerBound else {
-                        return false
-                    }
-                    return resolutionRefersToFailure(
-                        resolutionRange,
-                        failureRange: failureRange,
-                        successRange: successRange,
-                        in: text
-                    )
+            return resolutionRanges.contains { resolutionRange in
+                guard resolutionRange.lowerBound >= failureRange.upperBound,
+                      resolutionRange.upperBound <= successRange.lowerBound else {
+                    return false
                 }
+                return resolutionRefersToFailure(
+                    resolutionRange,
+                    failureRange: failureRange,
+                    successRange: successRange,
+                    in: text
+                )
+            }
         }
     }
 
