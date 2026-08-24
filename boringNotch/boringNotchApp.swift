@@ -6,11 +6,19 @@
 //
 
 import AVFoundation
+import AppKit
 import Combine
 import Defaults
 import KeyboardShortcuts
 import Sparkle
 import SwiftUI
+
+extension NSApplication {
+    @discardableResult
+    func applyDockIconPreference() -> Bool {
+        setActivationPolicy(Defaults[.hideDockIcon] ? .accessory : .regular)
+    }
+}
 
 @main
 struct DynamicNotchApp: App {
@@ -312,6 +320,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.applyDockIconPreference()
 
         NotificationCenter.default.addObserver(
             self,

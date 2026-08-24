@@ -67,8 +67,7 @@ class SettingsWindowController: NSWindowController {
     }
     
     func showWindow() {
-        // Set app to regular mode first
-        NSApp.setActivationPolicy(.regular)
+        NSApp.applyDockIconPreference()
         
         // If window is already visible, bring it to front properly
         if window?.isVisible == true {
@@ -100,8 +99,7 @@ class SettingsWindowController: NSWindowController {
     private func relinquishFocus() {
         window?.orderOut(nil)
         
-        // Set app back to accessory mode immediately
-        NSApp.setActivationPolicy(.accessory)
+        NSApp.applyDockIconPreference()
     }
 }
 
@@ -115,8 +113,7 @@ extension SettingsWindowController: NSWindowDelegate {
     }
     
     func windowDidBecomeKey(_ notification: Notification) {
-        // Ensure app is in regular mode when window becomes key
-        NSApp.setActivationPolicy(.regular)
+        NSApp.applyDockIconPreference()
     }
     
     func windowDidResignKey(_ notification: Notification) {

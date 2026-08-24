@@ -19,6 +19,7 @@ struct GeneralSettings: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 
     @Default(.appLanguage) var appLanguage
+    @Default(.hideDockIcon) var hideDockIcon
     @Default(.mirrorShape) var mirrorShape
     @Default(.gestureSensitivity) var gestureSensitivity
     @Default(.minimumHoverDuration) var minimumHoverDuration
@@ -43,6 +44,12 @@ struct GeneralSettings: View {
                     Text("Show menu bar icon")
                 }
                 .tint(.effectiveAccent)
+                Defaults.Toggle(key: .hideDockIcon) {
+                    Text("Hide icon in Dock")
+                }
+                .onChange(of: hideDockIcon) {
+                    NSApp.applyDockIconPreference()
+                }
                 LaunchAtLogin.Toggle() {
                     Text("Launch at login")
                 }

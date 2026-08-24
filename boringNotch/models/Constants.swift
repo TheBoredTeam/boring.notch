@@ -208,6 +208,7 @@ extension Defaults.Keys {
     // MARK: General
     static let appLanguage = Key<AppLanguage>("appLanguage", default: .system)
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
+    static let hideDockIcon = Key<Bool>("hideDockIcon", default: true)
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
