@@ -154,6 +154,17 @@ final class CodexNotificationsCoreTests: XCTestCase {
         )
     }
 
+    func testCurrentHashDoesNotEscapeSlashesInCodexCommandFingerprint() {
+        XCTAssertEqual(
+            CodexHookTrustState.currentHash(
+                eventName: "stop",
+                command: "/usr/bin/python3 '/Users/example/.codex/boring-notch-notify.py'",
+                timeout: 5
+            ),
+            "sha256:7d07e854822f698e4d46148de69cecee1e500a47c6de4fd68ffb34729914d67a"
+        )
+    }
+
     func testCurrentHashIgnoresMatcherForEventsWithoutMatcherSupport() {
         for eventName in ["stop", "user_prompt_submit"] {
             let withoutMatcher = CodexHookTrustState.currentHash(

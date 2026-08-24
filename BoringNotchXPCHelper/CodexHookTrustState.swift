@@ -136,7 +136,7 @@ public struct CodexHookTrustState: Sendable {
 
         guard let serialized = try? JSONSerialization.data(
             withJSONObject: identity,
-            options: [.sortedKeys]
+            options: [.sortedKeys, .withoutEscapingSlashes]
         ) else {
             return "sha256:"
         }
