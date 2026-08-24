@@ -103,6 +103,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             screenUnlockedObserver = nil
         }
         MusicManager.shared.destroy()
+        ScreenTimeManager.shared.stop()
         cleanupDragDetectors()
         cleanupWindows()
         BetterDisplayManager.shared.stopObserving()
@@ -464,6 +465,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         setupDragDetectors()
+
+        ScreenTimeManager.shared.start()
 
         if coordinator.firstLaunch {
             DispatchQueue.main.async {
