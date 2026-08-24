@@ -124,10 +124,11 @@ struct ContentView: View {
     }
 
     var body: some View {
+        @Bindable var dropInteraction = vm.dropInteraction
+
         let closedSnapshot: ClosedNotchRenderSnapshot? = vm.notchState == .closed
             ? makeClosedNotchSnapshot()
             : nil
-
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 let mainLayout = notchLayout(closedSnapshot: closedSnapshot)
@@ -259,7 +260,7 @@ struct ContentView: View {
         .onReceive(extensionRegistry.objectWillChange) { _ in
             invalidateClosedSnapshot()
         }
-        .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
+        .onChange(of: dropInteraction.anyDropZoneTargeting) { _, isTargeted in
             anyDropDebounceTask?.cancel()
 
             if isTargeted {
@@ -275,12 +276,12 @@ struct ContentView: View {
                 try? await Task.sleep(for: .milliseconds(500))
                 guard !Task.isCancelled else { return }
 
-                if vm.dropEvent {
-                    vm.dropEvent = false
+                if dropInteraction.dropEvent {
+                    dropInteraction.dropEvent = false
                     return
                 }
 
-                vm.dropEvent = false
+                dropInteraction.dropEvent = false
                 if !SharingStateManager.shared.preventNotchClose {
                     vm.close()
                 }
@@ -295,6 +296,8 @@ struct ContentView: View {
 
     @ViewBuilder
     private func notchLayout(closedSnapshot: ClosedNotchRenderSnapshot?) -> some View {
+        @Bindable var dropInteraction = vm.dropInteraction
+
         VStack(alignment: .leading) {
             VStack(alignment: .leading) {
                 if coordinator.helloAnimationRunning {
@@ -335,20 +338,22 @@ struct ContentView: View {
                 )
             }
         }
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
+        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))
     }
 
     @ViewBuilder
     private var dragDetector: some View {
+        @Bindable var dropInteraction = vm.dropInteraction
+
         if Defaults[.boringShelf] && vm.notchState == .closed {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
                 .onDrop(
                     of: [.fileURL, .url, .utf8PlainText, .plainText, .data],
-                    isTargeted: $vm.dragDetectorTargeting
+                    isTargeted: $dropInteraction.dragDetectorTargeting
                 ) { providers in
-                    vm.dropEvent = true
+                    dropInteraction.dropEvent = true
                     ShelfStateViewModel.shared.load(providers)
                     return true
                 }
