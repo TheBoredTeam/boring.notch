@@ -924,6 +924,9 @@ final class CodexNotificationsCoreTests: XCTestCase {
             "Tests failed. Fixed the test runner. All tests passed.",
             "The command failed. Fixed the issue. All tests passed.",
             "Tests failed. Fixed that. All tests passed.",
+            "The command failed and it was fixed. All tests passed.",
+            "The tests had not passed before I fixed the issue. All tests passed.",
+            "Tests are no longer failing.",
         ] {
             XCTAssertEqual(
                 try productionStopStatus(message),
@@ -948,6 +951,10 @@ final class CodexNotificationsCoreTests: XCTestCase {
             "Fixed a test issue where the command failed. Build succeeded.",
             "Tests failed. Fixed documentation so that the build succeeded.",
             "The command failed and wasn't fixed. All tests passed.",
+            "The command failed and it isn't fixed. All tests passed.",
+            "The command failed and it hadn't been fixed. All tests passed.",
+            "Tests failed. The test issue couldn't be fixed. Build succeeded.",
+            "Tests failed. The test issue isn't resolved. Build succeeded.",
             "Fixed the issue where the command failed. Tests are still failing.",
             "The command failed initially; after fixing it, not all tests passed.",
         ] {
@@ -966,8 +973,16 @@ final class CodexNotificationsCoreTests: XCTestCase {
             "Tests are still failing.",
             "The tests did not pass.",
             "The tests haven't passed.",
+            "The tests hadn't passed.",
+            "The build hadn't succeeded.",
             "The build wasn't successful.",
             "Tests still fail.",
+            "The tests have not passed.",
+            "The build has not succeeded.",
+            "The tests had not passed before the task stopped.",
+            "Tests continue to fail.",
+            "The build keeps failing.",
+            "The command is still failing.",
         ] {
             XCTAssertEqual(
                 try productionStopStatus(message),

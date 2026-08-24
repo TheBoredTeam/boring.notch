@@ -945,14 +945,20 @@ public struct CodexNotificationState: Equatable, Sendable {
             "stopped before completing", "stopped by user", "error:",
             "command failed", "status: failed", "failed (exit code",
             "not all tests passed", "did not succeed",
-            "did not pass", "haven't passed", "hasn't passed",
+            "did not pass", "haven't passed", "hasn't passed", "hadn't passed",
+            "have not passed", "has not passed", "had not passed",
+            "haven't succeeded", "hasn't succeeded", "hadn't succeeded",
+            "have not succeeded", "has not succeeded", "had not succeeded",
             "was not successful", "were not successful",
             "wasn't successful", "weren't successful",
             "tests are failing", "tests are still failing",
             "test is failing", "test is still failing",
             "build is failing", "build is still failing",
             "tests still fail", "test still fails", "build still fails",
-            "command still fails", "task still fails"
+            "command still fails", "task still fails",
+            "continue to fail", "continues to fail",
+            "keep failing", "keeps failing",
+            "is still failing", "are still failing"
         ]
         let successMarkers = [
             "build succeeded", "tests passed", "all tests passed",
@@ -1131,7 +1137,7 @@ public struct CodexNotificationState: Equatable, Sendable {
         let unconditionalBoundaries: Set<String> = ["but", "however", "yet"]
         let clauseBoundaries: Set<String> = ["and", "because", "so"]
         let subordinateBoundaries: Set<String> = [
-            "although", "since", "though", "whereas", "while",
+            "although", "before", "since", "though", "whereas", "while",
         ]
         let clauseStarters: Set<String> = [
             "he", "i", "it", "please", "she", "that", "they", "this",
@@ -1162,8 +1168,8 @@ public struct CodexNotificationState: Equatable, Sendable {
 
         let negations: Set<String> = [
             "0", "no", "not", "never", "without", "zero", "cannot", "don't",
-            "doesn't", "didn't", "won't", "can't", "haven't", "hasn't",
-            "wasn't", "weren't",
+            "doesn't", "didn't", "won't", "can't", "couldn't", "haven't",
+            "hasn't", "hadn't", "isn't", "aren't", "wasn't", "weren't",
         ]
         for index in tokens.indices.reversed() {
             guard negations.contains(tokens[index]) else { continue }
