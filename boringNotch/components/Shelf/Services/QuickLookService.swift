@@ -95,7 +95,11 @@ final class QuickLookService: ObservableObject {
     }
 
     private func updateFromShelfSelection(selectedIDs: Set<UUID>) {
-        guard isQuickLookOpen && !selectedIDs.isEmpty else { return }
+        guard isQuickLookOpen else { return }
+        guard !selectedIDs.isEmpty else {
+            hide()
+            return
+        }
 
         let urls: [URL] = ShelfStateViewModel.shared.items.compactMap { item in
             guard selectedIDs.contains(item.id) else { return nil }
