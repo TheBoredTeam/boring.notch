@@ -77,6 +77,14 @@ final class XPCHelperClient: NSObject {
         remoteService
     }
 
+    @MainActor
+    private func resetRemoteService() {
+        connection?.invalidate()
+        connection = nil
+        remoteService = nil
+        hasLunarListener = false
+    }
+
     private func makeLunarListenerInterface() -> NSXPCInterface {
         let interface = NSXPCInterface(with: (any BoringNotchXPCHelperLunarListener).self)
         interface.setClasses(
@@ -126,6 +134,16 @@ final class XPCHelperClient: NSObject {
     }
     
     // MARK: - Accessibility
+
+    private var accessibilitySettingsURL: URL? {
+        let pane: String
+        if #available(macOS 26.0, *) {
+            pane = "com.apple.settings.PrivacySecurity.extension?Privacy_Accessibility"
+        } else {
+            pane = "com.apple.preference.security?Privacy_Accessibility"
+        }
+        return URL(string: "x-apple.systempreferences:\(pane)")
+    }
     
     nonisolated func requestAccessibilityAuthorization() {
         Task {
@@ -135,6 +153,26 @@ final class XPCHelperClient: NSObject {
             try? await service.withService { service in
                 service.requestAccessibilityAuthorization()
             }
+        }
+    }
+
+    @MainActor
+    func openAccessibilitySettings() {
+        guard let settingsURL = accessibilitySettingsURL else {
+            return
+        }
+
+        // AXIsProcessTrustedWithOptions can ask macOS to open System Settings itself.
+        // Wait for that request to finish before opening the target pane so the two
+        // launches do not race and terminate the settings window.
+        Task { @MainActor [weak self] in
+            _ = await self?.ensureAccessibilityAuthorization(promptIfNeeded: true)
+            do {
+                try await Task.sleep(for: .milliseconds(500))
+            } catch {
+                return
+            }
+            NSWorkspace.shared.open(settingsURL)
         }
     }
     
@@ -175,7 +213,7 @@ final class XPCHelperClient: NSObject {
             return false
         }
     }
-    
+
     // MARK: - Keyboard Brightness
     
     nonisolated func isKeyboardBrightnessAvailable() async -> Bool {
@@ -365,5 +403,82 @@ final class XPCHelperClient: NSObject {
             return false
         }
     }
-}
 
+    // MARK: - Codex Notifications
+
+    @MainActor
+    func isAuthenticCodexNotificationPayload(
+        _ payload: String,
+        signature: String
+    ) async -> Bool {
+        for attempt in 0..<2 {
+            do {
+                let service = ensureRemoteService()
+                return try await service.withContinuation { service, continuation in
+                    service.validateCodexNotificationPayload(
+                        payload,
+                        signature: signature
+                    ) { isValid in
+                        continuation.resume(returning: isValid)
+                    }
+                }
+            } catch {
+                guard attempt == 0 else { return false }
+                resetRemoteService()
+            }
+        }
+        return false
+    }
+
+    @MainActor
+    func isCodexNotificationHookInstalled() async -> Bool {
+        do {
+            let service = ensureRemoteService()
+            return try await service.withContinuation { service, continuation in
+                service.isCodexNotificationHookInstalled { installed in
+                    continuation.resume(returning: installed)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
+
+    @MainActor
+    func areCodexNotificationHooksTrusted() async -> Bool {
+        do {
+            let service = ensureRemoteService()
+            return try await service.withContinuation { service, continuation in
+                service.areCodexNotificationHooksTrusted { trusted in
+                    continuation.resume(returning: trusted)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
+
+    @MainActor
+    func setCodexNotificationHookInstalled(
+        _ installed: Bool
+    ) async -> Result<Void, Error> {
+        do {
+            let service = ensureRemoteService()
+            let result: (Bool, String?) = try await service.withContinuation { service, continuation in
+                service.setCodexNotificationHookInstalled(installed) { success, message in
+                    continuation.resume(returning: (success, message))
+                }
+            }
+            guard result.0 else {
+                throw NSError(
+                    domain: "BoringNotch.CodexHooks",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: result.1 ?? "Codex notification hooks could not be updated."]
+                )
+            }
+            return .success(())
+        } catch {
+            return .failure(error)
+        }
+    }
+}

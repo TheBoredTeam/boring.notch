@@ -8,8 +8,15 @@
 import AppKit
 import ApplicationServices
 import IOKit
+import OSLog
+import Security
 
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
+
+    private static let codexLogger = Logger(
+        subsystem: "theboringteam.boringnotch",
+        category: "CodexNotificationAuthentication"
+    )
 
     private weak var connection: NSXPCConnection?
 
@@ -77,7 +84,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             reply(AXIsProcessTrusted())
         }
     }
-    
+
     private class KeyboardBrightnessClient {
         private static let keyboardID: UInt64 = 1
         private var clientInstance: NSObject?
@@ -360,6 +367,766 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         CFPreferencesSetValue(key, value, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
         let ok = CFPreferencesSynchronize(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
         reply(ok)
+    }
+
+    // MARK: - Codex Notifications
+
+    private static let codexHookEvents = CodexHookConfiguration.events
+    private static let codexHookTrustEvents = [
+        ("PermissionRequest", "permission_request"),
+        ("UserPromptSubmit", "user_prompt_submit"),
+        ("PostToolUse", "post_tool_use"),
+        ("Stop", "stop"),
+    ]
+    private static let codexHookMarker = "boring-notch-notify.py"
+    private static let codexHookSecretMarker = "boring-notch-notify.secret"
+    private static let codexNotificationScript = #"""
+    import base64
+    import ctypes
+    import errno
+    import hashlib
+    import hmac
+    import json
+    import os
+    import secrets
+    import stat
+    import subprocess
+    import sys
+    import time
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    MAX_PAYLOAD_BYTES = 256 * 1024
+    MAX_PROMPT_CHARACTERS = 16_000
+    MAX_DESCRIPTION_CHARACTERS = 16_000
+    MAX_COMMAND_CHARACTERS = 96_000
+    MAX_ADDITIONAL_INPUT_CHARACTERS = 64_000
+    DELIVERY_TIMEOUT_SECONDS = 5
+    DECISION_TIMEOUT_SECONDS = 60
+
+    def short(value, limit=4000):
+        if not isinstance(value, str):
+            return value
+        return value[:limit]
+
+    def bounded_tool_input(value):
+        if not isinstance(value, dict):
+            return None
+
+        bounded = {}
+        description = value.get("description")
+        if isinstance(description, str):
+            bounded["description"] = short(description, MAX_DESCRIPTION_CHARACTERS)
+
+        command = value.get("command")
+        if isinstance(command, str):
+            bounded["command"] = short(command, MAX_COMMAND_CHARACTERS)
+
+        additional = {
+            key: item
+            for key, item in value.items()
+            if key not in ("description", "command")
+        }
+        if additional:
+            rendered = json.dumps(additional, separators=(",", ":"), ensure_ascii=False)
+            if len(rendered) <= MAX_ADDITIONAL_INPUT_CHARACTERS:
+                bounded.update(additional)
+            else:
+                bounded["additional_input"] = short(
+                    rendered,
+                    MAX_ADDITIONAL_INPUT_CHARACTERS,
+                )
+        return bounded
+
+    def thread_metadata(session_id):
+        metadata = {"chat_title": "Untitled chat"}
+        if not isinstance(session_id, str) or not session_id:
+            return metadata
+
+        codex_home = os.path.dirname(os.path.abspath(__file__))
+        try:
+            with open(
+                os.path.join(codex_home, "session_index.jsonl"),
+                "r",
+                encoding="utf-8",
+            ) as index:
+                for line in index:
+                    try:
+                        entry = json.loads(line)
+                    except (TypeError, ValueError):
+                        continue
+                    if entry.get("id") != session_id:
+                        continue
+                    title = entry.get("thread_name")
+                    if isinstance(title, str) and title.strip():
+                        metadata["chat_title"] = short(title.strip(), 240)
+        except (FileNotFoundError, OSError, UnicodeError):
+            pass
+
+        try:
+            with open(
+                os.path.join(codex_home, ".codex-global-state.json"),
+                "r",
+                encoding="utf-8",
+            ) as state_file:
+                state = json.load(state_file)
+
+            atom_state = state.get("electron-persisted-atom-state", {})
+            permissions_by_id = atom_state.get(
+                "heartbeat-thread-permissions-by-id",
+                {},
+            )
+            permissions = permissions_by_id.get(session_id)
+            if isinstance(permissions, dict):
+                reviewer = permissions.get("approvalsReviewer")
+                if reviewer in ("auto_review", "user"):
+                    metadata["boring_notch_approval_reviewer"] = reviewer
+
+            projectless = state.get("projectless-thread-ids", [])
+            if session_id in projectless:
+                metadata["project_name"] = "No project"
+                return metadata
+
+            assignment = state.get("thread-project-assignments", {}).get(session_id)
+            if isinstance(assignment, dict) and assignment.get("projectKind") == "local":
+                project = state.get("local-projects", {}).get(assignment.get("projectId"))
+                if isinstance(project, dict):
+                    project_name = project.get("name")
+                    if isinstance(project_name, str) and project_name.strip():
+                        metadata["project_name"] = short(project_name.strip(), 240)
+        except (FileNotFoundError, OSError, TypeError, ValueError, UnicodeError):
+            pass
+        return metadata
+
+    def safe_secret_attributes(attributes):
+        return (
+            stat.S_ISREG(attributes.st_mode)
+            and attributes.st_uid == os.geteuid()
+            and attributes.st_nlink == 1
+            and stat.S_IMODE(attributes.st_mode) == 0o600
+            and attributes.st_size == 32
+        )
+
+    def descriptor_has_extended_acl(descriptor):
+        libc = ctypes.CDLL(None, use_errno=True)
+        libc.acl_get_fd_np.argtypes = [ctypes.c_int, ctypes.c_int]
+        libc.acl_get_fd_np.restype = ctypes.c_void_p
+        libc.acl_free.argtypes = [ctypes.c_void_p]
+        libc.acl_free.restype = ctypes.c_int
+
+        ctypes.set_errno(0)
+        access_list = libc.acl_get_fd_np(descriptor, 0x100)
+        if not access_list:
+            error_number = ctypes.get_errno()
+            if error_number == errno.ENOENT:
+                return False
+            raise OSError(error_number, os.strerror(error_number))
+        try:
+            return True
+        finally:
+            libc.acl_free(access_list)
+
+    def read_hook_secret(secret_path):
+        try:
+            descriptor = os.open(
+                secret_path,
+                os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK,
+            )
+        except OSError:
+            return None
+
+        try:
+            if (
+                not safe_secret_attributes(os.fstat(descriptor))
+                or descriptor_has_extended_acl(descriptor)
+            ):
+                return None
+            secret = b""
+            while len(secret) < 32:
+                chunk = os.read(descriptor, 32 - len(secret))
+                if not chunk:
+                    return None
+                secret += chunk
+            if (
+                not safe_secret_attributes(os.fstat(descriptor))
+                or descriptor_has_extended_acl(descriptor)
+            ):
+                return None
+            return secret
+        except OSError:
+            return None
+        finally:
+            os.close(descriptor)
+
+    def open_notch(payload):
+        payload["boring_notch_auth"] = {
+            "timestamp": time.time(),
+            "nonce": secrets.token_hex(16),
+        }
+        serialized = json.dumps(
+            payload,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+        if len(serialized) > MAX_PAYLOAD_BYTES:
+            return False
+
+        encoded = base64.urlsafe_b64encode(
+            serialized
+        ).decode("ascii").rstrip("=")
+        secret_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "boring-notch-notify.secret",
+        )
+        secret = read_hook_secret(secret_path)
+        if secret is None:
+            return False
+
+        signature = base64.urlsafe_b64encode(
+            hmac.new(
+                secret,
+                encoded.encode("ascii"),
+                hashlib.sha256,
+            ).digest()
+        ).decode("ascii").rstrip("=")
+        result = subprocess.run(
+            [
+                "/usr/bin/open",
+                "-g",
+                "-b",
+                "theboringteam.boringnotch",
+                "boringnotch://codex-event?payload=" + encoded + "&signature=" + signature,
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=3,
+            check=False,
+        )
+        return result.returncode == 0
+
+    class PermissionDecisionHandler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            if self.path != "/decision":
+                self.respond(404)
+                return
+
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+            except ValueError:
+                self.respond(400)
+                return
+            if length <= 0 or length > 4096:
+                self.respond(413)
+                return
+
+            try:
+                body = json.loads(self.rfile.read(length))
+            except (TypeError, ValueError):
+                self.respond(400)
+                return
+            if not isinstance(body, dict):
+                self.respond(400)
+                return
+
+            token = body.get("token")
+            decision = body.get("decision")
+            if not isinstance(token, str) or not hmac.compare_digest(
+                token,
+                self.server.approval_token,
+            ):
+                self.respond(403)
+                return
+            if decision not in ("ready", "allow", "deny", "codex"):
+                self.respond(400)
+                return
+            if decision == "ready":
+                if self.server.decision is not None:
+                    self.respond(409)
+                    return
+                self.server.ready = True
+                self.respond(204)
+                return
+            if self.server.decision is not None:
+                self.respond(409)
+                return
+
+            self.server.decision = decision
+            self.respond(204)
+
+        def respond(self, status):
+            self.send_response(status)
+            self.send_header("Content-Length", "0")
+            self.send_header("Connection", "close")
+            self.end_headers()
+
+        def log_message(self, format, *args):
+            pass
+
+    def wait_for_permission_decision(payload):
+        token = secrets.token_urlsafe(32)
+        server = HTTPServer(("127.0.0.1", 0), PermissionDecisionHandler)
+        server.approval_token = token
+        server.ready = False
+        server.decision = None
+        started_at = time.monotonic()
+        delivery_deadline = started_at + DELIVERY_TIMEOUT_SECONDS
+        decision_deadline = started_at + DECISION_TIMEOUT_SECONDS
+        payload["boring_notch_approval"] = {
+            "port": server.server_address[1],
+            "token": token,
+            "expires_at": time.time() + DECISION_TIMEOUT_SECONDS,
+        }
+
+        try:
+            if not open_notch(payload):
+                return None
+
+            while not server.ready and server.decision is None:
+                remaining = delivery_deadline - time.monotonic()
+                if remaining <= 0:
+                    return None
+                server.timeout = min(0.25, remaining)
+                server.handle_request()
+
+            while server.decision is None:
+                remaining = decision_deadline - time.monotonic()
+                if remaining <= 0:
+                    return None
+                server.timeout = min(0.25, remaining)
+                server.handle_request()
+            return server.decision
+        finally:
+            server.server_close()
+
+    def permission_hook_response(decision):
+        if decision not in ("allow", "deny"):
+            return {}
+        return {
+            "hookSpecificOutput": {
+                "hookEventName": "PermissionRequest",
+                "decision": {"behavior": decision},
+            }
+        }
+
+    def validated_transcript_path(value):
+        if not isinstance(value, str) or not value.endswith(".jsonl"):
+            return None
+
+        codex_home = os.path.dirname(os.path.abspath(__file__))
+        sessions_root = os.path.realpath(os.path.join(codex_home, "sessions"))
+        transcript_path = os.path.realpath(value)
+        try:
+            if os.path.commonpath((sessions_root, transcript_path)) != sessions_root:
+                return None
+        except ValueError:
+            return None
+        return transcript_path
+
+    def watch_for_turn_end(transcript_path, start_offset, session_id, turn_id, cwd):
+        deadline = time.monotonic() + (6 * 60 * 60)
+        position = max(start_offset, 0)
+
+        while time.monotonic() < deadline:
+            try:
+                current_size = os.path.getsize(transcript_path)
+                if current_size < position:
+                    position = 0
+
+                with open(transcript_path, "r", encoding="utf-8") as transcript:
+                    transcript.seek(position)
+                    while True:
+                        line = transcript.readline()
+                        if not line:
+                            break
+                        position = transcript.tell()
+                        try:
+                            record = json.loads(line)
+                        except (TypeError, ValueError):
+                            continue
+
+                        event = record.get("payload")
+                        if not isinstance(event, dict) or event.get("turn_id") != turn_id:
+                            continue
+
+                        event_type = event.get("type")
+                        if event_type == "turn_aborted":
+                            failure_payload = {
+                                "hook_event_name": "Stop",
+                                "session_id": session_id,
+                                "turn_id": turn_id,
+                                "last_assistant_message": (
+                                    "Codex task was interrupted before completion."
+                                ),
+                                "status": "failed",
+                            }
+                            if cwd:
+                                failure_payload["cwd"] = cwd
+                            failure_payload.update(thread_metadata(session_id))
+                            open_notch(failure_payload)
+                            return
+                        if event_type == "task_complete":
+                            return
+            except (FileNotFoundError, OSError, UnicodeError):
+                pass
+            time.sleep(0.5)
+
+    def start_turn_end_watcher(source):
+        transcript_path = validated_transcript_path(source.get("transcript_path"))
+        session_id = source.get("session_id")
+        turn_id = source.get("turn_id")
+        if transcript_path is None or not all(
+            isinstance(value, str) and 0 < len(value) <= 240
+            for value in (session_id, turn_id)
+        ):
+            return
+
+        try:
+            start_offset = os.path.getsize(transcript_path)
+        except OSError:
+            start_offset = 0
+
+        cwd = source.get("cwd")
+        if not isinstance(cwd, str):
+            cwd = ""
+        try:
+            subprocess.Popen(
+                [
+                    sys.executable,
+                    os.path.abspath(__file__),
+                    "--watch-turn",
+                    transcript_path,
+                    str(start_offset),
+                    session_id,
+                    turn_id,
+                    short(cwd, 4096),
+                ],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                close_fds=True,
+                start_new_session=True,
+            )
+        except (OSError, ValueError):
+            pass
+
+    if len(sys.argv) == 7 and sys.argv[1] == "--watch-turn":
+        try:
+            watched_path = validated_transcript_path(sys.argv[2])
+            if watched_path is not None:
+                watch_for_turn_end(
+                    watched_path,
+                    int(sys.argv[3]),
+                    sys.argv[4],
+                    sys.argv[5],
+                    sys.argv[6],
+                )
+        except (TypeError, ValueError, OSError, UnicodeError):
+            pass
+        sys.exit(0)
+
+    try:
+        source = json.load(sys.stdin)
+        payload = {}
+        for key in ("hook_event_name", "session_id", "turn_id", "cwd", "tool_name", "last_assistant_message", "error", "message", "status"):
+            if key in source:
+                payload[key] = short(source[key])
+        if "prompt" in source:
+            payload["prompt"] = short(source["prompt"], MAX_PROMPT_CHARACTERS)
+        payload.update(thread_metadata(source.get("session_id")))
+        tool_input = bounded_tool_input(source.get("tool_input"))
+        if tool_input is not None:
+            payload["tool_input"] = tool_input
+        if source.get("hook_event_name") == "PermissionRequest":
+            if payload.get("boring_notch_approval_reviewer") != "user":
+                print("{}")
+            else:
+                decision = wait_for_permission_decision(payload)
+                print(json.dumps(permission_hook_response(decision), separators=(",", ":")))
+        else:
+            if source.get("hook_event_name") == "UserPromptSubmit":
+                start_turn_end_watcher(source)
+            open_notch(payload)
+            print("{}")
+    except Exception:
+        print("{}")
+    """#
+
+    @objc func validateCodexNotificationPayload(
+        _ payload: String,
+        signature: String,
+        with reply: @escaping (Bool) -> Void
+    ) {
+        do {
+            let secret = try CodexHookSecretStore.load(at: codexHookURLs().secret)
+            switch CodexHookAuthenticator.validate(
+                payload: payload,
+                signature: signature,
+                secret: secret
+            ) {
+            case .valid:
+                reply(true)
+                return
+            case .malformedInput:
+                Self.codexLogger.error("Rejected malformed Codex notification authentication input")
+            case .invalidSecret:
+                Self.codexLogger.error("Rejected Codex notification because the hook secret is invalid")
+            case .invalidSignature:
+                Self.codexLogger.error("Rejected Codex notification because its signature did not match")
+            case .malformedPayload:
+                Self.codexLogger.error("Rejected malformed authenticated Codex notification data")
+            case .expired:
+                Self.codexLogger.error("Rejected an expired Codex notification")
+            }
+            reply(false)
+        } catch {
+            Self.codexLogger.error("Codex notification authentication failed: \(error.localizedDescription, privacy: .public)")
+            reply(false)
+        }
+    }
+
+    @objc func isCodexNotificationHookInstalled(with reply: @escaping (Bool) -> Void) {
+        do {
+            let urls = codexHookURLs()
+            guard FileManager.default.fileExists(atPath: urls.script.path) else {
+                reply(false)
+                return
+            }
+            guard try CodexHookFileStore.load(at: urls.script) == Data(Self.codexNotificationScript.utf8) else {
+                reply(false)
+                return
+            }
+            _ = try CodexHookSecretStore.load(at: urls.secret)
+            let root = try readCodexHookConfiguration(at: urls.configuration)
+            reply(Self.codexHookEvents.allSatisfy {
+                containsCurrentOwnedCodexHook(
+                    in: root,
+                    event: $0,
+                    scriptURL: urls.script
+                )
+            })
+        } catch {
+            reply(false)
+        }
+    }
+
+    @objc func areCodexNotificationHooksTrusted(with reply: @escaping (Bool) -> Void) {
+        do {
+            let urls = codexHookURLs()
+            guard try CodexHookFileStore.load(at: urls.script)
+                == Data(Self.codexNotificationScript.utf8) else {
+                reply(false)
+                return
+            }
+            let configURL = urls.configuration
+                .deletingLastPathComponent()
+                .appendingPathComponent("config.toml")
+            let configurationData = try CodexHookFileStore.load(at: configURL)
+            guard let configuration = String(data: configurationData, encoding: .utf8) else {
+                reply(false)
+                return
+            }
+            let root = try readCodexHookConfiguration(at: urls.configuration)
+            let trustEntries = Self.codexHookTrustEvents.compactMap {
+                codexHookTrustEntry(
+                    in: root,
+                    event: $0.0,
+                    trustEvent: $0.1,
+                    scriptURL: urls.script
+                )
+            }
+            guard trustEntries.count == Self.codexHookTrustEvents.count,
+                  Set(trustEntries.map(\.section)).count == Self.codexHookTrustEvents.count else {
+                reply(false)
+                return
+            }
+            let expectedSections = Set(trustEntries.map(\.section))
+            let currentHashes = Dictionary(
+                uniqueKeysWithValues: trustEntries.map {
+                    ($0.section, $0.currentHash)
+                }
+            )
+            reply(
+                CodexHookTrustState(configuration: configuration).areTrusted(
+                    expectedSections,
+                    matching: currentHashes
+                )
+            )
+        } catch {
+            reply(false)
+        }
+    }
+
+    @objc func setCodexNotificationHookInstalled(
+        _ installed: Bool,
+        with reply: @escaping (Bool, String?) -> Void
+    ) {
+        do {
+            let urls = codexHookURLs()
+            try FileManager.default.createDirectory(
+                at: urls.configuration.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try CodexHookFileStore.validateParent(of: urls.configuration)
+            let root = try CodexHookConfiguration.updating(
+                readCodexHookConfiguration(at: urls.configuration),
+                installed: installed,
+                command: codexHookCommand(scriptURL: urls.script)
+            )
+            let data = try JSONSerialization.data(
+                withJSONObject: root,
+                options: [.prettyPrinted, .sortedKeys]
+            )
+            if installed {
+                _ = try ensureCodexHookSecret(at: urls.secret)
+                try CodexHookFileStore.publish(
+                    Data(Self.codexNotificationScript.utf8),
+                    at: urls.script
+                )
+            }
+            try CodexHookFileStore.publish(data, at: urls.configuration)
+
+            if !installed {
+                for url in [urls.script, urls.secret]
+                    where FileManager.default.fileExists(atPath: url.path) {
+                    try FileManager.default.removeItem(at: url)
+                }
+            }
+            reply(true, nil)
+        } catch {
+            reply(false, error.localizedDescription)
+        }
+    }
+
+    private func codexHookURLs() -> (configuration: URL, script: URL, secret: URL) {
+        let directory = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".codex", isDirectory: true)
+        return (
+            directory.appendingPathComponent("hooks.json"),
+            directory.appendingPathComponent(Self.codexHookMarker),
+            directory.appendingPathComponent(Self.codexHookSecretMarker)
+        )
+    }
+
+    private func ensureCodexHookSecret(at url: URL) throws -> Data {
+        try CodexHookSecretStore.loadOrCreate(at: url) {
+            var bytes = [UInt8](repeating: 0, count: 32)
+            guard SecRandomCopyBytes(
+                kSecRandomDefault,
+                bytes.count,
+                &bytes
+            ) == errSecSuccess else {
+                throw NSError(
+                    domain: "BoringNotch.CodexHooks",
+                    code: 3,
+                    userInfo: [
+                        NSLocalizedDescriptionKey:
+                            "A secure Codex hook secret could not be generated."
+                    ]
+                )
+            }
+            return Data(bytes)
+        }
+    }
+
+    private func readCodexHookConfiguration(at url: URL) throws -> [String: Any] {
+        guard FileManager.default.fileExists(atPath: url.path) else { return [:] }
+        let object = try JSONSerialization.jsonObject(
+            with: CodexHookFileStore.load(at: url)
+        )
+        guard let root = object as? [String: Any] else {
+            throw codexHookConfigurationError(
+                code: 1,
+                message: "Codex hooks.json must contain a JSON object."
+            )
+        }
+        return root
+    }
+
+    private func containsCurrentOwnedCodexHook(
+        in root: [String: Any],
+        event: String,
+        scriptURL: URL
+    ) -> Bool {
+        guard let hooks = root["hooks"] as? [String: Any],
+              let groups = hooks[event] as? [[String: Any]] else { return false }
+        let ownedGroups = groups.filter {
+            isOwnedCodexHookGroup($0, scriptURL: scriptURL)
+        }
+        guard ownedGroups.count == 1,
+              let handlers = ownedGroups[0]["hooks"] as? [[String: Any]],
+              handlers.count == 1 else { return false }
+
+        let handler = handlers[0]
+        let expectedTimeout = event == "PermissionRequest" ? 75 : 5
+        return handler["type"] as? String == "command"
+            && handler["command"] as? String == codexHookCommand(scriptURL: scriptURL)
+            && handler["timeout"] as? Int == expectedTimeout
+            && handler["async"] == nil
+    }
+
+    private func codexHookTrustEntry(
+        in root: [String: Any],
+        event: String,
+        trustEvent: String,
+        scriptURL: URL
+    ) -> (section: String, currentHash: String)? {
+        guard let hooks = root["hooks"] as? [String: Any],
+              let groups = hooks[event] as? [[String: Any]] else { return nil }
+
+        for (groupIndex, group) in groups.enumerated() {
+            guard isOwnedCodexHookGroup(group, scriptURL: scriptURL),
+                  let handlers = group["hooks"] as? [[String: Any]] else {
+                continue
+            }
+            for (handlerIndex, handler) in handlers.enumerated()
+                where handler["command"] as? String == codexHookCommand(scriptURL: scriptURL) {
+                let timeout = max(handler["timeout"] as? Int ?? 600, 1)
+                let additionalContextLimit: Int?
+                if ["post_tool_use", "user_prompt_submit"].contains(trustEvent),
+                   let limit = handler["additionalContextLimit"] as? Int,
+                   limit != 2_500 {
+                    additionalContextLimit = limit
+                } else {
+                    additionalContextLimit = nil
+                }
+                let currentHash = CodexHookTrustState.currentHash(
+                    eventName: trustEvent,
+                    matcher: group["matcher"] as? String,
+                    command: codexHookCommand(scriptURL: scriptURL),
+                    timeout: timeout,
+                    asynchronous: handler["async"] as? Bool ?? false,
+                    statusMessage: handler["statusMessage"] as? String,
+                    additionalContextLimit: additionalContextLimit
+                )
+                return (
+                    "\(codexHookURLs().configuration.path):\(trustEvent):\(groupIndex):\(handlerIndex)",
+                    currentHash
+                )
+            }
+        }
+        return nil
+    }
+
+    private func isOwnedCodexHookGroup(
+        _ group: [String: Any],
+        scriptURL: URL
+    ) -> Bool {
+        CodexHookConfiguration.isOwnedGroup(
+            group,
+            command: codexHookCommand(scriptURL: scriptURL)
+        )
+    }
+
+    private func codexHookCommand(scriptURL: URL) -> String {
+        let quotedPath = scriptURL.path.replacingOccurrences(of: "'", with: "'\"'\"'")
+        return "/usr/bin/python3 '\(quotedPath)'"
+    }
+
+    private func codexHookConfigurationError(code: Int, message: String) -> NSError {
+        NSError(
+            domain: "BoringNotch.CodexHooks",
+            code: code,
+            userInfo: [NSLocalizedDescriptionKey: message]
+        )
     }
 
     // MARK: - Private helpers for DisplayServices / IOKit access

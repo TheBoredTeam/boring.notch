@@ -5,6 +5,7 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
+import AppKit
 import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
@@ -19,6 +20,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     case shelf
     case mirror
     case shortcuts
+    case codex
     case advanced
     case about
 
@@ -35,6 +37,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .shelf: "Shelf"
         case .mirror: "Mirror"
         case .shortcuts: "Shortcuts"
+        case .codex: "Codex"
         case .advanced: "Advanced"
         case .about: "About"
         }
@@ -51,6 +54,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .shelf: "books.vertical"
         case .mirror: "camera"
         case .shortcuts: "keyboard"
+        case .codex: "bell.badge"
         case .advanced: "gearshape.2"
         case .about: "info.circle"
         }
@@ -71,8 +75,18 @@ struct SettingsView: View {
         NavigationSplitView {
             List(selection: $selectedTab) {
                 ForEach(SettingsTab.allCases) { tab in
-                    Label(tab.title, systemImage: tab.systemImage)
-                        .tag(tab)
+                    Group {
+                        if tab == .codex {
+                            Label {
+                                Text(tab.title)
+                            } icon: {
+                                CodexAppIcon()
+                            }
+                        } else {
+                            Label(tab.title, systemImage: tab.systemImage)
+                        }
+                    }
+                    .tag(tab)
                 }
             }
             .listStyle(SidebarListStyle())
@@ -100,6 +114,8 @@ struct SettingsView: View {
                     MirrorSettings()
                 case .shortcuts:
                     Shortcuts()
+                case .codex:
+                    CodexNotificationSettings()
                 case .advanced:
                     Advanced()
                 case .about:
@@ -133,5 +149,18 @@ struct SettingsView: View {
         .onReceive(NotificationCenter.default.publisher(for: .accentColorChanged)) { _ in
             accentColorUpdateTrigger = UUID()
         }
+    }
+}
+
+private struct CodexAppIcon: View {
+    var body: some View {
+        Image("codexIcon")
+            .renderingMode(.template)
+            .resizable()
+            .scaledToFit()
+            .frame(width: 14, height: 14)
+            .frame(width: 16, height: 16)
+            .offset(x: -1)
+            .accessibilityHidden(true)
     }
 }

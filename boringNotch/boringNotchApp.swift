@@ -30,6 +30,7 @@ struct DynamicNotchApp: App {
 
         // Initialize the settings window controller with the updater controller
         SettingsWindowController.shared.setUpdaterController(updaterController)
+        NotchExtensionRegistry.shared.start()
     }
 
     var body: some Scene {
@@ -89,6 +90,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
 
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls {
+            _ = CodexNotificationManager.shared.handle(url: url)
+        }
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         // Flush debounced shelf persistence to avoid losing recent changes
         ShelfStateViewModel.shared.flushSync()
@@ -109,6 +116,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         LunarManager.shared.stopListening()
         LunarManager.shared.configureLunarOSD(hide: false)
         XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
+        NotchExtensionRegistry.shared.stop()
         
         observers.forEach { NotificationCenter.default.removeObserver($0) }
         observers.removeAll()
