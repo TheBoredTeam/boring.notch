@@ -119,6 +119,13 @@
 		14D570C62C5F38210011E668 /* BoringHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570C52C5F38210011E668 /* BoringHeader.swift */; };
 		14D570C92C5F38890011E668 /* BoringViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570C82C5F38890011E668 /* BoringViewModel.swift */; };
 		C0D300012F60000100000001 /* DropInteractionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D300022F60000100000001 /* DropInteractionState.swift */; };
+		C0D300042F60000100000001 /* LockScreenMediaWidgetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D300032F60000100000001 /* LockScreenMediaWidgetManager.swift */; };
+		C0D300062F60000100000001 /* LockScreenMediaWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D300052F60000100000001 /* LockScreenMediaWidgetView.swift */; };
+		C0D300082F60000100000001 /* LockScreenWidgetSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D300072F60000100000001 /* LockScreenWidgetSupport.swift */; };
+		C0D3000A2F60000100000001 /* LockScreenTimerWidgetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D300092F60000100000001 /* LockScreenTimerWidgetManager.swift */; };
+		C0D3000C2F60000100000001 /* LockScreenAgendaWidgetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D3000B2F60000100000001 /* LockScreenAgendaWidgetManager.swift */; };
+		C0D3000E2F60000100000001 /* LockScreenWeatherWidgetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D3000D2F60000100000001 /* LockScreenWeatherWidgetManager.swift */; };
+		C0D300102F60000100000001 /* LockScreenSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D3000F2F60000100000001 /* LockScreenSettingsView.swift */; };
 		14D570CB2C5F4B2C0011E668 /* BatteryStatusViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */; };
 		14D570CD2C5F4BB70011E668 /* BoringBattery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570CC2C5F4BB70011E668 /* BoringBattery.swift */; };
 		14D570D22C5F6C6A0011E668 /* BoringExtrasMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */; };
@@ -314,6 +321,13 @@
 		14D570C52C5F38210011E668 /* BoringHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringHeader.swift; sourceTree = "<group>"; };
 		14D570C82C5F38890011E668 /* BoringViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringViewModel.swift; sourceTree = "<group>"; };
 		C0D300022F60000100000001 /* DropInteractionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropInteractionState.swift; sourceTree = "<group>"; };
+		C0D300032F60000100000001 /* LockScreenMediaWidgetManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenMediaWidgetManager.swift; sourceTree = "<group>"; };
+		C0D300052F60000100000001 /* LockScreenMediaWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenMediaWidgetView.swift; sourceTree = "<group>"; };
+		C0D300072F60000100000001 /* LockScreenWidgetSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenWidgetSupport.swift; sourceTree = "<group>"; };
+		C0D300092F60000100000001 /* LockScreenTimerWidgetManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenTimerWidgetManager.swift; sourceTree = "<group>"; };
+		C0D3000B2F60000100000001 /* LockScreenAgendaWidgetManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenAgendaWidgetManager.swift; sourceTree = "<group>"; };
+		C0D3000D2F60000100000001 /* LockScreenWeatherWidgetManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenWeatherWidgetManager.swift; sourceTree = "<group>"; };
+		C0D3000F2F60000100000001 /* LockScreenSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenSettingsView.swift; sourceTree = "<group>"; };
 		14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryStatusViewModel.swift; sourceTree = "<group>"; };
 		14D570CC2C5F4BB70011E668 /* BoringBattery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringBattery.swift; sourceTree = "<group>"; };
 		14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringExtrasMenu.swift; sourceTree = "<group>"; };
@@ -559,6 +573,7 @@
 				11DB266C2EDD0CDF001EA0CF /* GeneralSettingsView.swift */,
 				11DB266D2EDD0CDF001EA0CF /* OSDSettingsView.swift */,
 				11DB266E2EDD0CDF001EA0CF /* MediaSettingsView.swift */,
+				C0D3000F2F60000100000001 /* LockScreenSettingsView.swift */,
 				11DB266F2EDD0CDF001EA0CF /* SettingsHelpers.swift */,
 				11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */,
 				11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */,
@@ -637,6 +652,11 @@
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
+				C0D300032F60000100000001 /* LockScreenMediaWidgetManager.swift */,
+				C0D300072F60000100000001 /* LockScreenWidgetSupport.swift */,
+				C0D300092F60000100000001 /* LockScreenTimerWidgetManager.swift */,
+				C0D3000B2F60000100000001 /* LockScreenAgendaWidgetManager.swift */,
+				C0D3000D2F60000100000001 /* LockScreenWeatherWidgetManager.swift */,
 				F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */,
 				149E0B962C737D00006418B1 /* WebcamManager.swift */,
 				14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */,
@@ -830,6 +850,7 @@
 			isa = PBXGroup;
 			children = (
 				1194E8862EA6DDA7009C82D6 /* BoringNotchSkyLightWindow.swift */,
+				C0D300052F60000100000001 /* LockScreenMediaWidgetView.swift */,
 				1160F8D72DD98230006FBB94 /* NotchShape.swift */,
 				9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */,
 				14D570C52C5F38210011E668 /* BoringHeader.swift */,
@@ -1071,6 +1092,13 @@
 				1194E87C2EA19E09009C82D6 /* ImageProcessingService.swift in Sources */,
 				1194E8872EA6DDA7009C82D6 /* BoringNotchSkyLightWindow.swift in Sources */,
 				14D570CB2C5F4B2C0011E668 /* BatteryStatusViewModel.swift in Sources */,
+				C0D300042F60000100000001 /* LockScreenMediaWidgetManager.swift in Sources */,
+				C0D300062F60000100000001 /* LockScreenMediaWidgetView.swift in Sources */,
+				C0D300082F60000100000001 /* LockScreenWidgetSupport.swift in Sources */,
+				C0D3000A2F60000100000001 /* LockScreenTimerWidgetManager.swift in Sources */,
+				C0D3000C2F60000100000001 /* LockScreenAgendaWidgetManager.swift in Sources */,
+				C0D3000E2F60000100000001 /* LockScreenWeatherWidgetManager.swift in Sources */,
+				C0D300102F60000100000001 /* LockScreenSettingsView.swift in Sources */,
 				9A0887322C7A693000C160EA /* TabButton.swift in Sources */,
 				1153BD9C2D98853B00979FB0 /* NowPlayingController.swift in Sources */,
 				11985BEF2F37E48900F81585 /* OSDIconView.swift in Sources */,
@@ -1411,7 +1439,7 @@
 				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
 				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
 				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
-				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = YES;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1427,6 +1455,8 @@
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
+				INFOPLIST_KEY_NSLocationUsageDescription = "This app uses your location to show local weather on the lock screen";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app uses your location to show local weather on the lock screen";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSRemindersUsageDescription = "This app uses Reminders to display your scheduled reminder in the calendar";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1478,7 +1508,7 @@
 				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
 				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
 				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
-				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = YES;
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1493,6 +1523,8 @@
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
+				INFOPLIST_KEY_NSLocationUsageDescription = "This app uses your location to show local weather on the lock screen";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app uses your location to show local weather on the lock screen";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSRemindersUsageDescription = "This app uses Reminders to display your scheduled reminder in the calendar";
 				LD_RUNPATH_SEARCH_PATHS = (

@@ -44,6 +44,24 @@ final class AudioOutputRouteResolver {
         }
     }
 
+    var isBluetoothOutput: Bool {
+        stateQueue.sync {
+            switch cachedRouteKind {
+            case .airPods, .airPodsPro, .airPodsMax, .bluetoothHeadphones:
+                true
+            default:
+                false
+            }
+        }
+    }
+
+    var currentOutputName: String {
+        let deviceID = systemOutputDeviceID()
+        guard deviceID != kAudioObjectUnknown else { return "Bluetooth" }
+        let name = readStringProperty(deviceID: deviceID, selector: kAudioObjectPropertyName)
+        return name.isEmpty ? "Bluetooth" : name
+    }
+
     private init() {
         refreshCachedRouteKind()
         setupAudioRouteListener()

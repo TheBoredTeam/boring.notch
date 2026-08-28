@@ -145,8 +145,15 @@
         }
       }
     },
-    "%@x" : {
-      "comment" : "Animation speed multiplier."
+    "%.2g %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$.2g %2$@"
+          }
+        }
+      }
     },
     "%@" : {
       "localizations" : {
@@ -164,6 +171,19 @@
         }
       }
     },
+    "%@：%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@：%2$@"
+          }
+        }
+      }
+    },
+    "%@x" : {
+      "comment" : "Animation speed multiplier."
+    },
     "%lld" : {
       "localizations" : {
         "en" : {
@@ -176,6 +196,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld"
+          }
+        }
+      }
+    },
+    "%lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld %2$@"
           }
         }
       }
@@ -21690,6 +21720,9 @@
         }
       }
     },
+    "Show charging wattage" : {
+
+    },
     "Show cool face animation while inactive" : {
       "localizations" : {
         "de" : {
@@ -22133,6 +22166,7 @@
       }
     },
     "Show notch on lock screen" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -24634,7 +24668,7 @@
       }
     },
     "System Setting" : {
-      "comment" : "Week starts on: follow the macOS system setting (shown with the resolved day in parentheses)",
+      "comment" : "Week starts on: follow the macOS system setting",
       "localizations" : {
         "de" : {
           "stringUnit" : {

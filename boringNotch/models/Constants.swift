@@ -30,6 +30,75 @@ enum HideNotchOption: String, Defaults.Serializable {
     case never
 }
 
+enum LockScreenWidgetAppearance: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case dark
+    case light
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .dark: LockScreenText.value("Dark", "深色")
+        case .light: LockScreenText.value("Light", "浅色")
+        }
+    }
+}
+
+enum LockScreenWeatherWidgetStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case inline
+    case circular
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .inline: LockScreenText.value("Inline", "横向")
+        case .circular: LockScreenText.value("Circular", "圆形")
+        }
+    }
+}
+
+enum LockScreenWeatherTemperatureUnit: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case celsius
+    case fahrenheit
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .celsius: LockScreenText.value("Celsius", "摄氏度")
+        case .fahrenheit: LockScreenText.value("Fahrenheit", "华氏度")
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .celsius: "°C"
+        case .fahrenheit: "°F"
+        }
+    }
+
+    static var matchingSystemPreference: Self {
+        UnitTemperature(forLocale: .current) == .fahrenheit ? .fahrenheit : .celsius
+    }
+}
+
+enum LockScreenReminderAlignment: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case leading
+    case center
+    case trailing
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .leading: LockScreenText.value("Left", "左侧")
+        case .center: LockScreenText.value("Center", "居中")
+        case .trailing: LockScreenText.value("Right", "右侧")
+        }
+    }
+}
+
 struct AppLanguage: RawRepresentable, Hashable, Identifiable, Defaults.Serializable {
     static let system = AppLanguage(rawValue: "system")
 
@@ -231,6 +300,45 @@ extension Defaults.Keys {
     static let notchHeight = Key<CGFloat>("notchHeight", default: 32)
     //static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
     static let showOnLockScreen = Key<Bool>("showOnLockScreen", default: false)
+    static let enableLockScreenMediaWidget = Key<Bool>("enableLockScreenMediaWidget", default: false)
+    static let enableLockScreenWeatherWidget = Key<Bool>("enableLockScreenWeatherWidget", default: false)
+    static let enableLockScreenFocusWidget = Key<Bool>("enableLockScreenFocusWidget", default: false)
+    static let enableLockScreenReminderWidget = Key<Bool>("enableLockScreenReminderWidget", default: false)
+    static let enableLockScreenTimerWidget = Key<Bool>("enableLockScreenTimerWidget", default: false)
+    static let lockScreenWidgetAppearance = Key<LockScreenWidgetAppearance>(
+        "lockScreenWidgetAppearance", default: .dark
+    )
+    static let lockScreenWeatherRefreshInterval = Key<TimeInterval>(
+        "lockScreenWeatherRefreshInterval", default: 30 * 60
+    )
+    static let lockScreenWeatherShowsLocation = Key<Bool>("lockScreenWeatherShowsLocation", default: true)
+    static let lockScreenWeatherShowsSunrise = Key<Bool>("lockScreenWeatherShowsSunrise", default: true)
+    static let lockScreenWeatherWidgetStyle = Key<LockScreenWeatherWidgetStyle>(
+        "lockScreenWeatherWidgetStyle", default: .inline
+    )
+    static let lockScreenWeatherTemperatureUnit = Key<LockScreenWeatherTemperatureUnit>(
+        "lockScreenWeatherTemperatureUnit", default: .matchingSystemPreference
+    )
+    static let lockScreenWeatherShowsAQI = Key<Bool>("lockScreenWeatherShowsAQI", default: true)
+    static let lockScreenWeatherVerticalOffset = Key<Double>("lockScreenWeatherVerticalOffset", default: 0)
+    static let lockScreenTimerVerticalOffset = Key<Double>("lockScreenTimerVerticalOffset", default: 0)
+    static let lockScreenTimerWidgetWidth = Key<Double>("lockScreenTimerWidgetWidth", default: 350)
+    static let lockScreenReminderWidgetHorizontalAlignment = Key<LockScreenReminderAlignment>(
+        "lockScreenReminderWidgetHorizontalAlignment", default: .center
+    )
+    static let lockScreenReminderWidgetVerticalOffset = Key<Double>("lockScreenReminderWidgetVerticalOffset", default: 0)
+    static let lockScreenCalendarEventLookaheadHours = Key<Double>(
+        "lockScreenCalendarEventLookaheadHours", default: 3
+    )
+    static let lockScreenBatteryShowsBatteryGauge = Key<Bool>("lockScreenWeatherShowsBatteryGauge", default: true)
+    static let lockScreenBatteryShowsCharging = Key<Bool>("lockScreenWeatherShowsCharging", default: true)
+    static let lockScreenBatteryShowsChargingPercentage = Key<Bool>(
+        "lockScreenWeatherShowsChargingPercentage", default: true
+    )
+    static let lockScreenBatteryShowsBluetooth = Key<Bool>("lockScreenWeatherShowsBluetooth", default: true)
+    static let lockScreenShowCalendarEvent = Key<Bool>("lockScreenShowCalendarEvent", default: true)
+    static let lockScreenFocusName = Key<String>("lockScreenFocusName", default: "Do Not Disturb")
+    static let lockScreenFocusActive = Key<Bool>("lockScreenFocusActive", default: false)
     static let hideFromScreenRecording = Key<Bool>("hideFromScreenRecording", default: false)
     
     // MARK: Appearance

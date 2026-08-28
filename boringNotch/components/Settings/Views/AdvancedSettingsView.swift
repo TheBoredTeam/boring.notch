@@ -175,8 +175,12 @@ struct Advanced: View {
                     Text("Hide title bar")
                 }
                 Defaults.Toggle(key: .showOnLockScreen) {
-                    Text("Show notch on lock screen")
+                    Text(LockScreenText.value("Show notch on lock screen", "在锁定屏幕显示刘海"))
                 }
+                Defaults.Toggle(key: .enableLockScreenMediaWidget) {
+                    Text(LockScreenText.value("Show media widget on lock screen", "在锁定屏幕显示媒体小组件"))
+                }
+                .disabled(!showOnLockScreen)
                 Defaults.Toggle(key: .hideFromScreenRecording) {
                     Text("Hide from screen recording")
                 }

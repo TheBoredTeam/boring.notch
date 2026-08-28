@@ -101,6 +101,8 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch
 - Hover over the notch to see it expand and reveal all its secrets.
 - Use the controls to manage your music like a rockstar.
 - Click the star in your menu bar to customize your notch to your heart's content.
+- For lock-screen widgets, open **Settings → Lock Screen**. Enable **Show notch on lock screen**, then turn on the widgets you want: media, timer, weather/status, reminders, and Focus status.
+- The weather/status widget uses Open-Meteo after you allow location access. It can also display your Mac battery and charging state, Bluetooth audio output, next calendar event, and Focus status. Calendar and reminder entries appear after their normal Boring Notch permissions have been granted.
 
 ## 📋 Roadmap
 - [x] Playback live activity 🎧
@@ -113,9 +115,9 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch
 - [x] Notch sizing customization, finetuning on different display sizes 🖥️
 - [x] System OSD replacements (volume, brightness, backlight) 🎚️💡⌨️
 - [ ] Bluetooth Live Activity (connect/disconnect for bluetooth devices) 
-- [ ] Weather integration ⛅️
+- [ ] Weather integration in the expanded notch ⛅️
 - [ ] Customizable Layout options 🛠️
-- [ ] Lock Screen Widgets 🔒
+- [x] Lock Screen widgets: media, timer, weather/status, reminders, battery, Bluetooth, calendar, and Focus 🔒
 - [ ] Extension system 🧩
 - [ ] Notifications (under consideration) 🔔
 <!-- - [ ] Clipboard history manager 📌 `Extension` -->
@@ -187,5 +189,3 @@ For a full list of licenses and attributions, please see the [Third-Party Licens
 
 - **SwiftUI**: For making us look like coding wizards.
 - **You**: For being awesome and checking out **boring.notch**!
-
-

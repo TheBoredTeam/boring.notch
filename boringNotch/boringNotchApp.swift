@@ -122,6 +122,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             enableSkyLightOnAllWindows()
         }
+        LockScreenMediaWidgetManager.shared.screenDidLock()
+        LockScreenTimerWidgetManager.shared.screenDidLock()
+        LockScreenAgendaWidgetManager.shared.screenDidLock()
+        LockScreenWeatherWidgetManager.shared.screenDidLock()
     }
 
     @MainActor
@@ -132,6 +136,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             disableSkyLightOnAllWindows()
         }
+        LockScreenMediaWidgetManager.shared.screenDidUnlock()
+        LockScreenTimerWidgetManager.shared.screenDidUnlock()
+        LockScreenAgendaWidgetManager.shared.screenDidUnlock()
+        LockScreenWeatherWidgetManager.shared.screenDidUnlock()
     }
     
     @MainActor
@@ -312,6 +320,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+
+        // Keep the lock-screen widget synchronized with media and preference changes
+        // even when the first lock event happens after launch.
+        _ = LockScreenMediaWidgetManager.shared
+        _ = LockScreenTimerWidgetManager.shared
+        _ = LockScreenAgendaWidgetManager.shared
+        _ = LockScreenWeatherWidgetManager.shared
 
         NotificationCenter.default.addObserver(
             self,
