@@ -23,6 +23,8 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject private var agentVM = AIAgentViewModel.shared
+    @State private var agentOpenedNotch = false
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -113,6 +115,32 @@ struct ContentView: View {
 
     private var displayClosedNotchHeight: CGFloat { isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight }
 
+    // MARK: Agent surface expansion
+
+    /// Extra room the notch gets on agent surfaces, so approval cards and
+    /// the chat panel are actually usable instead of cramped. Both keep the
+    /// standard notch width — only the height grows.
+    static let agentApprovalExtraSize = CGSize(width: 0, height: 120)
+    static let agentChatExtraSize = CGSize(width: 0, height: 320)
+
+    private var agentSurfaceExpanded: Bool {
+        vm.notchState == .open
+            && (coordinator.currentView == .agentApproval || coordinator.currentView == .agent)
+    }
+
+    private var effectiveOpenSize: CGSize {
+        guard agentSurfaceExpanded else { return vm.notchSize }
+        let extra = coordinator.currentView == .agent ? Self.agentChatExtraSize : Self.agentApprovalExtraSize
+        return CGSize(width: openNotchSize.width + extra.width,
+                      height: openNotchSize.height + extra.height)
+    }
+
+    private var effectiveWindowSize: CGSize {
+        agentSurfaceExpanded
+            ? CGSize(width: effectiveOpenSize.width, height: effectiveOpenSize.height + shadowPadding)
+            : windowSize
+    }
+
     var body: some View {
         @Bindable var dropInteraction = vm.dropInteraction
 
@@ -149,7 +177,7 @@ struct ContentView: View {
                     .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
                 
                 mainLayout
-                    .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
+                    .frame(height: vm.notchState == .open ? effectiveOpenSize.height : nil)
                     .conditionalModifier(true) { view in
                         return view
                             .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchState)
@@ -164,13 +192,13 @@ struct ContentView: View {
                             doOpen()
                         }
                     }
-                    .conditionalModifier(Defaults[.enableGestures]) { view in
+                    .conditionalModifier(Defaults[.enableGestures] && !agentSurfaceExpanded) { view in
                         view
                             .panGesture(direction: .down) { translation, phase in
                                 handleDownGesture(translation: translation, phase: phase)
                             }
                     }
-                    .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
+                    .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures] && !agentSurfaceExpanded) { view in
                         view
                             .panGesture(direction: .up) { translation, phase in
                                 handleUpGesture(translation: translation, phase: phase)
@@ -187,16 +215,7 @@ struct ContentView: View {
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
                         if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
-                            hoverTask?.cancel()
-                            hoverTask = Task {
-                                try? await Task.sleep(for: .milliseconds(100))
-                                guard !Task.isCancelled else { return }
-                                await MainActor.run {
-                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
-                                        self.vm.close()
-                                    }
-                                }
-                            }
+                            scheduleAutoClose()
                         }
                     }
                     .onChange(of: vm.notchState) { _, newState in
@@ -206,18 +225,15 @@ struct ContentView: View {
                             }
                         }
                     }
-                    .onChange(of: vm.isBatteryPopoverActive) {
-                        if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
-                            hoverTask?.cancel()
-                            hoverTask = Task {
-                                try? await Task.sleep(for: .milliseconds(100))
-                                guard !Task.isCancelled else { return }
-                                await MainActor.run {
-                                    if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
-                                        self.vm.close()
-                                    }
-                                }
-                            }
+                    .onChange(of: agentVM.hasActiveAgentCard) { _, active in
+                        handleAgentCardActivity(active)
+                    }
+                    .onChange(of: coordinator.currentView) { _, view in
+                        updateAgentKeyFocus(view)
+                    }
+                    .onChange(of: vm.isBatteryPopoverActive) { _, active in
+                        if !active && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
+                            scheduleAutoClose()
                         }
                     }
                     .sensoryFeedback(.alignment, trigger: haptics)
@@ -242,9 +258,10 @@ struct ContentView: View {
             }
         }
         .padding(.bottom, 8)
-        .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
+        .frame(maxWidth: effectiveWindowSize.width, maxHeight: effectiveWindowSize.height, alignment: .top)
         .ignoresSafeArea(.all)
         .compositingGroup()
+        .background(NotchWindowResizer(targetSize: effectiveWindowSize))
         .scaleEffect(
             x: gestureScale,
             y: gestureScale,
@@ -412,6 +429,10 @@ struct ContentView: View {
                             dropInteraction: vm.dropInteraction,
                             animation: vm.animation
                         )
+                    case .agent:
+                        AIAgentPanel()
+                    case .agentApproval:
+                        AgentApprovalView()
                     }
                 }
                 .transition(
@@ -577,11 +598,59 @@ struct ContentView: View {
 
     // MARK: - Hover Management
 
+    /// Claude needs a decision: open the notch on the approval surface (if
+    /// auto-open is on); close it again once the cards clear.
+    private func handleAgentCardActivity(_ active: Bool) {
+        if active {
+            guard Defaults[.aiAgentAutoOpen] else { return }
+            let wasOpen = vm.notchState == .open
+            agentOpenedNotch = true
+            withAnimation(animationSpring) {
+                if !wasOpen { vm.open() }
+                coordinator.currentView = .agentApproval
+            }
+        } else if agentOpenedNotch {
+            agentOpenedNotch = false
+            guard !isHovering else { return }
+            withAnimation(animationSpring) {
+                vm.close()
+            }
+        }
+    }
+
+    /// Only the agent surfaces host text fields; the panel stays
+    /// key-incapable everywhere else so the notch never steals keyboard
+    /// focus from the active app.
+    private func updateAgentKeyFocus(_ view: NotchViews) {
+        BoringNotchSkyLightWindow.allowsKeyFocus = (view == .agent || view == .agentApproval)
+    }
+
+    /// Shared auto-close path: wait a beat, then close the notch if nothing
+    /// (hover, popover, sharing) still needs it open. Extracted from three
+    /// identical inline tasks — the body's modifier chain otherwise grows
+    /// past what the type-checker tolerates.
+    private func scheduleAutoClose() {
+        hoverTask?.cancel()
+        hoverTask = Task {
+            try? await Task.sleep(for: .milliseconds(100))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                    self.vm.close()
+                }
+            }
+        }
+    }
+
     private func handleHover(_ hovering: Bool) {
         if coordinator.firstLaunch { return }
         hoverTask?.cancel()
-        
+
         if hovering {
+            // Borderless panels inherit whatever cursor the window below the
+            // notch had when the mouse entered — reset to the standard arrow.
+            DispatchQueue.main.async { NSCursor.arrow.set() }
+
             withAnimation(animationSpring) {
                 isHovering = true
             }
@@ -805,4 +874,35 @@ struct GeneralDropTargetDelegate: DropDelegate {
     return ContentView()
         .environmentObject(vm)
         .frame(width: vm.notchSize.width, height: vm.notchSize.height)
+}
+
+/// Keeps the notch panel's size in sync with the SwiftUI content: when an
+/// agent surface asks for extra room the (borderless, fixed-size) window
+/// itself grows — anchored to the top edge and horizontally centered — and
+/// shrinks back when the surface goes away.
+private struct NotchWindowResizer: NSViewRepresentable {
+    let targetSize: CGSize
+
+    func makeNSView(context: Context) -> NSView {
+        NSView()
+    }
+
+    func updateNSView(_ view: NSView, context: Context) {
+        guard let window = view.window else { return }
+        let current = window.frame.size
+        guard abs(current.width - targetSize.width) > 0.5
+              || abs(current.height - targetSize.height) > 0.5 else { return }
+
+        var frame = window.frame
+        frame.size = targetSize
+        frame.origin.x -= (targetSize.width - current.width) / 2 // stay centered
+        frame.origin.y -= (targetSize.height - current.height)   // keep the top edge fixed
+
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.35
+            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            context.allowsImplicitAnimation = true
+            window.setFrame(frame, display: true)
+        }
+    }
 }

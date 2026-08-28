@@ -138,14 +138,20 @@ class BoringNotchSkyLightWindow: NSPanel {
     }
     
     private var observers: Set<AnyCancellable> = []
-    
+
     private func cleanupObservers() {
         Task { @MainActor in
             self.observers.forEach { $0.cancel() }
             self.observers.removeAll()
         }
     }
-    
-    override var canBecomeKey: Bool { false }
+
+    // The notch panel is non-activating and normally never takes key focus —
+    // but text fields on the agent surfaces (chat input, question's custom
+    // answer) need key status to receive keystrokes. ContentView flips this
+    // while an agent surface with an input is on screen.
+    static var allowsKeyFocus = false
+
+    override var canBecomeKey: Bool { Self.allowsKeyFocus }
     override var canBecomeMain: Bool { false }
 }
