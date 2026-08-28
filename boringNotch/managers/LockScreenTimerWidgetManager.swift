@@ -170,8 +170,8 @@ private struct LockScreenTimerWidgetView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(timer.isPaused
-                    ? LockScreenText.value("Resume timer", "继续计时")
-                    : LockScreenText.value("Pause timer", "暂停计时"))
+                    ? LockScreenText.value("Resume timer")
+                    : LockScreenText.value("Pause timer"))
 
                 Button(action: timer.cancel) {
                     Image(systemName: "xmark")
@@ -179,7 +179,7 @@ private struct LockScreenTimerWidgetView: View {
                         .background(.primary.opacity(0.12), in: Circle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(LockScreenText.value("Cancel timer", "取消计时"))
+                .accessibilityLabel(LockScreenText.value("Cancel timer"))
             }
             .padding(.horizontal, 16)
             .frame(height: 72)

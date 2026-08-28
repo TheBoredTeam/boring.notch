@@ -202,7 +202,7 @@ final class LockScreenWeatherWidgetManager: NSObject, ObservableObject, CLLocati
             unitSymbol: Defaults[.lockScreenWeatherTemperatureUnit].symbol,
             symbolName: weather.map { Self.symbol(for: $0.weatherCode) } ?? "cloud.fill",
             description: weather.map { Self.description(for: $0.weatherCode) }
-                ?? LockScreenText.value("Weather unavailable", "天气暂不可用"),
+                ?? LockScreenText.value("Weather unavailable"),
             locationName: Defaults[.lockScreenWeatherShowsLocation] ? weather?.locationName : nil,
             sunrise: Defaults[.lockScreenWeatherShowsSunrise] ? weather?.sunrise : nil,
             aqi: Defaults[.lockScreenWeatherShowsAQI] ? weather?.aqi : nil,
@@ -274,15 +274,15 @@ final class LockScreenWeatherWidgetManager: NSObject, ObservableObject, CLLocati
 
     private static func description(for weatherCode: Int) -> String {
         switch weatherCode {
-        case 0: LockScreenText.value("Clear", "晴朗")
-        case 1, 2: LockScreenText.value("Partly cloudy", "晴间多云")
-        case 3: LockScreenText.value("Overcast", "阴天")
-        case 45, 48: LockScreenText.value("Foggy", "有雾")
-        case 51, 53, 55, 56, 57: LockScreenText.value("Drizzle", "毛毛雨")
-        case 61, 63, 65, 66, 67, 80, 81, 82: LockScreenText.value("Rain", "下雨")
-        case 71, 73, 75, 77, 85, 86: LockScreenText.value("Snow", "下雪")
-        case 95, 96, 99: LockScreenText.value("Thunderstorm", "雷暴")
-        default: LockScreenText.value("Weather", "天气")
+        case 0: LockScreenText.value("Clear")
+        case 1, 2: LockScreenText.value("Partly cloudy")
+        case 3: LockScreenText.value("Overcast")
+        case 45, 48: LockScreenText.value("Foggy")
+        case 51, 53, 55, 56, 57: LockScreenText.value("Drizzle")
+        case 61, 63, 65, 66, 67, 80, 81, 82: LockScreenText.value("Rain")
+        case 71, 73, 75, 77, 85, 86: LockScreenText.value("Snow")
+        case 95, 96, 99: LockScreenText.value("Thunderstorm")
+        default: LockScreenText.value("Weather")
         }
     }
 }
@@ -394,7 +394,7 @@ struct LockScreenWeatherSnapshot: Equatable {
 
     static let placeholder = Self(
         temperature: nil, unitSymbol: "°", symbolName: "cloud.fill",
-        description: LockScreenText.value("Weather unavailable", "天气暂不可用"),
+        description: LockScreenText.value("Weather unavailable"),
         locationName: nil, sunrise: nil, aqi: nil, batteryLevel: nil, isCharging: false,
         isPluggedIn: false, chargingPercentage: nil, bluetoothName: nil, calendarTitle: nil,
         calendarStart: nil, focusName: nil, style: .inline
@@ -493,11 +493,11 @@ private struct LockScreenWeatherWidgetView: View {
     private var batteryDetail: String? {
         guard snapshot.isPluggedIn else { return nil }
         if snapshot.isCharging, let percentage = snapshot.chargingPercentage {
-            return LockScreenText.value("Charging \(percentage)%", "正在充电 \(percentage)%")
+            return String(format: LockScreenText.value("Charging %@"), "\(percentage)%")
         }
         return snapshot.isCharging
-            ? LockScreenText.value("Charging", "正在充电")
-            : LockScreenText.value("Plugged in", "已接通电源")
+            ? LockScreenText.value("Charging")
+            : LockScreenText.value("Plugged in")
     }
 
     private var temperatureText: String {

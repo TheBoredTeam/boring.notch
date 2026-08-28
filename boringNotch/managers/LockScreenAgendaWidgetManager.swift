@@ -140,7 +140,7 @@ private struct LockScreenReminderWidgetView: View {
                     .frame(width: 5, height: 19)
 
                 Text(reminder.title.isEmpty
-                    ? LockScreenText.value("Reminder", "提醒事项")
+                    ? LockScreenText.value("Reminder")
                     : reminder.title)
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
                     .lineLimit(1)

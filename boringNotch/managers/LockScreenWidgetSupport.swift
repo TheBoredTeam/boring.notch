@@ -13,12 +13,92 @@ import SkyLightWindow
 import SwiftUI
 
 enum LockScreenText {
-    static func value(_ english: String, _ simplifiedChinese: String) -> String {
-        let selectedLanguage = Defaults[.appLanguage]
-        let usesChinese = selectedLanguage.rawValue.hasPrefix("zh")
-            || (selectedLanguage == .system && Locale.preferredLanguages.first?.hasPrefix("zh") == true)
-        return usesChinese ? simplifiedChinese : english
+    static func value(_ key: String) -> String {
+        let localized = NSLocalizedString(key, comment: "")
+        guard localized == key, usesSimplifiedChinese else { return localized }
+        return simplifiedChinese[key] ?? key
     }
+
+    private static var usesSimplifiedChinese: Bool {
+        let selectedLanguage = Defaults[.appLanguage]
+        return selectedLanguage.rawValue.hasPrefix("zh")
+            || (selectedLanguage == .system && Locale.preferredLanguages.first?.hasPrefix("zh") == true)
+    }
+
+    private static let simplifiedChinese: [String: String] = [
+        "Alignment": "对齐方式",
+        "Allow location access": "允许访问位置",
+        "Appearance": "外观",
+        "Calendar look-ahead": "日历预览范围",
+        "Cancel": "取消",
+        "Cancel timer": "取消计时",
+        "Center": "居中",
+        "Charging": "正在充电",
+        "Charging %@": "正在充电 %@",
+        "Circular": "圆形",
+        "Clear": "晴朗",
+        "Celsius": "摄氏度",
+        "Dark": "深色",
+        "Displays the next incomplete reminder that is due within the calendar look-ahead window.": "显示日历预览范围内下一条未完成且到期的提醒事项。",
+        "Drizzle": "毛毛雨",
+        "Duration": "时长",
+        "Fahrenheit": "华氏度",
+        "Focus": "专注模式",
+        "Focus is active": "专注模式已开启",
+        "Focus name": "专注模式名称",
+        "Foggy": "有雾",
+        "Inline": "横向",
+        "Left": "左侧",
+        "Light": "浅色",
+        "Lock Screen": "锁定屏幕",
+        "minutes": "分钟",
+        "Minutes": "分钟",
+        "Next track": "下一首",
+        "Not Playing": "未在播放",
+        "Overcast": "阴天",
+        "Partly cloudy": "晴间多云",
+        "Pause": "暂停",
+        "Pause timer": "暂停计时",
+        "Play": "播放",
+        "Plugged in": "已接通电源",
+        "Previous track": "上一首",
+        "px": "像素",
+        "Rain": "下雨",
+        "Reminder": "提醒事项",
+        "Reminders": "提醒事项",
+        "Remaining": "剩余时间",
+        "Restart timer": "重新开始计时",
+        "Resume timer": "继续计时",
+        "Right": "右侧",
+        "Show air quality": "显示空气质量",
+        "Show Bluetooth audio output": "显示蓝牙音频输出",
+        "Show charging percentage": "显示充电百分比",
+        "Show charging state": "显示充电状态",
+        "Show Focus status": "显示专注模式状态",
+        "Show location": "显示位置",
+        "Show Mac battery": "显示 Mac 电池",
+        "Show media widget": "显示媒体小组件",
+        "Show next calendar event": "显示下一个日历事件",
+        "Show reminder widget": "显示提醒事项小组件",
+        "Show sunrise": "显示日出时间",
+        "Show timer widget": "显示计时器小组件",
+        "Show weather and status widget": "显示天气与状态小组件",
+        "Snow": "下雪",
+        "Start timer": "开始计时",
+        "Status rows": "状态信息",
+        "Style": "样式",
+        "Temperature": "温度单位",
+        "Thunderstorm": "雷暴",
+        "Timer": "计时器",
+        "Vertical offset": "垂直偏移",
+        "Weather": "天气",
+        "Weather is provided by Open-Meteo. Boring Notch asks for your location only after you allow it.": "天气数据由 Open-Meteo 提供。只有在你允许后，Boring Notch 才会请求位置。",
+        "Weather unavailable": "天气暂不可用",
+        "Widgets": "小组件",
+        "Widgets are only visible while the Mac is locked. Enable the widgets you want below.": "小组件只会在 Mac 锁定时显示。请在下方启用需要的组件。",
+        "Width": "宽度",
+        "h": "小时"
+    ]
 }
 
 struct LockScreenDisplayContext {

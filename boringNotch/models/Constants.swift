@@ -38,8 +38,8 @@ enum LockScreenWidgetAppearance: String, CaseIterable, Identifiable, Defaults.Se
 
     var title: String {
         switch self {
-        case .dark: LockScreenText.value("Dark", "深色")
-        case .light: LockScreenText.value("Light", "浅色")
+        case .dark: LockScreenText.value("Dark")
+        case .light: LockScreenText.value("Light")
         }
     }
 }
@@ -52,8 +52,8 @@ enum LockScreenWeatherWidgetStyle: String, CaseIterable, Identifiable, Defaults.
 
     var title: String {
         switch self {
-        case .inline: LockScreenText.value("Inline", "横向")
-        case .circular: LockScreenText.value("Circular", "圆形")
+        case .inline: LockScreenText.value("Inline")
+        case .circular: LockScreenText.value("Circular")
         }
     }
 }
@@ -66,8 +66,8 @@ enum LockScreenWeatherTemperatureUnit: String, CaseIterable, Identifiable, Defau
 
     var title: String {
         switch self {
-        case .celsius: LockScreenText.value("Celsius", "摄氏度")
-        case .fahrenheit: LockScreenText.value("Fahrenheit", "华氏度")
+        case .celsius: LockScreenText.value("Celsius")
+        case .fahrenheit: LockScreenText.value("Fahrenheit")
         }
     }
 
@@ -92,9 +92,9 @@ enum LockScreenReminderAlignment: String, CaseIterable, Identifiable, Defaults.S
 
     var title: String {
         switch self {
-        case .leading: LockScreenText.value("Left", "左侧")
-        case .center: LockScreenText.value("Center", "居中")
-        case .trailing: LockScreenText.value("Right", "右侧")
+        case .leading: LockScreenText.value("Left")
+        case .center: LockScreenText.value("Center")
+        case .trailing: LockScreenText.value("Right")
         }
     }
 }

@@ -36,7 +36,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .shelf: "Shelf"
         case .mirror: "Mirror"
         case .shortcuts: "Shortcuts"
-        case .lockScreen: LockScreenText.value("Lock Screen", "锁定屏幕")
+        case .lockScreen: LockScreenText.value("Lock Screen")
         case .advanced: "Advanced"
         case .about: "About"
         }

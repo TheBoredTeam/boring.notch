@@ -28,7 +28,7 @@ struct LockScreenMediaWidgetView: View {
 
     private var title: String {
         musicManager.songTitle.isEmpty
-            ? LockScreenText.value("Not Playing", "未在播放")
+            ? LockScreenText.value("Not Playing")
             : musicManager.songTitle
     }
 
@@ -60,20 +60,20 @@ struct LockScreenMediaWidgetView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 HStack(spacing: 7) {
-                    mediaButton(systemName: "backward.fill", label: LockScreenText.value("Previous track", "上一首")) {
+                    mediaButton(systemName: "backward.fill", label: LockScreenText.value("Previous track")) {
                         musicManager.previousTrack()
                     }
 
                     mediaButton(
                         systemName: musicManager.isPlaying ? "pause.fill" : "play.fill",
                         label: musicManager.isPlaying
-                            ? LockScreenText.value("Pause", "暂停")
-                            : LockScreenText.value("Play", "播放")
+                            ? LockScreenText.value("Pause")
+                            : LockScreenText.value("Play")
                     ) {
                         musicManager.togglePlay()
                     }
 
-                    mediaButton(systemName: "forward.fill", label: LockScreenText.value("Next track", "下一首")) {
+                    mediaButton(systemName: "forward.fill", label: LockScreenText.value("Next track")) {
                         musicManager.nextTrack()
                     }
                 }
