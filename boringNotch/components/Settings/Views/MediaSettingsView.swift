@@ -27,10 +27,7 @@ struct Media: View {
                             .tag(controller)
                             .disabled(
                                 controller == .nowPlaying
-                                    && (
-                                        musicManager.isCheckingNowPlayingAvailability
-                                            || !musicManager.nowPlayingAvailability.isSelectable
-                                    )
+                                    && !musicManager.nowPlayingAvailability.isSelectable
                             )
                     }
                 }
@@ -127,7 +124,7 @@ struct Media: View {
     private var mediaSourceFooter: some View {
         let availability = musicManager.nowPlayingAvailability
 
-        if musicManager.isCheckingNowPlayingAvailability {
+        if availability == .checking {
             footerText("Checking Now Playing availability...")
         } else if let message = availability.settingsMessage {
             VStack(alignment: .leading, spacing: 6) {
@@ -144,12 +141,10 @@ struct Media: View {
                     )
                 }
 
-                if availability.showsCheckAgainButton {
-                    Button("Check Again") {
-                        musicManager.refreshNowPlayingAvailability()
-                    }
-                    .font(.caption)
+                Button("Check Again") {
+                    musicManager.refreshNowPlayingAvailability()
                 }
+                .font(.caption)
             }
         } else {
             footerText(

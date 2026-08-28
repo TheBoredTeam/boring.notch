@@ -3129,17 +3129,6 @@
         }
       }
     },
-    "Boring Notch is missing a required Now Playing component. Reinstalling the app should fix this." : {
-      "comment" : "Now Playing availability message when a bundled component is missing.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Boring Notch is missing a required Now Playing component. Reinstalling the app should fix this."
-          }
-        }
-      }
-    },
     "boring.notch" : {
       "localizations" : {
         "cs" : {
@@ -12746,17 +12735,6 @@
         }
       }
     },
-    "macOS did not return data to the Now Playing self-check. Try again, or reopen Boring Notch if it keeps happening." : {
-      "comment" : "Now Playing availability message when the self-check receives no test data.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOS did not return data to the Now Playing self-check. Try again, or reopen Boring Notch if it keeps happening."
-          }
-        }
-      }
-    },
     "Made with 🫶🏻 by not so boring not.people" : {
       "localizations" : {
         "cs" : {
@@ -16245,28 +16223,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "當前播放"
-          }
-        }
-      }
-    },
-    "Now Playing is not supported by this version of macOS. Choose another music source." : {
-      "comment" : "Now Playing availability message when required private macOS APIs are unavailable.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Now Playing is not supported by this version of macOS. Choose another music source."
-          }
-        }
-      }
-    },
-    "Now Playing stopped responding. Boring Notch switched music sources temporarily. Check again to restore Now Playing." : {
-      "comment" : "Media settings message after the Now Playing runtime stream repeatedly stops.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Now Playing stopped responding. Boring Notch switched music sources temporarily. Check again to restore Now Playing."
           }
         }
       }
@@ -24535,17 +24491,6 @@
         }
       }
     },
-    "Switched to %@" : {
-      "comment" : "Now Playing fallback notice for a persistent source change. The placeholder is the new music source name.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Switched to %@"
-          }
-        }
-      }
-    },
     "System" : {
       "localizations" : {
         "de" : {
@@ -24872,17 +24817,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "系统设置"
-          }
-        }
-      }
-    },
-    "The Now Playing check took too long. Try again in a moment." : {
-      "comment" : "Now Playing availability message when the self-check times out.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The Now Playing check took too long. Try again in a moment."
           }
         }
       }

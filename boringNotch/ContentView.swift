@@ -43,6 +43,7 @@ struct ContentView: View {
 
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
+    private let nowPlayingFallbackNoticeWidth: CGFloat = 330
 
     // MARK: - Corner Radius Scaling
     private var cornerRadiusScaleFactor: CGFloat? {
@@ -89,7 +90,7 @@ struct ContentView: View {
         var chinWidth: CGFloat = vm.closedNotchSize.width
 
         if shouldDisplayNowPlayingFallbackNotice {
-            chinWidth = 330
+            chinWidth = nowPlayingFallbackNoticeWidth
         } else if coordinator.expandingView.type == .battery && coordinator.expandingView.show
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
@@ -471,7 +472,7 @@ struct ContentView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 9)
-        .frame(width: 330)
+        .frame(width: nowPlayingFallbackNoticeWidth)
         .frame(minHeight: 58)
         .accessibilityElement(children: .combine)
         .onAppear {
