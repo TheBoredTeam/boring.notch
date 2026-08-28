@@ -28,6 +28,11 @@ class MusicManager: ObservableObject {
     // Active controller
     private var activeController: (any MediaControllerProtocol)?
 
+    /// The deprecation-adjusted enabled source types the current controller was built from. Used to
+    /// skip rebuilding (and respawning child controllers/subprocesses) when a settings edit doesn't
+    /// change the effective source set.
+    private var lastBuiltTypes: [MediaControllerType]?
+
     // Published properties for UI
     @Published var songTitle: String = "I'm Handsome"
     @Published var artistName: String = "Me"
@@ -46,11 +51,10 @@ class MusicManager: ObservableObject {
     @Published var isShuffled: Bool = false
     @Published var repeatMode: RepeatMode = .off
     @Published var volume: Double = 0.5
-    @Published var volumeControlSupported: Bool = true
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
-    @Published var canFavoriteTrack: Bool = false
-    
+    @Published var channelPolicy: MediaChannelPolicy = .allSupported
+
     // Lyrics are now managed by LyricsService
     var lyricsService: LyricsService { LyricsService.shared }
     var currentLyrics: String { lyricsService.currentLyrics }
@@ -74,8 +78,10 @@ class MusicManager: ObservableObject {
 
     // MARK: - Initialization
     init() {
-        // Listen for changes to the default controller preference
+        // Listen for changes to the media-source preference. Debounced so a burst of settings edits
+        // (dragging/toggling the priority list) rebuilds the composite once, not per keystroke.
         NotificationCenter.default.publisher(for: Notification.Name.mediaControllerChanged)
+            .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.setActiveControllerBasedOnPreference()
             }
@@ -90,8 +96,12 @@ class MusicManager: ObservableObject {
                 print("Failed to check deprecation status: \(error). Defaulting to false.")
                 self.isNowPlayingDeprecated = false
             }
-            
-            // Initialize the active controller after deprecation check
+
+            // Migrate old single-source prefs into the priority list once — after the deprecation
+            // result is known and `MusicManager.shared` is assigned (avoids re-entrant singleton use).
+            self.migrateMediaSourcePreferencesIfNeeded()
+
+            // Initialize the active controller after deprecation check + migration
             self.setActiveControllerBasedOnPreference()
         }
     }
@@ -112,61 +122,110 @@ class MusicManager: ObservableObject {
     }
 
     // MARK: - Setup Methods
-    private func createController(for type: MediaControllerType) -> (any MediaControllerProtocol)? {
+
+    /// Build a single controller instance for one source type (no composition). Returns nil when the
+    /// source can't be created on this system (e.g. Now Playing is deprecated).
+    private func makeController(for type: MediaControllerType) -> (any MediaControllerProtocol)? {
+        switch type {
+        case .nowPlaying:
+            return self.isNowPlayingDeprecated ? nil : NowPlayingController()
+        case .appleMusic:
+            return AppleMusicController()
+        case .spotify:
+            return SpotifyController()
+        case .youtubeMusic:
+            return YouTubeMusicController()
+        }
+    }
+
+    /// The enabled media-source types (deprecation-adjusted), in priority order, for the current list.
+    private func effectiveSourceTypes() -> [MediaControllerType] {
+        var types = Defaults[.mediaSourcePriority].enabledTypesInPriority
+        if self.isNowPlayingDeprecated {
+            types.removeAll { $0 == .nowPlaying }
+        }
+        return types
+    }
+
+    /// Build the active controller from the given priority-ordered source types. One source is used
+    /// directly; several are wrapped in a `PriorityMediaController` that arbitrates to whichever is
+    /// audibly playing. Always returns a controller (falls back so the player is never dead).
+    private func buildActiveController(types: [MediaControllerType]) -> any MediaControllerProtocol {
         // Cleanup previous controller
         if activeController != nil {
             controllerCancellables.removeAll()
             activeController = nil
         }
 
-        let newController: (any MediaControllerProtocol)?
-
-        switch type {
-        case .nowPlaying:
-            // Only create NowPlayingController if not deprecated on this macOS version
-            if !self.isNowPlayingDeprecated {
-                newController = NowPlayingController()
-            } else {
-                return nil
+        var children: [any MediaControllerProtocol] = []
+        for type in types {
+            if let controller = makeController(for: type) {
+                children.append(controller)
             }
-        case .appleMusic:
-            newController = AppleMusicController()
-        case .spotify:
-            newController = SpotifyController()
-        case .youtubeMusic:
-            newController = YouTubeMusicController()
         }
+
+        // Never leave the player dead: prefer Now Playing when available, then a guaranteed
+        // non-failable controller (Apple Music) as the ultimate floor.
+        if children.isEmpty, !self.isNowPlayingDeprecated, let nowPlaying = makeController(for: .nowPlaying) {
+            children.append(nowPlaying)
+        }
+        if children.isEmpty {
+            children.append(AppleMusicController())
+        }
+
+        let newController: any MediaControllerProtocol =
+            children.count > 1 ? PriorityMediaController(children: children) : children[0]
 
         // Set up state observation for the new controller
-        if let controller = newController {
-            controller.playbackStatePublisher
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] state in
-                    guard let self = self,
-                          self.activeController === controller else { return }
-                    self.updateFromPlaybackState(state)
-                }
-                .store(in: &controllerCancellables)
-        }
+        newController.playbackStatePublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] state in
+                guard let self = self,
+                      self.activeController === newController else { return }
+                self.updateFromPlaybackState(state)
+            }
+            .store(in: &controllerCancellables)
 
         return newController
     }
 
-    private func setActiveControllerBasedOnPreference() {
-        let preferredType = Defaults[.mediaController]
-        print("Preferred Media Controller: \(preferredType)")
+    /// One-time migration from the old single-source prefs (`mediaController` +
+    /// `fallbackToNowPlayingWhenInactive`) into the ordered `mediaSourcePriority` list.
+    private func migrateMediaSourcePreferencesIfNeeded() {
+        guard !Defaults[.didMigrateMediaSourcePriority] else { return }
 
-        // If NowPlaying is deprecated but that's the preference, use Apple Music instead
-        let controllerType = (self.isNowPlayingDeprecated && preferredType == .nowPlaying)
-            ? .appleMusic
-            : preferredType
+        let chosen = Defaults[.mediaController]
+        let fallback = Defaults[.fallbackToNowPlayingWhenInactive]
 
-        if let controller = createController(for: controllerType) {
-            setActiveController(controller)
-        } else if controllerType != .appleMusic, let fallbackController = createController(for: .appleMusic) {
-            // Fallback to Apple Music if preferred controller couldn't be created
-            setActiveController(fallbackController)
+        var enabled: Set<MediaControllerType>
+        if chosen == .nowPlaying {
+            enabled = [.nowPlaying]
+        } else if fallback {
+            enabled = [chosen, .nowPlaying]
+        } else {
+            enabled = [chosen]
         }
+
+        // On a system where Now Playing is unavailable, a Now-Playing-only choice would leave no
+        // usable/visible source — substitute the default app so the list isn't effectively empty.
+        if self.isNowPlayingDeprecated, enabled.subtracting([.nowPlaying]).isEmpty {
+            enabled.insert(.appleMusic)
+        }
+
+        Defaults[.mediaSourcePriority] = MediaSourceEntry.canonicalOrder.map {
+            MediaSourceEntry(type: $0, isEnabled: enabled.contains($0))
+        }
+        Defaults[.didMigrateMediaSourcePriority] = true
+    }
+
+    private func setActiveControllerBasedOnPreference() {
+        let types = effectiveSourceTypes()
+        // Skip rebuilding when the effective source set is unchanged — avoids tearing down and
+        // respawning child controllers (incl. the Now Playing subprocess) and blanking the player
+        // on no-op settings edits (e.g. reordering disabled entries).
+        if types == lastBuiltTypes, activeController != nil { return }
+        lastBuiltTypes = types
+        setActiveController(buildActiveController(types: types))
     }
 
     private func setActiveController(_ controller: any MediaControllerProtocol) {
@@ -175,8 +234,8 @@ class MusicManager: ObservableObject {
 
         // Set new active controller
         activeController = controller
-        
-        self.canFavoriteTrack = controller.supportsFavorite
+
+        self.channelPolicy = controller.channelPolicy
 
         // Get current state from active controller
         forceUpdate()
@@ -280,8 +339,11 @@ class MusicManager: ObservableObject {
 
         if state.bundleIdentifier != self.bundleIdentifier {
             self.bundleIdentifier = state.bundleIdentifier
-            // Update volume control support from active controller
-            self.volumeControlSupported = activeController?.supportsVolumeControl ?? false
+        }
+
+        let newPolicy = activeController?.channelPolicy ?? .allSupported
+        if newPolicy != self.channelPolicy {
+            self.channelPolicy = newPolicy
         }
 
         let captureBundleIDs = state.effectiveAudioCaptureBundleIdentifiers
@@ -304,7 +366,7 @@ class MusicManager: ObservableObject {
     }
 
     func toggleFavoriteTrack() {
-        guard canFavoriteTrack else { return }
+        guard channelPolicy.favorite == .supported else { return }
         // Toggle based on current state
         setFavorite(!isFavoriteTrack)
     }
@@ -337,7 +399,7 @@ class MusicManager: ObservableObject {
     }
 
     func setFavorite(_ favorite: Bool) {
-        guard canFavoriteTrack else { return }
+        guard channelPolicy.favorite == .supported else { return }
         guard let controller = activeController else { return }
 
         Task { @MainActor in
@@ -502,6 +564,7 @@ class MusicManager: ObservableObject {
     }
 
     func seek(to position: TimeInterval) {
+        guard channelPolicy.seek == .supported else { return }
         Task {
             await activeController?.seek(to: position)
         }
@@ -512,6 +575,7 @@ class MusicManager: ObservableObject {
     }
     
     func setVolume(to level: Double) {
+        guard channelPolicy.volume == .supported else { return }
         if let controller = activeController {
             Task {
                 await controller.setVolume(level)
@@ -543,11 +607,7 @@ class MusicManager: ObservableObject {
         // Request immediate update from the active controller
         Task { [weak self] in
             if self?.activeController?.isActive() == true {
-                if let youtubeController = self?.activeController as? YouTubeMusicController {
-                    await youtubeController.pollPlaybackState()
-                } else {
-                    await self?.activeController?.updatePlaybackInfo()
-                }
+                await self?.activeController?.forceRefresh()
             }
         }
     }

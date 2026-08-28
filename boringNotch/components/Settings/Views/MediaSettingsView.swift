@@ -10,7 +10,6 @@ import SwiftUI
 
 struct Media: View {
     @Default(.waitInterval) var waitInterval
-    @Default(.mediaController) var mediaController
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.hideNotchOption) var hideNotchOption
     @Default(.enableSneakPeek) private var enableSneakPeek
@@ -21,35 +20,32 @@ struct Media: View {
     var body: some View {
         Form {
             Section {
-                Picker("Music Source", selection: $mediaController) {
-                    ForEach(availableMediaControllers) { controller in
-                        Text(controller.localizedString).tag(controller)
-                    }
-                }
-                .onChange(of: mediaController) { _, _ in
-                    NotificationCenter.default.post(
-                        name: Notification.Name.mediaControllerChanged,
-                        object: nil
-                    )
-                }
+                MediaSourcePriorityView()
             } header: {
-                Text("Media Source")
+                Text("Media Sources")
             } footer: {
                 if MusicManager.shared.isNowPlayingDeprecated {
-                    HStack {
-                        Text("YouTube Music requires this third-party app to be installed: ")
-                            .foregroundStyle(.secondary)
-                            .font(.caption)
-                        Link(
-                            "https://github.com/pear-devs/pear-desktop",
-                            destination: URL(string: "https://github.com/pear-devs/pear-desktop")!
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(
+                            "Enable the sources you use and reorder them to set priority — the notch shows whichever enabled source is playing, preferring the one higher in the list."
                         )
+                        .foregroundStyle(.secondary)
                         .font(.caption)
-                        .foregroundColor(.blue)  // Ensures it's visibly a link
+                        HStack {
+                            Text("YouTube Music requires this third-party app to be installed: ")
+                                .foregroundStyle(.secondary)
+                                .font(.caption)
+                            Link(
+                                "https://github.com/pear-devs/pear-desktop",
+                                destination: URL(string: "https://github.com/pear-devs/pear-desktop")!
+                            )
+                            .font(.caption)
+                            .foregroundColor(.blue)  // Ensures it's visibly a link
+                        }
                     }
                 } else {
                     Text(
-                        "'Now Playing' was the only option on previous versions and works with all media apps."
+                        "Enable the sources you use and reorder them to set priority — the notch shows whichever enabled source is playing, preferring the one higher in the list. 'Now Playing' works with all media apps and stays last."
                     )
                     .foregroundStyle(.secondary)
                     .font(.caption)
@@ -124,14 +120,5 @@ struct Media: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Media")
-    }
-
-    // Only show controller options that are available on this macOS version
-    private var availableMediaControllers: [MediaControllerType] {
-        if MusicManager.shared.isNowPlayingDeprecated {
-            return MediaControllerType.allCases.filter { $0 != .nowPlaying }
-        } else {
-            return MediaControllerType.allCases
-        }
     }
 }
