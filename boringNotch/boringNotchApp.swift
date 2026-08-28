@@ -463,7 +463,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             adjustWindowPosition(changeAlpha: true)
         }
 
-setupDragDetectors()
+        setupDragDetectors()
 
         // Start the Claude Code bridge and install the hook integration
         AIAgentViewModel.shared.activate()
