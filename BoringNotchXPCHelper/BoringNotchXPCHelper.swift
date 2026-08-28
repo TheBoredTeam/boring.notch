@@ -171,14 +171,14 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         reply(displayServicesGetBrightness(displayID: displayID, out: &b) || ioServiceFor(displayID: displayID) != nil)
     }
 
-    @objc func currentScreenBrightness(with reply: @escaping (NSNumber?) -> Void) {
-        let displayID = brightnessDisplayID()
+    @objc func currentScreenBrightness(forDisplayID displayID: NSNumber?, with reply: @escaping (NSNumber?) -> Void) {
+        let targetDisplayID = displayID.map { CGDirectDisplayID($0.uint32Value) } ?? brightnessDisplayID()
         var b: Float = 0
-        if displayServicesGetBrightness(displayID: displayID, out: &b) {
+        if displayServicesGetBrightness(displayID: targetDisplayID, out: &b) {
             reply(NSNumber(value: b))
             return
         }
-        if let io = ioServiceFor(displayID: displayID) {
+        if let io = ioServiceFor(displayID: targetDisplayID) {
             var level: Float = 0
             if IODisplayGetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, &level) == kIOReturnSuccess {
                 IOObjectRelease(io)
@@ -190,14 +190,14 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         reply(nil)
     }
 
-    @objc func setScreenBrightness(_ value: Float, with reply: @escaping (Bool) -> Void) {
+    @objc func setScreenBrightness(_ value: Float, forDisplayID displayID: NSNumber?, with reply: @escaping (Bool) -> Void) {
+        let targetDisplayID = displayID.map { CGDirectDisplayID($0.uint32Value) } ?? brightnessDisplayID()
         let clamped = max(0, min(1, value))
-        let displayID = brightnessDisplayID()
-        if displayServicesSetBrightness(displayID: displayID, value: clamped) {
+        if displayServicesSetBrightness(displayID: targetDisplayID, value: clamped) {
             reply(true)
             return
         }
-        if let io = ioServiceFor(displayID: displayID) {
+        if let io = ioServiceFor(displayID: targetDisplayID) {
             let ok = IODisplaySetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, clamped) == kIOReturnSuccess
             IOObjectRelease(io)
             reply(ok)

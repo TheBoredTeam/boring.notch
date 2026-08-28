@@ -241,13 +241,13 @@ final class XPCHelperClient: NSObject {
         }
     }
     
-    nonisolated func currentScreenBrightness() async -> Float? {
+    nonisolated func currentScreenBrightness(displayID: CGDirectDisplayID? = nil) async -> Float? {
         do {
             let service = await MainActor.run {
                 ensureRemoteService()
             }
             let result: NSNumber? = try await service.withContinuation { service, continuation in
-                service.currentScreenBrightness { value in
+                service.currentScreenBrightness(forDisplayID: displayID.map { NSNumber(value: $0) }) { value in
                     continuation.resume(returning: value)
                 }
             }
@@ -274,13 +274,13 @@ final class XPCHelperClient: NSObject {
         }
     }
     
-    nonisolated func setScreenBrightness(_ value: Float) async -> Bool {
+    nonisolated func setScreenBrightness(_ value: Float, displayID: CGDirectDisplayID? = nil) async -> Bool {
         do {
             let service = await MainActor.run {
                 ensureRemoteService()
             }
             return try await service.withContinuation { service, continuation in
-                service.setScreenBrightness(value) { success in
+                service.setScreenBrightness(value, forDisplayID: displayID.map { NSNumber(value: $0) }) { success in
                     continuation.resume(returning: success)
                 }
             }
@@ -366,4 +366,3 @@ final class XPCHelperClient: NSObject {
         }
     }
 }
-
