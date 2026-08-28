@@ -56,9 +56,6 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
         await updatePlaybackInfo()
     }
 
-    private var lastMusicItem:
-        (title: String, artist: String, album: String, duration: TimeInterval, artworkData: Data?)?
-
     // MARK: - Media Remote Functions
     private let mediaRemoteBundle: CFBundle
     private let MRMediaRemoteSendCommandFunction: @convention(c) (Int, AnyObject?) -> Void
@@ -68,14 +65,14 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
     private let adapterScriptURL: URL
     private let adapterFrameworkPath: String
 
-    let runtimeFailures: AsyncStream<NowPlayingRuntimeFailure>
-    private let runtimeFailureContinuation: AsyncStream<NowPlayingRuntimeFailure>.Continuation
+    let runtimeFailures: AsyncStream<Void>
+    private let runtimeFailureContinuation: AsyncStream<Void>.Continuation
 
     private var streamSession: NowPlayingStreamSession?
 
     // MARK: - Initialization
     init() throws {
-        let resources = try NowPlayingResources.load(requiresTestClient: false)
+        let resources = try NowPlayingResources.load()
 
         guard
             let bundle = CFBundleCreate(
@@ -90,7 +87,7 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
             let MRMediaRemoteSetRepeatModePointer = CFBundleGetFunctionPointerForName(
                 bundle, "MRMediaRemoteSetRepeatMode" as CFString)
         else {
-            throw NowPlayingSetupFailure.mediaRemoteUnavailable
+            throw NowPlayingError.unavailable
         }
 
         mediaRemoteBundle = bundle
@@ -105,14 +102,17 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
         adapterScriptURL = resources.adapterScriptURL
         adapterFrameworkPath = resources.adapterFrameworkPath
 
-        let runtimeFailureChannel = AsyncStream.makeStream(
-            of: NowPlayingRuntimeFailure.self
-        )
+        let runtimeFailureChannel = AsyncStream.makeStream(of: Void.self)
         runtimeFailures = runtimeFailureChannel.stream
         runtimeFailureContinuation = runtimeFailureChannel.continuation
     }
 
     deinit {
+        if let streamSession {
+            Task { @MainActor in
+                streamSession.stop()
+            }
+        }
         runtimeFailureContinuation.finish()
     }
 
@@ -197,19 +197,14 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
             onUpdate: { [weak self] update in
                 await self?.handleAdapterUpdate(update)
             },
-            onFailure: { [weak self] failure in
+            onFailure: { [weak self] in
                 guard let self else { return }
                 self.streamSession = nil
-                self.runtimeFailureContinuation.yield(failure)
+                self.runtimeFailureContinuation.yield()
             }
         )
         streamSession = session
         session.start()
-    }
-
-    func restartRuntimeStream() {
-        stopRuntimeStream()
-        startRuntimeStream()
     }
 
     func stopRuntimeStream() {
@@ -305,34 +300,29 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
         
         self.playbackState = newPlaybackState
         
-        // Fetch favorite state for supported apps asynchronously
-        // await fetchFavoriteStateIfSupported()
     }
-    
-     private func fetchFavoriteStateIfSupported() async {
-         let bundleID = playbackState.bundleIdentifier
-        
-         if bundleID == "com.apple.Music" {
-             let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music")
-             guard !runningApps.isEmpty else { return }
-             
-             let script = """
-             tell application "Music"
-                 try
-                     return favorited of current track
-                 on error
-                     return false
-                 end try
-             end tell
-             """
-             if let result = try? await AppleScriptHelper.execute(script) {
-                 var updated = self.playbackState
-                 updated.isFavorite = result.booleanValue
-                 self.playbackState = updated
-             }
-         }
-     }
-    
+
+    private func fetchFavoriteStateIfSupported() async {
+        guard playbackState.bundleIdentifier == "com.apple.Music" else { return }
+
+        let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music")
+        guard !runningApps.isEmpty else { return }
+
+        let script = """
+        tell application "Music"
+            try
+                return favorited of current track
+            on error
+                return false
+            end try
+        end tell
+        """
+        if let result = try? await AppleScriptHelper.execute(script) {
+            var updated = playbackState
+            updated.isFavorite = result.booleanValue
+            playbackState = updated
+        }
+    }
 }
 
 private extension NowPlayingController {

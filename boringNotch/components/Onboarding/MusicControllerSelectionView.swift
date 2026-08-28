@@ -31,10 +31,7 @@ struct MusicControllerSelectionView: View {
                 VStack(spacing: 12) {
                     ForEach(MediaControllerType.allCases) { controller in
                         let isEnabled = controller != .nowPlaying
-                            || (
-                                !musicManager.isCheckingNowPlayingAvailability
-                                    && musicManager.nowPlayingAvailability.isSelectable
-                            )
+                            || isNowPlayingSelectionEnabled
 
                         Button {
                             selectedMediaController = controller
@@ -84,15 +81,16 @@ struct MusicControllerSelectionView: View {
 
     private var canContinue: Bool {
         selectedMediaController != .nowPlaying
-            || (
-                !musicManager.isCheckingNowPlayingAvailability
-                    && musicManager.nowPlayingAvailability.isSelectable
-            )
+            || isNowPlayingSelectionEnabled
+    }
+
+    private var isNowPlayingSelectionEnabled: Bool {
+        musicManager.nowPlayingAvailability.isSelectable
     }
 
     @ViewBuilder
     private var nowPlayingAvailabilityStatus: some View {
-        if musicManager.isCheckingNowPlayingAvailability {
+        if musicManager.nowPlayingAvailability == .checking {
             Text("Checking Now Playing availability...")
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -103,12 +101,10 @@ struct MusicControllerSelectionView: View {
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
 
-                if musicManager.nowPlayingAvailability.showsCheckAgainButton {
-                    Button("Check Again") {
-                        musicManager.refreshNowPlayingAvailability()
-                    }
-                    .font(.caption)
+                Button("Check Again") {
+                    musicManager.refreshNowPlayingAvailability()
                 }
+                .font(.caption)
             }
             .padding(.horizontal, 24)
         }

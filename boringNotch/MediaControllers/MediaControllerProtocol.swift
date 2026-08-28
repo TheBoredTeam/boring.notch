@@ -30,9 +30,8 @@ protocol MediaControllerProtocol: AnyObject {
 
 @MainActor
 protocol NowPlayingRuntimeControlling: MediaControllerProtocol {
-    var runtimeFailures: AsyncStream<NowPlayingRuntimeFailure> { get }
+    var runtimeFailures: AsyncStream<Void> { get }
 
     func startRuntimeStream()
-    func restartRuntimeStream()
     func stopRuntimeStream()
 }
