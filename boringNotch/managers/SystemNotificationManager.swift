@@ -168,10 +168,23 @@ final class SystemNotificationManager: ObservableObject {
             return string.isEmpty ? nil : string
         }
 
+        // The helper's one-shot bundle-ID match can miss (renamed app, helper
+        // process owning the banner, an app that quit between posting and
+        // capture). Re-resolve from the app name here so every icon surface
+        // gets the real app instead of the grey bell fallback. A
+        // helper-provided bundleID always wins.
+        let appName = value("appName")
+        var bundleID = value("bundleID")
+        if bundleID == nil, let appName,
+           let resolved = BundleIDResolver.shared.bundleID(forAppNamed: appName) {
+            bundleID = resolved
+            Log.notifications.debug("[boringNotch] resolved bundleID app-side: \(appName) -> \(resolved)")
+        }
+
         let notification = SystemNotification(
             id: token,
-            appName: value("appName"),
-            bundleID: value("bundleID"),
+            appName: appName,
+            bundleID: bundleID,
             title: value("title"),
             subtitle: value("subtitle"),
             body: value("body"),
@@ -187,41 +200,6 @@ final class SystemNotificationManager: ObservableObject {
 
         guard isAllowed(notification) else {
             Log.notifications.debug("[boringNotch] filtered out: \(notification.appName ?? "-") bundle=\(notification.bundleID ?? "nil")")
-            return
-        }
-
-        // Passive path (mirrored sneak peek + compact dot):
-        // - scroll a marquee pill below the notch immediately,
-        // - show the compact dot/app-icon in the chin (the existing
-        //   live-activity slot — the gesture surface for tap/hover),
-        // - hold NOTHING: no banner parking, no key focus, ever.
-        //
-        // OTP/code notifications keep the interactive path (the copy
-        // affordance lives in the live activity, not the passive mirror),
-        // and mid-reply arrivals keep queueing so the +N badge lives.
-        if Defaults[.notificationSneakPeek], !isComposingReply,
-           notification.detectedCode == nil {
-            let message: String? = {
-                if let subtitle = notification.subtitle, let body = notification.body {
-                    return subtitle + " — " + body
-                }
-                return notification.subtitle ?? notification.body
-            }()
-            NotchUIEventBus.events.send(
-                .sneakPeek(
-                    type: .notification,
-                    value: 0,
-                    duration: 8.0,
-                    payload: NotificationPeekPayload(
-                        appName: notification.appName,
-                        title: notification.title,
-                        body: message,
-                        bundleID: notification.bundleID
-                    )
-                )
-            )
-            // Compact indicator in the chin without holding the banner.
-            show(notification, holdingBanner: false)
             return
         }
 
@@ -334,7 +312,7 @@ final class SystemNotificationManager: ObservableObject {
     /// outgoing notification goes back into the queue rather than away, and
     /// it needs to keep its held banner or it won't be replyable when it
     /// comes back around.
-    private func show(_ notification: SystemNotification, releasingPrevious: Bool = true, holdingBanner: Bool = true) {
+    private func show(_ notification: SystemNotification, releasingPrevious: Bool = true) {
         // A newer notification replaces the active one directly here rather
         // than going through dismissActive, so its hold was never being
         // released: dismissActive only releases whatever activeNotification
@@ -348,9 +326,7 @@ final class SystemNotificationManager: ObservableObject {
         if releasingPrevious, let previous = activeNotification, previous.id != notification.id {
             XPCHelperClient.shared.releaseNotification(token: previous.id)
         }
-        if holdingBanner {
-            holdSystemBanner(notification)
-        }
+        holdSystemBanner(notification)
         withAnimation(.smooth) { activeNotification = notification }
         dismissTask?.cancel()
         dismissTask = Task { [weak self] in

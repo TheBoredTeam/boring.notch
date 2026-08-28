@@ -329,19 +329,89 @@ final class NotificationWatcher {
         return found
     }
 
+    /// Resolution results, hits and misses both, keyed by normalized name, so
+    /// a repeat banner from the same app never rescans the disk — the helper
+    /// captures every banner, and a directory walk must be once per unique
+    /// name.
+    private var bundleIDCache: [String: String] = [:]
+    private var bundleIDMisses: Set<String> = []
+
     /// Matches on a normalized name because both sides can carry invisible
     /// bidi marks: WhatsApp's `localizedName` is literally "\u{200E}WhatsApp"
     /// (LEFT-TO-RIGHT MARK), and the banner's own description is wrapped in
     /// isolates. Comparing raw strings silently failed to resolve WhatsApp's
     /// bundle ID, which dropped every one of its notifications at the
     /// allow-list check.
+    ///
+    /// The running-apps match stays first, but it misses when the app was
+    /// renamed, a helper process owns the notification, the app quit between
+    /// posting and capture, or the helper's view of running apps is
+    /// restricted. Two on-disk fallbacks follow before giving up: a direct
+    /// probe of the usual install locations, then one bounded scan of
+    /// /Applications.
     private func bundleID(forAppNamed name: String) -> String? {
         let target = Self.normalizedAppName(name)
         guard !target.isEmpty else { return nil }
-        return NSWorkspace.shared.runningApplications.first {
+
+        if let cached = bundleIDCache[target] { return cached }
+        if bundleIDMisses.contains(target) { return nil }
+
+        let resolved = NSWorkspace.shared.runningApplications.first {
             guard let localizedName = $0.localizedName else { return false }
             return Self.normalizedAppName(localizedName) == target
         }?.bundleIdentifier
+            ?? bundleIDFromKnownLocations(named: name)
+            ?? bundleIDFromApplicationsScan(matching: target)
+
+        if let resolved {
+            bundleIDCache[target] = resolved
+        } else {
+            bundleIDMisses.insert(target)
+        }
+        return resolved
+    }
+
+    /// Fallback 1: probe the usual install locations directly — cheap when
+    /// the banner name matches the bundle's directory name, which is the
+    /// common case. Tries the name as-is plus a no-spaces variant
+    /// ("Google Chrome" → "GoogleChrome").
+    private func bundleIDFromKnownLocations(named name: String) -> String? {
+        // Case-preserving sibling of normalizedAppName: paths need the real
+        // capitalization, just without the invisible marks.
+        let displayName = name.filter { !$0.unicodeScalars.allSatisfy(Self.bidiControlCharacters.contains) }
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !displayName.isEmpty else { return nil }
+
+        let candidates = [displayName, displayName.replacingOccurrences(of: " ", with: "")]
+        let directories = ["/Applications", NSHomeDirectory() + "/Applications", "/System/Applications"]
+        for directory in directories {
+            for candidate in candidates where !candidate.isEmpty {
+                let path = directory + "/" + candidate + ".app"
+                if FileManager.default.fileExists(atPath: path),
+                   let bundleID = Bundle(url: URL(fileURLWithPath: path))?.bundleIdentifier {
+                    return bundleID
+                }
+            }
+        }
+        return nil
+    }
+
+    /// Fallback 2: a single bounded pass over the top level of /Applications
+    /// (and ~/Applications when present), matching normalized directory names
+    /// minus the extension. No recursion, and the memoization above bounds it
+    /// to once per unique app name.
+    private func bundleIDFromApplicationsScan(matching target: String) -> String? {
+        let directories = ["/Applications", NSHomeDirectory() + "/Applications"]
+        for directory in directories {
+            let entries = (try? FileManager.default.contentsOfDirectory(atPath: directory)) ?? []
+            for entry in entries where entry.hasSuffix(".app") {
+                guard Self.normalizedAppName(String(entry.dropLast(".app".count))) == target else { continue }
+                if let bundleID = Bundle(url: URL(fileURLWithPath: directory + "/" + entry))?.bundleIdentifier {
+                    return bundleID
+                }
+            }
+        }
+        return nil
     }
 
     private static func normalizedAppName(_ name: String) -> String {

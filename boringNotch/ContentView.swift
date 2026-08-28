@@ -435,11 +435,8 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: displayClosedNotchHeight, alignment: .center)
-                       } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .notification) && vm.notchState == .closed {
-                           // .notification is excluded: the passive peek is
-                           // not an OSD event and would render here as a
-                           // 0-value volume bar displacing the music pill.
-                          InlineOSD(
+                        } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
+                           InlineOSD(
                               type: coordinator.binding(for: vm.screenUUID).type,
                               value: coordinator.binding(for: vm.screenUUID).value,
                               icon: coordinator.binding(for: vm.screenUUID).icon,
@@ -559,18 +556,6 @@ struct ContentView: View {
                 .zIndex(1)
                 .allowsHitTesting(vm.notchState == .open)
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
-            }
-            // Notification pill: a plain second child of the top ZStack,
-            // offset below the chin. NOT an overlay and NOT in the VStack —
-            // so it can't stretch shape metrics but also can't be skipped
-            // by overlay decoration semantics.
-            if vm.notchState == .closed {
-                let peek = coordinator.notificationPeekState(for: vm.screenUUID)
-                if peek.show, let payload = peek.payload {
-                    NotificationSneakPeekView(payload: payload)
-                        .offset(y: displayClosedNotchHeight + 24)
-                        .transition(.opacity)
-                }
             }
         }
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))

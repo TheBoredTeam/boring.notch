@@ -30,7 +30,6 @@ private let knownNotificationApps: [KnownNotificationApp] = [
 
 struct NotificationSettingsView: View {
     @Default(.notificationLiveActivity) var notificationLiveActivity
-    @Default(.notificationSneakPeek) var notificationSneakPeek
     @Default(.notificationsFromAllApps) var notificationsFromAllApps
     @Default(.notificationAllowedApps) var allowedApps
 
@@ -42,16 +41,6 @@ struct NotificationSettingsView: View {
                 }
             } footer: {
                 Text("Requires Accessibility access. Only banners are mirrored — notifications delivered silently to Notification Center aren't visible to the app.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Section {
-                Defaults.Toggle(key: .notificationSneakPeek) {
-                    Text("Sneak peek on new notifications")
-                }
-            } footer: {
-                Text("Briefly mirrors an incoming notification in a scrolling marquee below the notch, then dismisses it. No banner holding, no keyboard focus — purely a glance.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
