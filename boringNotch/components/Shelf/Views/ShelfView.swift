@@ -10,76 +10,62 @@ import AppKit
 import Defaults
 
 struct ShelfView: View {
-    @EnvironmentObject var vm: BoringViewModel
+    let dropInteraction: DropInteractionState
+    let animation: Animation?
     @StateObject var tvm = ShelfStateViewModel.shared
-    @StateObject var selection = ShelfSelectionModel.shared
-    @StateObject private var quickLookService = QuickLookService()
+
     private let spacing: CGFloat = 8
 
+    private var displayedItems: [ShelfItem] {
+        Defaults[.reverseShelfOrdering] ? Array(tvm.items.reversed()) : tvm.items
+    }
+
     var body: some View {
-        HStack(spacing: 12) {
-            FileShareView()
-                .aspectRatio(1, contentMode: .fit)
-                .environmentObject(vm)
-            panel
-                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
-                    handleDrop(providers: providers)
-                }
+        @Bindable var interaction = dropInteraction
+
+        ShelfQuickLookHost { quickLookService in
+            HStack(spacing: 12) {
+                FileShareView(dropInteraction: dropInteraction)
+                    .aspectRatio(1, contentMode: .fit)
+                panel(quickLookService: quickLookService)
+                    .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $interaction.dragDetectorTargeting) { providers in
+                        handleDrop(providers: providers)
+                    }
+            }
         }
-        // Bind Quick Look to shelf selection
-        .onChange(of: selection.selectedIDs) {
-            updateQuickLookSelection()
-        }
-        .quickLookPresenter(using: quickLookService)
     }
     
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
-        guard !selection.isDragging else { return false }
-        vm.dropEvent = true
-        ShelfStateViewModel.shared.load(providers)
+        guard !ShelfSelectionModel.shared.isDragging else { return false }
+        dropInteraction.dropEvent = true
+        tvm.load(providers)
         return true
     }
     
-    private func updateQuickLookSelection() {
-        guard quickLookService.isQuickLookOpen && !selection.selectedIDs.isEmpty else { return }
-        
-        let selectedItems = selection.selectedItems(in: tvm.items)
-        let urls: [URL] = selectedItems.compactMap { item in
-            if let fileURL = item.fileURL {
-                return fileURL
-            }
-            if case .link(let url) = item.kind {
-                return url
-            }
-            return nil
-        }
-        
-        if !urls.isEmpty {
-            quickLookService.updateSelection(urls: urls)
-        }
-    }
-
-    var panel: some View {
+    private func panel(quickLookService: QuickLookService) -> some View {
         RoundedRectangle(cornerRadius: 16)
             .stroke(
-                vm.dragDetectorTargeting
+                dropInteraction.dragDetectorTargeting
                     ? Color.accentColor.opacity(0.9)
                     : Color.white.opacity(0.1),
                 style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [10])
             )
             .overlay {
-                content
-                    .padding()
+                ZStack {
+                    ShelfBackgroundInteractionView()
+                    content(quickLookService: quickLookService)
+                        .padding()
+                }
             }
             .transaction { transaction in
-                transaction.animation = vm.animation
+                transaction.animation = animation
             }
-            .contentShape(Rectangle())
-            .onTapGesture { selection.clear() }
     }
 
-    var content: some View {
-        Group {
+    private func content(quickLookService: QuickLookService) -> some View {
+        @Bindable var interaction = dropInteraction
+
+        return Group {
             if tvm.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "tray.and.arrow.down")
@@ -96,21 +82,97 @@ struct ShelfView: View {
             } else {
                 ScrollView(.horizontal) {
                     LazyHStack(spacing: spacing) {
-                        ForEach(Defaults[.reverseShelfOrdering] ? tvm.items.reversed() : tvm.items) { item in
-                            ShelfItemView(item: item)
-                                .environmentObject(quickLookService)
+                        ForEach(displayedItems) { item in
+                            ShelfItemView(
+                                item: item,
+                                quickLookService: quickLookService,
+                                dropInteraction: dropInteraction
+                            )
                         }
                     }
                 }
                 .padding(-spacing)
                 .scrollIndicators(.never)
-                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
+                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $interaction.dragDetectorTargeting) { providers in
                     handleDrop(providers: providers)
                 }
             }
         }
         .onAppear {
-            ShelfStateViewModel.shared.cleanupInvalidItems()
+            tvm.cleanupInvalidItems()
         }
+    }
+}
+
+private struct ShelfBackgroundInteractionView: NSViewRepresentable {
+    func makeNSView(context: Context) -> BackgroundView {
+        BackgroundView()
+    }
+
+    func updateNSView(_ nsView: BackgroundView, context: Context) {}
+
+    static func dismantleNSView(_ nsView: BackgroundView, coordinator: ()) {
+        nsView.stopMonitoring()
+    }
+
+    final class BackgroundView: NSView {
+        private var eventMonitor: Any?
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            stopMonitoring()
+
+            guard window != nil else { return }
+            eventMonitor = NSEvent.addLocalMonitorForEvents(
+                matching: .leftMouseDown
+            ) { [weak self] event in
+                self?.handle(event)
+                return event
+            }
+        }
+
+        override func hitTest(_ point: NSPoint) -> NSView? {
+            nil
+        }
+
+        func stopMonitoring() {
+            guard let eventMonitor else { return }
+            NSEvent.removeMonitor(eventMonitor)
+            self.eventMonitor = nil
+        }
+
+        private func handle(_ event: NSEvent) {
+            guard let window,
+                  event.window === window,
+                  bounds.contains(convert(event.locationInWindow, from: nil)),
+                  let contentView = window.contentView
+            else { return }
+
+            let hitPoint = contentView.convert(event.locationInWindow, from: nil)
+            guard !isShelfItemInteraction(contentView.hitTest(hitPoint)) else { return }
+
+            ShelfSelectionModel.shared.clear()
+        }
+
+        private func isShelfItemInteraction(_ hitView: NSView?) -> Bool {
+            var view = hitView
+            while let currentView = view {
+                if currentView is any ShelfItemInteractionSurface {
+                    return true
+                }
+                view = currentView.superview
+            }
+            return false
+        }
+    }
+}
+
+private struct ShelfQuickLookHost<Content: View>: View {
+    @State private var service = QuickLookService()
+    @ViewBuilder let content: (QuickLookService) -> Content
+
+    var body: some View {
+        content(service)
+            .quickLookPresenter(using: service)
     }
 }

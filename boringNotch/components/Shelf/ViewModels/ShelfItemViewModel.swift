@@ -64,10 +64,7 @@ final class ShelfItemViewModel: ObservableObject {
     init(item: ShelfItem) {
         self.item = item
         self.draftTitle = item.displayName
-        Task { await loadThumbnail() }
     }
-
-    var isSelected: Bool { selection.isSelected(item.id) }
 
     func loadThumbnail() async {
         guard let url = item.fileURL else { return }
