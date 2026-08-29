@@ -22,6 +22,7 @@ class BoringNotchWindow: NSPanel {
         )
         
         isFloatingPanel = true
+        hidesOnDeactivate = false
         isOpaque = false
         titleVisibility = .hidden
         titlebarAppearsTransparent = true
@@ -41,10 +42,10 @@ class BoringNotchWindow: NSPanel {
     }
     
     override var canBecomeKey: Bool {
-        false
+        true
     }
     
     override var canBecomeMain: Bool {
-        false
+        true
     }
 }

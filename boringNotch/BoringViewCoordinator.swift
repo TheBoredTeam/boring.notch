@@ -53,6 +53,7 @@ class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
 
     @Published var currentView: NotchViews = .home
+    @Published var notesLayoutState: NotesLayoutState = .list
     @Published var helloAnimationRunning: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
@@ -100,6 +101,7 @@ class BoringViewCoordinator: ObservableObject {
     private var accessibilityObserver: Any?
     private var osdReplacementCancellable: AnyCancellable?
     private var boringShelfCancellable: AnyCancellable?
+    private var notesCancellable: AnyCancellable?
     private var osdSourceCancellables: [AnyCancellable] = []
 
     private init() {
@@ -168,6 +170,15 @@ class BoringViewCoordinator: ObservableObject {
                 Task { @MainActor in
                     guard let self = self else { return }
                     if !change.newValue && self.currentView == .shelf {
+                        self.currentView = .home
+                    }
+                }
+            }
+        notesCancellable = Defaults.publisher(.enableNotes)
+            .sink { [weak self] change in
+                Task { @MainActor in
+                    guard let self else { return }
+                    if !change.newValue && self.currentView == .notes {
                         self.currentView = .home
                     }
                 }

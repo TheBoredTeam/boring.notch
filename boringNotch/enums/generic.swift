@@ -18,9 +18,24 @@ public enum NotchState {
     case open
 }
 
-public enum NotchViews {
+public enum NotchViews: Hashable {
     case home
     case shelf
+    case notes
+}
+
+enum NotesLayoutState: Equatable {
+    case list
+    case editor
+
+    var preferredSize: CGSize {
+        switch self {
+        case .list:
+            return CGSize(width: 700, height: 360)
+        case .editor:
+            return CGSize(width: 700, height: 440)
+        }
+    }
 }
 
 enum DownloadIndicatorStyle: String, Defaults.Serializable {
