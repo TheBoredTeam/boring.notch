@@ -3118,13 +3118,46 @@
         }
       }
     },
-    "Boring Notch could not check Now Playing. Try again, or reopen the app if it keeps happening." : {
-      "comment" : "Generic recoverable Now Playing availability message.",
+    "Boring Notch could not verify Now Playing. Try again, or reopen the app if it keeps happening." : {
+      "comment" : "Recoverable Now Playing probe failure message.",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch could not check Now Playing. Try again, or reopen the app if it keeps happening."
+            "value" : "Boring Notch could not verify Now Playing. Try again, or reopen the app if it keeps happening."
+          }
+        }
+      }
+    },
+    "Boring Notch lost its Now Playing connection. Reconnecting automatically..." : {
+      "comment" : "Now Playing runtime failure message shown before an automatic recovery attempt.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch lost its Now Playing connection. Reconnecting automatically..."
+          }
+        }
+      }
+    },
+    "Boring Notch's Now Playing components are unavailable. Reopen or reinstall the app." : {
+      "comment" : "Now Playing setup failure message shown when required bundled components cannot be used.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch's Now Playing components are unavailable. Reopen or reinstall the app."
+          }
+        }
+      }
+    },
+    "Could not verify Now Playing" : {
+      "comment" : "Title of the passive notice shown when the Now Playing availability probe fails.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not verify Now Playing"
           }
         }
       }
@@ -16227,13 +16260,24 @@
         }
       }
     },
-    "Now Playing unavailable" : {
-      "comment" : "Title of the passive notice shown when the Now Playing media source cannot be used.",
+    "Now Playing components unavailable" : {
+      "comment" : "Title of the passive notice shown when required Now Playing components cannot be used.",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Now Playing unavailable"
+            "value" : "Now Playing components unavailable"
+          }
+        }
+      }
+    },
+    "Now Playing connection lost" : {
+      "comment" : "Title of the passive notice shown when an active Now Playing stream fails.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now Playing connection lost"
           }
         }
       }
@@ -26278,6 +26322,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在播放应用程序的音频上使用加速FFT。需要音频捕获权限并使用更多的 CPU。"
+          }
+        }
+      }
+    },
+    "Using %@ instead" : {
+      "comment" : "Now Playing setup failure notice. The placeholder is the fallback music source name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Using %@ instead"
+          }
+        }
+      }
+    },
+    "Using %@ instead. Your Now Playing preference is preserved." : {
+      "comment" : "Media settings footer for a non-recoverable Now Playing setup failure. The placeholder is the active fallback source.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Using %@ instead. Your Now Playing preference is preserved."
           }
         }
       }
