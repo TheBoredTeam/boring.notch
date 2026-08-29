@@ -84,13 +84,16 @@ struct NotificationDebugView: View {
         let text = replyText
         replyText = ""
         Task {
-            switch await manager.reply(to: notification, text: text) {
+            let outcome = await manager.reply(to: notification, text: text)
+            switch outcome {
             case .sent:
                 lastResult = "replied via the live banner"
             case .handedOffToApp:
                 lastResult = "banner gone — copied to clipboard and opened the app"
             case .draftedInApp:
                 lastResult = "banner gone — opened the conversation with the text pre-filled"
+            case .failed:
+                lastResult = "delivery failed (timeout/blocked) — draft preserved"
             }
         }
     }

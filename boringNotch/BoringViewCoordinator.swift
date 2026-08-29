@@ -139,9 +139,9 @@ final class BoringViewCoordinator: ObservableObject {
                 Task { @MainActor in
                     guard let self else { return }
                     switch event {
-                    case .sneakPeek(let type, let value, let icon, let accent, let uuid):
+                    case .sneakPeek(let type, let value, let icon, let accent, let uuid, let duration):
                         self.toggleSneakPeek(
-                            status: true, type: type, value: value,
+                            status: true, type: type, duration: duration, value: value,
                             icon: icon, accent: accent, targetScreenUUID: uuid)
                     case .expandingView(let type):
                         self.toggleExpandingView(status: true, type: type)
@@ -184,7 +184,8 @@ final class BoringViewCoordinator: ObservableObject {
                 }
             }
 
-        // Observe changes to the notification live activity
+        // Observe changes to the notification live activity toggle; it owns
+        // the notification watcher lifecycle.
         notificationLiveActivityCancellable = Defaults.publisher(.notificationLiveActivity)
             .sink { change in
                 Task { @MainActor in
@@ -217,7 +218,7 @@ final class BoringViewCoordinator: ObservableObject {
 
     // Dictionary to hold sneak peek state for each screen UUID
     @Published var sneakPeekStates: [String: SneakPeekState] = [:]
-    
+
     // Dictionary to hold hide tasks for each screen UUID
     private var sneakPeekTasks: [String: Task<Void, Never>] = [:]
 

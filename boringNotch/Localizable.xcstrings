@@ -180,9 +180,6 @@
         }
       }
     },
-    "%lld more waiting" : {
-
-    },
     "%lld%%" : {
       "localizations" : {
         "en" : {
@@ -2432,6 +2429,9 @@
           }
         }
       }
+    },
+    "Background Removal Failed" : {
+
     },
     "Backlight" : {
       "localizations" : {
@@ -5277,6 +5277,7 @@
       }
     },
     "Close" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7328,6 +7329,7 @@
       }
     },
     "Download" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -7963,6 +7965,7 @@
 
     },
     "Edit layout" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -10644,6 +10647,9 @@
         }
       }
     },
+    "Helper Service Unavailable" : {
+
+    },
     "Hide all-day events" : {
       "localizations" : {
         "cs" : {
@@ -11686,7 +11692,11 @@
         }
       }
     },
+    "Image Conversion Failed" : {
+
+    },
     "In progress" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -14142,6 +14152,9 @@
           }
         }
       }
+    },
+    "Message couldn't be sent. Your draft is still here — try again or open Messages." : {
+
     },
     "Mic" : {
       "localizations" : {
@@ -17541,6 +17554,9 @@
       }
     },
     "Output" : {
+
+    },
+    "PDF Creation Failed" : {
 
     },
     "Pick a Color" : {
@@ -24963,6 +24979,12 @@
           }
         }
       }
+    },
+    "Tap to see the next of %lld waiting" : {
+
+    },
+    "The background helper crashed or was closed by macOS. It restarts automatically on the next OSD event." : {
+
     },
     "Time to Full Charge: %@" : {
       "localizations" : {
