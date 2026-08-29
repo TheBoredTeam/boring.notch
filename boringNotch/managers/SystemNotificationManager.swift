@@ -186,7 +186,7 @@ final class SystemNotificationManager: ObservableObject {
         }
 
         guard isAllowed(notification) else {
-            NSLog("[boringNotch] filtered out: \(notification.appName ?? "-") bundle=\(notification.bundleID ?? "nil")")
+            Log.notifications.debug("[boringNotch] filtered out: \(notification.appName ?? "-") bundle=\(notification.bundleID ?? "nil")")
             return
         }
 
@@ -313,6 +313,7 @@ final class SystemNotificationManager: ObservableObject {
         if releasingPrevious, let previous = activeNotification, previous.id != notification.id {
             XPCHelperClient.shared.releaseNotification(token: previous.id)
         }
+        holdSystemBanner(notification)
         withAnimation(.smooth) { activeNotification = notification }
         dismissTask?.cancel()
         dismissTask = Task { [weak self] in
@@ -412,7 +413,19 @@ final class SystemNotificationManager: ObservableObject {
         /// box. Better than the clipboard, but still not sent — the user
         /// presses send themselves.
         case draftedInApp
+        /// The reply couldn't be delivered in time. The draft is preserved
+        /// and surfaced as an error so the user can retry or handle it
+        /// themselves — never silently stuck on "sending".
+        case failed
     }
+
+    /// iMessage/AX delivery attempts can stall on an unresponsive Messages
+    /// process or a wedged XPC reply; race them so the UI always resolves.
+    /// Notifications-banner replies are nearly free; iMessage scripting is
+    /// expensive (Messages.app cold-launch can take seconds), so each stage
+    /// gets its own budget instead of one shared race.
+    private let bannerReplyTimeout: TimeInterval = 2.0
+    private let imessageScriptTimeout: TimeInterval = 4.0
 
     /// Sends an inline reply.
     ///
@@ -425,11 +438,42 @@ final class SystemNotificationManager: ObservableObject {
     /// goes to the clipboard and the app opens so it's one paste away.
     @discardableResult
     func reply(to notification: SystemNotification, text: String) async -> ReplyOutcome {
-        if await XPCHelperClient.shared.replyToNotification(token: notification.id, text: text) {
+        await performReply(to: notification, text: text)
+    }
+
+    /// Races an operation against a timeout; whichever resolves first wins.
+    private func raceTimeout<T: Sendable>(
+        seconds: TimeInterval, fallback: T,
+        operation: @escaping @Sendable () async -> T
+    ) async -> T {
+        await withTaskGroup(of: T.self) { group in
+            group.addTask { await operation() }
+            group.addTask {
+                try? await Task.sleep(for: .seconds(seconds))
+                return fallback
+            }
+            let result = await group.next() ?? fallback
+            group.cancelAll()
+            return result
+        }
+    }
+
+    private func performReply(to notification: SystemNotification, text: String) async -> ReplyOutcome {
+        // Stage 1 — the banner's own reply field (native, cheap). nil means
+        // the attempt stalled: do NOT cross-deliver through another channel
+        // — the message may already have gone through.
+        let bannerDelivered: Bool? = await raceTimeout(seconds: bannerReplyTimeout, fallback: nil) {
+            await XPCHelperClient.shared.replyToNotification(token: notification.id, text: text)
+        }
+        if bannerDelivered == true {
             NSLog("[boringNotch] reply sent via AX for \(notification.appName ?? "-")")
             playSentSound()
             dismissActive(token: notification.id)
             return .sent
+        }
+        if bannerDelivered == nil {
+            NSLog("[boringNotch] reply attempt timed out at the banner for \(notification.appName ?? "-")")
+            return .failed
         }
 
         // The banner is gone, so AX can't deliver. Messages is the one
@@ -439,11 +483,20 @@ final class SystemNotificationManager: ObservableObject {
         // WhatsApp/Telegram/Discord.
         if notification.bundleID == "com.apple.MobileSMS",
            let chatName = notification.sender,
-           await XPCHelperClient.shared.sendIMessage(text, toChatNamed: chatName) {
+           await raceTimeout(seconds: imessageScriptTimeout, fallback: false, operation: {
+               await XPCHelperClient.shared.sendIMessage(text, toChatNamed: chatName)
+           }) {
             NSLog("[boringNotch] reply sent via Messages scripting for \(chatName)")
             playSentSound()
             dismissActive(token: notification.id)
             return .sent
+        }
+
+        // iMessage delivery definitively failed — surface the error, keep
+        // the user's draft, and let them handle it directly in Messages
+        // (no silent clipboard gymnastics).
+        if notification.bundleID == "com.apple.MobileSMS" {
+            return .failed
         }
 
         // WhatsApp exposes no scripting interface, but its URL scheme can

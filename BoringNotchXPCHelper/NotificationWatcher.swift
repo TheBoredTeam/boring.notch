@@ -53,13 +53,13 @@ final class NotificationWatcher {
     /// missed tick can't let a held banner slip away.
     private let refreshInterval: TimeInterval = 2.5
 
-    /// Poll cadence adapts to activity: fast while a banner is live (they
-    /// dismiss in ~5s, so 0.35s catches every one), slow while idle. An
-    /// always-on 0.35s poll costs ~250k AX tree walks per day for a feature
-    /// that is used a handful of times; idling at 2s keeps first-detection
-    /// latency under a banner's lifetime while cutting that by ~85%.
+    /// Banners live ~5s, so 0.35s catches every one with room to spare.
+    /// Idle drops to 0.5s as a compromise: first-detection cadence stays
+    /// perceptibly snappy while the AX walk rate halves versus flat 0.35s
+    /// (memory-debugging shows the scan path is the helper's
+    /// allocation-heavy path, so idle trimming also bounds its pressure).
     private let activePollInterval: TimeInterval = 0.35
-    private let idlePollInterval: TimeInterval = 2.0
+    private let idlePollInterval: TimeInterval = 0.5
     private var currentPollInterval: TimeInterval = 0
 
     var isRunning: Bool { appElement != nil }
@@ -119,6 +119,13 @@ final class NotificationWatcher {
     // MARK: - Scanning
 
     private func scan() {
+        // Every AX-bridged object copied in a walk lands in the run queue's
+        // autorelease pool; wrap the walk explicitly so pool lifetime never
+        // depends on the dispatch-main scheduler's drain behavior.
+        autoreleasepool { scanImpl() }
+    }
+
+    private func scanImpl() {
         guard let appElement else { return }
         var seen: Set<String> = []
 
@@ -143,9 +150,8 @@ final class NotificationWatcher {
         updatePollCadence()
     }
 
-    /// Drops the poll rate once nothing is on screen anymore; a slow idle
-    /// tick still catches the first banner of the next burst, at which
-    /// point the fast cadence resumes.
+    /// Drops the poll rate once nothing is on screen anymore; walking at
+    /// half rate while idle halves the allocation pressure of the scan path.
     private func updatePollCadence() {
         let wanted = (live.isEmpty && held.isEmpty) ? idlePollInterval : activePollInterval
         guard wanted != currentPollInterval, let pollTimer else { return }

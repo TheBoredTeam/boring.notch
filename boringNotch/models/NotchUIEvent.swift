@@ -24,7 +24,8 @@ enum NotchUIEvent {
         value: CGFloat,
         icon: String = "",
         accent: Color? = nil,
-        targetScreenUUID: String? = nil
+        targetScreenUUID: String? = nil,
+        duration: TimeInterval = 1.5
     )
     case expandingView(type: SneakContentType)
 }
