@@ -181,6 +181,7 @@
       }
     },
     "%lld%%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6175,9 +6176,6 @@
     "Copy" : {
 
     },
-    "Copy Meeting Link" : {
-
-    },
     "Copy items on drag" : {
       "localizations" : {
         "de" : {
@@ -6283,6 +6281,9 @@
           }
         }
       }
+    },
+    "Copy Meeting Link" : {
+
     },
     "Currently selected: %@" : {
       "localizations" : {
@@ -9645,6 +9646,7 @@
       "comment" : "A label for the shape of the mirror frame."
     },
     "From all apps" : {
+
     },
     "Full charge" : {
       "localizations" : {
@@ -16482,6 +16484,9 @@
     "Open in %@" : {
 
     },
+    "Open in Calendar" : {
+
+    },
     "Open Notch" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -16576,9 +16581,6 @@
           }
         }
       }
-    },
-    "Open in Calendar" : {
-
     },
     "Open notch on hover" : {
       "localizations" : {
