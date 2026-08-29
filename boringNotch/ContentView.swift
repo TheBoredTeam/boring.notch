@@ -312,6 +312,13 @@ struct ContentView: View {
                                 isHovering = false
                             }
                         }
+                        // Keep the helper's banner keep-alive gate in sync
+                        // with the effective open state (refcounted client-side).
+                        if newState == .open {
+                            XPCHelperClient.shared.notchOpened()
+                        } else {
+                            XPCHelperClient.shared.notchClosed()
+                        }
                     }
                     // A new notification always takes the front of the stack,
                     // even if the user had swiped away to music.

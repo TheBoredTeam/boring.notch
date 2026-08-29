@@ -71,6 +71,10 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     func dismissNotification(_ token: String, with reply: @escaping (Bool) -> Void)
     func holdNotification(_ token: String)
     func releaseNotification(_ token: String)
+    /// Effective notch-open state (any screen), ref-counted by the client.
+    /// Gates the banner keep-alive's focus-affecting expansion; the helper
+    /// defaults to closed so it never steals focus before being told.
+    func setNotchOpen(_ open: Bool)
     func notificationDebugDump(with reply: @escaping (String) -> Void)
 }
 
