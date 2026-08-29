@@ -320,6 +320,15 @@ struct ContentView: View {
                             XPCHelperClient.shared.notchClosed()
                         }
                     }
+                    .onDisappear {
+                        // Balance the refcount: torn down while open (screen
+                        // lock, display-set change, window teardown) means the
+                        // open->closed onChange never fires — without this the
+                        // helper's focus gate would stay stuck open forever.
+                        if vm.notchState == .open {
+                            XPCHelperClient.shared.notchClosed()
+                        }
+                    }
                     // A new notification always takes the front of the stack,
                     // even if the user had swiped away to music.
                     .onChange(of: notificationManager.activeNotification?.id) { _, newID in

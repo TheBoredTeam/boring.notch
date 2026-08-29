@@ -103,11 +103,10 @@ final class XPCHelperClient: NSObject, ObservableObject {
         remoteService = service
         helperAvailable = true
         lastError = nil
-        // A helper restart forgets our state — re-announce an open notch so
-        // its banner keep-alive gate doesn't run while the notch is open.
-        if notchOpenCount > 0 {
-            Task { try? await service.withService { $0.setNotchOpen(true) } }
-        }
+        // A helper restart forgets our state — always re-announce the
+        // effective notch-open state so its banner keep-alive gate converges
+        // to ours, whether we currently count open notches or not.
+        Task { try? await service.withService { $0.setNotchOpen(notchOpenCount > 0) } }
         return service
     }
     
