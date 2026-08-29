@@ -168,10 +168,23 @@ final class SystemNotificationManager: ObservableObject {
             return string.isEmpty ? nil : string
         }
 
+        // The helper's one-shot bundle-ID match can miss (renamed app, helper
+        // process owning the banner, an app that quit between posting and
+        // capture). Re-resolve from the app name here so every icon surface
+        // gets the real app instead of the grey bell fallback. A
+        // helper-provided bundleID always wins.
+        let appName = value("appName")
+        var bundleID = value("bundleID")
+        if bundleID == nil, let appName,
+           let resolved = BundleIDResolver.shared.bundleID(forAppNamed: appName) {
+            bundleID = resolved
+            Log.notifications.debug("[boringNotch] resolved bundleID app-side: \(appName) -> \(resolved)")
+        }
+
         let notification = SystemNotification(
             id: token,
-            appName: value("appName"),
-            bundleID: value("bundleID"),
+            appName: appName,
+            bundleID: bundleID,
             title: value("title"),
             subtitle: value("subtitle"),
             body: value("body"),
