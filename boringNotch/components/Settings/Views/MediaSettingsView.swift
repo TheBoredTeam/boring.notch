@@ -133,18 +133,29 @@ struct Media: View {
                 if musicManager.preferredMediaController == .nowPlaying,
                    let effectiveController = musicManager.effectiveMediaController,
                    effectiveController != .nowPlaying {
-                    footerText(
-                        LocalizedStringResource(
-                            "Using \(effectiveController.localizedString) temporarily. Your Now Playing preference is preserved.",
-                            comment: "Media settings footer for a temporary Now Playing fallback. The placeholder is the active fallback source."
+                    if availability.usesTemporaryFallback {
+                        footerText(
+                            LocalizedStringResource(
+                                "Using \(effectiveController.localizedString) temporarily. Your Now Playing preference is preserved.",
+                                comment: "Media settings footer for a temporary Now Playing fallback. The placeholder is the active fallback source."
+                            )
                         )
-                    )
+                    } else {
+                        footerText(
+                            LocalizedStringResource(
+                                "Using \(effectiveController.localizedString) instead. Your Now Playing preference is preserved.",
+                                comment: "Media settings footer for a non-recoverable Now Playing setup failure. The placeholder is the active fallback source."
+                            )
+                        )
+                    }
                 }
 
-                Button("Check Again") {
-                    musicManager.refreshNowPlayingAvailability()
+                if availability.offersManualRetry {
+                    Button("Check Again") {
+                        musicManager.refreshNowPlayingAvailability()
+                    }
+                    .font(.caption)
                 }
-                .font(.caption)
             }
         } else {
             footerText(

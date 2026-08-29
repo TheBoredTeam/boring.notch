@@ -98,22 +98,50 @@ struct NowPlayingResources: Sendable {
     }
 }
 
+enum NowPlayingFailure: Equatable, Sendable {
+    case setup
+    case probe
+    case runtime
+}
+
 enum NowPlayingAvailability: Equatable, Sendable {
     case unchecked
     case checking
     case available
-    case unavailable
+    case unavailable(NowPlayingFailure)
 
     var isSelectable: Bool { self == .available }
+
+    var failure: NowPlayingFailure? {
+        guard case let .unavailable(failure) = self else { return nil }
+        return failure
+    }
+
+    var offersManualRetry: Bool { failure == .probe }
+
+    var usesTemporaryFallback: Bool {
+        guard let failure else { return false }
+        return failure != .setup
+    }
 
     var settingsMessage: LocalizedStringResource? {
         switch self {
         case .unchecked, .checking, .available:
             nil
-        case .unavailable:
+        case .unavailable(.setup):
             LocalizedStringResource(
-                "Boring Notch could not check Now Playing. Try again, or reopen the app if it keeps happening.",
-                comment: "Generic recoverable Now Playing availability message."
+                "Boring Notch's Now Playing components are unavailable. Reopen or reinstall the app.",
+                comment: "Now Playing setup failure message shown when required bundled components cannot be used."
+            )
+        case .unavailable(.probe):
+            LocalizedStringResource(
+                "Boring Notch could not verify Now Playing. Try again, or reopen the app if it keeps happening.",
+                comment: "Recoverable Now Playing probe failure message."
+            )
+        case .unavailable(.runtime):
+            LocalizedStringResource(
+                "Boring Notch lost its Now Playing connection. Reconnecting automatically...",
+                comment: "Now Playing runtime failure message shown before an automatic recovery attempt."
             )
         }
     }

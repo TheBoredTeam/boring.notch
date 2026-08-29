@@ -101,10 +101,12 @@ struct MusicControllerSelectionView: View {
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
 
-                Button("Check Again") {
-                    musicManager.refreshNowPlayingAvailability()
+                if musicManager.nowPlayingAvailability.offersManualRetry {
+                    Button("Check Again") {
+                        musicManager.refreshNowPlayingAvailability()
+                    }
+                    .font(.caption)
                 }
-                .font(.caption)
             }
             .padding(.horizontal, 24)
         }
