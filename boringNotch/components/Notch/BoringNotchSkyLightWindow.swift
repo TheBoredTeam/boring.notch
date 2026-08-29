@@ -53,6 +53,7 @@ class BoringNotchSkyLightWindow: NSPanel {
     
     private func configureWindow() {
         isFloatingPanel = true
+        hidesOnDeactivate = false
         isOpaque = false
         titleVisibility = .hidden
         titlebarAppearsTransparent = true
