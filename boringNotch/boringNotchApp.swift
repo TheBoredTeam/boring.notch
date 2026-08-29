@@ -465,6 +465,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupDragDetectors()
 
+        // Start the Claude Code bridge and install the hook integration
+        AIAgentViewModel.shared.activate()
+
         if coordinator.firstLaunch {
             DispatchQueue.main.async {
                 self.showOnboardingWindow()
