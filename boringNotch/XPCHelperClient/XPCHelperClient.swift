@@ -2,9 +2,13 @@ import Foundation
 import Cocoa
 import AsyncXPCConnection
 
-/// Why a helper call failed. Most methods still degrade to false/nil for
-/// backward compatibility, but the cause is recorded in `lastError` and
-/// rolled into `helperAvailable` for Settings to surface.
+/// Why a helper call failed. Methods still degrade to false/nil for
+/// backward compatibility, but never silently: every transport failure —
+/// a thrown XPC error or a dropped connection — is recorded in `lastError`
+/// (interruption/invalidation record `.unavailable`), and connection loss
+/// also flips `helperAvailable` for Settings to surface. A helper that
+/// answers, even with false/nil, is a result, not an error, and leaves
+/// `lastError` untouched.
 enum XPCHelperError: Error {
     /// The XPC service could not be reached (crashed or restarting).
     case unavailable
@@ -33,11 +37,15 @@ final class XPCHelperClient: NSObject, ObservableObject {
     
     private var remoteService: RemoteXPCService<BoringNotchXPCHelperProtocol>?
     private var connection: NSXPCConnection?
+    /// Set by the interruption/invalidation hops, cleared when a fresh
+    /// connection is stored. Lets the existing-connection path report
+    /// `helperAvailable` without a true→false flicker while an
+    /// interruption's MainActor hop is still in flight.
+    private var connectionInterrupted = false
     private var lastKnownAuthorization: Bool?
     private let notificationDelegate = NotificationXPCDelegate()
     @MainActor private var activationObserver: (any NSObjectProtocol)?
     private var lunarListener: BoringNotchXPCHelperLunarListener?
-    private var hasLunarListener: Bool = false
 
     /// Open-notch refcount: one ContentView per screen can hold the notch
     /// open, but the helper only wants the effective state, so
@@ -46,7 +54,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
     
     // MARK: - Connection Management (Main Actor Isolated)
     
-    private func ensureRemoteService(needsListener: Bool = false) -> RemoteXPCService<BoringNotchXPCHelperProtocol> {
+    private func ensureRemoteService() -> RemoteXPCService<BoringNotchXPCHelperProtocol> {
         // Always reuse a live connection — never tear one down to attach a
         // listener. The exported object below serves *both* callback
         // protocols from the moment the connection is created, so there's
@@ -59,8 +67,10 @@ final class XPCHelperClient: NSObject, ObservableObject {
         // captured in the helper and silently never arrived in the app.
         if let existing = remoteService {
             notificationDelegate.lunarListener = lunarListener
-            hasLunarListener = hasLunarListener || (needsListener && lunarListener != nil)
-            helperAvailable = true
+            // An interruption's MainActor hop may not have drained yet —
+            // don't flip availability true-then-false for a connection we
+            // already know was interrupted.
+            helperAvailable = !connectionInterrupted
             return existing
         }
 
@@ -70,13 +80,12 @@ final class XPCHelperClient: NSObject, ObservableObject {
         notificationDelegate.lunarListener = lunarListener
         conn.exportedInterface = makeAppDelegateInterface()
         conn.exportedObject = notificationDelegate
-        hasLunarListener = needsListener && lunarListener != nil
 
         conn.interruptionHandler = { [weak self] in
             Task { @MainActor in
                 self?.connection = nil
                 self?.remoteService = nil
-                self?.hasLunarListener = false
+                self?.connectionInterrupted = true
                 self?.helperAvailable = false
                 self?.lastError = .unavailable
             }
@@ -86,7 +95,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
             Task { @MainActor in
                 self?.connection = nil
                 self?.remoteService = nil
-                self?.hasLunarListener = false
+                self?.connectionInterrupted = true
                 self?.helperAvailable = false
                 self?.lastError = .unavailable
             }
@@ -101,17 +110,20 @@ final class XPCHelperClient: NSObject, ObservableObject {
         
         connection = conn
         remoteService = service
+        connectionInterrupted = false
         helperAvailable = true
         lastError = nil
         // A helper restart forgets our state — always re-announce the
         // effective notch-open state so its banner keep-alive gate converges
         // to ours, whether we currently count open notches or not.
-        Task { try? await service.withService { $0.setNotchOpen(notchOpenCount > 0) } }
+        Task {
+            do {
+                try await service.withService { $0.setNotchOpen(notchOpenCount > 0) }
+            } catch {
+                lastError = .transport(underlying: error)
+            }
+        }
         return service
-    }
-    
-    private func getRemoteService() -> RemoteXPCService<BoringNotchXPCHelperProtocol>? {
-        remoteService
     }
 
     private func makeAppDelegateInterface() -> NSXPCInterface {
@@ -171,8 +183,12 @@ final class XPCHelperClient: NSObject, ObservableObject {
     nonisolated func requestAccessibilityAuthorization() {
         Task { @MainActor in
             let service = ensureRemoteService()
-            try? await service.withService { service in
-                service.requestAccessibilityAuthorization()
+            do {
+                try await service.withService { service in
+                    service.requestAccessibilityAuthorization()
+                }
+            } catch {
+                lastError = .transport(underlying: error)
             }
         }
     }
@@ -188,6 +204,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
             notifyAuthorizationChange(result)
             return result
         } catch {
+            lastError = .transport(underlying: error)
             return false
         }
     }
@@ -203,24 +220,12 @@ final class XPCHelperClient: NSObject, ObservableObject {
             notifyAuthorizationChange(result)
             return result
         } catch {
+            lastError = .transport(underlying: error)
             return false
         }
     }
     
     // MARK: - Keyboard Brightness
-    
-    func isKeyboardBrightnessAvailable() async -> Bool {
-        do {
-            let service = ensureRemoteService()
-            return try await service.withContinuation { service, continuation in
-                service.isKeyboardBrightnessAvailable { available in
-                    continuation.resume(returning: available)
-                }
-            }
-        } catch {
-            return false
-        }
-    }
     
     func currentKeyboardBrightness() async -> Float? {
         do {
@@ -232,6 +237,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
             }
             return result?.floatValue
         } catch {
+            lastError = .transport(underlying: error)
             return nil
         }
     }
@@ -245,24 +251,12 @@ final class XPCHelperClient: NSObject, ObservableObject {
                 }
             }
         } catch {
+            lastError = .transport(underlying: error)
             return false
         }
     }
     
     // MARK: - Screen Brightness
-    
-    func isScreenBrightnessAvailable() async -> Bool {
-        do {
-            let service = ensureRemoteService()
-            return try await service.withContinuation { service, continuation in
-                service.isScreenBrightnessAvailable { available in
-                    continuation.resume(returning: available)
-                }
-            }
-        } catch {
-            return false
-        }
-    }
     
     func currentScreenBrightness() async -> Float? {
         do {
@@ -274,6 +268,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
             }
             return result?.floatValue
         } catch {
+            lastError = .transport(underlying: error)
             return nil
         }
     }
@@ -289,6 +284,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
             guard let num = result else { return nil }
             return CGDirectDisplayID(num.uint32Value)
         } catch {
+            lastError = .transport(underlying: error)
             return nil
         }
     }
@@ -302,6 +298,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
                 }
             }
         } catch {
+            lastError = .transport(underlying: error)
             return false
         }
     }
@@ -315,6 +312,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
                 }
             }
         } catch {
+            lastError = .transport(underlying: error)
             return nil
         }
     }
@@ -330,6 +328,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
                 }
             }
         } catch {
+            lastError = .transport(underlying: error)
             return false
         }
     }
@@ -341,24 +340,26 @@ final class XPCHelperClient: NSObject, ObservableObject {
         // which case this is the only path that hooks Lunar events up.
         notificationDelegate.lunarListener = listener
         do {
-            let service = ensureRemoteService(needsListener: true)
+            let service = ensureRemoteService()
             return try await service.withContinuation { service, continuation in
                 service.startLunarEventStream { started in
                     continuation.resume(returning: started)
                 }
             }
         } catch {
+            lastError = .transport(underlying: error)
             return false
         }
     }
 
     func stopLunarEventStream() async {
         do {
-            let service = ensureRemoteService(needsListener: true)
+            let service = ensureRemoteService()
             try await service.withService { service in
                 service.stopLunarEventStream()
             }
         } catch {
+            lastError = .transport(underlying: error)
             return
         }
     }
@@ -372,6 +373,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
                 }
             }
         } catch {
+            lastError = .transport(underlying: error)
             return false
         }
     }
@@ -383,7 +385,26 @@ final class XPCHelperClient: NSObject, ObservableObject {
 /// notifications; Lunar events are forwarded to whichever listener the OSD code
 /// registered, since both callbacks share one connection.
 final class NotificationXPCDelegate: NSObject, BoringNotchXPCAppDelegate {
-    var lunarListener: BoringNotchXPCHelperLunarListener?
+    /// Written on the MainActor (connection setup, `startLunarEventStream`),
+    /// read on the XPC connection's private delivery queue. The lock
+    /// synchronizes cross-thread publication; the listener itself is still
+    /// invoked on the delivery queue — no per-event actor hop on this hot
+    /// path.
+    private let lunarListenerLock = NSLock()
+    private var _lunarListener: BoringNotchXPCHelperLunarListener?
+
+    var lunarListener: BoringNotchXPCHelperLunarListener? {
+        get {
+            lunarListenerLock.lock()
+            defer { lunarListenerLock.unlock() }
+            return _lunarListener
+        }
+        set {
+            lunarListenerLock.lock()
+            _lunarListener = newValue
+            lunarListenerLock.unlock()
+        }
+    }
 
     func lunarEventDidUpdate(_ event: BNLunarBrightnessEvent) {
         lunarListener?.lunarEventDidUpdate(event)
@@ -417,6 +438,7 @@ extension XPCHelperClient {
                 }
             }
         } catch {
+            await MainActor.run { self.lastError = .transport(underlying: error) }
             return false
         }
     }
@@ -424,7 +446,11 @@ extension XPCHelperClient {
     nonisolated func stopNotificationWatching() {
         Task {
             let service = await MainActor.run { ensureRemoteService() }
-            try? await service.withService { $0.stopNotificationWatching() }
+            do {
+                try await service.withService { $0.stopNotificationWatching() }
+            } catch {
+                await MainActor.run { self.lastError = .transport(underlying: error) }
+            }
         }
     }
 
@@ -437,6 +463,7 @@ extension XPCHelperClient {
                 }
             }
         } catch {
+            await MainActor.run { self.lastError = .transport(underlying: error) }
             return false
         }
     }
@@ -450,6 +477,7 @@ extension XPCHelperClient {
                 }
             }
         } catch {
+            await MainActor.run { self.lastError = .transport(underlying: error) }
             return false
         }
     }
@@ -463,6 +491,7 @@ extension XPCHelperClient {
                 }
             }
         } catch {
+            await MainActor.run { self.lastError = .transport(underlying: error) }
             return false
         }
     }
@@ -472,14 +501,22 @@ extension XPCHelperClient {
     nonisolated func holdNotification(token: String) {
         Task {
             let service = await MainActor.run { ensureRemoteService() }
-            try? await service.withService { $0.holdNotification(token) }
+            do {
+                try await service.withService { $0.holdNotification(token) }
+            } catch {
+                await MainActor.run { self.lastError = .transport(underlying: error) }
+            }
         }
     }
 
     nonisolated func releaseNotification(token: String) {
         Task {
             let service = await MainActor.run { ensureRemoteService() }
-            try? await service.withService { $0.releaseNotification(token) }
+            do {
+                try await service.withService { $0.releaseNotification(token) }
+            } catch {
+                await MainActor.run { self.lastError = .transport(underlying: error) }
+            }
         }
     }
 
@@ -507,7 +544,11 @@ extension XPCHelperClient {
     @MainActor private func sendNotchOpen(_ open: Bool) {
         let service = ensureRemoteService()
         Task {
-            try? await service.withService { $0.setNotchOpen(open) }
+            do {
+                try await service.withService { $0.setNotchOpen(open) }
+            } catch {
+                lastError = .transport(underlying: error)
+            }
         }
     }
 
@@ -520,19 +561,7 @@ extension XPCHelperClient {
                 }
             }
         } catch {
-            return false
-        }
-    }
-
-    nonisolated func dismissNotification(token: String) async -> Bool {
-        do {
-            let service = await MainActor.run { ensureRemoteService() }
-            return try await service.withContinuation { service, continuation in
-                service.dismissNotification(token) { dismissed in
-                    continuation.resume(returning: dismissed)
-                }
-            }
-        } catch {
+            await MainActor.run { self.lastError = .transport(underlying: error) }
             return false
         }
     }
@@ -546,6 +575,7 @@ extension XPCHelperClient {
                 }
             }
         } catch {
+            await MainActor.run { self.lastError = .transport(underlying: error) }
             return "xpc error: \(error)"
         }
     }

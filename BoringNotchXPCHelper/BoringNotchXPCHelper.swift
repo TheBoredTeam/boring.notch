@@ -152,10 +152,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         DispatchQueue.main.async { reply(Self.watcher.debugDump()) }
     }
 
-    @objc func dismissNotification(_ token: String, with reply: @escaping (Bool) -> Void) {
-        DispatchQueue.main.async { reply(Self.watcher.dismiss(token: token)) }
-    }
-
     @objc func holdNotification(_ token: String) {
         DispatchQueue.main.async { Self.watcher.hold(token: token) }
     }
@@ -190,8 +186,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             }
         }
 
-        var isAvailable: Bool { clientInstance != nil }
-
         func currentBrightness() -> Float? {
             guard let clientInstance,
                   let fn: BrightnessGetter = methodIMP(on: clientInstance, selector: getSelector, as: BrightnessGetter.self)
@@ -219,10 +213,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     }
 
     private static let keyboardClient = KeyboardBrightnessClient()
-
-    @objc func isKeyboardBrightnessAvailable(with reply: @escaping (Bool) -> Void) {
-        reply(Self.keyboardClient.isAvailable)
-    }
 
     @objc func currentKeyboardBrightness(with reply: @escaping (NSNumber?) -> Void) {
         reply(Self.keyboardClient.currentBrightness().map { NSNumber(value: $0) })
@@ -253,12 +243,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         }
 
         return mainDisplayID
-    }
-
-    @objc func isScreenBrightnessAvailable(with reply: @escaping (Bool) -> Void) {
-        let displayID = brightnessDisplayID()
-        var b: Float = 0
-        reply(displayServicesGetBrightness(displayID: displayID, out: &b) || ioServiceFor(displayID: displayID) != nil)
     }
 
     @objc func currentScreenBrightness(with reply: @escaping (NSNumber?) -> Void) {
