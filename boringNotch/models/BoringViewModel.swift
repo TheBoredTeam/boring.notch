@@ -25,6 +25,9 @@ final class BoringViewModel: NSObject, ObservableObject {
     @Published var edgeAutoOpenActive: Bool = false
     @Published var isHoveringCalendar: Bool = false
     @Published var isBatteryPopoverActive: Bool = false
+    @Published private(set) var isScrollGestureActive: Bool = false
+
+    private var scrollGestureSuppressionTokens: Set<UUID> = []
 
     @Published var screenUUID: String?
 
@@ -54,6 +57,7 @@ final class BoringViewModel: NSObject, ObservableObject {
         closedNotchSize = notchSize
 
         setupDetectorObserver()
+        setupContentSizeObserver()
     }
     
     private func setupDetectorObserver() {
@@ -87,6 +91,32 @@ final class BoringViewModel: NSObject, ObservableObject {
                 }
             }
             .store(in: &cancellables)
+    }
+
+    private func setupContentSizeObserver() {
+        Publishers.CombineLatest(
+            coordinator.$currentView.removeDuplicates(),
+            coordinator.$notesLayoutState.removeDuplicates()
+        )
+        .receive(on: RunLoop.main)
+        .sink { [weak self] _ in
+            guard let self, self.notchState == .open else { return }
+            self.updateOpenNotchSize()
+        }
+        .store(in: &cancellables)
+    }
+
+    private func resolvedOpenNotchSize() -> CGSize {
+        guard coordinator.currentView == .notes else { return openNotchSize }
+        return coordinator.notesLayoutState.preferredSize
+    }
+
+    private func updateOpenNotchSize() {
+        let targetSize = resolvedOpenNotchSize()
+        guard notchSize != targetSize else { return }
+        withAnimation(.easeInOut(duration: 0.25)) {
+            notchSize = targetSize
+        }
     }
 
     // Computed property for effective notch height
@@ -182,11 +212,26 @@ final class BoringViewModel: NSObject, ObservableObject {
         return false
     }
 
+    func setScrollGestureSuppression(_ active: Bool, token: UUID) {
+        if active {
+            scrollGestureSuppressionTokens.insert(token)
+        } else {
+            scrollGestureSuppressionTokens.remove(token)
+        }
+
+        isScrollGestureActive = !scrollGestureSuppressionTokens.isEmpty
+    }
+
+    private func resetScrollGestureSuppression() {
+        scrollGestureSuppressionTokens.removeAll()
+        isScrollGestureActive = false
+    }
+
     @discardableResult
     func open() -> Bool {
         guard !coordinator.firstLaunch, notchState != .open else { return false }
 
-        self.notchSize = openNotchSize
+        self.notchSize = resolvedOpenNotchSize()
         self.notchState = .open
         
         // Force music information update when notch is opened
@@ -204,6 +249,7 @@ final class BoringViewModel: NSObject, ObservableObject {
         self.closedNotchSize = self.notchSize
         self.notchState = .closed
         self.isBatteryPopoverActive = false
+        resetScrollGestureSuppression()
         if self.coordinator.shouldShowSneakPeek(on: self.screenUUID) {
             self.coordinator.toggleSneakPeek(status: false, type: .music, targetScreenUUID: self.screenUUID)
         }

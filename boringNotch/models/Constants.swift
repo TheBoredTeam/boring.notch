@@ -357,6 +357,13 @@ extension Defaults.Keys {
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
     static let reverseShelfOrdering = Key<Bool>("reverseShelfOrdering", default: false)
+
+    // MARK: Notes
+    static let enableNotes = Key<Bool>("enableNotes", default: false)
+    static let showAppleNotesContent = Key<Bool>("showAppleNotesContent", default: true)
+    static let managedAppleNoteIDs = Key<[String]>("managedAppleNoteIDs", default: [])
+    static let pinnedAppleNoteIDs = Key<[String]>("pinnedAppleNoteIDs", default: [])
+    static let appleNoteColorOverrides = Key<[String: Int]>("appleNoteColorOverrides", default: [:])
     
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)

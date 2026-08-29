@@ -12,6 +12,12 @@
 import Defaults
 import SwiftUI
 
+private final class FirstMouseHostingView<Content: View>: NSHostingView<Content> {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool {
+        true
+    }
+}
+
 @MainActor
 final class NotchWindowManager {
     static let shared = NotchWindowManager()
@@ -132,13 +138,23 @@ final class NotchWindowManager {
             window.disableSkyLight()
         }
 
-        window.contentView = NSHostingView(
+        window.contentView = FirstMouseHostingView(
             rootView: ContentView()
                 .environmentObject(viewModel)
         )
 
+        viewModel.$notchSize
+            .removeDuplicates()
+            .receive(on: RunLoop.main)
+            .sink { [weak self, weak window] size in
+                guard let self, let window else { return }
+                self.resizeWindow(window, to: size)
+            }
+            .store(in: &viewModel.cancellables)
+
         window.orderFrontRegardless()
         NotchSpaceManager.shared.notchSpace.windows.insert(window)
+        resizeWindow(window, to: viewModel.notchSize)
 
         // Observe when the window's screen changes so we can update drag detectors.
         // Remove any previous observer first — recreating windows used to
@@ -155,6 +171,31 @@ final class NotchWindowManager {
                 }
         }
         return window
+    }
+
+    private func resizeWindow(_ window: NSWindow, to notchSize: CGSize) {
+        let targetWindowSize = CGSize(
+            width: max(windowSize.width, notchSize.width),
+            height: max(windowSize.height, notchSize.height + shadowPadding)
+        )
+        guard abs(window.frame.width - targetWindowSize.width) > 0.5
+            || abs(window.frame.height - targetWindowSize.height) > 0.5
+        else {
+            return
+        }
+
+        let screen = window.screen
+            ?? NSScreen.screen(withUUID: BoringViewCoordinator.shared.selectedScreenUUID)
+            ?? NSScreen.main
+        guard let screen else { return }
+
+        let frame = NSRect(
+            x: screen.frame.midX - targetWindowSize.width / 2,
+            y: screen.frame.maxY - targetWindowSize.height,
+            width: targetWindowSize.width,
+            height: targetWindowSize.height
+        )
+        window.setFrame(frame, display: true, animate: false)
     }
 
     private func positionWindow(_ window: NSWindow, on screen: NSScreen, changeAlpha: Bool = false) {
