@@ -556,15 +556,6 @@ final class NotificationWatcher {
         return AXUIElementPerformAction(banner, kAXPressAction as CFString) == .success
     }
 
-    /// Clears the banner from screen. Notification Center exposes this as a
-    /// "Close" action rather than the AXRemove one might expect.
-    func dismiss(token: String) -> Bool {
-        guard let banner = element(for: token),
-              let raw = rawAction(on: banner, matching: { $0.localizedCaseInsensitiveContains("close") })
-        else { return false }
-        return AXUIElementPerformAction(banner, raw as CFString) == .success
-    }
-
     // MARK: - Debug
 
     /// Full attribute dump of the banner window, for the debug window.
