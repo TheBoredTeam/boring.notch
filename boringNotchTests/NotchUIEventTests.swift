@@ -9,6 +9,7 @@
 
 import XCTest
 import Combine
+import SwiftUI
 @testable import boringNotch
 
 final class NotchUIEventTests: XCTestCase {
@@ -102,5 +103,45 @@ final class PlaybackStateTests: XCTestCase {
         b = a
         b.currentTime += 1
         XCTAssertNotEqual(a, b, "position changes must be visible to == to drive UI updates")
+    }
+}
+
+@MainActor final class ExpandedViewPixelTests: XCTestCase {
+
+    /// Renders NotificationExpandedView offscreen and counts non-black
+    /// pixels. Guards the reported "open notch is empty with a notification"
+    /// regression.
+    func testNotificationExpandedViewPaintsContent() throws {
+        let notification = SystemNotification(
+            id: "test-token", appName: "WhatsApp", bundleID: "net.whatsapp.WhatsApp",
+            title: "Sender", subtitle: nil, body: "hello", actions: [],
+            receivedAt: Date())
+
+        let view = NotificationExpandedView(notification: notification)
+            .environmentObject(BoringViewModel())
+            .frame(width: 380, height: 132)
+
+        let hostingView = NSHostingView(rootView: view)
+        hostingView.frame = CGRect(x: 0, y: 0, width: 380, height: 132)
+        hostingView.layoutSubtreeIfNeeded()
+
+        guard let rep = hostingView.bitmapImageRepForCachingDisplay(in: hostingView.bounds) else {
+            XCTFail("could not create bitmap rep")
+            return
+        }
+        hostingView.cacheDisplay(in: hostingView.bounds, to: rep)
+
+        guard let data = rep.bitmapData else {
+            XCTFail("no bitmap data")
+            return
+        }
+        var nonBlack = 0
+        let bytes = rep.pixelsWide * rep.pixelsHigh * max(1, rep.samplesPerPixel)
+        for i in stride(from: 0, to: bytes, by: 4 * 40) { // sample every ~10th px
+            if data[i] > 30 || data[i + 1] > 30 || data[i + 2] > 30 {
+                nonBlack += 1
+            }
+        }
+        XCTAssertGreaterThan(nonBlack, 20, "expanded view rendered ~empty")
     }
 }
