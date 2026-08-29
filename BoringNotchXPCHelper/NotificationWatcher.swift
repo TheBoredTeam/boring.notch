@@ -49,6 +49,30 @@ final class NotificationWatcher {
     private var heldOffScreen: Set<String> = []
     private var lastRefresh = Date.distantPast
 
+    /// Effective notch-open state, pushed by the app over XPC. Gates every
+    /// focus-affecting part of the keep-alive: re-performing the details
+    /// toggle expands a banner, and an expanded banner's reply field seizes
+    /// keyboard focus even with the window parked off-screen (macOS does
+    /// not unfocus off-screen windows) — so the toggle may only run while
+    /// the notch is open. Parking in hold(token:) is focus-neutral and
+    /// stays unconditional. Defaults to false: never steal focus before
+    /// being told.
+    var notchOpen: Bool = false {
+        didSet {
+            if notchOpen, !oldValue {
+                // Re-arm the skip log for the next closed episode.
+                skipLogged.removeAll()
+            } else if oldValue, !notchOpen {
+                collapseHeldBanners()
+            }
+        }
+    }
+
+    /// Tokens whose closed-notch keep-alive skip has already been logged,
+    /// so the log fires once per banner per closed episode rather than on
+    /// every 2.5s tick.
+    private var skipLogged: Set<String> = []
+
     /// Comfortably inside the ~5s dismissal window the toggle resets, so a
     /// missed tick can't let a held banner slip away.
     private let refreshInterval: TimeInterval = 2.5
@@ -114,6 +138,7 @@ final class NotificationWatcher {
         // wrong, so clear them explicitly.
         held.removeAll()
         heldOffScreen.removeAll()
+        skipLogged.removeAll()
     }
 
     // MARK: - Scanning
@@ -143,6 +168,7 @@ final class NotificationWatcher {
         for token in live.keys where !seen.contains(token) {
             live[token] = nil
             heldOffScreen.remove(token)
+            skipLogged.remove(token)
             onBannerGone?(token)
         }
 
@@ -173,10 +199,40 @@ final class NotificationWatcher {
         guard now.timeIntervalSince(lastRefresh) >= refreshInterval else { return }
         lastRefresh = now
 
+        // The toggle expands the banner, and the expanded banner's reply
+        // field grabs keyboard focus even parked off-screen. Focus effects
+        // are only acceptable while the notch is open; with it closed the
+        // banner is left to dismiss naturally and flows through the usual
+        // onBannerGone/expiry path (an intended tradeoff).
+        guard notchOpen else {
+            for token in held where live[token] != nil && !skipLogged.contains(token) {
+                skipLogged.insert(token)
+                NSLog("[boringNotch] notch closed — skipping keep-alive toggle for held banner \(token), leaving it to dismiss naturally")
+            }
+            return
+        }
+
         for token in held {
             guard let banner = live[token] else { continue }
             if let toggle = rawAction(on: banner, matching: { $0.localizedCaseInsensitiveContains("details") }) {
                 AXUIElementPerformAction(banner, toggle as CFString)
+            }
+        }
+    }
+
+    /// Best-effort collapse of held banners left expanded, run once when
+    /// the notch closes: an expanded banner keeps its reply field focused,
+    /// and it must not stay that way after close. Looks for a "Hide …"
+    /// action ("Hide Details"); a banner without one is left as-is, so
+    /// non-English locales degrade to the pre-gate behavior.
+    private func collapseHeldBanners() {
+        let expanded = held.filter { live[$0] != nil }
+        guard !expanded.isEmpty else { return }
+        NSLog("[boringNotch] notch closed — collapsing \(expanded.count) held banner(s)")
+        for token in expanded {
+            guard let banner = live[token] else { continue }
+            if let hide = rawAction(on: banner, matching: { $0.localizedCaseInsensitiveContains("hide") }) {
+                AXUIElementPerformAction(banner, hide as CFString)
             }
         }
     }
@@ -214,6 +270,7 @@ final class NotificationWatcher {
     func release(token: String) {
         held.remove(token)
         heldOffScreen.remove(token)
+        skipLogged.remove(token)
         guard let banner = live[token] else { return }
         if let close = rawAction(on: banner, matching: { $0.localizedCaseInsensitiveContains("close") }) {
             AXUIElementPerformAction(banner, close as CFString)

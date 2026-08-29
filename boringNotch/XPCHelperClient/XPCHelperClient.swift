@@ -33,6 +33,11 @@ final class XPCHelperClient: NSObject, ObservableObject {
     @MainActor private var activationObserver: (any NSObjectProtocol)?
     private var lunarListener: BoringNotchXPCHelperLunarListener?
     private var hasLunarListener: Bool = false
+
+    /// Open-notch refcount: one ContentView per screen can hold the notch
+    /// open, but the helper only wants the effective state, so
+    /// `setNotchOpen` is sent on the 0→1 and 1→0 transitions only.
+    @MainActor private var notchOpenCount = 0
     
     deinit {
         connection?.invalidate()
@@ -99,6 +104,11 @@ final class XPCHelperClient: NSObject, ObservableObject {
         remoteService = service
         helperAvailable = true
         lastError = nil
+        // A helper restart forgets our state — re-announce an open notch so
+        // its banner keep-alive gate doesn't run while the notch is open.
+        if notchOpenCount > 0 {
+            Task { try? await service.withService { $0.setNotchOpen(true) } }
+        }
         return service
     }
     
@@ -513,6 +523,34 @@ extension XPCHelperClient {
         Task {
             let service = await MainActor.run { ensureRemoteService() }
             try? await service.withService { $0.releaseNotification(token) }
+        }
+    }
+
+    /// Feeds the helper the notch's effective open state so it can gate its
+    /// focus-stealing banner keep-alive expand to open-notch-only.
+    /// Refcounted across screens: only 0→1 sends true, only 1→0 sends false.
+    nonisolated func notchOpened() {
+        Task { @MainActor in
+            notchOpenCount += 1
+            if notchOpenCount == 1 { sendNotchOpen(true) }
+        }
+    }
+
+    nonisolated func notchClosed() {
+        Task { @MainActor in
+            guard notchOpenCount > 0 else {
+                NSLog("[boringNotch] XPCHelperClient: unmatched notchClosed ignored")
+                return
+            }
+            notchOpenCount -= 1
+            if notchOpenCount == 0 { sendNotchOpen(false) }
+        }
+    }
+
+    @MainActor private func sendNotchOpen(_ open: Bool) {
+        let service = ensureRemoteService()
+        Task {
+            try? await service.withService { $0.setNotchOpen(open) }
         }
     }
 

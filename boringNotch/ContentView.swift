@@ -294,6 +294,13 @@ struct ContentView: View {
                                 isHovering = false
                             }
                         }
+                        // Keep the helper's banner keep-alive gate in sync
+                        // with the effective open state (refcounted client-side).
+                        if newState == .open {
+                            XPCHelperClient.shared.notchOpened()
+                        } else {
+                            XPCHelperClient.shared.notchClosed()
+                        }
                         // Temporary trace for the empty-open-panel report.
                         if newState == .open {
                             Log.notifications.debug(

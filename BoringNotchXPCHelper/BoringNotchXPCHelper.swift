@@ -165,6 +165,10 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         DispatchQueue.main.async { Self.watcher.release(token: token) }
     }
 
+    @objc func setNotchOpen(_ open: Bool) {
+        DispatchQueue.main.async { Self.watcher.notchOpen = open }
+    }
+
     private class KeyboardBrightnessClient {
         private static let keyboardID: UInt64 = 1
         private var clientInstance: NSObject?
