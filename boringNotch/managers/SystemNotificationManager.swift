@@ -326,7 +326,10 @@ final class SystemNotificationManager: ObservableObject {
         if releasingPrevious, let previous = activeNotification, previous.id != notification.id {
             XPCHelperClient.shared.releaseNotification(token: previous.id)
         }
-        holdSystemBanner(notification)
+        // No holdSystemBanner here: every path in — add(), promoteNextQueued(),
+        // cycleToNextQueued() — passes a notification that was already held at
+        // arrival in add(), and re-holding is a no-op against the helper's
+        // held set. The add() hold stays: it also covers the enqueue path.
         withAnimation(.smooth) { activeNotification = notification }
         dismissTask?.cancel()
         dismissTask = Task { [weak self] in
