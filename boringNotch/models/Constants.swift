@@ -104,6 +104,7 @@ struct AppLanguage: RawRepresentable, Hashable, Identifiable, Defaults.Serializa
 extension Notification.Name {
     // MARK: - Media
     static let mediaControllerChanged = Notification.Name("mediaControllerChanged")
+    static let browserBridgeConnectionChanged = Notification.Name("browserBridgeConnectionChanged")
     
     // MARK: - Display
     static let selectedScreenChanged = Notification.Name("SelectedScreenChanged")
@@ -130,7 +131,8 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
     case appleMusic
     case spotify
     case youtubeMusic
-    
+    case youtubeMusicPWA
+
     var id: String { self.rawValue }
 
     var localizedString: String {
@@ -143,6 +145,8 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
             return "Spotify"
         case .youtubeMusic:
             return "YouTube Music"
+        case .youtubeMusicPWA:
+            return NSLocalizedString("YouTube Music (Browser)", comment: "")
         }
     }
 }
@@ -329,6 +333,11 @@ extension Defaults.Keys {
     
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
+
+    // MARK: Browser Bridge (YouTube Music web player)
+    // No shared secret: the bridge authorises callers by their WebSocket Origin, so the
+    // extension pairs itself with nothing for the user to configure.
+    static let browserBridgePort = Key<Int>("browserBridgePort", default: Int(BrowserBridgeConfiguration.defaultPort))
     
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)

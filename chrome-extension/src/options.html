@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Boring Notch — YouTube Music Bridge</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Boring Notch bridge</h1>
+      <p class="sub">Connects the YouTube Music web player to the Boring Notch app.</p>
+
+      <div id="status" class="status status--idle">
+        <span class="dot"></span>
+        <span id="status-text">Checking…</span>
+      </div>
+
+      <p class="hint hint--lead">
+        There is nothing to set up. Make sure Boring Notch is running with
+        <strong>YouTube Music (Browser)</strong> selected as its music source, then open
+        <a href="https://music.youtube.com" target="_blank" rel="noreferrer">music.youtube.com</a>.
+      </p>
+
+      <section id="now-playing" hidden>
+        <h2>Now playing</h2>
+        <p id="np-title"></p>
+        <p id="np-artist" class="sub"></p>
+      </section>
+
+      <details id="advanced">
+        <summary>Advanced</summary>
+        <form id="form">
+          <div class="row">
+            <input id="enabled" name="enabled" type="checkbox" />
+            <label for="enabled" class="inline">Enable the bridge</label>
+          </div>
+
+          <label for="port">Port override</label>
+          <input id="port" name="port" type="number" min="1024" max="65535" placeholder="Automatic" />
+          <p class="hint">
+            Leave blank unless you changed the port in Boring Notch. The extension finds the
+            port on its own.
+          </p>
+
+          <div class="actions">
+            <button type="submit" id="save">Save</button>
+            <button type="button" id="reconnect" class="secondary">Reconnect</button>
+          </div>
+          <p id="saved" class="saved" hidden>Saved.</p>
+        </form>
+      </details>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>

@@ -53,3 +53,6 @@ build/
 *.xcarchive
 *.dSYM
 
+
+# Chrome extension release packages
+chrome-extension/dist/
