@@ -27,7 +27,7 @@ jobs:
     #   - https://gh.io/supported-runners-and-hardware-resources
     #   - https://gh.io/using-larger-runners (GitHub.com only)
     # Consider using larger runners or machines with greater resources for possible analysis time improvements.
-    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    runs-on: ${{ (matrix.language == 'swift' && 'xcode-27') || 'ubuntu-latest' }}
     permissions:
       # required for all workflows
       security-events: write
@@ -60,6 +60,18 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: Resolve Swift package dependencies
+      if: matrix.language == 'swift'
+      run: |
+        xcodebuild \
+          -resolvePackageDependencies \
+          -project boringNotch.xcodeproj \
+          -scheme boringNotch \
+          -clonedSourcePackagesDirPath "$RUNNER_TEMP/boringNotch-source-packages" \
+          -onlyUsePackageVersionsFromResolvedFile
 
     # Add any setup steps before running the `github/codeql-action/init` action.
     # This includes steps like installing compilers or runtimes (`actions/setup-node`
@@ -69,7 +81,7 @@ jobs:
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4
+      uses: github/codeql-action/init@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
       with:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
@@ -79,14 +91,6 @@ jobs:
 
         # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
         # queries: security-extended,security-and-quality
-
-    - name: Resolve Swift package dependencies
-      if: matrix.language == 'swift'
-      run: |
-        xcodebuild \
-          -resolvePackageDependencies \
-          -project boringNotch.xcodeproj \
-          -scheme boringNotch
 
     - name: Build Boring Notch
       if: matrix.language == 'swift'
@@ -99,11 +103,13 @@ jobs:
           -configuration Release \
           -destination "platform=macOS" \
           -derivedDataPath "$RUNNER_TEMP/boringNotch-derived-data" \
+          -clonedSourcePackagesDirPath "$RUNNER_TEMP/boringNotch-source-packages" \
+          -onlyUsePackageVersionsFromResolvedFile \
           CODE_SIGNING_ALLOWED=NO \
           CODE_SIGNING_REQUIRED=NO \
           build
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4
+      uses: github/codeql-action/analyze@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
       with:
         category: "/language:${{matrix.language}}"
