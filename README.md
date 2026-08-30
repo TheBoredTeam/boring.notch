@@ -51,39 +51,41 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 
 <a href="https://github.com/TheBoredTeam/boring.notch/releases/latest/download/boringNotch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
 
-Once downloaded, open the `.dmg` and move **Boring Notch** to your `/Applications` folder.
+1. Download and open `boringNotch.dmg`.
+2. Drag **Boring Notch** onto the **Applications** folder in the installer window. Do not run the app directly from the disk image.
+3. Eject the Boring Notch disk image.
+4. Open **Boring Notch** from your Applications folder.
 
 > [!IMPORTANT]
-> We don't have an Apple Developer account (yet 👀), so macOS will warn you that Boring Notch is from an unidentified developer on first launch. This is expected behavior.
+> Boring Notch is not currently notarized by Apple, so macOS may block it on first launch. This is expected behavior.
 >
-> You'll need to bypass this before the app will open. You only need to do this once. Use one of the methods below.
+> You'll need to allow the app before it will open. You only need to do this once. Use one of the methods below.
 
 ---
 
 #### Recommended: Terminal (Always Works)
 
-This is the quickest and easiest method. It only requires a single command and works consistently for all users. System Settings can sometimes fail and won't work for non-admin users.
-
-After moving Boring Notch to your Applications folder, run:
+After moving Boring Notch to Applications, open Terminal, paste this command, and press **Return**:
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/boringNotch.app
 ```
 
-Then open the app normally.
+Then open Boring Notch from Applications.
 
 ---
 
 #### Alternative: System Settings
 
 > [!NOTE]
-> This method doesn't work for all users. If this doesn't work, use the Terminal method above.
+> This method does not work for everyone. If **Open Anyway** is unavailable or does not work, use the Terminal method above.
 
-1. Try to open the app — you'll see a security warning.
-2. Click **OK** to dismiss it.
-3. Open **System Settings** > **Privacy & Security**.
-4. Scroll to the bottom and click **Open Anyway** next to the Boring Notch warning.
-5. Confirm if prompted.
+1. Try to open Boring Notch from **Applications**, then dismiss the security warning.
+2. Open **System Settings** > **Privacy & Security**.
+3. Scroll to **Security** and click **Open Anyway** next to the Boring Notch warning.
+4. Confirm by clicking **Open**.
+
+During setup, choose **Start at Login** if you want Boring Notch to be ready automatically after restarting your Mac. You can change this later in **Settings** > **General**.
 
 ---
 
@@ -193,5 +195,3 @@ For a full list of licenses and attributions, please see the [Third-Party Licens
 
 - **SwiftUI**: For making us look like coding wizards.
 - **You**: For being awesome and checking out **boring.notch**!
-
-

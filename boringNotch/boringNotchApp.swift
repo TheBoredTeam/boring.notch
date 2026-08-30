@@ -83,12 +83,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var windowScreenDidChangeObserver: Any?
     private var dragDetectors: [String: DragDetector] = [:] // UUID -> DragDetector
     private var observers: [Any] = []
+    private var didCompleteLaunch = false
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        // The installer-location guard exits before app services start. Avoid lazily
+        // initializing those services just to tear them down during that early exit.
+        guard didCompleteLaunch else { return }
+
         // Flush debounced shelf persistence to avoid losing recent changes
         ShelfStateViewModel.shared.flushSync()
 
@@ -311,6 +316,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        guard installationLocationAllowsLaunch() else { return }
+        didCompleteLaunch = true
 
         NotificationCenter.default.addObserver(
             self,
@@ -476,6 +483,48 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // make sure OSD subsystems are in the right state now that initial
         // notch windows have been created/cleaned up
         coordinator.applyOSDSources()
+    }
+
+    private func installationLocationAllowsLaunch() -> Bool {
+        guard isRunningFromInstaller else { return true }
+
+        NSApp.activate(ignoringOtherApps: true)
+
+        let alert = NSAlert()
+        alert.alertStyle = .informational
+        alert.icon = NSApp.applicationIconImage
+        alert.messageText = "Move Boring Notch to Applications"
+        alert.informativeText = "Boring Notch is still running from the installer. To keep it available after you eject the disk image or restart your Mac, drag Boring Notch into Applications, then open the copy in Applications."
+        alert.addButton(withTitle: "Open Applications & Quit")
+        alert.addButton(withTitle: "Quit")
+
+        if alert.runModal() == .alertFirstButtonReturn {
+            let applicationsURL = FileManager.default.urls(
+                for: .applicationDirectory,
+                in: .localDomainMask
+            ).first ?? URL(fileURLWithPath: "/Applications", isDirectory: true)
+
+            NSWorkspace.shared.open(applicationsURL)
+
+            let bundleURL = Bundle.main.bundleURL.standardizedFileURL
+            if bundleURL.path.hasPrefix("/Volumes/") {
+                NSWorkspace.shared.activateFileViewerSelecting([bundleURL])
+            }
+        }
+
+        NSApp.terminate(nil)
+        return false
+    }
+
+    private var isRunningFromInstaller: Bool {
+        let bundleURL = Bundle.main.bundleURL.standardizedFileURL
+
+        if bundleURL.pathComponents.contains("AppTranslocation") {
+            return true
+        }
+
+        let values = try? bundleURL.resourceValues(forKeys: [.volumeIsReadOnlyKey])
+        return values?.volumeIsReadOnly == true
     }
 
     func playWelcomeSound() {
