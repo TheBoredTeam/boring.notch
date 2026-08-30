@@ -18,6 +18,11 @@ struct Media: View {
     @Default(.enableLyrics) var enableLyrics
     @ObservedObject private var musicManager = MusicManager.shared
 
+    @Default(.showMediaProgressBar) private var showMediaProgressBar
+    @Default(.mediaProgressBarThickness) private var mediaProgressBarThickness
+    @Default(.mediaProgressBarColor) private var mediaProgressBarColor
+    @Default(.mediaProgressBarUpdateInterval) private var mediaProgressBarUpdateInterval
+
     var body: some View {
         Form {
             Section {
@@ -42,6 +47,28 @@ struct Media: View {
                     "Show music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
+                Defaults.Toggle(key: .showMediaProgressBar) {
+                    Text("Show progress bar under notch")
+                }
+                if showMediaProgressBar {
+                    HStack {
+                        Text("Progress bar thickness")
+                        Spacer()
+                        Text("\(mediaProgressBarThickness, specifier: "%.1f") px")
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $mediaProgressBarThickness, in: 1 ... 5, step: 0.5)
+                    Picker("Progress bar color", selection: $mediaProgressBarColor) {
+                        ForEach(SliderColorEnum.allCases, id: \.self) { option in
+                            Text(option.localizedString)
+                        }
+                    }
+                    Picker("Progress bar smoothness", selection: $mediaProgressBarUpdateInterval) {
+                        Text("Power saver").tag(0.5)
+                        Text("Balanced").tag(0.2)
+                        Text("Smooth").tag(0.1)
+                    }
+                }
                 Toggle("Show sneak peek on playback changes", isOn: $enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $sneakPeekStyles) {
                     ForEach(SneakPeekStyle.allCases) { style in

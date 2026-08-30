@@ -276,6 +276,10 @@ extension Defaults.Keys {
     
     // MARK: Media playback
     static let coloredSpectrogram = Key<Bool>("coloredSpectrogram", default: true)
+    static let showMediaProgressBar = Key<Bool>("showMediaProgressBar", default: false)
+    static let mediaProgressBarThickness = Key<Double>("mediaProgressBarThickness", default: 2)
+    static let mediaProgressBarColor = Key<SliderColorEnum>("mediaProgressBarColor", default: .albumArt)
+    static let mediaProgressBarUpdateInterval = Key<Double>("mediaProgressBarUpdateInterval", default: 0.5)
     static let realtimeAudioWaveform = Key<Bool>("realtimeAudioWaveform", default: false)
     static let enableSneakPeek = Key<Bool>("enableSneakPeek", default: false)
     static let sneakPeekStyles = Key<SneakPeekStyle>("sneakPeekStyles", default: .standard)
