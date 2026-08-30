@@ -128,7 +128,10 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     }
 
     @objc func replyToNotification(_ token: String, text: String, with reply: @escaping (Bool) -> Void) {
-        DispatchQueue.main.async { reply(Self.watcher.reply(token: token, text: text)) }
+        // The watcher's reply path does bounded waiting on the banner's AX
+        // hierarchy; it runs on the watcher's reply queue, never on main —
+        // the helper's main queue drives the banner poll and hold refresh.
+        Self.watcher.replyOnQueue(token: token, text: text, completion: reply)
     }
 
     /// Sends an iMessage directly through the Messages scripting
