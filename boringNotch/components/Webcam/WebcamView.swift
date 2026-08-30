@@ -9,7 +9,7 @@ import AVFoundation
 import Defaults
 import SwiftUI
 
-struct WebcamPreview: View {
+struct WebcamView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var webcamManager: WebcamManager
     
@@ -115,5 +115,5 @@ struct WebcamPreviewLayer: NSViewRepresentable {
 }
 
 #Preview {
-    WebcamPreview(webcamManager: .shared)
+    WebcamView(webcamManager: .shared)
 }

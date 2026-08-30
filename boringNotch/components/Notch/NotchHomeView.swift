@@ -201,10 +201,9 @@ struct MusicControlsView: View {
     }
 
     private var musicSlider: some View {
-        // 0.5s ticks are imperceptible on a minutes-long track (~1px steps)
-        // and the time labels only display whole seconds; the old 10Hz
-        // cadence re-rendered the slider 10x more than needed.
-        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.5 : nil)) { timeline in
+        // 0.2s ticks — the most the slider tolerates before steps become visible
+        // (reviewer-capped; the original 10 Hz targeted ~1px on 1.5-2min songs).
+        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.2 : nil)) { timeline in
             MusicSliderView(
                 sliderValue: $sliderValue,
                 duration: $musicManager.songDuration,
@@ -460,7 +459,7 @@ struct NotchHomeView: View {
             }
 
             if shouldShowCamera {
-                WebcamPreview(webcamManager: webcamManager)
+                WebcamView(webcamManager: webcamManager)
                     .scaledToFit()
                     .opacity(vm.notchState == .closed ? 0 : 1)
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
