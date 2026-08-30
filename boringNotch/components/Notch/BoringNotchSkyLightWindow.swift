@@ -32,8 +32,14 @@ extension SkyLightOperator {
 }
 
 class BoringNotchSkyLightWindow: NSPanel {
+    /// Level used while the notch is closed: just above the menu bar.
+    static let baseLevel: NSWindow.Level = .mainMenu + 3
+    /// Level used while the notch is open. Menu bar extras expand their panels at or around
+    /// `.popUpMenu`, which sits well above `baseLevel` and would otherwise cover the notch.
+    static let expandedLevel: NSWindow.Level = .popUpMenu + 1
+
     private var isSkyLightEnabled: Bool = false
-    
+
     override init(
         contentRect: NSRect,
         styleMask: NSWindow.StyleMask,
@@ -58,7 +64,7 @@ class BoringNotchSkyLightWindow: NSPanel {
         titlebarAppearsTransparent = true
         backgroundColor = .clear
         isMovable = false
-        level = .mainMenu + 3
+        level = Self.baseLevel
         hasShadow = false
         isReleasedWhenClosed = false
         
@@ -123,6 +129,32 @@ class BoringNotchSkyLightWindow: NSPanel {
         }
     }
     
+    // MARK: - Window level
+
+    /// Raises the window above other menu bar extras' expanded panels while the notch is open,
+    /// and drops it back to `baseLevel` when it closes so the closed notch keeps its normal
+    /// ordering relative to the rest of the system UI.
+    func observeNotchState(of viewModel: BoringViewModel) {
+        viewModel.$notchState
+            .removeDuplicates()
+            .sink { [weak self] state in
+                self?.setExpanded(state == .open)
+            }
+            .store(in: &observers)
+    }
+
+    private func setExpanded(_ expanded: Bool) {
+        let newLevel = expanded ? Self.expandedLevel : Self.baseLevel
+        guard level != newLevel else { return }
+        level = newLevel
+
+        // Raising the level does not by itself reorder the window above panels that were
+        // ordered in front of it while it sat at the lower level.
+        if expanded {
+            orderFrontRegardless()
+        }
+    }
+
     func enableSkyLight() {
         if !isSkyLightEnabled {
             SkyLightOperator.shared.delegateWindow(self)
