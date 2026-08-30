@@ -38,10 +38,6 @@ final class XPCHelperClient: NSObject, ObservableObject {
     private var remoteService: RemoteXPCService<BoringNotchXPCHelperProtocol>?
     private var connection: NSXPCConnection?
     /// Set by the interruption/invalidation hops, cleared when a fresh
-    /// connection is stored. Lets the existing-connection path report
-    /// `helperAvailable` without a true→false flicker while an
-    /// interruption's MainActor hop is still in flight.
-    private var connectionInterrupted = false
     private var lastKnownAuthorization: Bool?
     private let notificationDelegate = NotificationXPCDelegate()
     @MainActor private var activationObserver: (any NSObjectProtocol)?
@@ -67,10 +63,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
         // captured in the helper and silently never arrived in the app.
         if let existing = remoteService {
             notificationDelegate.lunarListener = lunarListener
-            // An interruption's MainActor hop may not have drained yet —
-            // don't flip availability true-then-false for a connection we
-            // already know was interrupted.
-            helperAvailable = !connectionInterrupted
+            helperAvailable = true
             return existing
         }
 
@@ -81,23 +74,25 @@ final class XPCHelperClient: NSObject, ObservableObject {
         conn.exportedInterface = makeAppDelegateInterface()
         conn.exportedObject = notificationDelegate
 
-        conn.interruptionHandler = { [weak self] in
+        conn.interruptionHandler = { [weak self, weak conn] in
             Task { @MainActor in
-                self?.connection = nil
-                self?.remoteService = nil
-                self?.connectionInterrupted = true
-                self?.helperAvailable = false
-                self?.lastError = .unavailable
+                // Ignore stale handlers: an interruption from a deallocated
+                // connection must not nil a freshly-built one.
+                guard let self, let conn, self.connection === conn else { return }
+                self.connection = nil
+                self.remoteService = nil
+                self.helperAvailable = false
+                self.lastError = .unavailable
             }
         }
 
-        conn.invalidationHandler = { [weak self] in
+        conn.invalidationHandler = { [weak self, weak conn] in
             Task { @MainActor in
-                self?.connection = nil
-                self?.remoteService = nil
-                self?.connectionInterrupted = true
-                self?.helperAvailable = false
-                self?.lastError = .unavailable
+                guard let self, let conn, self.connection === conn else { return }
+                self.connection = nil
+                self.remoteService = nil
+                self.helperAvailable = false
+                self.lastError = .unavailable
             }
         }
         
@@ -110,7 +105,6 @@ final class XPCHelperClient: NSObject, ObservableObject {
         
         connection = conn
         remoteService = service
-        connectionInterrupted = false
         helperAvailable = true
         lastError = nil
         // A helper restart forgets our state — always re-announce the
