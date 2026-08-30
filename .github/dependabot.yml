@@ -17,8 +17,9 @@ updates:
       interval: "weekly"
     target-branch: "dev"
 
-  # NOTE: no "swift" section. SPM packages live in the xcodeproj-embedded
-  # manifest (boringNotch.xcodeproj/.../swiftpm/Package.resolved), which
-  # Dependabot's swift ecosystem cannot read (it requires a root-level
-  # Package.swift). Swift dependencies are bumped manually; see Package.resolved.
+  - package-ecosystem: "swift"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "dev"
 

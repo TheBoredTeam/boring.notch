@@ -1,13 +1,23 @@
 # Xcode
 *.xcuserstate
 *.xcuserdata
+*.xcscheme
 *.xcuserdatad
-*.xcodeproj/xcuserdata
-*.xcodeproj/project.xcuserdata
-*.xcodeproj/xcshareddata/WorkspaceSettings.xcsettings
 *.pbxuser
 *.xccheckout
+*.xcscheme
 *.xcplayground
+*.xcuserdatad
+*.xctest
+*.xcuserdata
+*.xcodeproj/xcshareddata/WorkspaceSettings.xcsettings
+
+# CocoaPods
+Pods/
+podfile.lock
+
+# Carthage
+Carthage/Build/
 
 # Swift Package Manager
 .swiftpm/
@@ -32,6 +42,14 @@ build/
 *.vscode/
 *.idea/
 
+# User-specific files
+*.xcuserdatad/
+*.xcscheme
+*.xcodeproj/xcuserdata
+*.xcodeproj/project.xcuserdata
+
 # Build artifacts
 *.ipa
 *.xcarchive
+*.dSYM
+
