@@ -78,15 +78,6 @@ jobs:
       head_ref: ${{ steps.pr_info.outputs.head_ref }}
       base_ref: ${{ steps.pr_info.outputs.base_ref }}
     steps:
-      - name: Create release app token
-        id: release_app_token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
-        with:
-          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
-          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
-          repositories: boring.notch
-          permission-contents: write
-
       - name: Validate permissions and PR state
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -129,7 +120,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ steps.pr_info.outputs.base_ref }}
-          token: ${{ steps.release_app_token.outputs.token }}
 
       - name: Extract version from comment
         id: extract_version
@@ -197,6 +187,25 @@ jobs:
             echo "::error::Version v${VERSION} already exists as a tag"
             exit 1
           fi
+
+      - name: Create release app token
+        id: release_app_token
+        if: steps.extract_version.outputs.is_beta == 'false'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
+          permission-workflows: write
+
+      - name: Checkout release base with app token
+        if: steps.extract_version.outputs.is_beta == 'false'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.pr_info.outputs.base_ref }}
+          token: ${{ steps.release_app_token.outputs.token }}
+          fetch-depth: 0
 
       - name: Sync branch (stable releases only)
         if: steps.extract_version.outputs.is_beta == 'false'
@@ -304,6 +313,7 @@ jobs:
       BUILD_NUMBER: ${{ needs.reserve_build_number.outputs.build_number }}
       SOURCE_SHA: ${{ needs.reserve_build_number.outputs.source_sha }}
       IS_BETA: ${{ needs.preparation.outputs.is_beta }}
+      PR_NUMBER: ${{ github.event.issue.number }}
     steps:
       - name: Create release app token
         id: release_app_token
@@ -313,6 +323,7 @@ jobs:
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           repositories: boring.notch
           permission-contents: write
+          permission-workflows: write
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -422,10 +433,12 @@ jobs:
             echo "::error::$RUNNER_TEMP/generate_appcast missing or not executable"; exit 1;
           }
           CHANNEL_ARGS=()
-          APPCAST_OUTPUT="updater/appcast.xml"
+          APPCAST_OUTPUT="$RUNNER_TEMP/appcast-stable.xml"
           if [[ "${IS_BETA}" == "true" ]]; then
             CHANNEL_ARGS=(--channel "${{ env.BETA_CHANNEL_NAME }}")
             APPCAST_OUTPUT="$RUNNER_TEMP/appcast-${{ env.BETA_CHANNEL_NAME }}.xml"
+          else
+            cp updater/appcast.xml "$APPCAST_OUTPUT"
           fi
           printf '%s' "$SPARKLE_PRIVATE_KEY" | "$RUNNER_TEMP/generate_appcast" \
             --ed-key-file - \
@@ -436,52 +449,155 @@ jobs:
             -o "$APPCAST_OUTPUT" \
             Release/
 
-      - name: Create GitHub release
+      - name: Create or refresh draft GitHub release
         env:
           GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
           TITLE: ${{ needs.preparation.outputs.title }}
           NOTES: ${{ needs.preparation.outputs.release_notes_github }}
         run: |
-          RELEASE_FLAGS=()
-          if [[ "${IS_BETA}" == "true" ]]; then
-            RELEASE_FLAGS=(--prerelease)
-          fi
-          gh release create "v${VERSION}" Release/boringNotch.dmg \
-            --target "$SOURCE_SHA" \
-            --title "v${VERSION} - ${TITLE}" \
-            --notes "$NOTES" \
-            "${RELEASE_FLAGS[@]}"
+          set -euo pipefail
+          TAG="v${VERSION}"
+          EXISTING_DRAFT="$(gh release list \
+            --limit 100 \
+            --json tagName,isDraft \
+            --jq ".[] | select(.tagName == \"${TAG}\") | .isDraft")"
 
-      - name: Commit appcast
+          if [[ -n "$EXISTING_DRAFT" ]]; then
+            if [[ "$EXISTING_DRAFT" != "true" ]]; then
+              echo "::error::Release ${TAG} already exists and is not a draft"
+              exit 1
+            fi
+
+            gh release edit "$TAG" \
+              --draft \
+              --prerelease="$IS_BETA" \
+              --target "$SOURCE_SHA" \
+              --title "${TAG} - ${TITLE}" \
+              --notes "$NOTES"
+            gh release upload "$TAG" Release/boringNotch.dmg --clobber
+          else
+            RELEASE_FLAGS=(--draft)
+            if [[ "${IS_BETA}" == "true" ]]; then
+              RELEASE_FLAGS+=(--prerelease)
+            fi
+            gh release create "$TAG" Release/boringNotch.dmg \
+              --target "$SOURCE_SHA" \
+              --title "${TAG} - ${TITLE}" \
+              --notes "$NOTES" \
+              "${RELEASE_FLAGS[@]}"
+          fi
+
+      - name: Merge release PR
+        if: env.IS_BETA == 'false'
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          MERGED=false
+
+          for attempt in 1 2 3 4 5; do
+            RESPONSE=""
+            if RESPONSE="$(gh api \
+              --method PUT \
+              "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/merge" \
+              --field sha="$SOURCE_SHA" \
+              --field merge_method=merge \
+              --field commit_title="Release version v${VERSION}" \
+              2>"$RUNNER_TEMP/merge-error")" && \
+              [[ "$(jq -r '.merged' <<< "$RESPONSE")" == "true" ]]; then
+              MERGED=true
+              break
+            fi
+
+            if ! PR_DATA="$(gh api \
+              "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" \
+              2>>"$RUNNER_TEMP/merge-error")"; then
+              cat "$RUNNER_TEMP/merge-error" >&2 || true
+              echo "Could not reconcile PR merge; retrying (${attempt}/5)"
+              sleep $((attempt * 2))
+              continue
+            fi
+            if [[ "$(jq -r '.merged' <<< "$PR_DATA")" == "true" && \
+                  "$(jq -r '.head.sha' <<< "$PR_DATA")" == "$SOURCE_SHA" ]]; then
+              echo "PR #${PR_NUMBER} was already merged at the expected head."
+              MERGED=true
+              break
+            fi
+
+            CURRENT_HEAD="$(jq -r '.head.sha' <<< "$PR_DATA")"
+            if [[ "$CURRENT_HEAD" != "$SOURCE_SHA" ]]; then
+              echo "::error::PR head moved from ${SOURCE_SHA} to ${CURRENT_HEAD}; refusing to merge unbuilt code"
+              exit 1
+            fi
+
+            cat "$RUNNER_TEMP/merge-error" >&2 || true
+            echo "PR merge is not ready; retrying (${attempt}/5)"
+            sleep $((attempt * 2))
+          done
+
+          if [[ "$MERGED" != "true" ]]; then
+            echo "::error::Could not merge PR #${PR_NUMBER} at ${SOURCE_SHA}"
+            exit 1
+          fi
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5; do
+            if gh release edit "v${VERSION}" --draft=false; then
+              exit 0
+            fi
+            echo "Release publication failed; retrying (${attempt}/5)"
+            sleep $((attempt * 2))
+          done
+          echo "::error::Could not publish v${VERSION} after 5 attempts"
+          exit 1
+
+      - name: Commit published appcast
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if [[ "${IS_BETA}" == "false" ]]; then
-            git add updater/appcast.xml
-            if git diff --cached --quiet; then
-              echo "No appcast changes to commit."
-            else
-              git commit -m "Update appcast for v${VERSION}"
-              git push origin "HEAD:${HEAD_REF}"
-            fi
-          else
-            cp .github/scripts/merge_appcast_channel.py "$RUNNER_TEMP/merge_appcast_channel.py"
+          cp .github/scripts/merge_appcast_channel.py "$RUNNER_TEMP/merge_appcast_channel.py"
+          APPCAST_PUBLISHED=false
 
-            # Save generated appcast, switch to main, apply and push
+          for attempt in 1 2 3 4 5; do
             git fetch origin main
-            git checkout -B main origin/main
-            python3 "$RUNNER_TEMP/merge_appcast_channel.py" \
-              updater/appcast.xml \
-              "$RUNNER_TEMP/appcast-${BETA_CHANNEL_NAME}.xml" \
-              "$BETA_CHANNEL_NAME"
+            git checkout -B release-appcast origin/main
+
+            if [[ "${IS_BETA}" == "true" ]]; then
+              python3 "$RUNNER_TEMP/merge_appcast_channel.py" \
+                updater/appcast.xml \
+                "$RUNNER_TEMP/appcast-${BETA_CHANNEL_NAME}.xml" \
+                "$BETA_CHANNEL_NAME"
+              COMMIT_MESSAGE="Update appcast with beta release for v${VERSION}"
+            else
+              cp "$RUNNER_TEMP/appcast-stable.xml" updater/appcast.xml
+              COMMIT_MESSAGE="Update appcast for v${VERSION}"
+            fi
+
             git add updater/appcast.xml
             if git diff --cached --quiet; then
-              echo "No beta appcast changes to commit."
-            else
-              git commit -m "Update appcast with beta release for v${VERSION}"
-              git push origin main
+              echo "Published appcast already contains v${VERSION}."
+              APPCAST_PUBLISHED=true
+              break
             fi
+
+            git commit -m "$COMMIT_MESSAGE"
+            if git push origin HEAD:main; then
+              APPCAST_PUBLISHED=true
+              break
+            fi
+
+            echo "main moved while publishing the appcast; retrying (${attempt}/5)"
+            sleep $((attempt * 2))
+          done
+
+          if [[ "$APPCAST_PUBLISHED" != "true" ]]; then
+            echo "::error::Could not publish the appcast after 5 attempts"
+            exit 1
           fi
 
   upgrade-brew:
@@ -611,38 +727,6 @@ jobs:
           fi
           gh api "repos/${REPO}/issues/comments/${COMMENT_ID}/reactions" \
             -f content="$REACTION" --silent
-
-      - name: Create release app token
-        id: release_app_token
-        if: needs.preparation.outputs.is_beta == 'false' && env.RELEASE_SUCCEEDED == 'true'
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
-        with:
-          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
-          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
-          repositories: boring.notch
-          permission-contents: write
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: needs.preparation.outputs.is_beta == 'false' && env.RELEASE_SUCCEEDED == 'true'
-        with:
-          ref: ${{ needs.preparation.outputs.head_ref }}
-          fetch-depth: 0
-          token: ${{ steps.release_app_token.outputs.token }}
-
-      - name: Merge PR (stable releases only)
-        if: needs.preparation.outputs.is_beta == 'false' && env.RELEASE_SUCCEEDED == 'true'
-        env:
-          HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
-          BASE_REF: ${{ needs.preparation.outputs.base_ref }}
-          VERSION: ${{ needs.preparation.outputs.version }}
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin "$BASE_REF"
-          git checkout "$BASE_REF"
-          git merge --no-ff "origin/$HEAD_REF" -m "Release version v${VERSION}"
-          git push origin "$BASE_REF"
 
       - name: Summary
         env:
