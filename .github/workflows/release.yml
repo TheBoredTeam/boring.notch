@@ -4,8 +4,8 @@ on:
     types: [created]
 
 concurrency:
-  group: release-${{ github.event.issue.number || github.run_id }}
-  cancel-in-progress: true
+  group: ${{ contains(github.event.comment.body, '/release') && 'dev-publication' || format('release-check-{0}', github.run_id) }}
+  cancel-in-progress: false
 
 env:
   PROJECT_NAME: boringNotch
@@ -77,6 +77,7 @@ jobs:
       release_notes_github: ${{ steps.release_notes.outputs.release_notes_github }}
       head_ref: ${{ steps.pr_info.outputs.head_ref }}
       base_ref: ${{ steps.pr_info.outputs.base_ref }}
+      base_sha: ${{ steps.sync_branch.outputs.base_sha }}
     steps:
       - name: Validate permissions and PR state
         env:
@@ -180,11 +181,29 @@ jobs:
 
       - name: Check version not already released
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
           VERSION: ${{ steps.extract_version.outputs.version }}
         run: |
+          set -euo pipefail
           git fetch --tags
-          if git rev-parse -q --verify "refs/tags/v${VERSION}" >/dev/null; then
-            echo "::error::Version v${VERSION} already exists as a tag"
+          LOOKUP_ERROR="$RUNNER_TEMP/release-lookup-error"
+
+          if IS_DRAFT="$(gh api \
+            "repos/${REPO}/releases/tags/v${VERSION}" \
+            --jq '.draft' \
+            2>"$LOOKUP_ERROR")"; then
+            if [[ "$IS_DRAFT" != "true" ]]; then
+              echo "::error::Version v${VERSION} is already published"
+              exit 1
+            fi
+            echo "Found existing draft release v${VERSION}; it will be refreshed."
+          elif ! grep -q '(HTTP 404)' "$LOOKUP_ERROR"; then
+            cat "$LOOKUP_ERROR" >&2
+            echo "::error::Could not determine whether v${VERSION} already exists"
+            exit 1
+          elif git rev-parse -q --verify "refs/tags/v${VERSION}" >/dev/null; then
+            echo "::error::Tag v${VERSION} exists without a reusable draft release"
             exit 1
           fi
 
@@ -208,6 +227,7 @@ jobs:
           fetch-depth: 0
 
       - name: Sync branch (stable releases only)
+        id: sync_branch
         if: steps.extract_version.outputs.is_beta == 'false'
         env:
           BASE_REF: ${{ steps.pr_info.outputs.base_ref }}
@@ -217,9 +237,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git fetch origin "$BASE_REF" "$HEAD_REF"
+          BASE_SHA="$(git rev-parse "origin/$BASE_REF")"
           git checkout -B "$HEAD_REF" "origin/$HEAD_REF"
           git merge --no-ff "origin/$BASE_REF" -m "Sync branch before release"
           git push origin "$HEAD_REF"
+          echo "base_sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
 
   reserve_build_number:
     name: Prepare release source
@@ -307,13 +329,14 @@ jobs:
     runs-on: macos-latest
     permissions:
       contents: read
+    outputs:
+      release_head_sha: ${{ steps.commit_stable_appcast.outputs.release_head_sha }}
     env:
       HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
       VERSION: ${{ needs.preparation.outputs.version }}
       BUILD_NUMBER: ${{ needs.reserve_build_number.outputs.build_number }}
       SOURCE_SHA: ${{ needs.reserve_build_number.outputs.source_sha }}
       IS_BETA: ${{ needs.preparation.outputs.is_beta }}
-      PR_NUMBER: ${{ github.event.issue.number }}
     steps:
       - name: Create release app token
         id: release_app_token
@@ -457,13 +480,13 @@ jobs:
         run: |
           set -euo pipefail
           TAG="v${VERSION}"
-          EXISTING_DRAFT="$(gh release list \
-            --limit 100 \
-            --json tagName,isDraft \
-            --jq ".[] | select(.tagName == \"${TAG}\") | .isDraft")"
+          LOOKUP_ERROR="$RUNNER_TEMP/release-lookup-error"
 
-          if [[ -n "$EXISTING_DRAFT" ]]; then
-            if [[ "$EXISTING_DRAFT" != "true" ]]; then
+          if IS_DRAFT="$(gh api \
+            "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" \
+            --jq '.draft' \
+            2>"$LOOKUP_ERROR")"; then
+            if [[ "$IS_DRAFT" != "true" ]]; then
               echo "::error::Release ${TAG} already exists and is not a draft"
               exit 1
             fi
@@ -475,7 +498,7 @@ jobs:
               --title "${TAG} - ${TITLE}" \
               --notes "$NOTES"
             gh release upload "$TAG" Release/boringNotch.dmg --clobber
-          else
+          elif grep -q '(HTTP 404)' "$LOOKUP_ERROR"; then
             RELEASE_FLAGS=(--draft)
             if [[ "${IS_BETA}" == "true" ]]; then
               RELEASE_FLAGS+=(--prerelease)
@@ -485,60 +508,36 @@ jobs:
               --title "${TAG} - ${TITLE}" \
               --notes "$NOTES" \
               "${RELEASE_FLAGS[@]}"
-          fi
-
-      - name: Merge release PR
-        if: env.IS_BETA == 'false'
-        env:
-          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
-        run: |
-          set -euo pipefail
-          MERGED=false
-
-          for attempt in 1 2 3 4 5; do
-            RESPONSE=""
-            if RESPONSE="$(gh api \
-              --method PUT \
-              "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/merge" \
-              --field sha="$SOURCE_SHA" \
-              --field merge_method=merge \
-              --field commit_title="Release version v${VERSION}" \
-              2>"$RUNNER_TEMP/merge-error")" && \
-              [[ "$(jq -r '.merged' <<< "$RESPONSE")" == "true" ]]; then
-              MERGED=true
-              break
-            fi
-
-            if ! PR_DATA="$(gh api \
-              "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" \
-              2>>"$RUNNER_TEMP/merge-error")"; then
-              cat "$RUNNER_TEMP/merge-error" >&2 || true
-              echo "Could not reconcile PR merge; retrying (${attempt}/5)"
-              sleep $((attempt * 2))
-              continue
-            fi
-            if [[ "$(jq -r '.merged' <<< "$PR_DATA")" == "true" && \
-                  "$(jq -r '.head.sha' <<< "$PR_DATA")" == "$SOURCE_SHA" ]]; then
-              echo "PR #${PR_NUMBER} was already merged at the expected head."
-              MERGED=true
-              break
-            fi
-
-            CURRENT_HEAD="$(jq -r '.head.sha' <<< "$PR_DATA")"
-            if [[ "$CURRENT_HEAD" != "$SOURCE_SHA" ]]; then
-              echo "::error::PR head moved from ${SOURCE_SHA} to ${CURRENT_HEAD}; refusing to merge unbuilt code"
-              exit 1
-            fi
-
-            cat "$RUNNER_TEMP/merge-error" >&2 || true
-            echo "PR merge is not ready; retrying (${attempt}/5)"
-            sleep $((attempt * 2))
-          done
-
-          if [[ "$MERGED" != "true" ]]; then
-            echo "::error::Could not merge PR #${PR_NUMBER} at ${SOURCE_SHA}"
+          else
+            cat "$LOOKUP_ERROR" >&2
+            echo "::error::Could not determine whether release ${TAG} already exists"
             exit 1
           fi
+
+      - name: Commit stable appcast to release branch
+        id: commit_stable_appcast
+        if: env.IS_BETA == 'false'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin "$HEAD_REF"
+          CURRENT_HEAD="$(git rev-parse "origin/$HEAD_REF")"
+          if [[ "$CURRENT_HEAD" != "$SOURCE_SHA" ]]; then
+            echo "::error::Release branch moved from ${SOURCE_SHA} to ${CURRENT_HEAD}; refusing to publish an appcast for unbuilt code"
+            exit 1
+          fi
+
+          git checkout -B release-appcast "$SOURCE_SHA"
+          cp "$RUNNER_TEMP/appcast-stable.xml" updater/appcast.xml
+          git add updater/appcast.xml
+          if ! git diff --cached --quiet; then
+            git commit -m "Update appcast for v${VERSION}"
+          fi
+
+          RELEASE_HEAD_SHA="$(git rev-parse HEAD)"
+          git push origin "HEAD:${HEAD_REF}"
+          echo "release_head_sha=$RELEASE_HEAD_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Publish GitHub release
         env:
@@ -555,7 +554,8 @@ jobs:
           echo "::error::Could not publish v${VERSION} after 5 attempts"
           exit 1
 
-      - name: Commit published appcast
+      - name: Commit published beta appcast
+        if: env.IS_BETA == 'true'
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -566,17 +566,10 @@ jobs:
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git checkout -B release-appcast origin/main
-
-            if [[ "${IS_BETA}" == "true" ]]; then
-              python3 "$RUNNER_TEMP/merge_appcast_channel.py" \
-                updater/appcast.xml \
-                "$RUNNER_TEMP/appcast-${BETA_CHANNEL_NAME}.xml" \
-                "$BETA_CHANNEL_NAME"
-              COMMIT_MESSAGE="Update appcast with beta release for v${VERSION}"
-            else
-              cp "$RUNNER_TEMP/appcast-stable.xml" updater/appcast.xml
-              COMMIT_MESSAGE="Update appcast for v${VERSION}"
-            fi
+            python3 "$RUNNER_TEMP/merge_appcast_channel.py" \
+              updater/appcast.xml \
+              "$RUNNER_TEMP/appcast-${BETA_CHANNEL_NAME}.xml" \
+              "$BETA_CHANNEL_NAME"
 
             git add updater/appcast.xml
             if git diff --cached --quiet; then
@@ -585,7 +578,7 @@ jobs:
               break
             fi
 
-            git commit -m "$COMMIT_MESSAGE"
+            git commit -m "Update appcast with beta release for v${VERSION}"
             if git push origin HEAD:main; then
               APPCAST_PUBLISHED=true
               break
@@ -714,13 +707,92 @@ jobs:
       ALL_RESULTS: ${{ join(needs.*.result, ',') }}
       RELEASE_SUCCEEDED: ${{ !contains(join(needs.*.result, ','), 'failure') && !contains(join(needs.*.result, ','), 'cancelled') }}
     steps:
+      - name: Create release app token
+        id: release_app_token
+        if: needs.preparation.outputs.is_beta == 'false' && env.RELEASE_SUCCEEDED == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
+          permission-workflows: write
+
+      - name: Merge release PR
+        id: merge_release_pr
+        if: needs.preparation.outputs.is_beta == 'false' && env.RELEASE_SUCCEEDED == 'true'
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          EXPECTED_BASE_SHA: ${{ needs.preparation.outputs.base_sha }}
+          EXPECTED_HEAD_SHA: ${{ needs.publish.outputs.release_head_sha }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          VERSION: ${{ needs.preparation.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$EXPECTED_BASE_SHA" || -z "$EXPECTED_HEAD_SHA" ]]; then
+            echo "::error::Missing expected release branch SHAs"
+            exit 1
+          fi
+
+          for attempt in 1 2 3 4 5; do
+            if ! PR_DATA="$(gh api \
+              "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" \
+              2>"$RUNNER_TEMP/merge-error")"; then
+              cat "$RUNNER_TEMP/merge-error" >&2 || true
+              echo "Could not read PR state; retrying (${attempt}/5)"
+              sleep $((attempt * 2))
+              continue
+            fi
+            CURRENT_HEAD_SHA="$(jq -r '.head.sha' <<< "$PR_DATA")"
+            CURRENT_BASE_SHA="$(jq -r '.base.sha' <<< "$PR_DATA")"
+
+            if [[ "$(jq -r '.merged' <<< "$PR_DATA")" == "true" && \
+                  "$CURRENT_HEAD_SHA" == "$EXPECTED_HEAD_SHA" ]]; then
+              echo "PR #${PR_NUMBER} was already merged at the expected head."
+              exit 0
+            fi
+
+            if [[ "$CURRENT_HEAD_SHA" != "$EXPECTED_HEAD_SHA" ]]; then
+              echo "::error::PR head moved from ${EXPECTED_HEAD_SHA} to ${CURRENT_HEAD_SHA}; refusing to merge unexpected code"
+              exit 1
+            fi
+
+            if [[ "$CURRENT_BASE_SHA" != "$EXPECTED_BASE_SHA" ]]; then
+              echo "::error::main moved from ${EXPECTED_BASE_SHA} to ${CURRENT_BASE_SHA} after the release build; synchronize and rebuild"
+              exit 1
+            fi
+
+            if RESPONSE="$(gh api \
+              --method PUT \
+              "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/merge" \
+              --field sha="$EXPECTED_HEAD_SHA" \
+              --field merge_method=merge \
+              --field commit_title="Release version v${VERSION}" \
+              2>>"$RUNNER_TEMP/merge-error")" && \
+              [[ "$(jq -r '.merged' <<< "$RESPONSE")" == "true" ]]; then
+              exit 0
+            fi
+
+            cat "$RUNNER_TEMP/merge-error" >&2 || true
+            echo "PR merge is not ready; retrying (${attempt}/5)"
+            sleep $((attempt * 2))
+          done
+
+          echo "::error::Could not merge PR #${PR_NUMBER} at ${EXPECTED_HEAD_SHA}"
+          exit 1
+
       - name: React to trigger comment
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IS_BETA: ${{ needs.preparation.outputs.is_beta }}
+          MERGE_OUTCOME: ${{ steps.merge_release_pr.outcome }}
         run: |
           REPO="${{ github.repository }}"
           COMMENT_ID="${{ github.event.comment.id }}"
-          if [[ "$ALL_RESULTS" != *"failure"* && "$ALL_RESULTS" != *"cancelled"* ]]; then
+          if [[ "$ALL_RESULTS" != *"failure"* && "$ALL_RESULTS" != *"cancelled"* && \
+                ( "$IS_BETA" == "true" || "$MERGE_OUTCOME" == "success" ) ]]; then
             REACTION="rocket"
           else
             REACTION="confused"
@@ -729,10 +801,12 @@ jobs:
             -f content="$REACTION" --silent
 
       - name: Summary
+        if: always()
         env:
           IS_BETA: ${{ needs.preparation.outputs.is_beta }}
           VERSION: ${{ needs.preparation.outputs.version }}
           BUILD_NUMBER: ${{ needs.reserve_build_number.outputs.build_number }}
+          MERGE_OUTCOME: ${{ steps.merge_release_pr.outcome }}
         shell: bash
         run: |
           if [[ "${IS_BETA}" == "true" ]]; then
@@ -740,8 +814,14 @@ jobs:
           else
             BUILD_TYPE="stable"
           fi
+
+          FINAL_SUCCEEDED="$RELEASE_SUCCEEDED"
+          if [[ "$IS_BETA" == "false" && "$MERGE_OUTCOME" != "success" ]]; then
+            FINAL_SUCCEEDED=false
+          fi
+
           {
-            if [[ "${RELEASE_SUCCEEDED}" == "true" ]]; then
+            if [[ "$FINAL_SUCCEEDED" == "true" ]]; then
               echo "✅ Released boringNotch v${VERSION} (${BUILD_TYPE} build ${BUILD_NUMBER})"
               echo "🍺 Homebrew cask updated"
               echo "📱 Sparkle appcast updated"

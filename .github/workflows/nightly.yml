@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: nightly-dev
+  group: dev-publication
   cancel-in-progress: false
 
 permissions:
