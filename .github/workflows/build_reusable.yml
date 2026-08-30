@@ -30,10 +30,6 @@ on:
         required: true
       KEYCHAIN_PASSWORD:
         required: true
-      commit_version_changes:
-        required: false
-        type: boolean
-        default: true
 
 jobs:
   build:
