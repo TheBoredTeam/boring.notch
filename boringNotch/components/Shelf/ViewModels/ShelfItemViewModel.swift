@@ -34,6 +34,23 @@ final class ShelfItemViewModel: ObservableObject {
         static let copy = NSLocalizedString("Shelf.ContextMenu.Copy", comment: "Context menu item: Copy")
         static let copyPath = NSLocalizedString("Shelf.ContextMenu.CopyPath", comment: "Context menu item: Copy Path")
         static let remove = NSLocalizedString("Shelf.ContextMenu.Remove", comment: "Context menu item: Remove")
+        static let backgroundRemovalFailed = NSLocalizedString("Background Removal Failed", comment: "Background removal error alert title")
+        static let pdfCreationFailed = NSLocalizedString("PDF Creation Failed", comment: "PDF creation error alert title")
+        static let imageConversionFailed = NSLocalizedString("Image Conversion Failed", comment: "Image conversion error alert title")
+        static let convertImageAlertTitle = NSLocalizedString("Convert Image", comment: "Image conversion alert title")
+        static let convertButton = NSLocalizedString("Convert", comment: "Button title that starts image conversion")
+        static let cancelButton = NSLocalizedString("Cancel", comment: "Cancel button title")
+        static let formatLabel = NSLocalizedString("Format:", comment: "Image conversion format field label")
+        static let imageSizeLabel = NSLocalizedString("Image Size:", comment: "Image conversion size field label")
+        static let actualSizeOption = NSLocalizedString("Actual Size", comment: "Image conversion size option")
+        static let largeOption = NSLocalizedString("Large", comment: "Image conversion size option")
+        static let mediumOption = NSLocalizedString("Medium", comment: "Image conversion size option")
+        static let smallOption = NSLocalizedString("Small", comment: "Image conversion size option")
+        static let customSizeOption = NSLocalizedString("Custom...", comment: "Image conversion custom size option")
+        static let customSizePlaceholder = NSLocalizedString("e.g., 1920", comment: "Image conversion custom size placeholder")
+        static let preserveMetadata = NSLocalizedString("Preserve Metadata", comment: "Image conversion metadata checkbox title")
+        static let compressionLabel = NSLocalizedString("Compression:", comment: "Image conversion compression field label")
+        static let okButton = NSLocalizedString("OK", comment: "OK button title")
     }
 
     private enum ContextMenuAction: String {
@@ -840,7 +857,7 @@ final class ShelfItemViewModel: ObservableObject {
                     }
                 } catch {
                     print("❌ Failed to remove background: \(error.localizedDescription)")
-                    showErrorAlert(title: "Background Removal Failed", message: error.localizedDescription)
+                    showErrorAlert(title: Strings.backgroundRemovalFailed, message: error.localizedDescription)
                 }
             }
         }
@@ -870,7 +887,7 @@ final class ShelfItemViewModel: ObservableObject {
                     }
                 } catch {
                     print("❌ Failed to create PDF: \(error.localizedDescription)")
-                    showErrorAlert(title: "PDF Creation Failed", message: error.localizedDescription)
+                    showErrorAlert(title: Strings.pdfCreationFailed, message: error.localizedDescription)
                 }
             }
         }
@@ -884,17 +901,17 @@ final class ShelfItemViewModel: ObservableObject {
             
             // Create and show conversion options dialog with better layout
             let alert = NSAlert()
-            alert.messageText = "Convert Image"
+            alert.messageText = Strings.convertImageAlertTitle
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "Convert")
-            alert.addButton(withTitle: "Cancel")
+            alert.addButton(withTitle: Strings.convertButton)
+            alert.addButton(withTitle: Strings.cancelButton)
             
             // Create accessory view with better spacing and organization
             let accessoryView = NSView(frame: NSRect(x: 0, y: 0, width: 380, height: 180))
             accessoryView.wantsLayer = true
             
             // MARK: Format Row
-            let formatLabel = NSTextField(labelWithString: "Format:")
+            let formatLabel = NSTextField(labelWithString: Strings.formatLabel)
             formatLabel.frame = NSRect(x: 0, y: 145, width: 100, height: 20)
             formatLabel.font = .systemFont(ofSize: 12, weight: .medium)
             accessoryView.addSubview(formatLabel)
@@ -906,26 +923,32 @@ final class ShelfItemViewModel: ObservableObject {
             accessoryView.addSubview(formatPopup)
             
             // MARK: Image Size Row
-            let imageSizeLabel = NSTextField(labelWithString: "Image Size:")
+            let imageSizeLabel = NSTextField(labelWithString: Strings.imageSizeLabel)
             imageSizeLabel.frame = NSRect(x: 0, y: 105, width: 100, height: 20)
             imageSizeLabel.font = .systemFont(ofSize: 12, weight: .medium)
             accessoryView.addSubview(imageSizeLabel)
             
             let imageSizePopup = NSPopUpButton(frame: NSRect(x: 120, y: 100, width: 160, height: 28))
-            imageSizePopup.addItems(withTitles: ["Actual Size", "Large", "Medium", "Small", "Custom..."])
+            imageSizePopup.addItems(withTitles: [
+                Strings.actualSizeOption,
+                Strings.largeOption,
+                Strings.mediumOption,
+                Strings.smallOption,
+                Strings.customSizeOption
+            ])
             imageSizePopup.selectItem(at: 0)
             imageSizePopup.font = .systemFont(ofSize: 12)
             accessoryView.addSubview(imageSizePopup)
             
             // Custom size field (initially hidden)
             let customSizeField = NSTextField(frame: NSRect(x: 285, y: 103, width: 85, height: 22))
-            customSizeField.placeholderString = "e.g., 1920"
+            customSizeField.placeholderString = Strings.customSizePlaceholder
             customSizeField.font = .systemFont(ofSize: 12)
             customSizeField.isHidden = true
             accessoryView.addSubview(customSizeField)
             
             // MARK: Preserve Metadata Checkbox
-            let metadataCheckbox = NSButton(checkboxWithTitle: "Preserve Metadata", target: nil, action: nil)
+            let metadataCheckbox = NSButton(checkboxWithTitle: Strings.preserveMetadata, target: nil, action: nil)
             metadataCheckbox.frame = NSRect(x: 120, y: 65, width: 200, height: 20)
             metadataCheckbox.font = .systemFont(ofSize: 12)
             metadataCheckbox.state = .on
@@ -941,7 +964,7 @@ final class ShelfItemViewModel: ObservableObject {
             let qualityRow = NSView(frame: NSRect(x: 0, y: 15, width: 380, height: 30))
             qualityRow.wantsLayer = true
             
-            let qualityLabel = NSTextField(labelWithString: "Compression:")
+            let qualityLabel = NSTextField(labelWithString: Strings.compressionLabel)
             qualityLabel.frame = NSRect(x: 0, y: 7, width: 100, height: 20)
             qualityLabel.font = .systemFont(ofSize: 12, weight: .medium)
             qualityRow.addSubview(qualityLabel)
@@ -1078,7 +1101,7 @@ final class ShelfItemViewModel: ObservableObject {
                         }
                     } catch {
                         print("❌ Failed to convert image: \(error.localizedDescription)")
-                        showErrorAlert(title: "Image Conversion Failed", message: error.localizedDescription)
+                        showErrorAlert(title: Strings.imageConversionFailed, message: error.localizedDescription)
                     }
                 }
             }
@@ -1090,7 +1113,7 @@ final class ShelfItemViewModel: ObservableObject {
             alert.messageText = title
             alert.informativeText = message
             alert.alertStyle = .warning
-            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: Strings.okButton)
             alert.runModal()
         }
     }
