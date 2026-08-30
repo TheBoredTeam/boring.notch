@@ -5,11 +5,6 @@
 Only the latest release (and the `main` branch) receives security fixes.
 Beta builds on the `dev` branch are development snapshots.
 
-| Version | Supported |
-| ------- | --------- |
-| latest release | ✅ |
-| older releases | ❌ |
-
 ## Reporting a Vulnerability
 
 The Bored Team and community take security bugs in Boring Notch seriously. We appreciate your efforts to responsibly disclose your findings, and will make every effort to acknowledge your contributions.
