@@ -122,7 +122,6 @@ jobs:
     permissions:
       contents: write
     env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       BRANCH_NAME: ${{ needs.prepare.outputs.branch_name }}
       COMMIT_SHA: ${{ needs.prepare.outputs.commit_sha }}
       SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
@@ -132,6 +131,16 @@ jobs:
       ASSET_NAME: ${{ needs.prepare.outputs.asset_name }}
       COMMIT_MESSAGE: ${{ needs.prepare.outputs.commit_message }}
     steps:
+      - name: Create release app token
+        id: release_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
+          permission-workflows: write
+
       - name: Checkout reserved nightly source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -151,7 +160,7 @@ jobs:
       - name: Create embedded release notes
         run: |
           ESCAPED_COMMIT_MESSAGE="$(printf '%s' "$COMMIT_MESSAGE" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')"
-          cat > Release/boringNotch.html <<HTML
+          cat > "Release/${ASSET_NAME%.dmg}.html" <<HTML
           <h2>Nightly ${BRANCH_NAME}</h2>
           <p>Commit: <code>${COMMIT_SHA}</code></p>
           <p>Message: ${ESCAPED_COMMIT_MESSAGE}</p>
@@ -250,29 +259,45 @@ jobs:
             -o "updater/${APPCAST_FILE}" \
             Release/
 
-      - name: Create immutable nightly release
+      - name: Publish immutable nightly release
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
         run: |
           set -euo pipefail
           TITLE="Nightly ${BRANCH_NAME}"
           NOTES="Automated nightly build for ${BRANCH_NAME}. Commit: ${SHORT_SHA}"
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Release $TAG already exists; keeping immutable release."
-          else
-            gh release create "$TAG" \
-              --title "$TITLE" \
-              --notes "$NOTES" \
+          LOOKUP_ERROR="$RUNNER_TEMP/release-lookup-error"
+
+          if IS_DRAFT="$(gh api \
+            "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" \
+            --jq '.draft' \
+            2>"$LOOKUP_ERROR")"; then
+            if [[ "$IS_DRAFT" == "false" ]]; then
+              echo "Release $TAG is already published; keeping immutable release."
+              exit 0
+            fi
+
+            gh release edit "$TAG" \
+              --draft \
               --prerelease \
-              --target "$SOURCE_SHA"
+              --target "$SOURCE_SHA" \
+              --title "$TITLE" \
+              --notes "$NOTES"
+          elif grep -q '(HTTP 404)' "$LOOKUP_ERROR"; then
+            gh release create "$TAG" \
+              --draft \
+              --prerelease \
+              --target "$SOURCE_SHA" \
+              --title "$TITLE" \
+              --notes "$NOTES"
+          else
+            cat "$LOOKUP_ERROR" >&2
+            echo "::error::Could not determine whether release $TAG already exists"
+            exit 1
           fi
 
-      - name: Upload immutable nightly DMG
-        run: |
-          set -euo pipefail
-          if gh release view "$TAG" --json assets --jq '.assets[].name' | grep -Fxq "$ASSET_NAME"; then
-            echo "Asset $ASSET_NAME already exists in $TAG; skipping upload."
-          else
-            gh release upload "$TAG" "Release/${ASSET_NAME}"
-          fi
+          gh release upload "$TAG" "Release/${ASSET_NAME}" --clobber
+          gh release edit "$TAG" --draft=false
 
       - name: Commit branch appcast pointer
         run: |
