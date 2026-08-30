@@ -145,7 +145,7 @@ struct DraggableProgressBar: View {
                         }
                 )
             }
-            .frame(height: Defaults[.inlineHUD] ? isDragging ? 8 : 5 : isDragging ? 9 : 6)
+            .frame(height: Defaults[.hudStyle] == .inline ? isDragging ? 8 : 5 : isDragging ? 9 : 6)
         }
     }
     

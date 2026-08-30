@@ -51,6 +51,15 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(value: "Focus") {
+                    Label("Focus", systemImage: "timer")
+                }
+                NavigationLink(value: "System") {
+                    Label("System", systemImage: "cpu")
+                }
+                NavigationLink(value: "Projects") {
+                    Label("Projects", systemImage: "hammer.fill")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -85,6 +94,12 @@ struct SettingsView: View {
                     Charge()
                 case "Shelf":
                     Shelf()
+                case "Focus":
+                    FocusSettings()
+                case "System":
+                    SystemSettingsView()
+                case "Projects":
+                    ProjectsSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -464,7 +479,7 @@ struct Charge: View {
 
 struct HUD: View {
     @EnvironmentObject var vm: BoringViewModel
-    @Default(.inlineHUD) var inlineHUD
+    @Default(.hudStyle) var hudStyle
     @Default(.enableGradient) var enableGradient
     @Default(.optionKeyAction) var optionKeyAction
     @Default(.hudReplacement) var hudReplacement
@@ -549,21 +564,21 @@ struct HUD: View {
             .disabled(!hudReplacement)
             
             Section {
-                Picker("HUD style", selection: $inlineHUD) {
-                    Text("Default")
-                        .tag(false)
-                    Text("Inline")
-                        .tag(true)
+                Picker("HUD style", selection: $hudStyle) {
+                    ForEach(HUDStyle.allCases) { style in
+                        Text(style.rawValue).tag(style)
+                    }
                 }
-                .onChange(of: Defaults[.inlineHUD]) {
-                    if Defaults[.inlineHUD] {
+                .onChange(of: Defaults[.hudStyle]) {
+                    // Inline draws its own slim bar; clear effects that don't apply.
+                    if Defaults[.hudStyle] == .inline {
                         withAnimation {
                             Defaults[.systemEventIndicatorShadow] = false
                             Defaults[.enableGradient] = false
                         }
                     }
                 }
-                
+
                 Defaults.Toggle(key: .showClosedNotchHUDPercentage) {
                     Text("Show percentage")
                 }
@@ -1174,6 +1189,10 @@ struct Appearance: View {
     @State private var speed: CGFloat = 1.0
     var body: some View {
         Form {
+            // Accent color + notch theme live here in Appearance (where users
+            // look), not buried in Advanced.
+            AccentThemeSettings()
+
             Section {
                 Toggle("Always show tabs", isOn: $coordinator.alwaysShowTabs)
                 Defaults.Toggle(key: .settingsIconInNotch) {
@@ -1410,153 +1429,15 @@ struct Appearance: View {
 }
 
 struct Advanced: View {
-    @Default(.useCustomAccentColor) var useCustomAccentColor
-    @Default(.customAccentColorData) var customAccentColorData
     @Default(.extendHoverArea) var extendHoverArea
     @Default(.showOnLockScreen) var showOnLockScreen
     @Default(.hideFromScreenRecording) var hideFromScreenRecording
-    
-    @State private var customAccentColor: Color = .accentColor
-    @State private var selectedPresetColor: PresetAccentColor? = nil
+
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
-    
-    // macOS accent colors
-    enum PresetAccentColor: String, CaseIterable, Identifiable {
-        case blue = "Blue"
-        case purple = "Purple"
-        case pink = "Pink"
-        case red = "Red"
-        case orange = "Orange"
-        case yellow = "Yellow"
-        case green = "Green"
-        case graphite = "Graphite"
-        
-        var id: String { self.rawValue }
-        
-        var color: Color {
-            switch self {
-            case .blue: return Color(red: 0.0, green: 0.478, blue: 1.0)
-            case .purple: return Color(red: 0.686, green: 0.322, blue: 0.871)
-            case .pink: return Color(red: 1.0, green: 0.176, blue: 0.333)
-            case .red: return Color(red: 1.0, green: 0.271, blue: 0.227)
-            case .orange: return Color(red: 1.0, green: 0.584, blue: 0.0)
-            case .yellow: return Color(red: 1.0, green: 0.8, blue: 0.0)
-            case .green: return Color(red: 0.4, green: 0.824, blue: 0.176)
-            case .graphite: return Color(red: 0.557, green: 0.557, blue: 0.576)
-            }
-        }
-    }
-    
+
     var body: some View {
         Form {
-            Section {
-                VStack(alignment: .leading, spacing: 16) {
-                    // Toggle between system and custom
-                    Picker("Accent color", selection: $useCustomAccentColor) {
-                        Text("System").tag(false)
-                        Text("Custom").tag(true)
-                    }
-                    .pickerStyle(.segmented)
-                    
-                    if !useCustomAccentColor {
-                        // System accent info
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack(spacing: 12) {
-                                AccentCircleButton(
-                                    isSelected: true,
-                                    color: .accentColor,
-                                    isSystemDefault: true
-                                ) {}
-                                
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Using System Accent")
-                                        .font(.body)
-                                    Text("Your macOS system accent color")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                            }
-                        }
-                    } else {
-                        // Custom color options
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Color Presets")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.secondary)
-                            
-                            HStack(spacing: 12) {
-                                ForEach(PresetAccentColor.allCases) { preset in
-                                    AccentCircleButton(
-                                        isSelected: selectedPresetColor == preset,
-                                        color: preset.color,
-                                        isMulticolor: false
-                                    ) {
-                                        selectedPresetColor = preset
-                                        customAccentColor = preset.color
-                                        saveCustomColor(preset.color)
-                                        forceUiUpdate()
-                                    }
-                                }
-                                Spacer()
-                            }
-                            
-                            Divider()
-                                .padding(.vertical, 4)
-                            
-                            // Custom color picker
-                            HStack(spacing: 12) {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Pick a Color")
-                                        .font(.body)
-                                    Text("Choose any color")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                
-                                Spacer()
-                                
-                                ColorPicker(selection: Binding(
-                                    get: { customAccentColor },
-                                    set: { newColor in
-                                        customAccentColor = newColor
-                                        selectedPresetColor = nil
-                                        saveCustomColor(newColor)
-                                        forceUiUpdate()
-                                    }
-                                ), supportsOpacity: false) {
-                                    ZStack {
-                                        Circle()
-                                            .fill(customAccentColor)
-                                            .frame(width: 32, height: 32)
-                                        
-                                        if selectedPresetColor == nil {
-                                            Circle()
-                                                .strokeBorder(.primary.opacity(0.3), lineWidth: 2)
-                                                .frame(width: 32, height: 32)
-                                        }
-                                    }
-                                }
-                                .labelsHidden()
-                            }
-                        }
-                    }
-                }
-                .padding(.vertical, 4)
-            } header: {
-                Text("Accent color")
-            } footer: {
-                Text("Choose between your system accent color or customize it with your own selection.")
-                    .multilineTextAlignment(.trailing)
-                    .foregroundStyle(.secondary)
-                    .font(.caption)
-            }
-            .onAppear {
-                initializeAccentColorState()
-            }
-            
             Section {
                 Defaults.Toggle(key: .enableShadow) {
                     Text("Enable window shadow")
@@ -1631,18 +1512,177 @@ struct Advanced: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Advanced")
-        .onAppear {
-            loadCustomColor()
+    }
+}
+
+// MARK: - Accent & Theme Settings (shown in the Appearance tab)
+/// Self-contained accent-color picker + notch-theme toggles. Lives in its own
+/// view so it can sit in the Appearance tab (where users look for it) rather
+/// than being buried in Advanced.
+struct AccentThemeSettings: View {
+    @Default(.useCustomAccentColor) var useCustomAccentColor
+    @Default(.customAccentColorData) var customAccentColorData
+
+    @State private var customAccentColor: Color = .accentColor
+    @State private var selectedPresetColor: PresetAccentColor? = nil
+
+    // macOS-style accent presets.
+    enum PresetAccentColor: String, CaseIterable, Identifiable {
+        case blue = "Blue"
+        case indigo = "Indigo"
+        case purple = "Purple"
+        case lavender = "Lavender"
+        case magenta = "Magenta"
+        case pink = "Pink"
+        case rose = "Rose"
+        case red = "Red"
+        case coral = "Coral"
+        case orange = "Orange"
+        case gold = "Gold"
+        case yellow = "Yellow"
+        case lime = "Lime"
+        case green = "Green"
+        case mint = "Mint"
+        case teal = "Teal"
+        case cyan = "Cyan"
+        case brown = "Brown"
+        case graphite = "Graphite"
+
+        var id: String { self.rawValue }
+
+        var color: Color {
+            switch self {
+            case .blue:     return Color(red: 0.0,   green: 0.478, blue: 1.0)
+            case .indigo:   return Color(red: 0.345, green: 0.337, blue: 0.839)
+            case .purple:   return Color(red: 0.686, green: 0.322, blue: 0.871)
+            case .lavender: return Color(red: 0.65,  green: 0.55,  blue: 0.93)
+            case .magenta:  return Color(red: 0.90,  green: 0.20,  blue: 0.70)
+            case .pink:     return Color(red: 1.0,   green: 0.176, blue: 0.333)
+            case .rose:     return Color(red: 0.96,  green: 0.44,  blue: 0.56)
+            case .red:      return Color(red: 1.0,   green: 0.271, blue: 0.227)
+            case .coral:    return Color(red: 1.0,   green: 0.45,  blue: 0.38)
+            case .orange:   return Color(red: 1.0,   green: 0.584, blue: 0.0)
+            case .gold:     return Color(red: 0.90,  green: 0.68,  blue: 0.13)
+            case .yellow:   return Color(red: 1.0,   green: 0.8,   blue: 0.0)
+            case .lime:     return Color(red: 0.62,  green: 0.83,  blue: 0.22)
+            case .green:    return Color(red: 0.4,   green: 0.824, blue: 0.176)
+            case .mint:     return Color(red: 0.16,  green: 0.82,  blue: 0.63)
+            case .teal:     return Color(red: 0.19,  green: 0.69,  blue: 0.78)
+            case .cyan:     return Color(red: 0.20,  green: 0.78,  blue: 0.90)
+            case .brown:    return Color(red: 0.64,  green: 0.52,  blue: 0.37)
+            case .graphite: return Color(red: 0.557, green: 0.557, blue: 0.576)
+            }
         }
     }
-    
+
+    var body: some View {
+        Group {
+            Section {
+                VStack(alignment: .leading, spacing: 16) {
+                    Picker("Accent color", selection: $useCustomAccentColor) {
+                        Text("System").tag(false)
+                        Text("Custom").tag(true)
+                    }
+                    .pickerStyle(.segmented)
+
+                    if !useCustomAccentColor {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 12) {
+                                AccentCircleButton(isSelected: true, color: .accentColor, isSystemDefault: true) {}
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Using System Accent").font(.body)
+                                    Text("Your macOS system accent color")
+                                        .font(.caption).foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                            }
+                        }
+                    } else {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Color Presets")
+                                .font(.caption).fontWeight(.semibold).foregroundStyle(.secondary)
+
+                            LazyVGrid(
+                                columns: [GridItem(.adaptive(minimum: 36, maximum: 44), spacing: 12)],
+                                alignment: .leading, spacing: 12
+                            ) {
+                                ForEach(PresetAccentColor.allCases) { preset in
+                                    AccentCircleButton(
+                                        isSelected: selectedPresetColor == preset,
+                                        color: preset.color,
+                                        isMulticolor: false
+                                    ) {
+                                        selectedPresetColor = preset
+                                        customAccentColor = preset.color
+                                        saveCustomColor(preset.color)
+                                        forceUiUpdate()
+                                    }
+                                    .help(preset.rawValue)
+                                }
+                            }
+
+                            Divider().padding(.vertical, 4)
+
+                            HStack(spacing: 12) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Pick a Color").font(.body)
+                                    Text("Choose any color").font(.caption).foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                ColorPicker(selection: Binding(
+                                    get: { customAccentColor },
+                                    set: { newColor in
+                                        customAccentColor = newColor
+                                        selectedPresetColor = nil
+                                        saveCustomColor(newColor)
+                                        forceUiUpdate()
+                                    }
+                                ), supportsOpacity: false) {
+                                    ZStack {
+                                        Circle().fill(customAccentColor).frame(width: 32, height: 32)
+                                        if selectedPresetColor == nil {
+                                            Circle().strokeBorder(.primary.opacity(0.3), lineWidth: 2)
+                                                .frame(width: 32, height: 32)
+                                        }
+                                    }
+                                }
+                                .labelsHidden()
+                            }
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            } header: {
+                Text("Accent color")
+            } footer: {
+                Text("Choose between your system accent color or customize it with your own selection.")
+                    .multilineTextAlignment(.trailing).foregroundStyle(.secondary).font(.caption)
+            }
+            .onAppear { initializeAccentColorState() }
+
+            Section {
+                Defaults.Toggle(key: .tabsMulticolor) {
+                    Text("Multicolor tab icons")
+                }
+                Defaults.Toggle(key: .notchTintedBackground) {
+                    Text("Tinted notch background")
+                }
+            } header: {
+                Text("Notch theme")
+            } footer: {
+                Text("Give each tab icon its own color, and tint the open notch background with your accent color.")
+                    .multilineTextAlignment(.trailing).foregroundStyle(.secondary).font(.caption)
+            }
+        }
+        .onAppear { loadCustomColor() }
+    }
+
     private func forceUiUpdate() {
-        // Force refresh the UI
         DispatchQueue.main.async {
             NotificationCenter.default.post(name: Notification.Name("AccentColorChanged"), object: nil)
         }
     }
-    
+
     private func saveCustomColor(_ color: Color) {
         let nsColor = NSColor(color)
         if let colorData = try? NSKeyedArchiver.archivedData(withRootObject: nsColor, requiringSecureCoding: false) {
@@ -1650,13 +1690,11 @@ struct Advanced: View {
             forceUiUpdate()
         }
     }
-    
+
     private func loadCustomColor() {
         if let colorData = Defaults[.customAccentColorData],
            let nsColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: colorData) {
             customAccentColor = Color(nsColor: nsColor)
-            
-            // Check if loaded color matches a preset
             selectedPresetColor = nil
             for preset in PresetAccentColor.allCases {
                 if colorsAreEqual(Color(nsColor: nsColor), preset.color) {
@@ -1666,19 +1704,18 @@ struct Advanced: View {
             }
         }
     }
-    
+
     private func colorsAreEqual(_ color1: Color, _ color2: Color) -> Bool {
         let nsColor1 = NSColor(color1).usingColorSpace(.sRGB) ?? NSColor(color1)
         let nsColor2 = NSColor(color2).usingColorSpace(.sRGB) ?? NSColor(color2)
-        
         return abs(nsColor1.redComponent - nsColor2.redComponent) < 0.01 &&
                abs(nsColor1.greenComponent - nsColor2.greenComponent) < 0.01 &&
                abs(nsColor1.blueComponent - nsColor2.blueComponent) < 0.01
     }
-    
+
     private func initializeAccentColorState() {
         if !useCustomAccentColor {
-            selectedPresetColor = nil // Multicolor is selected when useCustomAccentColor is false
+            selectedPresetColor = nil
         } else {
             loadCustomColor()
         }
