@@ -44,19 +44,28 @@ final class NotificationWatcher {
     private var live: [String: AXUIElement] = [:]
 
     /// Banners being deliberately kept alive so their reply field stays
-    /// usable, and of those, the ones moved off-screen.
+    /// usable.
     private var held: Set<String> = []
-    private var heldOffScreen: Set<String> = []
+    /// Held banners whose window is currently parked off-screen:
+    /// token → key of the parked window. The key is
+    /// `Int(bitPattern: CFHash(window))` — AXUIElement hashing is
+    /// identity-based (the same underlying element hashes equal across the
+    /// fresh wrapper objects each AX copy returns), so a parked window can
+    /// be re-identified later by scanning the app's current windows.
+    private var parkedWindowByToken: [String: Int] = [:]
+    /// Parked window key → the position the window had before it was first
+    /// parked, so it can be restored when the last hold on it ends.
+    private var parkedWindowOrigins: [Int: CGPoint] = [:]
     private var lastRefresh = Date.distantPast
 
     /// Effective notch-open state, pushed by the app over XPC. Gates every
     /// focus-affecting part of the keep-alive: re-performing the details
     /// toggle expands a banner, and an expanded banner's reply field seizes
     /// keyboard focus even with the window parked off-screen (macOS does
-    /// not unfocus off-screen windows) — so the toggle may only run while
-    /// the notch is open. Parking in hold(token:) is focus-neutral and
-    /// stays unconditional. Defaults to false: never steal focus before
-    /// being told.
+    /// not unfocus off-screen windows) — so the toggle, and the off-screen
+    /// park in hold(token:) that hides the expanded banner, both run only
+    /// while the notch is open. Defaults to false: never steal focus
+    /// before being told.
     var notchOpen: Bool = false {
         didSet {
             if notchOpen, !oldValue {
@@ -85,6 +94,12 @@ final class NotificationWatcher {
     private let activePollInterval: TimeInterval = 0.35
     private let idlePollInterval: TimeInterval = 0.5
     private var currentPollInterval: TimeInterval = 0
+
+    /// Serial queue for reply work. Driving a banner's AX hierarchy needs
+    /// bounded waiting — for the reply field to appear, then for the send
+    /// to be accepted — and the helper's main queue, which runs the banner
+    /// poll and the hold keep-alive, must never block on that.
+    private let replyQueue = DispatchQueue(label: "BoringNotchXPCHelper.reply", qos: .userInitiated)
 
     var isRunning: Bool { appElement != nil }
 
@@ -128,6 +143,11 @@ final class NotificationWatcher {
     func stop() {
         pollTimer?.cancel()
         pollTimer = nil
+        // Put any still-parked windows back before dropping the app element
+        // — restoreParkedWindow needs it to re-identify the windows.
+        for token in Array(parkedWindowByToken.keys) {
+            restoreParkedWindow(forToken: token)
+        }
         appElement = nil
         live.removeAll()
         // Correctness hygiene rather than the fix for a live leak: once
@@ -137,7 +157,6 @@ final class NotificationWatcher {
         // leaving stale tokens around after a stop/restart cycle is still
         // wrong, so clear them explicitly.
         held.removeAll()
-        heldOffScreen.removeAll()
         skipLogged.removeAll()
     }
 
@@ -167,7 +186,7 @@ final class NotificationWatcher {
 
         for token in live.keys where !seen.contains(token) {
             live[token] = nil
-            heldOffScreen.remove(token)
+            restoreParkedWindow(forToken: token)
             skipLogged.remove(token)
             onBannerGone?(token)
         }
@@ -237,29 +256,46 @@ final class NotificationWatcher {
         }
     }
 
-    /// Holds a banner open so its reply field stays usable, moving it
-    /// off-screen first.
+    /// Holds a banner open so its reply field stays usable, parking the
+    /// banner's window off-screen while the notch is open.
     ///
-    /// The move is not optional. Holding a banner works by re-performing
-    /// its details toggle, which leaves it expanded — showing its own reply
-    /// field, on top of everything, taking focus. Two live text fields
-    /// competing for the same keystrokes is worse than no keep-alive at
-    /// all, so the banner is parked off-screen for the whole hold and the
-    /// notch is the only visible surface.
+    /// Holding keeps the banner alive via the details toggle, which leaves
+    /// it expanded — showing its own reply field, on top of everything,
+    /// taking focus. Two live text fields competing for the same keystrokes
+    /// is worse than no keep-alive at all, so while the notch is open the
+    /// window is parked off-screen and the notch is the only visible
+    /// surface.
     ///
-    /// Safe to leave behind: with no banners showing, notificationcenterui
-    /// has zero windows — the window is created per session and destroyed
-    /// after — so a moved window can't permanently hide notifications. A
-    /// fresh one always spawns at its normal position.
+    /// The park is gated on notchOpen, consistent with the keep-alive gate
+    /// in refreshHeldBanners: with the notch closed the banner keeps its
+    /// normal visible life and expires naturally (the app re-calls hold
+    /// when the notch opens, which is where a closed-notch hold gets
+    /// parked). The window is Notification Center's shared window — parking
+    /// it also hides every unrelated banner in it — so the original
+    /// position is recorded on first park and restored when the last
+    /// parked hold on it ends (release, banner-gone, stop).
     func hold(token: String) {
         guard let banner = live[token] else { return }
         held.insert(token)
 
-        guard !heldOffScreen.contains(token) else { return }
-        heldOffScreen.insert(token)
+        guard parkedWindowByToken[token] == nil else { return } // already parked
+        guard notchOpen else { return } // park only while the notch is open
+
         guard let windowValue = banner[kAXWindowAttribute],
               CFGetTypeID(windowValue as CFTypeRef) == AXUIElementGetTypeID() else { return }
         let window = windowValue as! AXUIElement
+        let key = Int(bitPattern: CFHash(window))
+
+        // Record the original position on the FIRST park of this window —
+        // a second banner parking the same window must not overwrite it
+        // with the off-screen point. If the origin can't be read, don't
+        // park at all: an unrestorable move is worse than a visible banner.
+        if parkedWindowOrigins[key] == nil {
+            guard let origin = window.cgPointAttribute(kAXPositionAttribute) else { return }
+            parkedWindowOrigins[key] = origin
+        }
+        parkedWindowByToken[token] = key
+
         var target = CGPoint(x: -5000, y: -5000)
         if let position = AXValueCreate(.cgPoint, &target) {
             AXUIElementSetAttributeValue(window, kAXPositionAttribute as CFString, position)
@@ -269,12 +305,41 @@ final class NotificationWatcher {
     /// Stops holding a banner and lets it dismiss naturally.
     func release(token: String) {
         held.remove(token)
-        heldOffScreen.remove(token)
         skipLogged.remove(token)
+        restoreParkedWindow(forToken: token)
         guard let banner = live[token] else { return }
         if let close = rawAction(on: banner, matching: { $0.localizedCaseInsensitiveContains("close") }) {
             AXUIElementPerformAction(banner, close as CFString)
         }
+    }
+
+    /// Ends the off-screen park for a token, if it had one. The window is
+    /// moved back to its recorded origin only when no other parked token
+    /// still references it; a window that no longer exists just drops the
+    /// bookkeeping.
+    private func restoreParkedWindow(forToken token: String) {
+        guard let key = parkedWindowByToken.removeValue(forKey: token) else { return }
+        guard !parkedWindowByToken.values.contains(key) else { return }
+        guard let origin = parkedWindowOrigins.removeValue(forKey: key) else { return }
+        guard let window = currentWindow(matching: key) else { return }
+        var point = origin
+        if let value = AXValueCreate(.cgPoint, &point) {
+            AXUIElementSetAttributeValue(window, kAXPositionAttribute as CFString, value)
+        }
+    }
+
+    /// Re-identifies a parked window among the app's current windows by its
+    /// recorded CFHash key. Returns nil when the window is gone —
+    /// Notification Center destroys the window when its last banner leaves,
+    /// and a fresh one always spawns at the normal position, so nothing is
+    /// lost by not restoring it.
+    private func currentWindow(matching key: Int) -> AXUIElement? {
+        guard let appElement else { return nil }
+        for window in (appElement[kAXWindowsAttribute] as? [AXUIElement]) ?? [] {
+            guard window[kAXSubroleAttribute] as? String == "AXSystemDialog" else { continue }
+            if Int(bitPattern: CFHash(window)) == key { return window }
+        }
+        return nil
     }
 
     /// Measured, not assumed: once a banner leaves the screen its
@@ -490,6 +555,27 @@ final class NotificationWatcher {
 
     // MARK: - Acting on a banner
 
+    /// XPC-facing entry point for replying. Watcher state (`live`) lives on
+    /// the main queue, so the banner element is resolved there; the AX
+    /// driving — the part with bounded waits — runs on `replyQueue`, and
+    /// the completion is invoked from there. XPC reply blocks are safe to
+    /// call later and from any thread.
+    func replyOnQueue(token: String, text: String, completion: @escaping (Bool) -> Void) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, let banner = self.element(for: token) else {
+                completion(false)
+                return
+            }
+            self.replyQueue.async { [weak self] in
+                guard let self else {
+                    completion(false)
+                    return
+                }
+                completion(self.reply(token: token, text: text, on: banner))
+            }
+        }
+    }
+
     /// Types into the banner's reply field and submits it. Only works while
     /// the banner is on screen and the source app offers a reply field; the
     /// caller falls back to opening the app otherwise.
@@ -503,11 +589,17 @@ final class NotificationWatcher {
     /// banners/apps that don't expose it. Either way the field is submitted
     /// via the "Send" action on the banner — not kAXConfirmAction on the
     /// field, which is untested and unreliable across text-area
-    /// implementations.
-    func reply(token: String, text: String) -> Bool {
-        guard let banner = element(for: token) else { return false }
-
-        if replyField(in: banner) == nil {
+    /// implementations. Matching actions by English substring is a known,
+    /// documented limitation: a non-English system simply reports failure.
+    ///
+    /// Must run on `replyQueue` (via replyOnQueue), never on the main
+    /// queue: the bounded waits below would stall the banner poll and the
+    /// hold keep-alive.
+    private func reply(token: String, text: String, on banner: AXUIElement) -> Bool {
+        let field: AXUIElement
+        if let existing = replyField(in: banner) {
+            field = existing
+        } else {
             if let action = rawAction(on: banner, matching: { $0.localizedCaseInsensitiveContains("reply") })
                 ?? rawAction(on: banner, matching: { $0.localizedCaseInsensitiveContains("details") }) {
                 AXUIElementPerformAction(banner, action as CFString)
@@ -515,26 +607,91 @@ final class NotificationWatcher {
                 ($0[kAXTitleAttribute] as? String)?.lowercased().contains("reply") == true
             }) {
                 AXUIElementPerformAction(button, kAXPressAction as CFString)
+            } else {
+                NSLog("[boringNotch] reply failed for \(token): banner exposes no reply affordance")
+                return false
             }
-            // Thread.sleep, not RunLoop.run: there's no CFRunLoop to advance
-            // in an XPC service, so RunLoop.run(until:) returns immediately
-            // and the reply field wouldn't have appeared yet.
-            Thread.sleep(forTimeInterval: 0.4)
+            guard let appeared = waitForReplyField(in: banner) else {
+                NSLog("[boringNotch] reply failed for \(token): reply field never appeared after expanding the banner")
+                return false
+            }
+            field = appeared
         }
 
-        guard let field = replyField(in: banner) else { return false }
         AXUIElementSetAttributeValue(field, kAXFocusedAttribute as CFString, kCFBooleanTrue)
         guard AXUIElementSetAttributeValue(field, kAXValueAttribute as CFString, text as CFString) == .success
-        else { return false }
-
-        if let send = rawAction(on: banner, matching: { $0.localizedCaseInsensitiveContains("send") }) {
-            return AXUIElementPerformAction(banner, send as CFString) == .success
+        else {
+            NSLog("[boringNotch] reply failed for \(token): could not set the reply field's value")
+            return false
         }
-        return AXUIElementPerformAction(field, kAXConfirmAction as CFString) == .success
+
+        let sendAccepted: Bool
+        if let send = rawAction(on: banner, matching: { $0.localizedCaseInsensitiveContains("send") }) {
+            sendAccepted = AXUIElementPerformAction(banner, send as CFString) == .success
+        } else {
+            sendAccepted = AXUIElementPerformAction(field, kAXConfirmAction as CFString) == .success
+        }
+        guard sendAccepted else {
+            NSLog("[boringNotch] reply failed for \(token): the send action was not accepted")
+            return false
+        }
+
+        guard verifyReplyAccepted(field: field) else {
+            NSLog("[boringNotch] reply failed for \(token): banner did not accept the reply (field still filled after send)")
+            return false
+        }
+        NSLog("[boringNotch] reply sent for \(token): banner accepted it (field cleared)")
+        return true
     }
 
-    private func replyField(in element: AXUIElement, depth: Int = 0) -> AXUIElement? {
-        descendants(of: element, matching: [kAXTextFieldRole, kAXTextAreaRole]).first
+    /// Bounded poll for the reply field to appear after the reveal action —
+    /// the banner rebuilds its hierarchy asynchronously, so the field shows
+    /// up some tens of milliseconds later, or never for banners without
+    /// reply support. 50ms slices, ~1.2s cap.
+    ///
+    /// Thread.sleep, not RunLoop.run: there's no CFRunLoop to advance in an
+    /// XPC service, so RunLoop.run(until:) returns immediately and the reply
+    /// field wouldn't have appeared yet. The sleep is safe because this
+    /// runs on `replyQueue` — it used to run on the main queue, stalling
+    /// the banner poll and the hold keep-alive, which is what moved it.
+    private func waitForReplyField(in banner: AXUIElement, timeout: TimeInterval = 1.2) -> AXUIElement? {
+        let deadline = Date().addingTimeInterval(timeout)
+        while true {
+            if let field = replyField(in: banner) { return field }
+            guard Date() < deadline else { return nil }
+            Thread.sleep(forTimeInterval: 0.05)
+        }
+    }
+
+    /// Post-send verification: a banner that accepted the reply empties the
+    /// field, or tears it down entirely as the banner collapses; a field
+    /// still holding the text a second later means the send did not take.
+    /// 50ms slices, ~1s cap.
+    ///
+    /// Honest scope: this verifies the banner *accepted* the reply — the
+    /// part that is observable through AX. It cannot verify network
+    /// delivery to the recipient; that stays a documented limitation, and
+    /// a true result means "accepted by Notification Center", nothing more.
+    private func verifyReplyAccepted(field: AXUIElement, timeout: TimeInterval = 1.0) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while true {
+            var value: CFTypeRef?
+            // An AX error means the field was destroyed with the sent
+            // banner's collapse — that counts as accepted.
+            guard AXUIElementCopyAttributeValue(field, kAXValueAttribute as CFString, &value) == .success
+            else { return true }
+            if (value as? String)?.isEmpty == true { return true }
+            guard Date() < deadline else { return false }
+            Thread.sleep(forTimeInterval: 0.05)
+        }
+    }
+
+    private func replyField(in element: AXUIElement) -> AXUIElement? {
+        let fields = descendants(of: element, matching: [kAXTextFieldRole, kAXTextAreaRole])
+        // Prefer the focused field: after the details toggle the banner
+        // moves focus to its reply box, so focus is a stronger signal than
+        // document order. Fall back to the first text descendant.
+        return fields.first(where: { ($0[kAXFocusedAttribute] as? Bool) == true }) ?? fields.first
     }
 
     /// Performs a named AX action on the banner, or presses the button with
@@ -592,5 +749,17 @@ private extension AXUIElement {
         var value: CFTypeRef?
         guard AXUIElementCopyAttributeValue(self, attribute as CFString, &value) == .success else { return nil }
         return value
+    }
+
+    /// Reads a CGPoint-valued AX attribute, guarding every cast and type
+    /// check on the way out.
+    func cgPointAttribute(_ attribute: String) -> CGPoint? {
+        guard let value = self[attribute],
+              CFGetTypeID(value as CFTypeRef) == AXValueGetTypeID() else { return nil }
+        let axValue = value as! AXValue
+        guard AXValueGetType(axValue) == .cgPoint else { return nil }
+        var point = CGPoint.zero
+        guard AXValueGetValue(axValue, .cgPoint, &point) else { return nil }
+        return point
     }
 }
