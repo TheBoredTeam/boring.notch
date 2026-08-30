@@ -1,14 +1,11 @@
 # SwiftLint configuration for boring.notch
 # Run with: swiftlint --config .swiftlint.yml
-# CI wiring is tracked as a follow-up (needs a lint-capable runner).
 
-# Paths to check
 included:
   - boringNotch
   - BoringNotchXPCHelper
   - Shared
 
-# Paths to ignore
 excluded:
   - boringNotch/Assets.xcassets
   - mediaremote-adapter
@@ -40,7 +37,6 @@ force_cast:
 force_try:
   severity: error
 
-# Opt-in rules matching the house style established during remediation
 opt_in_rules:
   - empty_count
   - empty_string
