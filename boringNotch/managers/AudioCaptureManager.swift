@@ -108,7 +108,9 @@ final class AudioCaptureManager: ObservableObject {
         fftQueue.setSpecific(key: Self.fftQueueKey, value: ())
         lifecycleQueue.setSpecific(key: Self.lifecycleQueueKey, value: ())
         computeBandRanges(sampleRate: sampleRate)
-        observeState()
+        Task { @MainActor [weak self] in
+            self?.observeState()
+        }
     }
 
     deinit {
@@ -154,6 +156,7 @@ final class AudioCaptureManager: ObservableObject {
 
     // MARK: - State observation
 
+    @MainActor
     private func observeState() {
         let music = MusicManager.shared
         let enabledPublisher = Defaults.publisher(.realtimeAudioWaveform)
