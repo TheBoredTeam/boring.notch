@@ -17,6 +17,7 @@ class CalendarManager: ObservableObject {
 
     @Published var currentWeekStartDate: Date
     @Published var events: [EventModel] = []
+    @Published var indicatorEvents: [Date: [Color]] = [:]
     @Published var allCalendars: [CalendarModel] = []
     @Published var eventCalendars: [CalendarModel] = []
     @Published var reminderLists: [CalendarModel] = []
@@ -191,14 +192,46 @@ class CalendarManager: ObservableObject {
             calendars: calendarIDs
         )
         self.events = eventsResult
+        
+        let indicatorStart = Calendar.current.date(byAdding: .day, value: -14, to: currentWeekStartDate)!
+        let indicatorEnd = Calendar.current.date(byAdding: .day, value: 30, to: currentWeekStartDate)!
+        
+        let indicatorEventsResult = await calendarService.events(
+            from: indicatorStart,
+            to: indicatorEnd,
+            calendars: calendarIDs
+        )
+        
+        var newIndicators: [Date: [Color]] = [:]
+        for event in indicatorEventsResult {
+            if event.type.isReminder {
+                if case .reminder(let completed) = event.type {
+                    if completed && Defaults[.hideCompletedReminders] { continue }
+                }
+            }
+            if event.isAllDay && Defaults[.hideAllDayEvents] { continue }
+            
+            let color = Color(event.calendar.color)
+            
+            var currentDate = Calendar.current.startOfDay(for: event.start)
+            let endDate = Calendar.current.startOfDay(for: event.end)
+            
+            while currentDate <= endDate {
+                if newIndicators[currentDate] == nil {
+                    newIndicators[currentDate] = []
+                }
+                if !newIndicators[currentDate]!.contains(color) && newIndicators[currentDate]!.count < 4 {
+                    newIndicators[currentDate]!.append(color)
+                }
+                currentDate = Calendar.current.date(byAdding: .day, value: 1, to: currentDate)!
+            }
+        }
+        self.indicatorEvents = newIndicators
     }
     
     func setReminderCompleted(reminderID: String, completed: Bool) async {
         await calendarService.setReminderCompleted(reminderID: reminderID, completed: completed)
         // Refresh events after updating
-        events = await calendarService.events(
-            from: currentWeekStartDate,
-            to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!,
-            calendars: selectedCalendars.map { $0.id })
+        await updateEvents()
     }
 }
