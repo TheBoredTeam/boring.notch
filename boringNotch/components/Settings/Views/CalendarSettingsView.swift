@@ -48,6 +48,7 @@ struct CalendarSettings: View {
                     }
                 }
             }
+            DailyPlanningSettingsSection()
             Section(header: Text("Calendars")) {
                 if calendarManager.calendarAuthorizationStatus != .fullAccess {
                     Text("Calendar access is denied. Please enable it in System Settings.")

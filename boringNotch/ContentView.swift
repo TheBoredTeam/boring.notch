@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var dailyPlanningManager = DailyPlanningManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -59,6 +60,10 @@ struct ContentView: View {
             return cornerRadiusInsets.opened.top
         }
 
+        if isShowingPendingWorkflowNotification {
+            return 12
+        }
+
         // For the closed notch, scale if enabled
         let baseClosedTop = cornerRadiusInsets.closed.top
         guard let scaleFactor = cornerRadiusScaleFactor else {
@@ -74,6 +79,8 @@ struct ContentView: View {
 
         if vm.notchState == .open {
             bottomCorner = cornerRadiusInsets.opened.bottom
+        } else if isShowingPendingWorkflowNotification {
+            bottomCorner = 12
         } else if let scaleFactor = cornerRadiusScaleFactor {
             bottomCorner = max(0, baseClosedBottom * scaleFactor)
         } else {
@@ -91,6 +98,8 @@ struct ContentView: View {
 
         if shouldDisplayNowPlayingFallbackNotice {
             chinWidth = nowPlayingFallbackNoticeWidth
+        } else if isShowingPendingWorkflowNotification {
+            chinWidth += 246
         } else if coordinator.expandingView.type == .battery && coordinator.expandingView.show
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
@@ -131,6 +140,35 @@ struct ContentView: View {
 
     private var displayClosedNotchHeight: CGFloat { isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight }
 
+    private var isShowingPendingWorkflowNotification: Bool {
+        DailyWorkflowPresentationPolicy.shouldShowPendingPrompt(
+            hasPendingSession: dailyPlanningManager.isAwaitingPresentation,
+            isNotchClosed: vm.notchState == .closed,
+            isClosedOSDVisible: isShowingClosedNotchOSD,
+            isPowerNotificationVisible: isShowingPowerNotification,
+            isGreetingAnimationVisible: coordinator.helloAnimationRunning
+        )
+    }
+
+    private var isShowingClosedNotchOSD: Bool {
+        guard
+            vm.notchState == .closed,
+            coordinator.shouldShowSneakPeek(on: vm.screenUUID)
+        else {
+            return false
+        }
+
+        let type = coordinator.sneakPeekState(for: vm.screenUUID).type
+        return type != .music && type != .battery
+    }
+
+    private var isShowingPowerNotification: Bool {
+        coordinator.expandingView.type == .battery
+            && coordinator.expandingView.show
+            && vm.notchState == .closed
+            && Defaults[.showPowerStatusNotifications]
+    }
+
     var body: some View {
         @Bindable var dropInteraction = vm.dropInteraction
 
@@ -147,24 +185,29 @@ struct ContentView: View {
                     .frame(alignment: .top)
                     .padding(
                         .horizontal,
-                        vm.notchState == .open ? cornerRadiusInsets.opened.top : cornerRadiusInsets.closed.bottom
+                        vm.notchState == .open
+                            ? cornerRadiusInsets.opened.top
+                            : cornerRadiusInsets.closed.bottom
                     )
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
                     .background(.black)
                     .clipShape(currentNotchShape)
-                          .overlay(alignment: .top) {
-                              displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
-                        : Rectangle()
-                            .fill(.black)
-                            .frame(height: 1)
-                            .padding(.horizontal, topCornerRadius)
+                    .overlay(alignment: .top) {
+                        displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
+                            : Rectangle()
+                                .fill(.black)
+                                .frame(height: 1)
+                                .padding(.horizontal, topCornerRadius)
                     }
                     .shadow(
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
                             ? .black.opacity(0.7) : .clear, radius: 6
                     )
                     // Removed conditional bottom padding when using custom 0 notch to keep layout stable
-                    .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
+                    .opacity(
+                        (isNotchHeightZero && vm.notchState == .closed
+                            && !dailyPlanningManager.isAwaitingPresentation) ? 0.01 : 1
+                    )
                 
                 mainLayout
                     .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
@@ -179,7 +222,7 @@ struct ContentView: View {
                     }
                     .onTapGesture {
                         if vm.notchState == .closed && !shouldDisplayNowPlayingFallbackNotice {
-                            doOpen()
+                            doOpen(activatingPendingWorkflow: true)
                         }
                     }
                     .conditionalModifier(Defaults[.enableGestures] && !shouldDisplayNowPlayingFallbackNotice) { view in
@@ -258,6 +301,7 @@ struct ContentView: View {
                         .frame(width: computedChinWidth, height: vm.chinHeight)
                 }
             }
+            .animation(StandardAnimations.open, value: isShowingPendingWorkflowNotification)
         }
         .padding(.bottom, 8)
         .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
@@ -360,15 +404,33 @@ struct ContentView: View {
                               gestureProgress: $gestureProgress
                           )
                               .transition(.opacity)
+                      } else if let session = dailyPlanningManager.pendingSession,
+                          isShowingPendingWorkflowNotification
+                      {
+                          DailyWorkflowNotificationView(
+                              session: session,
+                              notchWidth: vm.hasNotch ? vm.closedNotchSize.width + 10 : 0,
+                              height: max(32, displayClosedNotchHeight)
+                          )
+                          .transition(
+                              .opacity
+                                  .combined(with: .scale(scale: 0.94, anchor: .top))
+                                  .combined(with: .move(edge: .top))
+                          )
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
-                           BoringHeader()
-                               .frame(height: max(24, displayClosedNotchHeight))
-                               .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
+                           if dailyPlanningManager.isPresenting || dailyPlanningManager.isFinishingSession {
+                               Color.clear
+                                   .frame(height: max(24, displayClosedNotchHeight))
+                           } else {
+                               BoringHeader()
+                                   .frame(height: max(24, displayClosedNotchHeight))
+                                   .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
+                           }
                        }
                         // New case to enable compact notch on external displays
                         else if !vm.hasNotch {
@@ -434,6 +496,8 @@ struct ContentView: View {
                             dropInteraction: vm.dropInteraction,
                             animation: vm.animation
                         )
+                    case .dailyPlanning:
+                        DailyPlanningView()
                     }
                 }
                 .transition(
@@ -634,9 +698,18 @@ struct ContentView: View {
     }
 
     @discardableResult
-    private func doOpen() -> Bool {
+    private func doOpen(activatingPendingWorkflow: Bool = false) -> Bool {
         var didOpen = false
         withAnimation(animationSpring) {
+            if activatingPendingWorkflow,
+                isShowingPendingWorkflowNotification,
+                let screenUUID = vm.screenUUID
+            {
+                coordinator.selectedScreenUUID = screenUUID
+                if dailyPlanningManager.activatePendingSession() {
+                    coordinator.currentView = .dailyPlanning
+                }
+            }
             didOpen = vm.open()
         }
         return didOpen
@@ -657,10 +730,13 @@ struct ContentView: View {
                 haptics.toggle()
             }
             
+            let hasPendingWorkflow = isShowingPendingWorkflowNotification
             guard vm.notchState == .closed,
                   !shouldDisplayNowPlayingFallbackNotice,
-                  !coordinator.shouldShowSneakPeek(on: vm.screenUUID),
-                  Defaults[.openNotchOnHover] else { return }
+                  hasPendingWorkflow
+                      || (!coordinator.shouldShowSneakPeek(on: vm.screenUUID)
+                          && Defaults[.openNotchOnHover])
+            else { return }
             
             hoverTask = Task {
                 try? await Task.sleep(for: .seconds(Defaults[.minimumHoverDuration]))
@@ -670,9 +746,11 @@ struct ContentView: View {
                     guard self.vm.notchState == .closed,
                           self.isHovering,
                           !self.shouldDisplayNowPlayingFallbackNotice,
-                          !self.coordinator.shouldShowSneakPeek(on: self.vm.screenUUID) else { return }
+                          self.isShowingPendingWorkflowNotification
+                              || !self.coordinator.shouldShowSneakPeek(on: self.vm.screenUUID)
+                    else { return }
                     
-                    self.doOpen()
+                    self.doOpen(activatingPendingWorkflow: true)
                 }
             }
         } else {
@@ -685,7 +763,12 @@ struct ContentView: View {
                         self.isHovering = false
                     }
                     
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                    if self.vm.notchState == .open,
+                        !self.vm.isBatteryPopoverActive,
+                        !SharingStateManager.shared.preventNotchClose,
+                        !self.dailyPlanningManager.isFinishingSession
+                    {
+                        self.dailyPlanningManager.returnActiveSessionToPrompt()
                         self.vm.close()
                     }
                 }
@@ -714,12 +797,15 @@ struct ContentView: View {
             withAnimation(animationSpring) {
                 gestureProgress = .zero
             }
-            doOpen()
+            doOpen(activatingPendingWorkflow: true)
         }
     }
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
+        guard vm.notchState == .open,
+            coordinator.currentView != .dailyPlanning,
+            !vm.isHoveringCalendar
+        else { return }
 
         withAnimation(animationSpring) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20

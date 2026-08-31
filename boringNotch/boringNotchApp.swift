@@ -75,6 +75,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var whatsNewWindow: NSWindow?
     var timer: Timer?
     var closeNotchTask: Task<Void, Never>?
+    var dailyWorkflowDismissTask: Task<Void, Never>?
     private var previousScreens: [NSScreen]?
     private var onboardingWindowController: NSWindowController?
     private var screenLockedObserver: Any?
@@ -464,6 +465,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupDragDetectors()
 
+        Task { @MainActor [weak self] in
+            let manager = DailyPlanningManager.shared
+            manager.onNeedsPresentation = { [weak self] in
+                self?.presentDailyWorkflow()
+            }
+            manager.onDidFinish = { [weak self] in
+                self?.dismissDailyWorkflow()
+            }
+            manager.start()
+        }
+
         if coordinator.firstLaunch {
             DispatchQueue.main.async {
                 self.showOnboardingWindow()
@@ -476,6 +488,41 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // make sure OSD subsystems are in the right state now that initial
         // notch windows have been created/cleaned up
         coordinator.applyOSDSources()
+    }
+
+    @MainActor
+    private func presentDailyWorkflow() {
+        guard DailyPlanningManager.shared.isPresenting else { return }
+
+        closeNotchTask?.cancel()
+        closeNotchTask = nil
+        dailyWorkflowDismissTask?.cancel()
+        dailyWorkflowDismissTask = nil
+        coordinator.currentView = .dailyPlanning
+
+        if Defaults[.showOnAllDisplays] {
+            let preferredViewModel = viewModels[coordinator.selectedScreenUUID] ?? viewModels.values.first
+            _ = preferredViewModel?.open()
+        } else {
+            _ = vm.open()
+        }
+    }
+
+    @MainActor
+    private func dismissDailyWorkflow() {
+        vm.close()
+        viewModels.values.forEach { $0.close() }
+
+        dailyWorkflowDismissTask?.cancel()
+        dailyWorkflowDismissTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 550_000_000)
+            guard !Task.isCancelled, let self else { return }
+
+            // The daily view stays empty until every notch window has finished closing.
+            self.coordinator.currentView = .home
+            DailyPlanningManager.shared.completeFinishingSession()
+            self.dailyWorkflowDismissTask = nil
+        }
     }
 
     func playWelcomeSound() {
@@ -587,6 +634,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // windows might have been added/removed during the earlier logic –
         // update the OSD subsystems accordingly.
         coordinator.applyOSDSources()
+
+        if DailyPlanningManager.shared.isPresenting {
+            Task { @MainActor in
+                self.presentDailyWorkflow()
+            }
+        }
     }
 
     @objc func togglePopover(_ sender: Any?) {
