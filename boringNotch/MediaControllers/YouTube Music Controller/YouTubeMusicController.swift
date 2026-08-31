@@ -114,7 +114,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
 
     func isActive() -> Bool {
         NSWorkspace.shared.runningApplications.contains {
-            $0.bundleIdentifier == configuration.bundleIdentifier
+            configuration.supports(bundleIdentifier: $0.bundleIdentifier)
         }
     }
     
@@ -185,7 +185,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
     
     private func handleAppLaunched(_ notification: Notification) async {
         guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
-              app.bundleIdentifier == configuration.bundleIdentifier else {
+              configuration.supports(bundleIdentifier: app.bundleIdentifier) else {
             return
         }
         
@@ -195,7 +195,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
     
     private func handleAppTerminated(_ notification: Notification) async {
         guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
-              app.bundleIdentifier == configuration.bundleIdentifier else {
+                            configuration.supports(bundleIdentifier: app.bundleIdentifier) else {
             return
         }
 
@@ -458,6 +458,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
     
     private func updatePlaybackState(with response: PlaybackResponse) async {
         var newState = playbackState
+        newState.bundleIdentifier = activeBundleIdentifier() ?? configuration.bundleIdentifier
         
         newState.isPlaying = !response.isPaused
 
@@ -523,16 +524,24 @@ final class YouTubeMusicController: MediaControllerProtocol {
     
     private func resetPlaybackState() {
         playbackState = PlaybackState(
-            bundleIdentifier: configuration.bundleIdentifier,
+            bundleIdentifier: activeBundleIdentifier() ?? configuration.bundleIdentifier,
             isPlaying: false
         )
     }
     
     private func launchApp() {
-        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: configuration.bundleIdentifier) else {
-            return
+        for bundleIdentifier in configuration.bundleIdentifiers {
+            if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier) {
+                NSWorkspace.shared.open(url)
+                return
+            }
         }
-        NSWorkspace.shared.open(url)
+    }
+
+    private func activeBundleIdentifier() -> String? {
+        NSWorkspace.shared.runningApplications.first {
+            configuration.supports(bundleIdentifier: $0.bundleIdentifier)
+        }?.bundleIdentifier
     }
 
      private func updateRepeatMode(_ mode: String) {
