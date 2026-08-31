@@ -44,6 +44,7 @@ struct ContentView: View {
 
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
+    private let nowPlayingFallbackNoticeWidth: CGFloat = 330
 
     // MARK: - Corner Radius Scaling
     private var cornerRadiusScaleFactor: CGFloat? {
@@ -95,7 +96,9 @@ struct ContentView: View {
     private var computedChinWidth: CGFloat {
         var chinWidth: CGFloat = vm.closedNotchSize.width
 
-        if isShowingPendingWorkflowNotification {
+        if shouldDisplayNowPlayingFallbackNotice {
+            chinWidth = nowPlayingFallbackNoticeWidth
+        } else if isShowingPendingWorkflowNotification {
             chinWidth += 246
         } else if coordinator.expandingView.type == .battery && coordinator.expandingView.show
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
@@ -114,6 +117,21 @@ struct ContentView: View {
         }
 
         return chinWidth
+    }
+
+    private var shouldDisplayNowPlayingFallbackNotice: Bool {
+        guard musicManager.nowPlayingNotice != nil else { return false }
+
+        let selectedScreen = NSScreen.screen(withUUID: coordinator.selectedScreenUUID)
+        let targetScreenUUID = selectedScreen?.displayUUID ?? NSScreen.main?.displayUUID
+        let currentScreen = vm.screenUUID.flatMap { NSScreen.screen(withUUID: $0) }
+        let isConnected = vm.screenUUID == nil || currentScreen != nil
+        let isTargetDisplay = vm.screenUUID == nil || vm.screenUUID == targetScreenUUID
+
+        return isConnected
+            && isTargetDisplay
+            && vm.notchState == .closed
+            && !isNotchHeightZero
     }
 
     // If the closed notch height is 0 (any display/setting), display a 10pt nearly-invisible notch
@@ -152,6 +170,8 @@ struct ContentView: View {
     }
 
     var body: some View {
+        @Bindable var dropInteraction = vm.dropInteraction
+
         // Calculate scale based on gesture progress only
         let gestureScale: CGFloat = {
             guard gestureProgress != 0 else { return 1.0 }
@@ -201,21 +221,23 @@ struct ContentView: View {
                         handleHover(hovering)
                     }
                     .onTapGesture {
-                        doOpen(activatingPendingWorkflow: true)
+                        if vm.notchState == .closed && !shouldDisplayNowPlayingFallbackNotice {
+                            doOpen(activatingPendingWorkflow: true)
+                        }
                     }
-                    .conditionalModifier(Defaults[.enableGestures]) { view in
+                    .conditionalModifier(Defaults[.enableGestures] && !shouldDisplayNowPlayingFallbackNotice) { view in
                         view
                             .panGesture(direction: .down) { translation, phase in
                                 handleDownGesture(translation: translation, phase: phase)
                             }
                     }
-                    .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
+                    .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures] && !shouldDisplayNowPlayingFallbackNotice) { view in
                         view
                             .panGesture(direction: .up) { translation, phase in
                                 handleUpGesture(translation: translation, phase: phase)
                             }
                     }
-                    .conditionalModifier(Defaults[.enableHorizontalMediaGestures] && Defaults[.enableGestures]) { view in
+                    .conditionalModifier(Defaults[.enableHorizontalMediaGestures] && Defaults[.enableGestures] && !shouldDisplayNowPlayingFallbackNotice) { view in
                         view
                             .panGesture(direction: .left) { translation, phase in
                                 handleNextTrackGesture(translation: translation, phase: phase)
@@ -294,7 +316,7 @@ struct ContentView: View {
         .background(dragDetector)
         .preferredColorScheme(.dark)
         .environmentObject(vm)
-        .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
+        .onChange(of: dropInteraction.anyDropZoneTargeting) { _, isTargeted in
             anyDropDebounceTask?.cancel()
 
             if isTargeted {
@@ -310,12 +332,12 @@ struct ContentView: View {
                 try? await Task.sleep(for: .milliseconds(500))
                 guard !Task.isCancelled else { return }
 
-                if vm.dropEvent {
-                    vm.dropEvent = false
+                if dropInteraction.dropEvent {
+                    dropInteraction.dropEvent = false
                     return
                 }
 
-                vm.dropEvent = false
+                dropInteraction.dropEvent = false
                 if !SharingStateManager.shared.preventNotchClose {
                     vm.close()
                 }
@@ -325,6 +347,8 @@ struct ContentView: View {
 
     @ViewBuilder
     func NotchLayout() -> some View {
+        @Bindable var dropInteraction = vm.dropInteraction
+
         VStack(alignment: .leading) {
             VStack(alignment: .leading) {
                 if coordinator.helloAnimationRunning {
@@ -338,7 +362,11 @@ struct ContentView: View {
                     .padding(.top, 40)
                     Spacer()
                 } else {
-                    if coordinator.expandingView.type == .battery && coordinator.expandingView.show
+                    if shouldDisplayNowPlayingFallbackNotice,
+                       let notice = musicManager.nowPlayingNotice {
+                        nowPlayingFallbackNotice(notice)
+                            .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .top)))
+                    } else if coordinator.expandingView.type == .battery && coordinator.expandingView.show
                         && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
                     {
                         HStack(spacing: 0) {
@@ -464,7 +492,10 @@ struct ContentView: View {
                             isHoveringMusicArea: $isHoveringMusicArea
                         )
                     case .shelf:
-                        ShelfView()
+                        ShelfView(
+                            dropInteraction: vm.dropInteraction,
+                            animation: vm.animation
+                        )
                     case .dailyPlanning:
                         DailyPlanningView()
                     }
@@ -479,7 +510,52 @@ struct ContentView: View {
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
         }
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
+        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))
+    }
+
+    private func nowPlayingFallbackNotice(_ notice: NowPlayingFallbackNotice) -> some View {
+        HStack(spacing: 11) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(Color.orange)
+                .frame(width: 24, height: 24)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(notice.title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+
+                Text(notice.subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.62))
+            }
+            .lineLimit(2)
+
+            Spacer(minLength: 5)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 9)
+        .frame(width: nowPlayingFallbackNoticeWidth)
+        .frame(minHeight: 58)
+        .accessibilityElement(children: .combine)
+        .onAppear {
+            if musicManager.markNowPlayingNoticePresented(notice.id) {
+                announceNowPlayingFallbackNotice(notice)
+            }
+        }
+    }
+
+    private func announceNowPlayingFallbackNotice(_ notice: NowPlayingFallbackNotice) {
+        let announcement = "\(String(localized: notice.title)). \(String(localized: notice.subtitle))."
+        NSAccessibility.post(
+            element: NSApplication.shared,
+            notification: .announcementRequested,
+            userInfo: [
+                .announcement: announcement,
+                .priority: NSAccessibilityPriorityLevel.high.rawValue,
+            ]
+        )
     }
 
     @ViewBuilder
@@ -605,12 +681,14 @@ struct ContentView: View {
 
     @ViewBuilder
     var dragDetector: some View {
-        if Defaults[.boringShelf] && vm.notchState == .closed {
+        @Bindable var dropInteraction = vm.dropInteraction
+
+        if Defaults[.boringShelf] && vm.notchState == .closed && !shouldDisplayNowPlayingFallbackNotice {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
-            vm.dropEvent = true
+        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
+            dropInteraction.dropEvent = true
             ShelfStateViewModel.shared.load(providers)
             return true
         }
@@ -654,9 +732,10 @@ struct ContentView: View {
             
             let hasPendingWorkflow = isShowingPendingWorkflowNotification
             guard vm.notchState == .closed,
-                hasPendingWorkflow
-                    || (!coordinator.shouldShowSneakPeek(on: vm.screenUUID)
-                        && Defaults[.openNotchOnHover])
+                  !shouldDisplayNowPlayingFallbackNotice,
+                  hasPendingWorkflow
+                      || (!coordinator.shouldShowSneakPeek(on: vm.screenUUID)
+                          && Defaults[.openNotchOnHover])
             else { return }
             
             hoverTask = Task {
@@ -665,9 +744,10 @@ struct ContentView: View {
                 
                 await MainActor.run {
                     guard self.vm.notchState == .closed,
-                        self.isHovering,
-                        self.isShowingPendingWorkflowNotification
-                            || !self.coordinator.shouldShowSneakPeek(on: self.vm.screenUUID)
+                          self.isHovering,
+                          !self.shouldDisplayNowPlayingFallbackNotice,
+                          self.isShowingPendingWorkflowNotification
+                              || !self.coordinator.shouldShowSneakPeek(on: self.vm.screenUUID)
                     else { return }
                     
                     self.doOpen(activatingPendingWorkflow: true)

@@ -10,50 +10,31 @@ import SwiftUI
 
 struct Media: View {
     @Default(.waitInterval) var waitInterval
-    @Default(.mediaController) var mediaController
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.hideNotchOption) var hideNotchOption
     @Default(.enableSneakPeek) private var enableSneakPeek
     @Default(.sneakPeekStyles) var sneakPeekStyles
 
     @Default(.enableLyrics) var enableLyrics
+    @ObservedObject private var musicManager = MusicManager.shared
 
     var body: some View {
         Form {
             Section {
-                Picker("Music Source", selection: $mediaController) {
-                    ForEach(availableMediaControllers) { controller in
-                        Text(controller.localizedString).tag(controller)
+                Picker("Music Source", selection: mediaControllerSelection) {
+                    ForEach(MediaControllerType.allCases) { controller in
+                        Text(controller.localizedResource)
+                            .tag(controller)
+                            .disabled(
+                                controller == .nowPlaying
+                                    && !musicManager.nowPlayingAvailability.isSelectable
+                            )
                     }
-                }
-                .onChange(of: mediaController) { _, _ in
-                    NotificationCenter.default.post(
-                        name: Notification.Name.mediaControllerChanged,
-                        object: nil
-                    )
                 }
             } header: {
                 Text("Media Source")
             } footer: {
-                if MusicManager.shared.isNowPlayingDeprecated {
-                    HStack {
-                        Text("YouTube Music requires this third-party app to be installed: ")
-                            .foregroundStyle(.secondary)
-                            .font(.caption)
-                        Link(
-                            "https://github.com/pear-devs/pear-desktop",
-                            destination: URL(string: "https://github.com/pear-devs/pear-desktop")!
-                        )
-                        .font(.caption)
-                        .foregroundColor(.blue)  // Ensures it's visibly a link
-                    }
-                } else {
-                    Text(
-                        "'Now Playing' was the only option on previous versions and works with all media apps."
-                    )
-                    .foregroundStyle(.secondary)
-                    .font(.caption)
-                }
+                mediaSourceFooter
             }
             
             Section {
@@ -124,14 +105,68 @@ struct Media: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Media")
+        .task {
+            musicManager.ensureNowPlayingAvailabilityChecked()
+        }
     }
 
-    // Only show controller options that are available on this macOS version
-    private var availableMediaControllers: [MediaControllerType] {
-        if MusicManager.shared.isNowPlayingDeprecated {
-            return MediaControllerType.allCases.filter { $0 != .nowPlaying }
+    private var mediaControllerSelection: Binding<MediaControllerType> {
+        Binding(
+            get: { musicManager.preferredMediaController },
+            set: { selectedController in
+                guard selectedController != musicManager.preferredMediaController else { return }
+                musicManager.selectMediaController(selectedController)
+            }
+        )
+    }
+
+    @ViewBuilder
+    private var mediaSourceFooter: some View {
+        let availability = musicManager.nowPlayingAvailability
+
+        if availability == .checking {
+            footerText("Checking Now Playing availability...")
+        } else if let message = availability.settingsMessage {
+            VStack(alignment: .leading, spacing: 6) {
+                footerText(message)
+
+                if musicManager.preferredMediaController == .nowPlaying,
+                   let effectiveController = musicManager.effectiveMediaController,
+                   effectiveController != .nowPlaying {
+                    if availability.usesTemporaryFallback {
+                        footerText(
+                            LocalizedStringResource(
+                                "Using \(effectiveController.localizedString) temporarily. Your Now Playing preference is preserved.",
+                                comment: "Media settings footer for a temporary Now Playing fallback. The placeholder is the active fallback source."
+                            )
+                        )
+                    } else {
+                        footerText(
+                            LocalizedStringResource(
+                                "Using \(effectiveController.localizedString) instead. Your Now Playing preference is preserved.",
+                                comment: "Media settings footer for a non-recoverable Now Playing setup failure. The placeholder is the active fallback source."
+                            )
+                        )
+                    }
+                }
+
+                if availability.offersManualRetry {
+                    Button("Check Again") {
+                        musicManager.refreshNowPlayingAvailability()
+                    }
+                    .font(.caption)
+                }
+            }
         } else {
-            return MediaControllerType.allCases
+            footerText(
+                "'Now Playing' was the only option on previous versions and works with all media apps."
+            )
         }
+    }
+
+    private func footerText(_ text: LocalizedStringResource) -> some View {
+        Text(text)
+            .foregroundStyle(.secondary)
+            .font(.caption)
     }
 }

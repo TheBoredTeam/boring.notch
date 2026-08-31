@@ -15,14 +15,9 @@ class BoringViewModel: NSObject, ObservableObject {
 
     let animationLibrary: BoringAnimations = .init()
     let animation: Animation?
+    let dropInteraction = DropInteractionState()
 
     @Published private(set) var notchState: NotchState = .closed
-
-    @Published var dragDetectorTargeting: Bool = false
-    @Published var generalDropTargeting: Bool = false
-    @Published var dropZoneTargeting: Bool = false
-    @Published var dropEvent: Bool = false
-    @Published var anyDropZoneTargeting: Bool = false
     var cancellables: Set<AnyCancellable> = []
     
     @Published var hideOnClosed: Bool = true
@@ -58,13 +53,6 @@ class BoringViewModel: NSObject, ObservableObject {
         notchSize = getClosedNotchSize(screenUUID: screenUUID)
         closedNotchSize = notchSize
 
-        Publishers.CombineLatest3($dropZoneTargeting, $dragDetectorTargeting, $generalDropTargeting)
-            .map { shelf, drag, general in
-                shelf || drag || general
-            }
-            .assign(to: \.anyDropZoneTargeting, on: self)
-            .store(in: &cancellables)
-        
         setupDetectorObserver()
     }
     
@@ -154,10 +142,10 @@ class BoringViewModel: NSObject, ObservableObject {
                 NSApp.activate(ignoringOtherApps: true)
 
                 let alert = NSAlert()
-                alert.messageText = "Camera Access Required"
-                alert.informativeText = "Please allow camera access in System Settings."
-                alert.addButton(withTitle: "Open Settings")
-                alert.addButton(withTitle: "Cancel")
+                alert.messageText = NSLocalizedString("Camera Access Required", comment: "Camera permission alert title")
+                alert.informativeText = NSLocalizedString("Please allow camera access in System Settings.", comment: "Camera permission alert message")
+                alert.addButton(withTitle: NSLocalizedString("Open Settings", comment: "Button title that opens app or system settings"))
+                alert.addButton(withTitle: NSLocalizedString("Cancel", comment: "Cancel button title"))
 
                 if alert.runModal() == .alertFirstButtonReturn {
                     if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {
@@ -196,7 +184,7 @@ class BoringViewModel: NSObject, ObservableObject {
 
     @discardableResult
     func open() -> Bool {
-        guard !coordinator.firstLaunch else { return false }
+        guard !coordinator.firstLaunch, notchState != .open else { return false }
 
         self.notchSize = openNotchSize
         self.notchState = .open
