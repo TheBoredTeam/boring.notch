@@ -1,17 +1,24 @@
 name: "Deploy Boring Notch"
 on:
-  issue_comment:
-    types: [created]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Same-repository dev-to-main release PR number"
+        required: true
+        type: string
+      version:
+        description: "Release version (for example 2.8.0 or 2.8.0-rc.1)"
+        required: true
+        type: string
 
 concurrency:
-  group: ${{ contains(github.event.comment.body, '/release') && 'dev-publication' || format('release-check-{0}', github.run_id) }}
+  group: dev-publication
   cancel-in-progress: false
   queue: max
 
 env:
   PROJECT_NAME: boringNotch
   BETA_CHANNEL_NAME: beta
-  RELEASE_COMMAND: /release
   CODE_SIGN_IDENTITY: "Apple Development"
   XCODE_VERSION: "16.4"
 
@@ -20,52 +27,69 @@ permissions:
   pull-requests: read
 
 jobs:
-  # helper job to test for the release command in the comment; env is safe to use here
-  check_release:
-    name: Check for release command
-    if: ${{ github.event.issue.pull_request }}
+  authorize:
+    name: Authorize release
     runs-on: ubuntu-latest
     outputs:
-      is_release: ${{ steps.check.outputs.is_release }}
-      is_eligible_pr: ${{ steps.check.outputs.is_eligible_pr }}
-      head_ref: ${{ steps.check.outputs.head_ref }}
-      head_sha: ${{ steps.check.outputs.head_sha }}
-      base_ref: ${{ steps.check.outputs.base_ref }}
-      base_sha: ${{ steps.check.outputs.base_sha }}
+      pr_number: ${{ steps.authorize.outputs.pr_number }}
+      head_ref: ${{ steps.authorize.outputs.head_ref }}
+      head_sha: ${{ steps.authorize.outputs.head_sha }}
+      base_ref: ${{ steps.authorize.outputs.base_ref }}
+      base_sha: ${{ steps.authorize.outputs.base_sha }}
     steps:
-      - id: check
+      - name: Require protected release workflow
+        env:
+          WORKFLOW_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [[ "$WORKFLOW_REF" != "refs/heads/main" ]]; then
+            echo "::error::Run releases from the protected main workflow, not ${WORKFLOW_REF}"
+            exit 1
+          fi
+
+      - id: authorize
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          COMMENT_BODY: ${{ github.event.comment.body }}
-          RELEASE_COMMAND: ${{ env.RELEASE_COMMAND }}
+          ACTOR: ${{ github.triggering_actor }}
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           set -euo pipefail
-          if [[ "$COMMENT_BODY" == *"$RELEASE_COMMAND"* ]]; then
-            IS_RELEASE=true
-          else
-            IS_RELEASE=false
+
+          if [[ ! "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::PR number must be a positive integer"
+            exit 1
           fi
 
-          IS_ELIGIBLE_PR=false
-          PR_NUMBER="${{ github.event.issue.number }}"
+          PERM=$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" --jq '.permission')
+          if [[ "$PERM" != "admin" ]]; then
+            echo "::error::${ACTOR} is not an admin (permission: ${PERM})"
+            exit 1
+          fi
+
           PR_DATA=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" \
-            --jq '{head_ref: .head.ref, head_sha: .head.sha, base_ref: .base.ref, base_sha: .base.sha, head_repo: .head.repo.full_name, base_repo: .base.repo.full_name}')
+            --jq '{head_ref: .head.ref, head_sha: .head.sha, base_ref: .base.ref, base_sha: .base.sha, head_repo: .head.repo.full_name, base_repo: .base.repo.full_name, is_draft: .draft, mergeable: .mergeable}')
           HEAD_REF=$(echo "$PR_DATA" | jq -r '.head_ref')
           HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head_sha')
           BASE_REF=$(echo "$PR_DATA" | jq -r '.base_ref')
           BASE_SHA=$(echo "$PR_DATA" | jq -r '.base_sha')
           HEAD_REPO=$(echo "$PR_DATA" | jq -r '.head_repo')
           BASE_REPO=$(echo "$PR_DATA" | jq -r '.base_repo')
+          IS_DRAFT=$(echo "$PR_DATA" | jq -r '.is_draft')
+          MERGEABLE=$(echo "$PR_DATA" | jq -r '.mergeable')
 
-          if [[ "$HEAD_REPO" == "$REPO" && "$BASE_REPO" == "$REPO" && "$HEAD_REF" == "dev" && "$BASE_REF" == "main" && \
-                "$HEAD_SHA" =~ ^[0-9a-fA-F]{40}$ && "$BASE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
-            IS_ELIGIBLE_PR=true
+          if [[ "$HEAD_REPO" != "$REPO" || "$BASE_REPO" != "$REPO" || "$HEAD_REF" != "dev" || "$BASE_REF" != "main" || \
+                ! "$HEAD_SHA" =~ ^[0-9a-fA-F]{40}$ || ! "$BASE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error::Release PR must be a same-repository dev-to-main PR with immutable commit SHAs"
+            exit 1
+          fi
+          if [[ "$IS_DRAFT" == "true" || "$MERGEABLE" != "true" ]]; then
+            echo "::error::PR #${PR_NUMBER} is not ready to merge (draft=${IS_DRAFT}, mergeable=${MERGEABLE})"
+            exit 1
           fi
 
           {
-            echo "is_release=$IS_RELEASE"
-            echo "is_eligible_pr=$IS_ELIGIBLE_PR"
+            echo "pr_number=$PR_NUMBER"
             echo "head_ref=$HEAD_REF"
             echo "head_sha=$HEAD_SHA"
             echo "base_ref=$BASE_REF"
@@ -74,12 +98,10 @@ jobs:
 
   preparation:
     name: Preparation
-    needs: check_release
-    if: ${{ needs.check_release.outputs.is_release == 'true' && needs.check_release.outputs.is_eligible_pr == 'true' }}
+    needs: authorize
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      issues: write
       pull-requests: read
     outputs:
       is_beta: ${{ steps.extract_version.outputs.is_beta }}
@@ -89,65 +111,63 @@ jobs:
       title: ${{ steps.release_notes.outputs.title }}
       release_notes: ${{ steps.release_notes.outputs.release_notes }}
       release_notes_github: ${{ steps.release_notes.outputs.release_notes_github }}
-      head_ref: ${{ needs.check_release.outputs.head_ref }}
-      base_ref: ${{ needs.check_release.outputs.base_ref }}
-      head_sha: ${{ needs.check_release.outputs.head_sha }}
-      initial_base_sha: ${{ needs.check_release.outputs.base_sha }}
-      source_sha: ${{ steps.sync_branch.outputs.source_sha || needs.check_release.outputs.head_sha }}
-      base_sha: ${{ steps.sync_branch.outputs.base_sha || needs.check_release.outputs.base_sha }}
+      head_ref: ${{ needs.authorize.outputs.head_ref }}
+      base_ref: ${{ needs.authorize.outputs.base_ref }}
+      head_sha: ${{ needs.authorize.outputs.head_sha }}
+      source_sha: ${{ steps.sync_branch.outputs.source_sha || needs.authorize.outputs.head_sha }}
+      base_sha: ${{ steps.sync_branch.outputs.base_sha || needs.authorize.outputs.base_sha }}
     steps:
-      - name: Validate permissions and PR state
+      - name: Revalidate release PR state
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMENTER: ${{ github.event.comment.user.login }}
-          PR_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ needs.authorize.outputs.pr_number }}
+          EXPECTED_HEAD_REF: ${{ needs.authorize.outputs.head_ref }}
+          EXPECTED_HEAD_SHA: ${{ needs.authorize.outputs.head_sha }}
+          EXPECTED_BASE_REF: ${{ needs.authorize.outputs.base_ref }}
+          EXPECTED_BASE_SHA: ${{ needs.authorize.outputs.base_sha }}
         run: |
           set -euo pipefail
-          REPO="${{ github.repository }}"
+          PR_DATA=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" \
+            --jq '{head_ref: .head.ref, head_sha: .head.sha, base_ref: .base.ref, base_sha: .base.sha, head_repo: .head.repo.full_name, base_repo: .base.repo.full_name, is_draft: .draft, mergeable: .mergeable}')
+          HEAD_REF=$(echo "$PR_DATA" | jq -r '.head_ref')
+          HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head_sha')
+          BASE_REF=$(echo "$PR_DATA" | jq -r '.base_ref')
+          BASE_SHA=$(echo "$PR_DATA" | jq -r '.base_sha')
+          HEAD_REPO=$(echo "$PR_DATA" | jq -r '.head_repo')
+          BASE_REPO=$(echo "$PR_DATA" | jq -r '.base_repo')
+          IS_DRAFT=$(echo "$PR_DATA" | jq -r '.is_draft')
+          MERGEABLE=$(echo "$PR_DATA" | jq -r '.mergeable')
 
-          # Acknowledge the command
-          gh api "repos/${REPO}/issues/comments/${{ github.event.comment.id }}/reactions" \
-            -f content=eyes --silent
-
-          # Require admin permission
-          PERM=$(gh api "repos/${REPO}/collaborators/${COMMENTER}/permission" --jq '.permission')
-          if [[ "$PERM" != "admin" ]]; then
-            echo "::error::${COMMENTER} is not an admin (permission: ${PERM})"
-            exit 1
-          fi
-
-          # Require mergeable, non-draft PR
-          IS_DRAFT=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.draft')
-          MERGEABLE=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.mergeable')
-          if [[ "$IS_DRAFT" == "true" || "$MERGEABLE" != "true" ]]; then
-            echo "::error::PR #${PR_NUMBER} is not ready to merge (draft=${IS_DRAFT}, mergeable=${MERGEABLE})"
+          if [[ "$HEAD_REPO" != "$REPO" || "$BASE_REPO" != "$REPO" || "$HEAD_REF" != "$EXPECTED_HEAD_REF" || \
+                "$HEAD_SHA" != "$EXPECTED_HEAD_SHA" || "$BASE_REF" != "$EXPECTED_BASE_REF" || "$BASE_SHA" != "$EXPECTED_BASE_SHA" || \
+                "$IS_DRAFT" == "true" || "$MERGEABLE" != "true" ]]; then
+            echo "::error::Release PR changed or is no longer ready; refusing to release mutable code"
             exit 1
           fi
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.check_release.outputs.base_sha }}
+          ref: ${{ needs.authorize.outputs.base_sha }}
           persist-credentials: false
 
-      - name: Extract version from comment
+      - name: Extract requested version
         id: extract_version
         env:
-          COMMENT: ${{ github.event.comment.body }}
+          VERSION_INPUT: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          export projname="${{ env.PROJECT_NAME }}"
-          OUTPUT=$(python3 .github/scripts/extract_version.py -c "$COMMENT")
+          OUTPUT=$(python3 .github/scripts/extract_version.py -c "$VERSION_INPUT")
           VERSION=$(awk -F= '/^version=/{print $2; exit}' <<<"$OUTPUT")
           IS_BETA=$(awk -F= '/^is_beta=/{print $2; exit}' <<<"$OUTPUT")
-          if [[ -z "$VERSION" ]]; then
-            echo "::error::No valid version found in release comment"
+          if [[ -z "$VERSION" || ( "$VERSION_INPUT" != "$VERSION" && "$VERSION_INPUT" != "v$VERSION" ) ]]; then
+            echo "::error::Version must be a complete semantic version, optionally prefixed with v"
             exit 1
           fi
           {
             echo "version=$VERSION"
             echo "is_beta=$IS_BETA"
           } >> "$GITHUB_OUTPUT"
-          echo "Version: $VERSION | Beta: $IS_BETA"
 
       - name: Expose build configuration
         id: build_config
@@ -161,10 +181,10 @@ jobs:
         id: release_notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ needs.authorize.outputs.pr_number }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          PR_NUMBER="${{ github.event.issue.number }}"
-          REPO="${{ github.repository }}"
           TITLE=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.title // "Release"')
           BODY=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.body // "- No release notes provided"')
 
@@ -228,7 +248,7 @@ jobs:
         if: steps.extract_version.outputs.is_beta == 'false'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.check_release.outputs.base_sha }}
+          ref: ${{ needs.authorize.outputs.base_sha }}
           token: ${{ steps.release_app_token.outputs.token }}
           fetch-depth: 0
           persist-credentials: false
@@ -238,10 +258,10 @@ jobs:
         if: steps.extract_version.outputs.is_beta == 'false'
         env:
           RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
-          BASE_REF: ${{ needs.check_release.outputs.base_ref }}
-          HEAD_REF: ${{ needs.check_release.outputs.head_ref }}
-          HEAD_SHA: ${{ needs.check_release.outputs.head_sha }}
-          BASE_SHA: ${{ needs.check_release.outputs.base_sha }}
+          BASE_REF: ${{ needs.authorize.outputs.base_ref }}
+          HEAD_REF: ${{ needs.authorize.outputs.head_ref }}
+          HEAD_SHA: ${{ needs.authorize.outputs.head_sha }}
+          BASE_SHA: ${{ needs.authorize.outputs.base_sha }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -965,12 +985,11 @@ jobs:
 
   ending:
     name: Finalize
-    if: ${{ always() && needs.preparation.result != 'skipped' && needs.check_release.outputs.is_release == 'true' }}
-    needs: [check_release, preparation, reserve_build_number, build, publish, upgrade-brew]
+    if: ${{ always() && needs.preparation.result != 'skipped' }}
+    needs: [authorize, preparation, reserve_build_number, build, publish, upgrade-brew]
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      issues: write
     env:
       ALL_RESULTS: ${{ join(needs.*.result, ',') }}
       RELEASE_SUCCEEDED: ${{ !contains(join(needs.*.result, ','), 'failure') && !contains(join(needs.*.result, ','), 'cancelled') }}
@@ -992,7 +1011,7 @@ jobs:
           GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
           EXPECTED_BASE_SHA: ${{ needs.preparation.outputs.base_sha }}
           EXPECTED_HEAD_SHA: ${{ needs.publish.outputs.release_head_sha }}
-          PR_NUMBER: ${{ github.event.issue.number }}
+          PR_NUMBER: ${{ needs.authorize.outputs.pr_number }}
           VERSION: ${{ needs.preparation.outputs.version }}
         run: |
           set -euo pipefail
@@ -1048,24 +1067,6 @@ jobs:
 
           echo "::error::Could not merge PR #${PR_NUMBER} at ${EXPECTED_HEAD_SHA}"
           exit 1
-
-      - name: React to trigger comment
-        if: always()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          IS_BETA: ${{ needs.preparation.outputs.is_beta }}
-          MERGE_OUTCOME: ${{ steps.merge_release_pr.outcome }}
-        run: |
-          REPO="${{ github.repository }}"
-          COMMENT_ID="${{ github.event.comment.id }}"
-          if [[ "$ALL_RESULTS" != *"failure"* && "$ALL_RESULTS" != *"cancelled"* && \
-                ( "$IS_BETA" == "true" || "$MERGE_OUTCOME" == "success" ) ]]; then
-            REACTION="rocket"
-          else
-            REACTION="confused"
-          fi
-          gh api "repos/${REPO}/issues/comments/${COMMENT_ID}/reactions" \
-            -f content="$REACTION" --silent
 
       - name: Summary
         if: always()
