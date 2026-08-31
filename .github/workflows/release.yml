@@ -6,6 +6,7 @@ on:
 concurrency:
   group: ${{ contains(github.event.comment.body, '/release') && 'dev-publication' || format('release-check-{0}', github.run_id) }}
   cancel-in-progress: false
+  queue: max
 
 env:
   PROJECT_NAME: boringNotch

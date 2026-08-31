@@ -9,6 +9,7 @@ on:
 concurrency:
   group: dev-publication
   cancel-in-progress: false
+  queue: max
 
 permissions:
   contents: read
