@@ -493,6 +493,7 @@ final class MusicManager: ObservableObject {
         let artistChanged = state.artist != self.lastArtworkArtist
         let albumChanged = state.album != self.lastArtworkAlbum
         let bundleChanged = state.bundleIdentifier != self.lastArtworkBundleIdentifier
+        let durationBecameAvailable = self.songDuration <= 0 && state.duration > 0
 
         // Check for artwork changes
         let artworkChanged = state.artwork != nil && state.artwork != self.artworkData
@@ -516,13 +517,11 @@ final class MusicManager: ObservableObject {
             }
             self.artworkData = state.artwork
 
-            if artworkChanged || state.artwork == nil {
-                // Update last artwork change values
-                self.lastArtworkTitle = state.title
-                self.lastArtworkArtist = state.artist
-                self.lastArtworkAlbum = state.album
-                self.lastArtworkBundleIdentifier = state.bundleIdentifier
-            }
+            // Metadata can change while the artwork remains identical.
+            self.lastArtworkTitle = state.title
+            self.lastArtworkArtist = state.artist
+            self.lastArtworkAlbum = state.album
+            self.lastArtworkBundleIdentifier = state.bundleIdentifier
 
             // Only update sneak peek if there's actual content and something changed
             if !state.title.isEmpty && !state.artist.isEmpty && state.isPlaying {
@@ -530,7 +529,26 @@ final class MusicManager: ObservableObject {
             }
 
             // Fetch lyrics on content change
-            self.fetchLyricsIfAvailable(bundleIdentifier: state.bundleIdentifier, title: state.title, artist: state.artist)
+            self.fetchLyricsIfAvailable(
+                bundleIdentifier: state.bundleIdentifier,
+                title: state.title,
+                artist: state.artist,
+                album: state.album,
+                duration: state.duration
+            )
+        } else if durationBecameAvailable,
+                  currentLyrics.isEmpty,
+                  syncedLyrics.isEmpty,
+                  !state.title.isEmpty {
+            // Some media providers publish duration after the other metadata.
+            // Retry with this stronger matching evidence when the first lookup found nothing.
+            self.fetchLyricsIfAvailable(
+                bundleIdentifier: state.bundleIdentifier,
+                title: state.title,
+                artist: state.artist,
+                album: state.album,
+                duration: state.duration
+            )
         }
 
         let timeChanged = state.currentTime != self.elapsedTime
@@ -616,7 +634,13 @@ final class MusicManager: ObservableObject {
     }
 
     // MARK: - Lyrics
-    private func fetchLyricsIfAvailable(bundleIdentifier: String?, title: String, artist: String) {
+    private func fetchLyricsIfAvailable(
+        bundleIdentifier: String?,
+        title: String,
+        artist: String,
+        album: String,
+        duration: TimeInterval
+    ) {
         guard Defaults[.enableLyrics], !title.isEmpty else {
             Task { @MainActor in
                 lyricsService.clearLyrics()
@@ -625,7 +649,13 @@ final class MusicManager: ObservableObject {
         }
         
         Task { @MainActor in
-            await lyricsService.fetchLyrics(bundleIdentifier: bundleIdentifier, title: title, artist: artist)
+            await lyricsService.fetchLyrics(
+                bundleIdentifier: bundleIdentifier,
+                title: title,
+                artist: artist,
+                album: album,
+                duration: duration
+            )
         }
     }
 
