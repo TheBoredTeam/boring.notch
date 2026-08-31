@@ -1,73 +1,65 @@
 //
 //  AnimatedFace.swift
 //
-// Created by Harsh Vardhan  Goswami  on  04/08/24.
+//  Modified by Mohd. Azeem Khan on 30/03/2026.
 //
 
 import SwiftUI
 
 struct MinimalFaceFeatures: View {
-    @State private var isBlinking = false
-    @State var height:CGFloat = 20;
-    @State var width:CGFloat = 30;
-    
-    var body: some View {
-        VStack(spacing: 4) { // Adjusted spacing to fit within 30x30
-            // Eyes
-            HStack(spacing: 4) { // Adjusted spacing to fit within 30x30
-                Eye(isBlinking: $isBlinking)
-                Eye(isBlinking: $isBlinking)
-            }
-            
-            // Nose and mouth combined
-            VStack(spacing: 2) { // Adjusted spacing to fit within 30x30
-                // Nose
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(Color.white)
-                    .frame(width: 3, height: 4)
-                
-                // Mouth (happy)
-                GeometryReader { geometry in
-                    Path { path in
-                        let width = geometry.size.width
-                        let height = geometry.size.height
-                        path.move(to: CGPoint(x: 0, y: height / 2))
-                        path.addQuadCurve(to: CGPoint(x: width, y: height / 2), control: CGPoint(x: width / 2, y: height))
-                    }
-                    .stroke(Color.white, lineWidth: 2)
-                }
-                .frame(width: 14, height: 10)
-            }
-        }
-        .frame(width: self.width, height: self.height) // Maximum size of face
-        .onAppear {
-            startBlinking()
-        }
-    }
-    
-    func startBlinking() {
-        Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { _ in
-            withAnimation(.spring(duration: 0.2)) {
-                isBlinking = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation(.spring(duration: 0.2)) {
-                    isBlinking = false
-                }
-            }
-        }
-    }
-}
+    @State private var pulse = false
+    @State private var rotate = false
 
-struct Eye: View {
-    @Binding var isBlinking: Bool
-    
     var body: some View {
-        RoundedRectangle(cornerRadius: 10)
-            .fill(Color.white)
-            .frame(width: 4, height: isBlinking ? 1 : 4)
-            .frame(maxWidth: 15, maxHeight: 15) // Adjusted max size
-            .animation(.easeInOut(duration: 0.1), value: isBlinking)
+        ZStack {
+            // Outer red HUD ring
+            Circle()
+                .stroke(Color.red.opacity(0.65), lineWidth: 1.2)
+                .frame(width: 34, height: 34)
+                .scaleEffect(pulse ? 1.05 : 0.95)
+                .shadow(color: .red.opacity(0.4), radius: 3)
+                .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: pulse)
+
+            // Inner red glow
+            Circle()
+                .fill(Color.red.opacity(0.16))
+                .frame(width: 28, height: 28)
+                .blur(radius: 6)
+                .scaleEffect(pulse ? 1.2 : 0.85)
+                .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: pulse)
+
+            // Rotating blue tech arc
+            Circle()
+                .trim(from: 0.05, to: 0.72)
+                .stroke(
+                    AngularGradient(
+                        gradient: Gradient(colors: [
+                            Color.blue.opacity(0.2),
+                            Color.cyan,
+                            Color.blue.opacity(0.9)
+                        ]),
+                        center: .center
+                    ),
+                    style: StrokeStyle(lineWidth: 2, lineCap: .round)
+                )
+                .frame(width: 30, height: 30)
+                .rotationEffect(.degrees(rotate ? 360 : 0))
+                .animation(.linear(duration: 4).repeatForever(autoreverses: false), value: rotate)
+
+            // Spider-Man image
+            Image("spiderman")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20, height: 20)
+                .clipShape(Circle())
+                .shadow(color: .red.opacity(0.8), radius: 4)
+        }
+        .frame(width: 36, height: 36)
+        .offset(x:3)
+        .onAppear {
+            pulse = true
+            rotate = true
+        }
     }
 }
 
@@ -77,6 +69,6 @@ struct MinimalFaceFeatures_Previews: PreviewProvider {
             Color.black
             MinimalFaceFeatures()
         }
-        .previewLayout(.fixed(width: 60, height: 60)) // Adjusted preview size for better visibility
+        .previewLayout(.fixed(width: 80, height: 80))
     }
 }
