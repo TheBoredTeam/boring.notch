@@ -474,13 +474,14 @@ private struct DailyReminderRow: View {
                 isCompleted: displayedCompletion
             )
             .frame(maxWidth: .infinity, alignment: .leading)
-            .layoutPriority(1)
 
             if !item.listTitle.isEmpty {
                 Text(item.listTitle)
                     .font(.caption2)
                     .foregroundStyle(displayedCompletion ? .quaternary : .tertiary)
                     .lineLimit(1)
+                    .frame(minWidth: 52, alignment: .trailing)
+                    .layoutPriority(1)
                     .animation(.easeInOut(duration: 0.28), value: displayedCompletion)
             }
         }

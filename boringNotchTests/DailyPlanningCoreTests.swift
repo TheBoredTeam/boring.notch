@@ -70,6 +70,9 @@ final class DailyPlanningCoreTests: XCTestCase {
     XCTAssertEqual(sections.all.map(\.id), ["open", "done"])
     XCTAssertEqual(sections.incomplete.map(\.id), ["open"])
     XCTAssertEqual(sections.completed.map(\.id), ["done"])
+    XCTAssertEqual(sections.all.map(\.listTitle), ["Work", "Home"])
+    XCTAssertEqual(sections.incomplete.map(\.listTitle), ["Work"])
+    XCTAssertEqual(sections.completed.map(\.listTitle), ["Home"])
   }
 
   func testCompletedSessionIsSuppressedForThatDay() {
