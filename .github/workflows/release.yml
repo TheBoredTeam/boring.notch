@@ -190,7 +190,7 @@ jobs:
         with:
           client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
-          repositories: boring.notch
+          repositories: ${{ github.event.repository.name }}
           permission-contents: write
 
       - name: Checkout release base with app token
@@ -249,7 +249,7 @@ jobs:
         with:
           client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
-          repositories: boring.notch
+          repositories: ${{ github.event.repository.name }}
           permission-contents: write
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -356,7 +356,7 @@ jobs:
         with:
           client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
-          repositories: boring.notch
+          repositories: ${{ github.event.repository.name }}
           permission-contents: write
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -477,8 +477,8 @@ jobs:
           fi
           printf '%s' "$SPARKLE_PRIVATE_KEY" | "$RUNNER_TEMP/generate_appcast" \
             --ed-key-file - \
-            --link "https://github.com/TheBoredTeam/boring.notch/releases" \
-            --download-url-prefix "https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/" \
+            --link "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases" \
+            --download-url-prefix "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/" \
             --embed-release-notes \
             "${CHANNEL_ARGS[@]}" \
             -o "$APPCAST_OUTPUT" \
@@ -655,6 +655,7 @@ jobs:
 
   upgrade-brew:
     name: Update Homebrew cask
+    if: ${{ vars.RELEASE_SANDBOX != 'true' }}
     needs: [preparation, publish]
     runs-on: ubuntu-latest
     env:
@@ -785,7 +786,7 @@ jobs:
         with:
           client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
-          repositories: boring.notch
+          repositories: ${{ github.event.repository.name }}
           permission-contents: write
 
       - name: Merge release PR
@@ -859,6 +860,7 @@ jobs:
           VERSION: ${{ needs.preparation.outputs.version }}
           BUILD_NUMBER: ${{ needs.reserve_build_number.outputs.build_number }}
           MERGE_OUTCOME: ${{ steps.merge_release_pr.outcome }}
+          RELEASE_SANDBOX: ${{ vars.RELEASE_SANDBOX }}
         shell: bash
         run: |
           if [[ "${IS_BETA}" == "true" ]]; then
@@ -875,7 +877,11 @@ jobs:
           {
             if [[ "$FINAL_SUCCEEDED" == "true" ]]; then
               echo "✅ Released boringNotch v${VERSION} (${BUILD_TYPE} build ${BUILD_NUMBER})"
-              echo "🍺 Homebrew cask updated"
+              if [[ "$RELEASE_SANDBOX" == "true" ]]; then
+                echo "🧪 Homebrew skipped in release sandbox"
+              else
+                echo "🍺 Homebrew cask updated"
+              fi
               echo "📱 Sparkle appcast updated"
             else
               echo "❌ Release failed${VERSION:+ for boringNotch v${VERSION}}"
