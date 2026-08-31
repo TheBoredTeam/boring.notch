@@ -7,11 +7,13 @@
 //
 
 import AVFoundation
+import AppKit
 import Combine
 import Defaults
 import KeyboardShortcuts
 import SwiftUI
 import SwiftUIIntrospect
+import UniformTypeIdentifiers
 
 @MainActor
 struct ContentView: View {
@@ -23,6 +25,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @StateObject private var pdfSummaryState = AppleIntelligencePDFSummaryState.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -119,6 +122,7 @@ struct ContentView: View {
                 
                 mainLayout
                     .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
+                    .clipShape(currentNotchShape)
                     .conditionalModifier(true) { view in
                         let openAnimation = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
                         let closeAnimation = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
@@ -134,13 +138,13 @@ struct ContentView: View {
                     .onTapGesture {
                         doOpen()
                     }
-                    .conditionalModifier(Defaults[.enableGestures]) { view in
+                    .conditionalModifier(Defaults[.enableGestures] && !pdfSummaryState.isPresented) { view in
                         view
                             .panGesture(direction: .down) { translation, phase in
                                 handleDownGesture(translation: translation, phase: phase)
                             }
                     }
-                    .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
+                    .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures] && !pdfSummaryState.isPresented) { view in
                         view
                             .panGesture(direction: .up) { translation, phase in
                                 handleUpGesture(translation: translation, phase: phase)
@@ -165,6 +169,15 @@ struct ContentView: View {
                             withAnimation {
                                 isHovering = false
                             }
+                        }
+                    }
+                    .onChange(of: pdfSummaryState.isPresented) { _, isPresented in
+                        guard vm.notchState == .open else { return }
+                        if !isPresented {
+                            vm.resetDropSessionState()
+                        }
+                        withAnimation(animationSpring) {
+                            vm.notchSize = isPresented ? appleIntelligenceSummaryNotchSize : openNotchSize
                         }
                     }
                     .onChange(of: vm.isBatteryPopoverActive) {
@@ -201,6 +214,7 @@ struct ContentView: View {
                         .frame(width: computedChinWidth, height: vm.chinHeight)
                 }
             }
+
         }
         .padding(.bottom, 8)
         .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
@@ -218,6 +232,11 @@ struct ContentView: View {
             anyDropDebounceTask?.cancel()
 
             if isTargeted {
+                if Date() < vm.suppressAutoOpenUntil {
+                    return
+                }
+
+                vm.dropEvent = true
                 if vm.notchState == .closed {
                     coordinator.currentView = .shelf
                     doOpen()
@@ -225,21 +244,72 @@ struct ContentView: View {
                 return
             }
 
-            anyDropDebounceTask = Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(500))
-                guard !Task.isCancelled else { return }
+            scheduleDropSessionReset()
+        }
+    }
 
-                if vm.dropEvent {
-                    vm.dropEvent = false
-                    return
-                }
+    private func scheduleDropSessionReset() {
+        anyDropDebounceTask?.cancel()
+        anyDropDebounceTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(150))
 
-                vm.dropEvent = false
-                if !SharingStateManager.shared.preventNotchClose {
-                    vm.close()
-                }
+            while !Task.isCancelled && NSEvent.pressedMouseButtons != 0 {
+                try? await Task.sleep(for: .milliseconds(120))
+            }
+
+            guard !Task.isCancelled,
+                  !vm.anyDropZoneTargeting,
+                  !pdfSummaryState.isPresented else { return }
+
+            vm.resetDropSessionState()
+
+            if vm.notchState == .open,
+               !isHovering,
+               !vm.isBatteryPopoverActive,
+               !SharingStateManager.shared.preventNotchClose {
+                vm.close()
             }
         }
+    }
+
+    private func handleOpenNotchDrop(providers: [NSItemProvider]) -> Bool {
+        vm.dropEvent = true
+        coordinator.currentView = .shelf
+        if vm.notchState == .closed {
+            doOpen()
+        }
+
+        Task { @MainActor in
+            defer { vm.dropEvent = false }
+            let pdfURLs = await AppleIntelligencePDFDropHandler.pdfURLs(from: providers)
+            if pdfURLs.isEmpty {
+                ShelfStateViewModel.shared.load(providers)
+                return
+            }
+
+            let title = pdfSummaryTitle(for: pdfURLs)
+            AppleIntelligencePDFSummaryState.shared.start(title: title)
+            do {
+                let result = try await pdfURLs.accessSecurityScopedResources { urls in
+                    try await PDFAppleIntelligenceSummaryService.shared.summarizePDFsWithContext(at: urls)
+                }
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(result.summary, forType: .string)
+                AppleIntelligencePDFSummaryState.shared.show(summary: result.summary, title: title, documentText: result.documentText)
+            } catch {
+                print("Failed to summarize dropped PDF: \(error.localizedDescription)")
+                AppleIntelligencePDFSummaryState.shared.showError(error.localizedDescription)
+            }
+        }
+        return true
+    }
+
+    private func pdfSummaryTitle(for urls: [URL]) -> String {
+        guard let first = urls.first else { return "Apple Intelligence" }
+        if urls.count == 1 {
+            return first.deletingPathExtension().lastPathComponent
+        }
+        return "\(urls.count) PDFs summarized"
     }
 
     @ViewBuilder
@@ -344,11 +414,31 @@ struct ContentView: View {
               .zIndex(2)
             if vm.notchState == .open {
                 VStack {
-                    switch coordinator.currentView {
-                    case .home:
-                        NotchHomeView(albumArtNamespace: albumArtNamespace)
-                    case .shelf:
-                        ShelfView()
+                    if pdfSummaryState.isPresented {
+                        AppleIntelligencePDFSummaryOverlay()
+                            .padding(.horizontal, 8)
+                            .padding(.bottom, 12)
+                            .transition(
+                                .asymmetric(
+                                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                                    removal: .move(edge: .leading).combined(with: .opacity)
+                                )
+                                .animation(.smooth(duration: 0.32))
+                            )
+                    } else {
+                        switch coordinator.currentView {
+                        case .home:
+                            NotchHomeView(albumArtNamespace: albumArtNamespace)
+                        case .shelf:
+                            ShelfView()
+                                .transition(
+                                    .asymmetric(
+                                        insertion: .move(edge: .leading).combined(with: .opacity),
+                                        removal: .move(edge: .trailing).combined(with: .opacity)
+                                    )
+                                    .animation(.smooth(duration: 0.28))
+                                )
+                        }
                     }
                 }
                 .transition(
@@ -361,7 +451,6 @@ struct ContentView: View {
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
         }
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
     }
 
     @ViewBuilder
@@ -492,10 +581,8 @@ struct ContentView: View {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
-            vm.dropEvent = true
-            ShelfStateViewModel.shared.load(providers)
-            return true
+        .onDrop(of: [.fileURL, .url, .pdf, .item, .data, .utf8PlainText, .plainText], isTargeted: $vm.dragDetectorTargeting) { providers in
+            handleOpenNotchDrop(providers: providers)
         }
         } else {
             EmptyView()
@@ -515,6 +602,13 @@ struct ContentView: View {
         hoverTask?.cancel()
         
         if hovering {
+            if Date() < vm.suppressAutoOpenUntil {
+                withAnimation(animationSpring) {
+                    isHovering = false
+                }
+                return
+            }
+
             withAnimation(animationSpring) {
                 isHovering = true
             }
@@ -549,7 +643,8 @@ struct ContentView: View {
                         self.isHovering = false
                     }
                     
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                    let shouldStayOpenForDrop = self.vm.dropEvent || self.vm.anyDropZoneTargeting || self.pdfSummaryState.isPresented
+                    if self.vm.notchState == .open && !shouldStayOpenForDrop && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
                         self.vm.close()
                     }
                 }
@@ -629,26 +724,6 @@ struct FullScreenDropDelegate: DropDelegate {
         return true
     }
 
-}
-
-struct GeneralDropTargetDelegate: DropDelegate {
-    @Binding var isTargeted: Bool
-
-    func dropEntered(info: DropInfo) {
-        isTargeted = true
-    }
-
-    func dropExited(info: DropInfo) {
-        isTargeted = false
-    }
-
-    func dropUpdated(info: DropInfo) -> DropProposal? {
-        return DropProposal(operation: .cancel)
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
-        return false
-    }
 }
 
 #Preview {
