@@ -9,13 +9,6 @@ on:
       version:
         description: 'Marketing version (optional)'
         required: false
-      build_number:
-        description: 'Reserved build number'
-        required: true
-      xcode_version:
-        description: 'Xcode version (optional)'
-        required: false
-        default: '16.4'
       update_channel:
         description: 'Update channel stamped into the app'
         required: false
@@ -40,13 +33,14 @@ jobs:
     outputs:
       is_admin: ${{ steps.permission.outputs.is_admin }}
       source_sha: ${{ steps.resolve_source.outputs.source_sha }}
+      build_number: ${{ steps.resolve_source.outputs.build_number }}
     steps:
       - name: Require admin permission
         id: permission
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          ACTOR: ${{ github.actor }}
+          ACTOR: ${{ github.triggering_actor }}
         run: |
           set -euo pipefail
           PERM=$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" --jq '.permission')
@@ -57,12 +51,20 @@ jobs:
           fi
           echo "is_admin=true" >> "$GITHUB_OUTPUT"
 
-      - name: Resolve source branch
+      - name: Check out trusted workflow tools
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Resolve source branch and build number
         id: resolve_source
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           HEAD_REF: ${{ inputs.head_ref || github.ref_name || 'main' }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
           set -euo pipefail
           SOURCE_SHA="$(gh api "repos/${REPO}/git/ref/heads/${HEAD_REF}" --jq '.object.sha')"
@@ -70,7 +72,35 @@ jobs:
             echo "::error::Resolved source SHA is not a 40-character commit SHA"
             exit 1
           fi
+          SOURCE_PROJECT="$RUNNER_TEMP/source-project.pbxproj"
+          gh api \
+            -H "Accept: application/vnd.github.raw+json" \
+            "repos/${REPO}/contents/boringNotch.xcodeproj/project.pbxproj?ref=${SOURCE_SHA}" \
+            > "$SOURCE_PROJECT"
+          SOURCE_BUILD="$(python3 .github/scripts/extract_build_number.py \
+            --pbxproj "$SOURCE_PROJECT" \
+            --bundle-identifier theboringteam.boringnotch)"
+          BUILD_NUMBER="${SOURCE_BUILD}.${RUN_NUMBER}.${RUN_ATTEMPT}"
           echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Summarize manual build
+        env:
+          HEAD_REF: ${{ inputs.head_ref || github.ref_name || 'main' }}
+          SOURCE_SHA: ${{ steps.resolve_source.outputs.source_sha }}
+          VERSION: ${{ inputs.version || '(source version retained)' }}
+          BUILD_NUMBER: ${{ steps.resolve_source.outputs.build_number }}
+          UPDATE_CHANNEL: ${{ inputs.update_channel || 'stable' }}
+        run: |
+          {
+            echo "## Manual build"
+            echo ""
+            echo "- Requested branch: \`$HEAD_REF\`"
+            echo "- Source commit: \`$SOURCE_SHA\`"
+            echo "- Marketing version: \`$VERSION\`"
+            echo "- Bundle build: \`$BUILD_NUMBER\`"
+            echo "- Update channel: \`$UPDATE_CHANNEL\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   build:
     name: Build and sign app
@@ -79,11 +109,9 @@ jobs:
     uses: ./.github/workflows/build_reusable.yml
     with:
       source_sha: ${{ needs.authorize.outputs.source_sha }}
-      version: ${{ github.event.inputs.version || '' }}
-      build_number: ${{ github.event.inputs.build_number }}
-      xcode_version: ${{ github.event.inputs.xcode_version || '16.4' }}
-      code_sign_identity: "Apple Development"
-      update_channel: ${{ github.event.inputs.update_channel || 'stable' }}
+      version: ${{ inputs.version || '' }}
+      build_number: ${{ needs.authorize.outputs.build_number }}
+      update_channel: ${{ inputs.update_channel || 'stable' }}
     secrets:
       BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
       P12_PASSWORD:              ${{ secrets.P12_PASSWORD }}

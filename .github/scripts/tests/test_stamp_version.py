@@ -72,10 +72,19 @@ class StampVersionTests(unittest.TestCase):
     def test_rejects_invalid_values(self) -> None:
         with self.assertRaisesRegex(ValueError, "Invalid marketing version"):
             validate_version("version 2")
-        with self.assertRaisesRegex(ValueError, "Invalid build number"):
-            validate_build_number("27a")
         with self.assertRaisesRegex(ValueError, "Invalid update channel"):
             validate_update_channel("canary")
+
+    def test_accepts_one_to_three_numeric_build_components(self) -> None:
+        for value in ("272", "272.41", "272.41.1"):
+            with self.subTest(value=value):
+                validate_build_number(value)
+
+    def test_rejects_invalid_build_components(self) -> None:
+        for value in (".272", "272.", "272..1", "272.a.1", "272.41.1.2"):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(ValueError, "Invalid build number"):
+                    validate_build_number(value)
 
 
 if __name__ == "__main__":

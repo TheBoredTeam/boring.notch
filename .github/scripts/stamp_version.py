@@ -12,7 +12,7 @@ from pathlib import Path
 VERSION_RE = re.compile(
     r"^[0-9]+[.][0-9]+([.][0-9]+)?(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$"
 )
-BUILD_NUMBER_RE = re.compile(r"^[0-9]+$")
+BUILD_NUMBER_RE = re.compile(r"^[0-9]+(?:\.[0-9]+){0,2}$")
 VALID_UPDATE_CHANNELS = {"stable", "beta", "dev"}
 
 
