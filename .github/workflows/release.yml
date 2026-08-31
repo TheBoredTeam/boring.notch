@@ -27,6 +27,10 @@ jobs:
     outputs:
       is_release: ${{ steps.check.outputs.is_release }}
       is_eligible_pr: ${{ steps.check.outputs.is_eligible_pr }}
+      head_ref: ${{ steps.check.outputs.head_ref }}
+      head_sha: ${{ steps.check.outputs.head_sha }}
+      base_ref: ${{ steps.check.outputs.base_ref }}
+      base_sha: ${{ steps.check.outputs.base_sha }}
     steps:
       - id: check
         env:
@@ -45,18 +49,27 @@ jobs:
           IS_ELIGIBLE_PR=false
           PR_NUMBER="${{ github.event.issue.number }}"
           PR_DATA=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" \
-            --jq '{head_ref: .head.ref, base_ref: .base.ref, head_repo: .head.repo.full_name, base_repo: .base.repo.full_name}')
+            --jq '{head_ref: .head.ref, head_sha: .head.sha, base_ref: .base.ref, base_sha: .base.sha, head_repo: .head.repo.full_name, base_repo: .base.repo.full_name}')
           HEAD_REF=$(echo "$PR_DATA" | jq -r '.head_ref')
+          HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head_sha')
           BASE_REF=$(echo "$PR_DATA" | jq -r '.base_ref')
+          BASE_SHA=$(echo "$PR_DATA" | jq -r '.base_sha')
           HEAD_REPO=$(echo "$PR_DATA" | jq -r '.head_repo')
           BASE_REPO=$(echo "$PR_DATA" | jq -r '.base_repo')
 
-          if [[ "$HEAD_REPO" == "$REPO" && "$BASE_REPO" == "$REPO" && "$HEAD_REF" == "dev" && "$BASE_REF" == "main" ]]; then
+          if [[ "$HEAD_REPO" == "$REPO" && "$BASE_REPO" == "$REPO" && "$HEAD_REF" == "dev" && "$BASE_REF" == "main" && \
+                "$HEAD_SHA" =~ ^[0-9a-fA-F]{40}$ && "$BASE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
             IS_ELIGIBLE_PR=true
           fi
 
-          echo "is_release=$IS_RELEASE" >> "$GITHUB_OUTPUT"
-          echo "is_eligible_pr=$IS_ELIGIBLE_PR" >> "$GITHUB_OUTPUT"
+          {
+            echo "is_release=$IS_RELEASE"
+            echo "is_eligible_pr=$IS_ELIGIBLE_PR"
+            echo "head_ref=$HEAD_REF"
+            echo "head_sha=$HEAD_SHA"
+            echo "base_ref=$BASE_REF"
+            echo "base_sha=$BASE_SHA"
+          } >> "$GITHUB_OUTPUT"
 
   preparation:
     name: Preparation
@@ -75,9 +88,12 @@ jobs:
       title: ${{ steps.release_notes.outputs.title }}
       release_notes: ${{ steps.release_notes.outputs.release_notes }}
       release_notes_github: ${{ steps.release_notes.outputs.release_notes_github }}
-      head_ref: ${{ steps.pr_info.outputs.head_ref }}
-      base_ref: ${{ steps.pr_info.outputs.base_ref }}
-      base_sha: ${{ steps.sync_branch.outputs.base_sha }}
+      head_ref: ${{ needs.check_release.outputs.head_ref }}
+      base_ref: ${{ needs.check_release.outputs.base_ref }}
+      head_sha: ${{ needs.check_release.outputs.head_sha }}
+      initial_base_sha: ${{ needs.check_release.outputs.base_sha }}
+      source_sha: ${{ steps.sync_branch.outputs.source_sha || needs.check_release.outputs.head_sha }}
+      base_sha: ${{ steps.sync_branch.outputs.base_sha || needs.check_release.outputs.base_sha }}
     steps:
       - name: Validate permissions and PR state
         env:
@@ -107,20 +123,10 @@ jobs:
             exit 1
           fi
 
-      - name: Get PR branch info
-        id: pr_info
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          PR_DATA=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}" \
-            --jq '{head_ref: .head.ref, base_ref: .base.ref}')
-          echo "head_ref=$(echo "$PR_DATA" | jq -r '.head_ref')" >> "$GITHUB_OUTPUT"
-          echo "base_ref=$(echo "$PR_DATA" | jq -r '.base_ref')" >> "$GITHUB_OUTPUT"
-
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ steps.pr_info.outputs.base_ref }}
+          ref: ${{ needs.check_release.outputs.base_sha }}
+          persist-credentials: false
 
       - name: Extract version from comment
         id: extract_version
@@ -216,31 +222,43 @@ jobs:
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           repositories: boring.notch
           permission-contents: write
-          permission-workflows: write
 
       - name: Checkout release base with app token
         if: steps.extract_version.outputs.is_beta == 'false'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ steps.pr_info.outputs.base_ref }}
+          ref: ${{ needs.check_release.outputs.base_sha }}
           token: ${{ steps.release_app_token.outputs.token }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Sync branch (stable releases only)
         id: sync_branch
         if: steps.extract_version.outputs.is_beta == 'false'
         env:
-          BASE_REF: ${{ steps.pr_info.outputs.base_ref }}
-          HEAD_REF: ${{ steps.pr_info.outputs.head_ref }}
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          BASE_REF: ${{ needs.check_release.outputs.base_ref }}
+          HEAD_REF: ${{ needs.check_release.outputs.head_ref }}
+          HEAD_SHA: ${{ needs.check_release.outputs.head_sha }}
+          BASE_SHA: ${{ needs.check_release.outputs.base_sha }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin "$BASE_REF" "$HEAD_REF"
-          BASE_SHA="$(git rev-parse "origin/$BASE_REF")"
-          git checkout -B "$HEAD_REF" "origin/$HEAD_REF"
-          git merge --no-ff "origin/$BASE_REF" -m "Sync branch before release"
-          git push origin "$HEAD_REF"
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$AUTH_HEADER" fetch origin \
+            "refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF" \
+            "refs/heads/$HEAD_REF:refs/remotes/origin/$HEAD_REF"
+          REMOTE_HEAD_SHA="$(git rev-parse "refs/remotes/origin/$HEAD_REF")"
+          REMOTE_BASE_SHA="$(git rev-parse "refs/remotes/origin/$BASE_REF")"
+          if [[ "$REMOTE_HEAD_SHA" != "$HEAD_SHA" || "$REMOTE_BASE_SHA" != "$BASE_SHA" ]]; then
+            echo "::error::Release PR refs moved after metadata capture; refusing to synchronize mutable code"
+            exit 1
+          fi
+          git checkout -B "$HEAD_REF" "$HEAD_SHA"
+          git merge --no-ff "$BASE_SHA" -m "Sync branch before release"
+          git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/$HEAD_REF"
+          echo "source_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           echo "base_sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
 
   reserve_build_number:
@@ -267,14 +285,34 @@ jobs:
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.preparation.outputs.head_ref }}
+          ref: ${{ needs.preparation.outputs.source_sha }}
           fetch-depth: 0
           token: ${{ steps.release_app_token.outputs.token }}
+          persist-credentials: false
+
+      - name: Verify reserved release source
+        env:
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          EXPECTED_SOURCE_SHA: ${{ needs.preparation.outputs.source_sha }}
+          HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$EXPECTED_SOURCE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error::Invalid expected release source SHA"
+            exit 1
+          fi
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$AUTH_HEADER" fetch origin \
+            "refs/heads/$HEAD_REF:refs/remotes/origin/$HEAD_REF"
+          CURRENT_HEAD="$(git rev-parse "refs/remotes/origin/$HEAD_REF")"
+          if [[ "$CURRENT_HEAD" != "$EXPECTED_SOURCE_SHA" ]]; then
+            echo "::error::Release branch moved from ${EXPECTED_SOURCE_SHA} to ${CURRENT_HEAD}; refusing to stamp unreserved code"
+            exit 1
+          fi
 
       - name: Reserve next build number
         id: reserve
         env:
-          HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
           VERSION: ${{ needs.preparation.outputs.version }}
         run: |
           set -euo pipefail
@@ -282,7 +320,6 @@ jobs:
           PBXPROJ="${PROJECT_NAME}.xcodeproj/project.pbxproj"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --ff-only origin "$HEAD_REF"
 
           BUILD_NUMBER="$(tr -d '[:space:]' < "$COUNTER_FILE")"
           if [[ ! "$BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
@@ -298,12 +335,20 @@ jobs:
             --build-number "$BUILD_NUMBER"
           git add "$COUNTER_FILE" "$PBXPROJ"
           git commit -m "Prepare v${VERSION} build ${BUILD_NUMBER}"
-          git push origin "HEAD:${HEAD_REF}"
 
           {
             echo "build_number=${BUILD_NUMBER}"
             echo "source_sha=$(git rev-parse HEAD)"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Push reserved build source
+        env:
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
+        run: |
+          set -euo pipefail
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/$HEAD_REF"
 
   build:
     name: Build and sign
@@ -312,7 +357,7 @@ jobs:
       contents: read
     uses: ./.github/workflows/build_reusable.yml
     with:
-      head_ref: ${{ needs.reserve_build_number.outputs.source_sha }}
+      source_sha: ${{ needs.reserve_build_number.outputs.source_sha }}
       version: ${{ needs.preparation.outputs.version }}
       build_number: ${{ needs.reserve_build_number.outputs.build_number }}
       xcode_version: ${{ needs.preparation.outputs.xcode_version }}
@@ -346,12 +391,12 @@ jobs:
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           repositories: boring.notch
           permission-contents: write
-          permission-workflows: write
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.reserve_build_number.outputs.source_sha }}
           token: ${{ steps.release_app_token.outputs.token }}
+          persist-credentials: false
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -517,12 +562,16 @@ jobs:
       - name: Commit stable appcast to release branch
         id: commit_stable_appcast
         if: env.IS_BETA == 'false'
+        env:
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin "$HEAD_REF"
-          CURRENT_HEAD="$(git rev-parse "origin/$HEAD_REF")"
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$AUTH_HEADER" fetch origin \
+            "refs/heads/$HEAD_REF:refs/remotes/origin/$HEAD_REF"
+          CURRENT_HEAD="$(git rev-parse "refs/remotes/origin/$HEAD_REF")"
           if [[ "$CURRENT_HEAD" != "$SOURCE_SHA" ]]; then
             echo "::error::Release branch moved from ${SOURCE_SHA} to ${CURRENT_HEAD}; refusing to publish an appcast for unbuilt code"
             exit 1
@@ -536,7 +585,7 @@ jobs:
           fi
 
           RELEASE_HEAD_SHA="$(git rev-parse HEAD)"
-          git push origin "HEAD:${HEAD_REF}"
+          git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/$HEAD_REF"
           echo "release_head_sha=$RELEASE_HEAD_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Publish GitHub release
@@ -554,44 +603,211 @@ jobs:
           echo "::error::Could not publish v${VERSION} after 5 attempts"
           exit 1
 
-      - name: Commit published beta appcast
+      - name: Merge published beta appcast (attempt 1)
+        id: merge_beta_appcast_1
         if: env.IS_BETA == 'true'
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          cp .github/scripts/merge_appcast_channel.py "$RUNNER_TEMP/merge_appcast_channel.py"
-          APPCAST_PUBLISHED=false
+          git fetch origin main
+          git checkout -B release-appcast origin/main
+          python3 .github/scripts/merge_appcast_channel.py \
+            updater/appcast.xml \
+            "$RUNNER_TEMP/appcast-${BETA_CHANNEL_NAME}.xml" \
+            "$BETA_CHANNEL_NAME"
 
-          for attempt in 1 2 3 4 5; do
-            git fetch origin main
-            git checkout -B release-appcast origin/main
-            python3 "$RUNNER_TEMP/merge_appcast_channel.py" \
-              updater/appcast.xml \
-              "$RUNNER_TEMP/appcast-${BETA_CHANNEL_NAME}.xml" \
-              "$BETA_CHANNEL_NAME"
-
-            git add updater/appcast.xml
-            if git diff --cached --quiet; then
-              echo "Published appcast already contains v${VERSION}."
-              APPCAST_PUBLISHED=true
-              break
-            fi
-
-            git commit -m "Update appcast with beta release for v${VERSION}"
-            if git push origin HEAD:main; then
-              APPCAST_PUBLISHED=true
-              break
-            fi
-
-            echo "main moved while publishing the appcast; retrying (${attempt}/5)"
-            sleep $((attempt * 2))
-          done
-
-          if [[ "$APPCAST_PUBLISHED" != "true" ]]; then
-            echo "::error::Could not publish the appcast after 5 attempts"
-            exit 1
+          git add updater/appcast.xml
+          if git diff --cached --quiet; then
+            echo "Published appcast already contains v${VERSION}."
+            echo "appcast_changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+
+          git commit -m "Update appcast with beta release for v${VERSION}"
+          echo "appcast_changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push published beta appcast (attempt 1)
+        id: push_beta_appcast_1
+        if: env.IS_BETA == 'true' && steps.merge_beta_appcast_1.outputs.appcast_changed == 'true'
+        continue-on-error: true
+        env:
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          if git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/main"; then
+            exit 0
+          fi
+          echo "main moved while publishing the appcast; retrying (1/5)"
+          sleep 2
+          exit 1
+
+      - name: Merge published beta appcast (attempt 2)
+        id: merge_beta_appcast_2
+        if: env.IS_BETA == 'true' && steps.push_beta_appcast_1.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout -B release-appcast origin/main
+          python3 .github/scripts/merge_appcast_channel.py \
+            updater/appcast.xml \
+            "$RUNNER_TEMP/appcast-${BETA_CHANNEL_NAME}.xml" \
+            "$BETA_CHANNEL_NAME"
+
+          git add updater/appcast.xml
+          if git diff --cached --quiet; then
+            echo "Published appcast already contains v${VERSION}."
+            echo "appcast_changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git commit -m "Update appcast with beta release for v${VERSION}"
+          echo "appcast_changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push published beta appcast (attempt 2)
+        id: push_beta_appcast_2
+        if: env.IS_BETA == 'true' && steps.merge_beta_appcast_2.outputs.appcast_changed == 'true'
+        continue-on-error: true
+        env:
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          if git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/main"; then
+            exit 0
+          fi
+          echo "main moved while publishing the appcast; retrying (2/5)"
+          sleep 4
+          exit 1
+
+      - name: Merge published beta appcast (attempt 3)
+        id: merge_beta_appcast_3
+        if: env.IS_BETA == 'true' && steps.push_beta_appcast_2.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout -B release-appcast origin/main
+          python3 .github/scripts/merge_appcast_channel.py \
+            updater/appcast.xml \
+            "$RUNNER_TEMP/appcast-${BETA_CHANNEL_NAME}.xml" \
+            "$BETA_CHANNEL_NAME"
+
+          git add updater/appcast.xml
+          if git diff --cached --quiet; then
+            echo "Published appcast already contains v${VERSION}."
+            echo "appcast_changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git commit -m "Update appcast with beta release for v${VERSION}"
+          echo "appcast_changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push published beta appcast (attempt 3)
+        id: push_beta_appcast_3
+        if: env.IS_BETA == 'true' && steps.merge_beta_appcast_3.outputs.appcast_changed == 'true'
+        continue-on-error: true
+        env:
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          if git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/main"; then
+            exit 0
+          fi
+          echo "main moved while publishing the appcast; retrying (3/5)"
+          sleep 6
+          exit 1
+
+      - name: Merge published beta appcast (attempt 4)
+        id: merge_beta_appcast_4
+        if: env.IS_BETA == 'true' && steps.push_beta_appcast_3.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout -B release-appcast origin/main
+          python3 .github/scripts/merge_appcast_channel.py \
+            updater/appcast.xml \
+            "$RUNNER_TEMP/appcast-${BETA_CHANNEL_NAME}.xml" \
+            "$BETA_CHANNEL_NAME"
+
+          git add updater/appcast.xml
+          if git diff --cached --quiet; then
+            echo "Published appcast already contains v${VERSION}."
+            echo "appcast_changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git commit -m "Update appcast with beta release for v${VERSION}"
+          echo "appcast_changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push published beta appcast (attempt 4)
+        id: push_beta_appcast_4
+        if: env.IS_BETA == 'true' && steps.merge_beta_appcast_4.outputs.appcast_changed == 'true'
+        continue-on-error: true
+        env:
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          if git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/main"; then
+            exit 0
+          fi
+          echo "main moved while publishing the appcast; retrying (4/5)"
+          sleep 8
+          exit 1
+
+      - name: Merge published beta appcast (attempt 5)
+        id: merge_beta_appcast_5
+        if: env.IS_BETA == 'true' && steps.push_beta_appcast_4.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout -B release-appcast origin/main
+          python3 .github/scripts/merge_appcast_channel.py \
+            updater/appcast.xml \
+            "$RUNNER_TEMP/appcast-${BETA_CHANNEL_NAME}.xml" \
+            "$BETA_CHANNEL_NAME"
+
+          git add updater/appcast.xml
+          if git diff --cached --quiet; then
+            echo "Published appcast already contains v${VERSION}."
+            echo "appcast_changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git commit -m "Update appcast with beta release for v${VERSION}"
+          echo "appcast_changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push published beta appcast (attempt 5)
+        id: push_beta_appcast_5
+        if: env.IS_BETA == 'true' && steps.merge_beta_appcast_5.outputs.appcast_changed == 'true'
+        continue-on-error: true
+        env:
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          if git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/main"; then
+            exit 0
+          fi
+          echo "main moved while publishing the appcast; retrying (5/5)"
+          sleep 10
+          exit 1
+
+      - name: Fail beta appcast publication after retries
+        if: env.IS_BETA == 'true' && steps.push_beta_appcast_5.outcome == 'failure'
+        run: |
+          echo "::error::Could not publish the appcast after 5 attempts"
+          exit 1
 
   upgrade-brew:
     name: Update Homebrew cask
@@ -672,10 +888,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: TheBoredTeam/homebrew-boring-notch
-          token: ${{ steps.tap_app_token.outputs.token }}
           path: homebrew-tap
+          persist-credentials: false
 
       - name: Update casks in tap
+        id: update_casks
         run: |
           set -euo pipefail
           cp boring-notch@rc.rb homebrew-tap/Casks/boring-notch@rc.rb
@@ -690,10 +907,21 @@ jobs:
           git add Casks/
           if git diff --cached --quiet; then
             echo "No changes to commit"
+            echo "casks_changed=false" >> "$GITHUB_OUTPUT"
           else
             git commit -m "$COMMIT_MSG"
-            git push
+            echo "casks_changed=true" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Push casks to tap
+        if: steps.update_casks.outputs.casks_changed == 'true'
+        env:
+          TAP_APP_TOKEN: ${{ steps.tap_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TAP_APP_TOKEN" | base64 | tr -d '\n')"
+          cd homebrew-tap
+          git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/$(git symbolic-ref --short HEAD)"
 
   ending:
     name: Finalize
@@ -716,7 +944,6 @@ jobs:
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           repositories: boring.notch
           permission-contents: write
-          permission-workflows: write
 
       - name: Merge release PR
         id: merge_release_pr

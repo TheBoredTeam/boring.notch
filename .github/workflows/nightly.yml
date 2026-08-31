@@ -56,6 +56,7 @@ jobs:
         with:
           ref: ${{ env.NIGHTLY_BRANCH }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Compute metadata and reserve build number
         id: meta
@@ -79,7 +80,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add "$COUNTER_FILE"
           git commit -m "Reserve build number ${BUILD_NUMBER}"
-          git push origin "HEAD:${BRANCH_NAME}"
 
           SOURCE_SHA="$(git rev-parse HEAD)"
           APPCAST_FILE="appcast-${BRANCH_NAME}.xml"
@@ -97,6 +97,14 @@ jobs:
             echo "asset_name=$ASSET_NAME"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Push reserved build number
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/${NIGHTLY_BRANCH}"
+
   build:
     name: Build nightly DMG
     needs: prepare
@@ -104,7 +112,7 @@ jobs:
       contents: read
     uses: ./.github/workflows/build_reusable.yml
     with:
-      head_ref: ${{ needs.prepare.outputs.source_sha }}
+      source_sha: ${{ needs.prepare.outputs.source_sha }}
       version: ""
       build_number: ${{ needs.prepare.outputs.build_number }}
       xcode_version: "16.4"
@@ -139,12 +147,12 @@ jobs:
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           repositories: boring.notch
           permission-contents: write
-          permission-workflows: write
 
       - name: Checkout reserved nightly source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ env.SOURCE_SHA }}
+          persist-credentials: false
 
       - name: Download DMG artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -264,6 +272,7 @@ jobs:
           GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
         run: |
           set -euo pipefail
+          SHOULD_PUBLISH=true
           TITLE="Nightly ${BRANCH_NAME}"
           NOTES="Automated nightly build for ${BRANCH_NAME}. Commit: ${SHORT_SHA}"
           LOOKUP_ERROR="$RUNNER_TEMP/release-lookup-error"
@@ -274,15 +283,17 @@ jobs:
             2>"$LOOKUP_ERROR")"; then
             if [[ "$IS_DRAFT" == "false" ]]; then
               echo "Release $TAG is already published; keeping immutable release."
-              exit 0
+              SHOULD_PUBLISH=false
             fi
 
-            gh release edit "$TAG" \
-              --draft \
-              --prerelease \
-              --target "$SOURCE_SHA" \
-              --title "$TITLE" \
-              --notes "$NOTES"
+            if [[ "$SHOULD_PUBLISH" == "true" ]]; then
+              gh release edit "$TAG" \
+                --draft \
+                --prerelease \
+                --target "$SOURCE_SHA" \
+                --title "$TITLE" \
+                --notes "$NOTES"
+            fi
           elif grep -q '(HTTP 404)' "$LOOKUP_ERROR"; then
             gh release create "$TAG" \
               --draft \
@@ -296,10 +307,13 @@ jobs:
             exit 1
           fi
 
-          gh release upload "$TAG" "Release/${ASSET_NAME}" --clobber
-          gh release edit "$TAG" --draft=false
+          if [[ "$SHOULD_PUBLISH" == "true" ]]; then
+            gh release upload "$TAG" "Release/${ASSET_NAME}" --clobber
+            gh release edit "$TAG" --draft=false
+          fi
 
       - name: Commit branch appcast pointer
+        id: commit_appcast
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -307,7 +321,24 @@ jobs:
           git add "updater/${APPCAST_FILE}"
           if git diff --cached --quiet; then
             echo "No changes detected in ${APPCAST_FILE}; skipping commit and push."
+            echo "appcast_changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git commit -m "Update ${APPCAST_FILE} to ${SHORT_SHA}"
-          git push origin "HEAD:${BRANCH_NAME}"
+          echo "appcast_changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push branch appcast pointer
+        if: steps.commit_appcast.outputs.appcast_changed == 'true'
+        env:
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$AUTH_HEADER" fetch origin \
+            "refs/heads/${BRANCH_NAME}:refs/remotes/origin/${BRANCH_NAME}"
+          CURRENT_HEAD="$(git rev-parse "refs/remotes/origin/${BRANCH_NAME}")"
+          if [[ "$CURRENT_HEAD" != "$SOURCE_SHA" ]]; then
+            echo "::error::${BRANCH_NAME} moved from ${SOURCE_SHA} to ${CURRENT_HEAD}; refusing to publish an appcast for unbuilt code"
+            exit 1
+          fi
+          git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/${BRANCH_NAME}"

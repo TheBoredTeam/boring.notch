@@ -2,7 +2,7 @@ name: "Reusable Build"
 on:
   workflow_call:
     inputs:
-      head_ref:
+      source_sha:
         required: true
         type: string
       version:
@@ -48,11 +48,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.head_ref }}
+          ref: ${{ inputs.source_sha }}
           persist-credentials: false
 
       - name: Resolve Swift packages
-        run: xcodebuild -resolvePackageDependencies -project ${{ env.PROJECT_NAME }}.xcodeproj
+        run: xcodebuild -resolvePackageDependencies -project "$PROJECT_NAME.xcodeproj"
 
       - name: Install Apple certificate
         env:
@@ -84,28 +84,26 @@ jobs:
       - name: Set version and build number
         run: |
           set -euo pipefail
-          PBXPROJ="${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj"
-          VERSION="${{ env.VERSION_INPUT }}"
-          BUILD_NUMBER_INPUT="${{ env.BUILD_NUMBER_INPUT }}"
+          PBXPROJ="$PROJECT_NAME.xcodeproj/project.pbxproj"
+          VERSION="$VERSION_INPUT"
           if [[ -z "$BUILD_NUMBER_INPUT" ]]; then
             echo "::error::A reserved build number must be provided by the caller"
             exit 1
           fi
           BUILD_NUMBER="$BUILD_NUMBER_INPUT"
-          UPDATE_CHANNEL="${{ env.UPDATE_CHANNEL }}"
           python3 .github/scripts/stamp_version.py \
             --pbxproj "$PBXPROJ" \
             --version "$VERSION" \
             --build-number "$BUILD_NUMBER" \
-            --info-plist "${PROJECT_NAME}/Info.plist" \
+            --info-plist "$PROJECT_NAME/Info.plist" \
             --update-channel "$UPDATE_CHANNEL"
 
       - name: Build and archive
         run: |
           xcodebuild clean archive \
-            -project ${{ env.PROJECT_NAME }}.xcodeproj \
-            -scheme ${{ env.PROJECT_NAME }} \
-            -archivePath ${{ env.PROJECT_NAME }} \
+            -project "$PROJECT_NAME.xcodeproj" \
+            -scheme "$PROJECT_NAME" \
+            -archivePath "$PROJECT_NAME" \
             -destination "generic/platform=macOS" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
             CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
@@ -120,7 +118,7 @@ jobs:
           <plist version="1.0">
           <dict>
             <key>method</key>
-            <string>${{ env.EXPORT_METHOD }}</string>
+            <string>${EXPORT_METHOD}</string>
             <key>signingStyle</key>
             <string>automatic</string>
             <key>teamID</key>
@@ -129,7 +127,7 @@ jobs:
           </plist>
           PLIST
           xcodebuild -exportArchive \
-            -archivePath "${{ env.PROJECT_NAME }}.xcarchive" \
+            -archivePath "$PROJECT_NAME.xcarchive" \
             -exportPath Release \
             -exportOptionsPlist "$RUNNER_TEMP/export_options.plist"
 
@@ -142,9 +140,9 @@ jobs:
           python3 -m pip install --require-hashes -r Configuration/dmg/requirements.txt
           chmod +x Configuration/dmg/create_dmg.sh
           ./Configuration/dmg/create_dmg.sh \
-            "Release/${{ env.PROJECT_NAME }}.app" \
-            "Release/${{ env.PROJECT_NAME }}.dmg" \
-            "${{ env.PROJECT_NAME }} ${{ env.VERSION_INPUT }}"
+            "Release/$PROJECT_NAME.app" \
+            "Release/$PROJECT_NAME.dmg" \
+            "$PROJECT_NAME $VERSION_INPUT"
 
       - name: Upload DMG
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
