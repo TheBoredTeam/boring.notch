@@ -22,7 +22,7 @@ jobs:
     name: Prepare nightly metadata
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     concurrency:
       group: release-build-number
       cancel-in-progress: false
@@ -97,12 +97,21 @@ jobs:
             echo "asset_name=$ASSET_NAME"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Create release app token
+        id: release_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
+
       - name: Push reserved build number
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
         run: |
           set -euo pipefail
-          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 | tr -d '\n')"
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
           git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/${NIGHTLY_BRANCH}"
 
   build:

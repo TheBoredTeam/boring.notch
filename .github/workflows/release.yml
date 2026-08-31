@@ -518,6 +518,7 @@ jobs:
             Release/
 
       - name: Create or refresh draft GitHub release
+        id: prepare_release
         env:
           GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
           TITLE: ${{ needs.preparation.outputs.title }}
@@ -526,23 +527,58 @@ jobs:
           set -euo pipefail
           TAG="v${VERSION}"
           LOOKUP_ERROR="$RUNNER_TEMP/release-lookup-error"
+          ALREADY_PUBLISHED=false
 
-          if IS_DRAFT="$(gh api \
+          if RELEASE_JSON="$(gh api \
             "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" \
-            --jq '.draft' \
             2>"$LOOKUP_ERROR")"; then
-            if [[ "$IS_DRAFT" != "true" ]]; then
+            IS_DRAFT="$(jq -r '.draft' <<< "$RELEASE_JSON")"
+            if [[ "$IS_DRAFT" == "true" ]]; then
+              gh release edit "$TAG" \
+                --draft \
+                --prerelease="$IS_BETA" \
+                --target "$SOURCE_SHA" \
+                --title "${TAG} - ${TITLE}" \
+                --notes "$NOTES"
+              gh release upload "$TAG" Release/boringNotch.dmg --clobber
+            elif [[ "$IS_BETA" == "true" ]]; then
+              RELEASE_TARGET="$(jq -r '.target_commitish' <<< "$RELEASE_JSON")"
+              IS_PRERELEASE="$(jq -r '.prerelease' <<< "$RELEASE_JSON")"
+              ASSET_COUNT="$(jq '[.assets[] | select(.name == "boringNotch.dmg")] | length' <<< "$RELEASE_JSON")"
+
+              if [[ "$RELEASE_TARGET" != "$SOURCE_SHA" ]]; then
+                echo "::error::Published release ${TAG} targets ${RELEASE_TARGET}, expected ${SOURCE_SHA}"
+                exit 1
+              fi
+              if [[ "$IS_PRERELEASE" != "true" ]]; then
+                echo "::error::Published release ${TAG} is not marked as a prerelease"
+                exit 1
+              fi
+              if [[ "$ASSET_COUNT" != "1" ]]; then
+                echo "::error::Published release ${TAG} must contain exactly one boringNotch.dmg asset"
+                exit 1
+              fi
+
+              PUBLISHED_ASSET_DIR="$RUNNER_TEMP/published-release"
+              mkdir -p "$PUBLISHED_ASSET_DIR"
+              gh release download "$TAG" \
+                --repo "$GITHUB_REPOSITORY" \
+                --pattern boringNotch.dmg \
+                --dir "$PUBLISHED_ASSET_DIR"
+
+              EXPECTED_SHA256="$(shasum -a 256 Release/boringNotch.dmg | awk '{print $1}')"
+              PUBLISHED_SHA256="$(shasum -a 256 "$PUBLISHED_ASSET_DIR/boringNotch.dmg" | awk '{print $1}')"
+              if [[ "$PUBLISHED_SHA256" != "$EXPECTED_SHA256" ]]; then
+                echo "::error::Published boringNotch.dmg does not match the artifact built for ${SOURCE_SHA}"
+                exit 1
+              fi
+
+              echo "Published beta release ${TAG} matches this build; resuming appcast publication."
+              ALREADY_PUBLISHED=true
+            else
               echo "::error::Release ${TAG} already exists and is not a draft"
               exit 1
             fi
-
-            gh release edit "$TAG" \
-              --draft \
-              --prerelease="$IS_BETA" \
-              --target "$SOURCE_SHA" \
-              --title "${TAG} - ${TITLE}" \
-              --notes "$NOTES"
-            gh release upload "$TAG" Release/boringNotch.dmg --clobber
           elif grep -q '(HTTP 404)' "$LOOKUP_ERROR"; then
             RELEASE_FLAGS=(--draft)
             if [[ "${IS_BETA}" == "true" ]]; then
@@ -558,6 +594,8 @@ jobs:
             echo "::error::Could not determine whether release ${TAG} already exists"
             exit 1
           fi
+
+          echo "already_published=$ALREADY_PUBLISHED" >> "$GITHUB_OUTPUT"
 
       - name: Commit stable appcast to release branch
         id: commit_stable_appcast
@@ -589,6 +627,7 @@ jobs:
           echo "release_head_sha=$RELEASE_HEAD_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Publish GitHub release
+        if: steps.prepare_release.outputs.already_published != 'true'
         env:
           GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
         run: |
