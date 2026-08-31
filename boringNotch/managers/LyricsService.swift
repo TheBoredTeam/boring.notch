@@ -64,6 +64,23 @@ class LyricsService: ObservableObject {
                     return
                 }
             }
+
+            // Try NetEase lyrics first when playing from NetEase Music
+            if let bundleIdentifier = bundleIdentifier, bundleIdentifier.contains("com.netease.163music") {
+                guard !Task.isCancelled else { return }
+                let neteaseResult = await self.fetchLyricsFromNetease(title: title, artist: artist)
+
+                guard !Task.isCancelled else { return }
+                await MainActor.run {
+                    self.currentLyrics = neteaseResult.plain
+                    self.syncedLyrics = neteaseResult.synced
+                    self.isFetchingLyrics = false
+                    if !neteaseResult.plain.isEmpty {
+                        self.lyricsCache[cacheKey] = neteaseResult
+                    }
+                }
+                return
+            }
             
             // Fallback to web
             guard !Task.isCancelled else { return }
@@ -164,6 +181,72 @@ class LyricsService: ObservableObject {
             // Fall through to return nil
         }
         return nil
+    }
+
+    private func fetchLyricsFromNetease(title: String, artist: String) async -> (plain: String, synced: [(time: Double, text: String)]) {
+        func searchSongId(keyword: String) async -> Int? {
+            let cleanKeyword = normalizedQuery(keyword)
+            guard let encodedKeyword = cleanKeyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+                return nil
+            }
+
+            let searchUrlString = "https://music.163.com/api/search/get/web?s=\(encodedKeyword)&type=1&offset=0&total=true&limit=1"
+            guard let searchUrl = URL(string: searchUrlString) else { return nil }
+
+            var request = URLRequest(url: searchUrl)
+            request.timeoutInterval = 10
+            request.setValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36", forHTTPHeaderField: "User-Agent")
+            request.setValue("https://music.163.com", forHTTPHeaderField: "Referer")
+
+            do {
+                let (searchData, _) = try await URLSession.shared.data(for: request)
+                if let json = try JSONSerialization.jsonObject(with: searchData) as? [String: Any],
+                   let result = json["result"] as? [String: Any],
+                   let songs = result["songs"] as? [[String: Any]],
+                   let firstSong = songs.first {
+                    let rawId = firstSong["id"]
+                    if let songId = (rawId as? Int) ?? (rawId as? NSNumber)?.intValue {
+                        return songId
+                    }
+                }
+            } catch {}
+            return nil
+        }
+
+        // Try search strategies
+        var songId = await searchSongId(keyword: "\(title) \(artist)")
+        if songId == nil {
+            songId = await searchSongId(keyword: title)
+        }
+
+        guard let targetId = songId else {
+            return await fetchLyricsFromWeb(title: title, artist: artist)
+        }
+
+        // Get lyrics
+        let lyricUrlString = "https://music.163.com/api/song/lyric?os=pc&id=\(targetId)&lv=-1&kv=-1&tv=-1"
+        guard let lyricUrl = URL(string: lyricUrlString) else {
+            return await fetchLyricsFromWeb(title: title, artist: artist)
+        }
+
+        var lyricRequest = URLRequest(url: lyricUrl)
+        lyricRequest.timeoutInterval = 10
+        lyricRequest.setValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36", forHTTPHeaderField: "User-Agent")
+        lyricRequest.setValue("https://music.163.com", forHTTPHeaderField: "Referer")
+
+        do {
+            let (lyricData, _) = try await URLSession.shared.data(for: lyricRequest)
+            guard let lyricJson = try JSONSerialization.jsonObject(with: lyricData) as? [String: Any],
+                  let lrc = lyricJson["lrc"] as? [String: Any],
+                  let lyricString = lrc["lyric"] as? String,
+                  !lyricString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                return await fetchLyricsFromWeb(title: title, artist: artist)
+            }
+
+            return (lyricString, parseLRC(lyricString))
+        } catch {
+            return await fetchLyricsFromWeb(title: title, artist: artist)
+        }
     }
     
     private func fetchLyricsFromWeb(title: String, artist: String) async -> (plain: String, synced: [(time: Double, text: String)]) {
@@ -277,7 +360,7 @@ class LyricsService: ObservableObject {
     
     private func parseLRC(_ lrc: String) -> [(time: Double, text: String)] {
         var result: [(Double, String)] = []
-        let pattern = #"\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]"#
+        let pattern = #"\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?(?:-\d+)?\]"#
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
         
         for lineSub in lrc.split(separator: "\n") {
