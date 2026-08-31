@@ -30,6 +30,12 @@ struct SettingsView: View {
                 NavigationLink(value: "General") {
                     Label("General", systemImage: "gear")
                 }
+                NavigationLink(value: "Menu Bar") {
+                    Label("Menu Bar", systemImage: "menubar.rectangle")
+                }
+                NavigationLink(value: "Timer") {
+                    Label("Timer & Stopwatch", systemImage: "timer")
+                }
                 NavigationLink(value: "Appearance") {
                     Label("Appearance", systemImage: "eye")
                 }
@@ -73,6 +79,10 @@ struct SettingsView: View {
                 switch selectedTab {
                 case "General":
                     GeneralSettings()
+                case "Menu Bar":
+                    MenuBarSettings()
+                case "Timer":
+                    ClockSettings()
                 case "Appearance":
                     Appearance()
                 case "Media":
@@ -123,6 +133,72 @@ struct SettingsView: View {
         .id(accentColorUpdateTrigger)
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("AccentColorChanged"))) { _ in
             accentColorUpdateTrigger = UUID()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .selectSettingsTab)) { notification in
+            guard let tab = notification.userInfo?["tab"] as? String else { return }
+            selectedTab = tab
+        }
+    }
+}
+
+struct ClockSettings: View {
+    @ObservedObject private var coordinator = BoringViewCoordinator.shared
+    @ObservedObject private var manager = TimeActivityManager.shared
+    @Default(.timeActivityEnabled) private var timeActivityEnabled
+    @Default(.timerDefaultMinutes) private var defaultTimerMinutes
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .timeActivityEnabled) {
+                    Text("Show Timer & Stopwatch tab in the notch")
+                }
+            } header: {
+                Text("Timer activity")
+            } footer: {
+                Text("When disabled, the timer tab is removed and any active timer or stopwatch is stopped.")
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                Stepper(value: $defaultTimerMinutes, in: 1...120) {
+                    HStack {
+                        Text("Default timer duration")
+                        Spacer()
+                        Text("\(defaultTimerMinutes) min")
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                }
+
+                Defaults.Toggle(key: .timerCompletionSound) {
+                    Text("Play a sound when the timer finishes")
+                }
+
+                Defaults.Toggle(key: .timerShowInClosedNotch) {
+                    Text("Show an active timer or stopwatch when the notch is closed")
+                }
+            } header: {
+                Text("Timer")
+            }
+            .disabled(!timeActivityEnabled)
+
+            Section {
+                Defaults.Toggle(key: .stopwatchShowCentiseconds) {
+                    Text("Show centiseconds while the stopwatch is open")
+                }
+            } header: {
+                Text("Stopwatch")
+            }
+            .disabled(!timeActivityEnabled)
+        }
+        .navigationTitle("Timer & Stopwatch")
+        .onChange(of: timeActivityEnabled) { _, isEnabled in
+            guard !isEnabled else { return }
+            manager.reset()
+            if coordinator.currentView == .activities {
+                coordinator.currentView = .home
+            }
         }
     }
 }
@@ -598,6 +674,7 @@ struct Media: View {
     @Default(.hideNotchOption) var hideNotchOption
     @Default(.enableSneakPeek) private var enableSneakPeek
     @Default(.sneakPeekStyles) var sneakPeekStyles
+    @Default(.useBluetoothDeviceMatching) private var useBluetoothDeviceMatching
 
     @Default(.enableLyrics) var enableLyrics
 
@@ -675,6 +752,24 @@ struct Media: View {
                 }
             } header: {
                 Text("Media playback live activity")
+            }
+
+            Section {
+                Defaults.Toggle(key: .showBluetoothHeadphoneNotifications) {
+                    Text("Show headphone connection animation")
+                }
+                Defaults.Toggle(key: .useBluetoothDeviceMatching) {
+                    Text("Use paired Bluetooth device details for a better name and icon")
+                }
+            } header: {
+                Text("Bluetooth headphones")
+            } footer: {
+                Text("The animation appears only when a Bluetooth headset becomes the active macOS audio output.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .onChange(of: useBluetoothDeviceMatching) {
+                BluetoothAudioManager.shared.refreshMatchingPreference()
             }
             
             Section {

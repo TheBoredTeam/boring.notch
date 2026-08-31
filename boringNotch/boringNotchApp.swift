@@ -82,6 +82,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             DistributedNotificationCenter.default().removeObserver(observer)
             screenUnlockedObserver = nil
         }
+        BluetoothAudioManager.shared.stop()
         MusicManager.shared.destroy()
         cleanupDragDetectors()
         cleanupWindows()
@@ -280,6 +281,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+
+        BluetoothAudioManager.shared.start()
+        Task { @MainActor in
+            TimeActivityManager.shared.reconcile()
+        }
+
+        Task { @MainActor in
+            MenuBarSystemVisibilityController.shared.start()
+        }
 
         NotificationCenter.default.addObserver(
             self,

@@ -18,6 +18,7 @@ enum SneakContentType {
     case mic
     case battery
     case download
+    case bluetooth
 }
 
 struct sneakPeek {
@@ -49,8 +50,12 @@ struct ExpandedItem {
 @MainActor
 class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
+    static let contentTransitionAnimation = Animation.smooth(duration: 0.35)
 
     @Published var currentView: NotchViews = .home
+    private var viewBeforeMenuBar: NotchViews = .home
+    @Published private(set) var isMenuBarInteractionActive = false
+    private var menuBarInteractionTask: Task<Void, Never>?
     @Published var helloAnimationRunning: Bool = false
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
@@ -65,7 +70,8 @@ class BoringViewCoordinator: ObservableObject {
         didSet {
             if !alwaysShowTabs {
                 openLastTabByDefault = false
-                if ShelfStateViewModel.shared.isEmpty || !Defaults[.openShelfByDefault] {
+                if currentView == .shelf
+                    && (ShelfStateViewModel.shared.isEmpty || !Defaults[.openShelfByDefault]) {
                     currentView = .home
                 }
             }
@@ -210,7 +216,7 @@ class BoringViewCoordinator: ObservableObject {
         icon: String = ""
     ) {
         sneakPeekDuration = duration
-        if type != .music {
+        if type != .music && type != .bluetooth {
             // close()
             if !Defaults[.hudReplacement] {
                 return
@@ -296,5 +302,60 @@ class BoringViewCoordinator: ObservableObject {
     
     func showEmpty() {
         currentView = .home
+    }
+
+    func selectView(_ view: NotchViews) {
+        guard currentView != view else { return }
+        // Animation is scoped by the content host and tab controls. Applying
+        // withAnimation here wraps every currentView observer in the notch and
+        // makes a page selection look like a full shell re-render.
+        currentView = view
+    }
+
+    func toggleMenuBarAccess() {
+        if currentView == .menuBar {
+            let destination = viewBeforeMenuBar == .menuBar ? .home : viewBeforeMenuBar
+            let resolvedDestination = destination == .activities && !Defaults[.timeActivityEnabled]
+                ? .home
+                : destination
+            selectView(resolvedDestination)
+        } else {
+            viewBeforeMenuBar = currentView
+            selectView(.menuBar)
+        }
+    }
+
+    /// Keeps the expanded notch alive while a horizontal menu-bar gesture is
+    /// crossing its visual bounds, then preserves a short grace period after
+    /// the gesture ends.
+    func beginMenuBarInteraction() {
+        menuBarInteractionTask?.cancel()
+        isMenuBarInteractionActive = true
+        // SwiftUI can cancel a gesture without delivering onEnded when its
+        // view disappears. Keep a generous failsafe so that case cannot leave
+        // hover closing disabled for the rest of the session.
+        menuBarInteractionTask = Task { [weak self] in
+            do {
+                try await Task.sleep(for: .seconds(3))
+            } catch {
+                return
+            }
+            guard !Task.isCancelled else { return }
+            self?.isMenuBarInteractionActive = false
+        }
+    }
+
+    func holdMenuBarInteraction(for duration: Duration = .milliseconds(500)) {
+        menuBarInteractionTask?.cancel()
+        isMenuBarInteractionActive = true
+        menuBarInteractionTask = Task { [weak self] in
+            do {
+                try await Task.sleep(for: duration)
+            } catch {
+                return
+            }
+            guard !Task.isCancelled else { return }
+            self?.isMenuBarInteractionActive = false
+        }
     }
 }

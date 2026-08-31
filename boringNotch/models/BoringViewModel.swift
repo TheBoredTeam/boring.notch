@@ -25,6 +25,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var dropEvent: Bool = false
     @Published var anyDropZoneTargeting: Bool = false
     var cancellables: Set<AnyCancellable> = []
+    private var viewResetAfterCloseTask: DispatchWorkItem?
     
     @Published var hideOnClosed: Bool = true
 
@@ -46,6 +47,7 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func destroy() {
+        viewResetAfterCloseTask?.cancel()
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
     }
@@ -190,6 +192,8 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func open() {
+        viewResetAfterCloseTask?.cancel()
+        viewResetAfterCloseTask = nil
         self.notchSize = openNotchSize
         self.notchState = .open
         
@@ -211,10 +215,36 @@ class BoringViewModel: NSObject, ObservableObject {
 
         // Set the current view to shelf if it contains files and the user enables openShelfByDefault
         // Otherwise, if the user has not enabled openLastShelfByDefault, set the view to home
-    if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
-            coordinator.currentView = .shelf
+        let destinationView: NotchViews?
+        if !ShelfStateViewModel.shared.isEmpty && Defaults[.openShelfByDefault] {
+            destinationView = .shelf
         } else if !coordinator.openLastTabByDefault {
-            coordinator.currentView = .home
+            destinationView = .home
+        } else {
+            destinationView = nil
+        }
+
+        viewResetAfterCloseTask?.cancel()
+        guard let destinationView else { return }
+
+        if coordinator.currentView == .menuBar {
+            // Keep the menu-bar content mounted while the notch folds closed.
+            // Replacing it with Home in the same animated transaction triggers
+            // an extra opacity removal that the other tabs do not experience.
+            let resetTask = DispatchWorkItem { [weak self] in
+                guard let self,
+                      self.notchState == .closed,
+                      self.coordinator.currentView == .menuBar else { return }
+                self.coordinator.currentView = destinationView
+                self.viewResetAfterCloseTask = nil
+            }
+            viewResetAfterCloseTask = resetTask
+            DispatchQueue.main.asyncAfter(
+                deadline: .now() + 0.46,
+                execute: resetTask
+            )
+        } else {
+            coordinator.currentView = destinationView
         }
     }
 

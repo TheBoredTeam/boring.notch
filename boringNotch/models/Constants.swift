@@ -68,12 +68,84 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
     var id: String { self.rawValue }
 }
 
+enum MenuBarItemDisplaySize: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case compact
+    case standard
+    case large
+
+    var id: String { rawValue }
+
+    var previewHeight: CGFloat {
+        switch self {
+        case .compact: 22
+        case .standard: 28
+        case .large: 36
+        }
+    }
+
+    var minimumTileWidth: CGFloat {
+        switch self {
+        case .compact: 62
+        case .standard: 74
+        case .large: 92
+        }
+    }
+
+    var maximumPreviewWidth: CGFloat {
+        switch self {
+        case .compact: 88
+        case .standard: 112
+        case .large: 144
+        }
+    }
+
+    var labelFontSize: CGFloat {
+        switch self {
+        case .compact: 9
+        case .standard: 10
+        case .large: 11
+        }
+    }
+}
+
 extension Defaults.Keys {
     // MARK: General
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
+    static let menuBarAccessEnabled = Key<Bool>("menuBarAccessEnabled", default: true)
+    static let menuBarLivePreviews = Key<Bool>("menuBarLivePreviews", default: true)
+    static let menuBarPreviewRefreshInterval = Key<Double>(
+        "menuBarPreviewRefreshInterval",
+        default: 1
+    )
+    static let menuBarItemDisplaySize = Key<MenuBarItemDisplaySize>(
+        "menuBarItemDisplaySize",
+        default: .standard
+    )
+    static let menuBarItemShowLabels = Key<Bool>("menuBarItemShowLabels", default: true)
+    static let menuBarHiddenItemIDs = Key<[String]>("menuBarHiddenItemIDs", default: [])
+    static let menuBarSystemHiddenItemIDs = Key<[String]>(
+        "menuBarSystemHiddenItemIDs",
+        default: []
+    )
+    static let menuBarHiddenSectionCollapsed = Key<Bool>(
+        "menuBarHiddenSectionCollapsed",
+        default: false
+    )
+    static let menuBarHiddenSectionSetupCompleted = Key<Bool>(
+        "menuBarHiddenSectionSetupCompleted",
+        default: false
+    )
+    static let menuBarItemOrder = Key<[String]>("menuBarItemOrder", default: [])
+
+    // MARK: Timer and stopwatch
+    static let timeActivityEnabled = Key<Bool>("timeActivityEnabled", default: false)
+    static let timerShowInClosedNotch = Key<Bool>("timerShowInClosedNotch", default: true)
+    static let timerDefaultMinutes = Key<Int>("timerDefaultMinutes", default: 5)
+    static let timerCompletionSound = Key<Bool>("timerCompletionSound", default: true)
+    static let stopwatchShowCentiseconds = Key<Bool>("stopwatchShowCentiseconds", default: true)
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
@@ -125,6 +197,14 @@ extension Defaults.Keys {
     // MARK: Media playback
     static let coloredSpectrogram = Key<Bool>("coloredSpectrogram", default: true)
     static let enableSneakPeek = Key<Bool>("enableSneakPeek", default: false)
+    static let showBluetoothHeadphoneNotifications = Key<Bool>(
+        "showBluetoothHeadphoneNotifications",
+        default: true
+    )
+    static let useBluetoothDeviceMatching = Key<Bool>(
+        "useBluetoothDeviceMatching",
+        default: true
+    )
     static let sneakPeekStyles = Key<SneakPeekStyle>("sneakPeekStyles", default: .standard)
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)

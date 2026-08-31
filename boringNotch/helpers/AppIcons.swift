@@ -5,8 +5,56 @@
 //  Created by Harsh Vardhan  Goswami  on 16/08/24.
 //
 
-import SwiftUI
 import AppKit
+import SwiftUI
+
+/// Loads application icons away from the main thread and keeps them for the
+/// lifetime of the process. Menu-bar settings can contain many rows, so doing
+/// the NSWorkspace lookup from a row's `body` is particularly expensive.
+final class AppIconCache: @unchecked Sendable {
+    static let shared = AppIconCache()
+
+    private let loadingQueue = DispatchQueue(
+        label: "theboringteam.boringnotch.app-icon-cache",
+        qos: .utility
+    )
+    private var imagesByBundleIdentifier: [String: NSImage] = [:]
+    private var missingBundleIdentifiers = Set<String>()
+
+    private init() {}
+
+    func icons(for bundleIdentifiers: [String]) async -> [String: NSImage] {
+        let identifiers = Array(Set(bundleIdentifiers)).sorted()
+        guard !identifiers.isEmpty else { return [:] }
+
+        return await withCheckedContinuation { continuation in
+            loadingQueue.async { [self] in
+                let workspace = NSWorkspace.shared
+                var result: [String: NSImage] = [:]
+
+                for identifier in identifiers {
+                    if let cachedImage = imagesByBundleIdentifier[identifier] {
+                        result[identifier] = cachedImage
+                        continue
+                    }
+                    guard !missingBundleIdentifiers.contains(identifier),
+                          let applicationURL = workspace.urlForApplication(
+                              withBundleIdentifier: identifier
+                          ) else {
+                        missingBundleIdentifiers.insert(identifier)
+                        continue
+                    }
+
+                    let image = workspace.icon(forFile: applicationURL.path)
+                    imagesByBundleIdentifier[identifier] = image
+                    result[identifier] = image
+                }
+
+                continuation.resume(returning: result)
+            }
+        }
+    }
+}
 
 struct AppIcons {
     
@@ -58,4 +106,3 @@ func AppIconAsNSImage(for bundleID: String) -> NSImage? {
     }
     return nil
 }
-

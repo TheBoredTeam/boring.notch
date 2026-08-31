@@ -5,8 +5,9 @@
 //  Created by Alexander on 2025-06-23.
 //
 
-import SwiftUI
 import AVFoundation
+import CoreGraphics
+import SwiftUI
 
 enum OnboardingStep {
     case welcome
@@ -14,6 +15,7 @@ enum OnboardingStep {
     case calendarPermission
     case remindersPermission
     case accessibilityPermission
+    case screenRecordingPermission
     case musicPermission
     case finished
 }
@@ -106,11 +108,33 @@ struct OnboardingView: View {
                 PermissionRequestView(
                     icon: Image(systemName: "hand.raised.fill"),
                     title: "Enable Accessibility Access",
-                    description: "Accessibility access is required to replace system notifications with the Boring Notch HUD. This allows the app to intercept media and brightness events to display custom HUD overlays.",
-                    privacyNote: "Accessibility access is used only to improve media and brightness notifications. No data is collected or shared.",
+                    description: "Accessibility is required to discover and open menu bar items and to replace system HUDs.",
+                    privacyNote: "Accessibility is used only to control the features you enable. No data is collected or shared.",
                     onAllow: {
                         Task {
                             await requestAccessibilityPermission()
+                            withAnimation(.easeInOut(duration: 0.6)) {
+                                step = .screenRecordingPermission
+                            }
+                        }
+                    },
+                    onSkip: {
+                        withAnimation(.easeInOut(duration: 0.6)) {
+                            step = .screenRecordingPermission
+                        }
+                    }
+                )
+                .transition(.opacity)
+
+            case .screenRecordingPermission:
+                PermissionRequestView(
+                    icon: Image(systemName: "record.circle"),
+                    title: "Enable Screen Recording Access",
+                    description: "Screen Recording lets Boring Notch show live previews of menu bar items. It is optional; menu bar controls continue to work with app icons if you skip it.",
+                    privacyNote: "Only menu bar item regions are captured for on-device previews. Nothing is recorded, stored, or uploaded.",
+                    onAllow: {
+                        Task {
+                            await requestScreenRecordingPermission()
                             withAnimation(.easeInOut(duration: 0.6)) {
                                 step = .musicPermission
                             }
@@ -157,6 +181,13 @@ struct OnboardingView: View {
     }
     
     func requestAccessibilityPermission() async {
-        await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
+        XPCHelperClient.shared.requestAccessibilityAuthorization()
+    }
+
+    func requestScreenRecordingPermission() async {
+        guard !CGPreflightScreenCaptureAccess() else { return }
+        _ = await Task.detached(priority: .userInitiated) {
+            CGRequestScreenCaptureAccess()
+        }.value
     }
 }

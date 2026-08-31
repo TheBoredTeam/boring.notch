@@ -23,6 +23,8 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var bluetoothAudioManager = BluetoothAudioManager.shared
+    @ObservedObject var timeActivityManager = TimeActivityManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -36,6 +38,8 @@ struct ContentView: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.timeActivityEnabled) private var timeActivityEnabled
+    @Default(.timerShowInClosedNotch) private var timerShowInClosedNotch
 
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
@@ -65,6 +69,10 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
+        } else if shouldShowBluetoothActivity && vm.notchState == .closed && !vm.hideOnClosed {
+            chinWidth += bluetoothSneakSize.width
+        } else if shouldShowTimeActivity && vm.notchState == .closed && !vm.hideOnClosed {
+            chinWidth += timeActivitySneakSize.width
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -78,6 +86,19 @@ struct ContentView: View {
         }
 
         return chinWidth
+    }
+
+    private var shouldShowBluetoothActivity: Bool {
+        coordinator.sneakPeek.show
+            && coordinator.sneakPeek.type == .bluetooth
+            && Defaults[.showBluetoothHeadphoneNotifications]
+    }
+
+    private var shouldShowTimeActivity: Bool {
+        timeActivityEnabled
+            && timerShowInClosedNotch
+            && timeActivityManager.hasSession
+            && !coordinator.sneakPeek.show
     }
 
     var body: some View {
@@ -100,6 +121,15 @@ struct ContentView: View {
                         : cornerRadiusInsets.closed.bottom
                     )
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
+                    // Apply the fixed open size before painting and clipping
+                    // the background. Otherwise a short child such as the
+                    // menu-bar strip paints only its intrinsic height and the
+                    // rest of this frame remains transparent.
+                    .frame(
+                        width: vm.notchState == .open ? vm.notchSize.width : nil,
+                        height: vm.notchState == .open ? vm.notchSize.height : nil,
+                        alignment: .top
+                    )
                     .background(.black)
                     .clipShape(currentNotchShape)
                     .overlay(alignment: .top) {
@@ -118,7 +148,6 @@ struct ContentView: View {
                     )
                 
                 mainLayout
-                    .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
                     .conditionalModifier(true) { view in
                         let openAnimation = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
                         let closeAnimation = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
@@ -137,27 +166,27 @@ struct ContentView: View {
                     .conditionalModifier(Defaults[.enableGestures]) { view in
                         view
                             .panGesture(direction: .down) { translation, phase in
+                                // Keep the gesture modifier mounted when tabs
+                                // change. Removing it only for Menu Bar changes
+                                // the ancestor view identity and recreates the
+                                // content host before its exit animation runs.
+                                guard coordinator.currentView != .menuBar else { return }
                                 handleDownGesture(translation: translation, phase: phase)
                             }
                     }
-                    .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
+                    .conditionalModifier(
+                        Defaults[.closeGestureEnabled]
+                            && Defaults[.enableGestures]
+                    ) { view in
                         view
                             .panGesture(direction: .up) { translation, phase in
+                                guard coordinator.currentView != .menuBar else { return }
                                 handleUpGesture(translation: translation, phase: phase)
                             }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
                         if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
-                            hoverTask?.cancel()
-                            hoverTask = Task {
-                                try? await Task.sleep(for: .milliseconds(100))
-                                guard !Task.isCancelled else { return }
-                                await MainActor.run {
-                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
-                                        self.vm.close()
-                                    }
-                                }
-                            }
+                            scheduleHoverClose()
                         }
                     }
                     .onChange(of: vm.notchState) { _, newState in
@@ -169,16 +198,7 @@ struct ContentView: View {
                     }
                     .onChange(of: vm.isBatteryPopoverActive) {
                         if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
-                            hoverTask?.cancel()
-                            hoverTask = Task {
-                                try? await Task.sleep(for: .milliseconds(100))
-                                guard !Task.isCancelled else { return }
-                                await MainActor.run {
-                                    if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
-                                        self.vm.close()
-                                    }
-                                }
-                            }
+                            scheduleHoverClose()
                         }
                     }
                     .sensoryFeedback(.alignment, trigger: haptics)
@@ -284,8 +304,19 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
-                      } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
+                      } else if shouldShowBluetoothActivity && vm.notchState == .closed && !vm.hideOnClosed {
+                          BluetoothDeviceActivity(
+                              device: bluetoothAudioManager.activeNotificationDevice,
+                              profile: bluetoothAudioManager.activeProfile,
+                              closedNotchWidth: vm.closedNotchSize.width,
+                              height: vm.effectiveClosedNotchHeight
+                          )
+                          .transition(.opacity)
+                      } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && (coordinator.sneakPeek.type != .bluetooth) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
+                              .transition(.opacity)
+                      } else if shouldShowTimeActivity && vm.notchState == .closed && !vm.hideOnClosed {
+                          ClosedTimeActivityView()
                               .transition(.opacity)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
@@ -301,7 +332,7 @@ struct ContentView: View {
                        }
 
                       if coordinator.sneakPeek.show {
-                          if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] && vm.notchState == .closed {
+                          if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && (coordinator.sneakPeek.type != .bluetooth) && !Defaults[.inlineHUD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
                                   eventType: $coordinator.sneakPeek.type,
                                   value: $coordinator.sneakPeek.value,
@@ -343,19 +374,7 @@ struct ContentView: View {
               }
               .zIndex(2)
             if vm.notchState == .open {
-                VStack {
-                    switch coordinator.currentView {
-                    case .home:
-                        NotchHomeView(albumArtNamespace: albumArtNamespace)
-                    case .shelf:
-                        ShelfView()
-                    }
-                }
-                .transition(
-                    .scale(scale: 0.8, anchor: .top)
-                    .combined(with: .opacity)
-                    .animation(.smooth(duration: 0.35))
-                )
+                NotchContentHost(albumArtNamespace: albumArtNamespace)
                 .zIndex(1)
                 .allowsHitTesting(vm.notchState == .open)
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
@@ -503,6 +522,10 @@ struct ContentView: View {
     }
 
     private func doOpen() {
+        if timeActivityEnabled && timeActivityManager.hasSession
+            && coordinator.currentView != .menuBar {
+            coordinator.currentView = .activities
+        }
         withAnimation(animationSpring) {
             vm.open()
         }
@@ -540,18 +563,35 @@ struct ContentView: View {
                 }
             }
         } else {
-            hoverTask = Task {
-                try? await Task.sleep(for: .milliseconds(100))
-                guard !Task.isCancelled else { return }
-                
-                await MainActor.run {
-                    withAnimation(animationSpring) {
-                        self.isHovering = false
-                    }
-                    
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
-                        self.vm.close()
-                    }
+            scheduleHoverClose()
+        }
+    }
+
+    private func scheduleHoverClose() {
+        hoverTask?.cancel()
+        let initialDelay: Duration = coordinator.currentView == .menuBar
+            ? .milliseconds(500)
+            : .milliseconds(100)
+
+        hoverTask = Task {
+            do {
+                try await Task.sleep(for: initialDelay)
+                while coordinator.isMenuBarInteractionActive {
+                    try await Task.sleep(for: .milliseconds(50))
+                }
+            } catch {
+                return
+            }
+            guard !Task.isCancelled else { return }
+
+            await MainActor.run {
+                guard self.vm.notchState == .open,
+                      !self.vm.isBatteryPopoverActive,
+                      !SharingStateManager.shared.preventNotchClose else { return }
+
+                withAnimation(animationSpring) {
+                    self.isHovering = false
+                    self.vm.close()
                 }
             }
         }
@@ -608,6 +648,137 @@ struct ContentView: View {
                 haptics.toggle()
             }
         }
+    }
+}
+
+private struct NotchContentHost: View {
+    let albumArtNamespace: Namespace.ID
+
+    @ObservedObject private var coordinator = BoringViewCoordinator.shared
+    @State private var selectedPage: NotchViews
+    @State private var incomingPage: NotchViews?
+    @State private var outgoingPage: NotchViews?
+    @State private var transitionProgress: CGFloat = 1
+    @State private var transitionTask: Task<Void, Never>?
+
+    init(albumArtNamespace: Namespace.ID) {
+        self.albumArtNamespace = albumArtNamespace
+        _selectedPage = State(initialValue: BoringViewCoordinator.shared.currentView)
+        _incomingPage = State(initialValue: nil)
+        _outgoingPage = State(initialValue: nil)
+    }
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            page(.home) {
+                NotchHomeView(albumArtNamespace: albumArtNamespace)
+            }
+            page(.activities) {
+                TimeActivityView()
+            }
+            page(.shelf) {
+                ShelfView()
+            }
+            page(.menuBar) {
+                MenuBarItemsView(isActive: selectedPage == .menuBar)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .clipped()
+        .onAppear {
+            // Do not animate the first synchronization when the notch opens.
+            // Later mutations affect only this local content host.
+            var transaction = Transaction(animation: nil)
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                selectedPage = coordinator.currentView
+                incomingPage = nil
+                outgoingPage = nil
+                transitionProgress = 1
+            }
+        }
+        .onChange(of: coordinator.currentView) { _, newPage in
+            guard newPage != selectedPage else { return }
+            transitionTask?.cancel()
+
+            // Stage both pages without animation first. Changing the selected
+            // page and the opacity in one SwiftUI update can coalesce the
+            // menu-bar page's visible frame away, which skips its exit
+            // animation. A separate progress update on the next turn gives
+            // every direction a concrete 1 -> 0 / 0 -> 1 animation.
+            var transaction = Transaction(animation: nil)
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                outgoingPage = selectedPage
+                incomingPage = newPage
+                selectedPage = newPage
+                transitionProgress = 0
+            }
+
+            transitionTask = Task { @MainActor in
+                do {
+                    // Leave one display frame between staging and animating.
+                    // Task.yield() alone may resume within the same render
+                    // pass and let SwiftUI merge both states again.
+                    try await Task.sleep(for: .milliseconds(16))
+                } catch {
+                    return
+                }
+                withAnimation(BoringViewCoordinator.contentTransitionAnimation) {
+                    transitionProgress = 1
+                }
+                do {
+                    try await Task.sleep(for: .milliseconds(350))
+                } catch {
+                    return
+                }
+                guard !Task.isCancelled else { return }
+                var transaction = Transaction(animation: nil)
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    incomingPage = nil
+                    outgoingPage = nil
+                    transitionProgress = 1
+                }
+            }
+        }
+        .onDisappear {
+            transitionTask?.cancel()
+            transitionTask = nil
+        }
+    }
+
+    private func page<Content: View>(
+        _ page: NotchViews,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        let isActive = selectedPage == page
+        let isIncoming = incomingPage == page
+        let isOutgoing = outgoingPage == page
+        let opacity: CGFloat = if isOutgoing {
+            1 - transitionProgress
+        } else if isIncoming {
+            transitionProgress
+        } else {
+            isActive ? 1 : 0
+        }
+        let scale: CGFloat = if isOutgoing {
+            1 - (0.04 * transitionProgress)
+        } else if isIncoming {
+            0.96 + (0.04 * transitionProgress)
+        } else {
+            isActive ? 1 : 0.96
+        }
+        return content()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .scaleEffect(x: 1, y: scale, anchor: .top)
+            .opacity(opacity)
+            .allowsHitTesting(isActive)
+            .accessibilityHidden(!isActive)
+            // Keep the outgoing page above the incoming page until its fade
+            // finishes. zIndex changes are not animatable, so immediately
+            // promoting the destination clipped the menu -> home direction.
+            .zIndex(isOutgoing ? 2 : (isActive ? 1 : 0))
     }
 }
 

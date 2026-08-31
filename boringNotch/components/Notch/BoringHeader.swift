@@ -13,10 +13,14 @@ struct BoringHeader: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = ShelfStateViewModel.shared
+    @Default(.menuBarAccessEnabled) private var menuBarAccessEnabled
+    @Default(.timeActivityEnabled) private var timeActivityEnabled
+    @Default(.boringShelf) private var boringShelf
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
+                if timeActivityEnabled
+                    || (boringShelf && (!tvm.isEmpty || coordinator.alwaysShowTabs)) {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()
@@ -42,6 +46,30 @@ struct BoringHeader: View {
                         OpenNotchHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon)
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
                     } else {
+                        if menuBarAccessEnabled {
+                            Button(action: {
+                                coordinator.toggleMenuBarAccess()
+                            }) {
+                                Capsule()
+                                    .fill(
+                                        coordinator.currentView == .menuBar
+                                            ? Color(nsColor: .secondarySystemFill)
+                                            : .black
+                                    )
+                                    .frame(width: 30, height: 30)
+                                    .overlay {
+                                        Image(systemName: "menubar.rectangle")
+                                            .foregroundColor(.white)
+                                            .imageScale(.medium)
+                                    }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .animation(
+                                BoringViewCoordinator.contentTransitionAnimation,
+                                value: coordinator.currentView == .menuBar
+                            )
+                            .help("Show menu bar items")
+                        }
                         if Defaults[.showMirror] {
                             Button(action: {
                                 vm.toggleCameraPreview()

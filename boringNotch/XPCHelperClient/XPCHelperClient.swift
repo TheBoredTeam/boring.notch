@@ -1,6 +1,6 @@
 import Foundation
 import Cocoa
-import AsyncXPCConnection
+@preconcurrency import AsyncXPCConnection
 
 final class XPCHelperClient: NSObject {
     nonisolated static let shared = XPCHelperClient()
@@ -241,10 +241,111 @@ final class XPCHelperClient: NSObject {
             return false
         }
     }
+
+    // MARK: - Menu Bar Access
+
+    nonisolated func menuBarItems() async -> MenuBarItemsResponse {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let data: Data = try await service.withContinuation { service, continuation in
+                service.listMenuBarItems { data in
+                    continuation.resume(returning: data)
+                }
+            }
+            return try JSONDecoder().decode(MenuBarItemsResponse.self, from: data)
+        } catch {
+            return MenuBarItemsResponse(
+                items: [],
+                accessibilityAuthorized: false,
+                errorMessage: error.localizedDescription
+            )
+        }
+    }
+
+    nonisolated func activateMenuBarItem(_ descriptor: MenuBarItemDescriptor) async -> MenuBarActionResponse {
+        do {
+            let request = try JSONEncoder().encode(descriptor)
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let data: Data = try await service.withContinuation { service, continuation in
+                service.activateMenuBarItem(request) { data in
+                    continuation.resume(returning: data)
+                }
+            }
+            return try JSONDecoder().decode(MenuBarActionResponse.self, from: data)
+        } catch {
+            return MenuBarActionResponse(success: false, errorMessage: error.localizedDescription)
+        }
+    }
+
+    nonisolated func menu(for descriptor: MenuBarItemDescriptor) async -> MenuBarMenuResponse {
+        do {
+            let request = try JSONEncoder().encode(descriptor)
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let data: Data = try await service.withContinuation { service, continuation in
+                service.inspectMenuBarItem(request) { data in
+                    continuation.resume(returning: data)
+                }
+            }
+            return try JSONDecoder().decode(MenuBarMenuResponse.self, from: data)
+        } catch {
+            return MenuBarMenuResponse(
+                isSupported: false,
+                originalMenuPresented: false,
+                entries: [],
+                errorMessage: error.localizedDescription
+            )
+        }
+    }
+
+    nonisolated func activateMenuEntry(
+        _ entry: MenuBarMenuEntry,
+        for descriptor: MenuBarItemDescriptor
+    ) async -> MenuBarActionResponse {
+        do {
+            let request = try JSONEncoder().encode(
+                MenuBarMenuActionRequest(item: descriptor, entry: entry)
+            )
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let data: Data = try await service.withContinuation { service, continuation in
+                service.activateMenuBarMenuEntry(request) { data in
+                    continuation.resume(returning: data)
+                }
+            }
+            return try JSONDecoder().decode(MenuBarActionResponse.self, from: data)
+        } catch {
+            return MenuBarActionResponse(success: false, errorMessage: error.localizedDescription)
+        }
+    }
+
+    nonisolated func moveMenuBarItem(
+        _ request: MenuBarItemMoveRequest
+    ) async -> MenuBarActionResponse {
+        do {
+            let requestData = try JSONEncoder().encode(request)
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let data: Data = try await service.withContinuation { service, continuation in
+                service.moveMenuBarItem(requestData) { data in
+                    continuation.resume(returning: data)
+                }
+            }
+            return try JSONDecoder().decode(MenuBarActionResponse.self, from: data)
+        } catch {
+            return MenuBarActionResponse(success: false, errorMessage: error.localizedDescription)
+        }
+    }
+
 }
 
 extension Notification.Name {
     static let accessibilityAuthorizationChanged = Notification.Name("accessibilityAuthorizationChanged")
 }
-
-

@@ -1,0 +1,3 @@
+// Local Apple signing settings are loaded when present.
+// Copy or create Signing.local.xcconfig and keep it out of Git.
+#include? "Signing.local.xcconfig"

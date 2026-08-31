@@ -47,9 +47,11 @@ build/
 *.xcscheme
 *.xcodeproj/xcuserdata
 *.xcodeproj/project.xcuserdata
+Config/Signing.local.xcconfig
 
 # Build artifacts
 *.ipa
 *.xcarchive
 *.dSYM
 
+.history

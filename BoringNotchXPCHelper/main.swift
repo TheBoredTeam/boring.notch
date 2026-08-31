@@ -35,5 +35,9 @@ let delegate = ServiceDelegate()
 let listener = NSXPCListener.service()
 listener.delegate = delegate
 
-// Resuming the serviceListener starts this service. This method does not return.
+// Start accepting XPC messages, then keep a real run loop alive. On macOS 26,
+// `resume()` can return for an embedded service even though older Xcode
+// templates describe it as non-returning. AppKit and Accessibility calls made
+// by the menu bar controller need this run loop to remain available.
 listener.resume()
+RunLoop.current.run()

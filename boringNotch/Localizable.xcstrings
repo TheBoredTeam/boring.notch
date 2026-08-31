@@ -901,6 +901,22 @@
         }
       }
     },
+    "%lld min" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld min"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld분"
+          }
+        }
+      }
+    },
     "%lld%%" : {
       "localizations" : {
         "ar" : {
@@ -1359,7 +1375,7 @@
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "정보"
           }
         },
@@ -1601,6 +1617,22 @@
         }
       }
     },
+    "Accessibility" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accessibility"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "손쉬운 사용"
+          }
+        }
+      }
+    },
     "Accessibility access is required to replace the system HUD." : {
       "localizations" : {
         "ar" : {
@@ -1697,6 +1729,70 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Accessibility access is required to replace the system HUD."
+          }
+        }
+      }
+    },
+    "Accessibility is required to discover and control menu bar items. Screen Recording is optional and is used only for live previews." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accessibility is required to discover and control menu bar items. Screen Recording is optional and is used only for live previews."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "메뉴바 항목을 찾고 제어하려면 손쉬운 사용 권한이 필요합니다. 화면 기록은 선택 사항이며 실시간 미리보기에만 사용됩니다."
+          }
+        }
+      }
+    },
+    "Accessibility is required to discover and open menu bar items and to replace system HUDs." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accessibility is required to discover and open menu bar items and to replace system HUDs."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "메뉴바 항목을 찾아 열고 시스템 HUD를 대체하려면 손쉬운 사용 권한이 필요합니다."
+          }
+        }
+      }
+    },
+    "Accessibility is used only to control the features you enable. No data is collected or shared." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accessibility is used only to control the features you enable. No data is collected or shared."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "손쉬운 사용 권한은 사용자가 활성화한 기능을 제어하는 데만 사용됩니다. 데이터는 수집되거나 공유되지 않습니다."
+          }
+        }
+      }
+    },
+    "Accessibility permission is required" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accessibility permission is required"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "손쉬운 사용 권한이 필요합니다"
           }
         }
       }
@@ -2202,6 +2298,9 @@
         }
       }
     },
+    "All menu bar items are hidden in Settings" : {
+
+    },
     "All-day" : {
       "localizations" : {
         "ar" : {
@@ -2302,6 +2401,22 @@
         }
       }
     },
+    "Allow" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "허용"
+          }
+        }
+      }
+    },
     "Allow Access" : {
       "localizations" : {
         "ar" : {
@@ -2398,6 +2513,22 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "允许访问"
+          }
+        }
+      }
+    },
+    "Allowed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allowed"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "허용됨"
           }
         }
       }
@@ -2801,6 +2932,19 @@
           }
         }
       }
+    },
+    "Arrange items again…" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아이템 재정렬"
+          }
+        }
+      }
+    },
+    "Arrange the hidden section once" : {
+
     },
     "Auto-scroll to next event" : {
       "localizations" : {
@@ -3260,7 +3404,7 @@
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "배터리"
           }
         },
@@ -3360,7 +3504,7 @@
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "배터리 정보"
           }
         },
@@ -3460,7 +3604,7 @@
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "배터리 설정"
           }
         },
@@ -3560,7 +3704,7 @@
         },
         "ko" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "배터리 상태"
           }
         },
@@ -3601,6 +3745,9 @@
           }
         }
       }
+    },
+    "Bluetooth headphones" : {
+
     },
     "Boost your productivity with Clipboard Manager" : {
       "localizations" : {
@@ -3801,6 +3948,18 @@
           }
         }
       }
+    },
+    "Boring Notch can show all your upcoming events in one place. Access to your calendar is needed to display your schedule." : {
+
+    },
+    "Boring Notch can show your scheduled reminders alongside your calendar events. Access to Reminders is needed to display your reminders." : {
+
+    },
+    "Boring Notch hidden items divider — Command-drag to reposition" : {
+
+    },
+    "Boring Notch includes a mirror feature that lets you quickly check your appearance using your camera, right from the notch. Camera access is required only to show this live preview. You can turn the mirror feature on or off at any time in the app." : {
+
     },
     "boring.notch" : {
       "localizations" : {
@@ -4298,6 +4457,23 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "取消"
+          }
+        }
+      }
+    },
+    "Capture live menu bar pixels instead of using static app icons. Enabling it requests Screen Recording access." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capture live menu bar pixels instead of using static app icons. Enabling it requests Screen Recording access."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "정적인 앱 아이콘 대신 메뉴바 화면을 실시간으로 캡처합니다. 활성화하면 화면 기록 권한이 필요합니다."
           }
         }
       }
@@ -5902,6 +6078,19 @@
         }
       }
     },
+    "Compact" : {
+
+    },
+    "Connected" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결됨"
+          }
+        }
+      }
+    },
     "Continue" : {
       "localizations" : {
         "ar" : {
@@ -6198,6 +6387,26 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "圆角半径"
+          }
+        }
+      }
+    },
+    "Couldn’t open menu bar item" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "메뉴바 아이템을 열수 없습니다"
+          }
+        }
+      }
+    },
+    "Couldn’t select menu item" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "메뉴 아이템을 선택할 수 없습니다"
           }
         }
       }
@@ -7102,6 +7311,22 @@
         }
       }
     },
+    "Default timer duration" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default timer duration"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기본 타이머 시간"
+          }
+        }
+      }
+    },
     "Description" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -7401,6 +7626,58 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "已禁用"
+          }
+        }
+      }
+    },
+    "Dismiss timer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dismiss timer"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "타이머 닫기"
+          }
+        }
+      }
+    },
+    "Done" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "완료"
+          }
+        }
+      }
+    },
+    "Done and hide" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "완료 및 숨기기"
+          }
+        }
+      }
+    },
+    "Done, keep visible" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "완료 및 보이기"
           }
         }
       }
@@ -7806,6 +8083,19 @@
         }
       }
     },
+    "Drag the handle to set the order in the expanded notch. Use the system menu bar hiding section above to arrange the original macOS status items." : {
+
+    },
+    "Drag to reorder this item in the notch" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "노치에서 아이템 정렬을 위해서 드래그"
+          }
+        }
+      }
+    },
     "Drop files here" : {
       "localizations" : {
         "ar" : {
@@ -8106,6 +8396,22 @@
         }
       }
     },
+    "Enable Accessibility Access" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable Accessibility Access"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "손쉬운 사용 권한 허용"
+          }
+        }
+      }
+    },
     "Enable blur effect behind album art" : {
       "localizations" : {
         "ar" : {
@@ -8302,6 +8608,26 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "启用虚拟镜像"
+          }
+        }
+      }
+    },
+    "Enable Calendar Access" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "캘린더 접근 허용"
+          }
+        }
+      }
+    },
+    "Enable Camera Access" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "카메라 접근 허용"
           }
         }
       }
@@ -8707,6 +9033,32 @@
         }
       }
     },
+    "Enable Reminders Access" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "리마인더 접근 허용"
+          }
+        }
+      }
+    },
+    "Enable Screen Recording Access" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable Screen Recording Access"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "화면 기록 권한 허용"
+          }
+        }
+      }
+    },
     "Enable shelf" : {
       "localizations" : {
         "ar" : {
@@ -9106,6 +9458,9 @@
           }
         }
       }
+    },
+    "Every two seconds" : {
+
     },
     "Expanded drag detection area" : {
       "localizations" : {
@@ -9604,6 +9959,22 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "完成"
+          }
+        }
+      }
+    },
+    "Finished" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finished"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "완료됨"
           }
         }
       }
@@ -10408,6 +10779,22 @@
         }
       }
     },
+    "Grant Accessibility above to list status items." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grant Accessibility above to list status items."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "위에서 손쉬운 사용 권한을 허용하면 메뉴바 항목을 표시할 수 있습니다."
+          }
+        }
+      }
+    },
     "Hide all-day events" : {
       "localizations" : {
         "ar" : {
@@ -10908,6 +11295,9 @@
         }
       }
     },
+    "Hide items left of the divider" : {
+
+    },
     "Hide title bar" : {
       "localizations" : {
         "ar" : {
@@ -11207,6 +11597,9 @@
           }
         }
       }
+    },
+    "Hold Command and drag the thin divider in the macOS menu bar to the right of the items you want to hide. Then Command-drag those items to the divider’s left side." : {
+
     },
     "Hover delay" : {
       "localizations" : {
@@ -11909,6 +12302,45 @@
         }
       }
     },
+    "It lets the helper discover and press status items directly." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It lets the helper discover and press status items directly."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "헬퍼가 메뉴바 항목을 찾아 직접 실행할 수 있게 합니다."
+          }
+        }
+      }
+    },
+    "Item size" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아이템 사이즈"
+          }
+        }
+      }
+    },
+    "Item visibility and notch order" : {
+
+    },
+    "Large" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "크게"
+          }
+        }
+      }
+    },
     "Layout Preview" : {
       "localizations" : {
         "ar" : {
@@ -12008,6 +12440,47 @@
           }
         }
       }
+    },
+    "Lists status items exposed by running apps and opens them directly through Accessibility. Screen Recording is not required." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "실행 중인 앱이 공개하는 상태 항목을 표시하고 손쉬운 사용 기능으로 직접 엽니다. 화면 기록 권한은 필요하지 않습니다."
+          }
+        }
+      }
+    },
+    "Live previews" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live previews"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "실시간 미리보기"
+          }
+        }
+      }
+    },
+    "Live refresh rate" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "실시간 주기"
+          }
+        }
+      }
+    },
+    "Loading menu bar items" : {
+
     },
     "Lottie JSON URL" : {
       "localizations" : {
@@ -13609,6 +14082,41 @@
         }
       }
     },
+    "Menu Bar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menu Bar"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "메뉴바"
+          }
+        }
+      }
+    },
+    "Menu bar access" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menu bar access"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "메뉴바 접근 권한"
+          }
+        }
+      }
+    },
+    "Menu Bar Items" : {
+
+    },
     "Mic %@" : {
       "localizations" : {
         "ar" : {
@@ -14509,6 +15017,9 @@
         }
       }
     },
+    "No accessible menu bar items found" : {
+
+    },
     "No custom animation available" : {
       "localizations" : {
         "ar" : {
@@ -15010,6 +15521,9 @@
         }
       }
     },
+    "No menu bar items found" : {
+
+    },
     "Not Now" : {
       "localizations" : {
         "ar" : {
@@ -15109,6 +15623,12 @@
           }
         }
       }
+    },
+    "Notch" : {
+
+    },
+    "Notch appearance" : {
+
     },
     "Notch behavior" : {
       "localizations" : {
@@ -15506,6 +16026,25 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Notch sizing"
+          }
+        }
+      }
+    },
+    "Once per second" : {
+
+    },
+    "Only menu bar item regions are captured for on-device previews. Nothing is recorded, stored, or uploaded." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only menu bar item regions are captured for on-device previews. Nothing is recorded, stored, or uploaded."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기기 내 미리보기를 위해 메뉴바 항목 영역만 캡처합니다. 어떠한 내용도 녹화, 저장 또는 업로드하지 않습니다."
           }
         }
       }
@@ -15910,6 +16449,22 @@
         }
       }
     },
+    "Open Settings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설정 열기"
+          }
+        }
+      }
+    },
     "Open shelf by default if items are present" : {
       "localizations" : {
         "ar" : {
@@ -16010,6 +16565,25 @@
         }
       }
     },
+    "Open System Settings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open System Settings"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시스템 설정 열기"
+          }
+        }
+      }
+    },
+    "Open the menu again and try once more." : {
+
+    },
     "Option key behaviour" : {
       "localizations" : {
         "ar" : {
@@ -16106,6 +16680,41 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Option key behaviour"
+          }
+        }
+      }
+    },
+    "Order" : {
+
+    },
+    "Pause" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일시 정지"
+          }
+        }
+      }
+    },
+    "Paused" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일시 정지됨"
           }
         }
       }
@@ -16209,6 +16818,25 @@
           }
         }
       }
+    },
+    "Play a sound when the timer finishes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play a sound when the timer finishes"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "타이머 종료 시 소리 재생"
+          }
+        }
+      }
+    },
+    "Please refresh the list and try again." : {
+
     },
     "Plugged In" : {
       "localizations" : {
@@ -17710,6 +18338,57 @@
         }
       }
     },
+    "Required" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Required"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "필요"
+          }
+        }
+      }
+    },
+    "Required for live previews" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Required for live previews"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "실시간 미리보기에 필요"
+          }
+        }
+      }
+    },
+    "Reset" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "초기화"
+          }
+        }
+      }
+    },
+    "Reset notch item layout" : {
+
+    },
     "Reset to Defaults" : {
       "localizations" : {
         "ar" : {
@@ -18011,6 +18690,22 @@
         }
       }
     },
+    "Resume" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "계속"
+          }
+        }
+      }
+    },
     "Running" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -18108,6 +18803,38 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "运行中"
+          }
+        }
+      }
+    },
+    "Screen Recording" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen Recording"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "화면 기록"
+          }
+        }
+      }
+    },
+    "Screen Recording lets Boring Notch show live previews of menu bar items. It is optional; menu bar controls continue to work with app icons if you skip it." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen Recording lets Boring Notch show live previews of menu bar items. It is optional; menu bar controls continue to work with app icons if you skip it."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "화면 기록 권한을 허용하면 Boring Notch에서 메뉴바 항목의 실시간 미리보기를 표시할 수 있습니다. 선택 사항이며, 건너뛰어도 앱 아이콘으로 메뉴바 기능을 계속 사용할 수 있습니다."
           }
         }
       }
@@ -18712,6 +19439,22 @@
         }
       }
     },
+    "Show an active timer or stopwatch when the notch is closed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show an active timer or stopwatch when the notch is closed"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "노치가 닫혀 있을 때 실행 중인 타이머 또는 스톱워치 표시"
+          }
+        }
+      }
+    },
     "Show battery indicator" : {
       "localizations" : {
         "ar" : {
@@ -19012,6 +19755,22 @@
         }
       }
     },
+    "Show centiseconds while the stopwatch is open" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show centiseconds while the stopwatch is open"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스톱워치가 열려 있을 때 1/100초 표시"
+          }
+        }
+      }
+    },
     "Show cool face animation while inactive" : {
       "localizations" : {
         "ar" : {
@@ -19111,6 +19870,9 @@
           }
         }
       }
+    },
+    "Show headphone connection animation" : {
+
     },
     "Show HUD in open notch" : {
       "localizations" : {
@@ -19212,6 +19974,9 @@
         }
       }
     },
+    "Show item names" : {
+
+    },
     "Show lyrics below artist name" : {
       "localizations" : {
         "ar" : {
@@ -19312,6 +20077,9 @@
         }
       }
     },
+    "Show menu bar access button in the notch" : {
+
+    },
     "Show menu bar icon" : {
       "localizations" : {
         "ar" : {
@@ -19411,6 +20179,9 @@
           }
         }
       }
+    },
+    "Show menu bar items" : {
+
     },
     "Show music live activity" : {
       "localizations" : {
@@ -20212,6 +20983,25 @@
         }
       }
     },
+    "Show this item in the notch" : {
+
+    },
+    "Show Timer & Stopwatch tab in the notch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Timer & Stopwatch tab in the notch"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "노치에 타이머 및 스톱워치 탭 표시"
+          }
+        }
+      }
+    },
     "Slider color" : {
       "localizations" : {
         "ar" : {
@@ -20812,6 +21602,60 @@
         }
       }
     },
+    "Standard" : {
+
+    },
+    "Start" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시작"
+          }
+        }
+      }
+    },
+    "Start %lld minute timer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start %lld minute timer"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld분 타이머 시작"
+          }
+        }
+      }
+    },
+    "Start arranging" : {
+
+    },
+    "Start stopwatch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start stopwatch"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스톱워치 시작"
+          }
+        }
+      }
+    },
     "Stopped" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -20909,6 +21753,22 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "已停止"
+          }
+        }
+      }
+    },
+    "Stopwatch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stopwatch"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스톱워치"
           }
         }
       }
@@ -21214,6 +22074,28 @@
         }
       }
     },
+    "System menu bar hiding" : {
+
+    },
+    "The animation appears only when a Bluetooth headset becomes the active macOS audio output." : {
+
+    },
+    "Time activity" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time activity"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시간 기능"
+          }
+        }
+      }
+    },
     "Time to Full Charge: %lld min" : {
       "localizations" : {
         "ar" : {
@@ -21310,6 +22192,102 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "充电时间：%lld 分钟"
+          }
+        }
+      }
+    },
+    "Timer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timer"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "타이머"
+          }
+        }
+      }
+    },
+    "Timer & Stopwatch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timer & Stopwatch"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "타이머 및 스톱워치"
+          }
+        }
+      }
+    },
+    "Timer activity" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timer activity"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "타이머 기능"
+          }
+        }
+      }
+    },
+    "Timer and stopwatch controls" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timer and stopwatch controls"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "타이머 및 스톱워치 제어"
+          }
+        }
+      }
+    },
+    "Timer Done" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timer Done"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "타이머 완료"
+          }
+        }
+      }
+    },
+    "Timer duration %lld minutes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timer duration %lld minutes"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "타이머 시간 %lld분"
           }
         }
       }
@@ -21613,6 +22591,9 @@
           }
         }
       }
+    },
+    "Twice per second" : {
+
     },
     "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled" : {
       "localizations" : {
@@ -22115,6 +23096,9 @@
         }
       }
     },
+    "Update status previews live" : {
+
+    },
     "Upgrade to Pro" : {
       "localizations" : {
         "ar" : {
@@ -22314,6 +23298,9 @@
           }
         }
       }
+    },
+    "Use paired Bluetooth device details for a better name and icon" : {
+
     },
     "Use your macOS system accent color" : {
       "localizations" : {
@@ -23015,6 +24002,22 @@
         }
       }
     },
+    "When disabled, the timer tab is removed and any active timer or stopwatch is stopped." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When disabled, the timer tab is removed and any active timer or stopwatch is stopped."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "비활성화하면 타이머 탭이 제거되고 실행 중인 타이머 또는 스톱워치가 중지됩니다."
+          }
+        }
+      }
+    },
     "Window Appearance" : {
       "localizations" : {
         "ar" : {
@@ -23415,6 +24418,12 @@
         }
       }
     },
+    "Your calendar data is only used to show your events and is never shared." : {
+
+    },
+    "Your camera is never used without your consent, and nothing is recorded or stored." : {
+
+    },
     "Your macOS system accent color" : {
       "localizations" : {
         "ar" : {
@@ -23514,6 +24523,9 @@
           }
         }
       }
+    },
+    "Your reminders data is only used to show your reminders and is never shared." : {
+
     },
     "YouTube Music requires this third-party app to be installed: " : {
       "localizations" : {

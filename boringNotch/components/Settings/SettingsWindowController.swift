@@ -66,7 +66,7 @@ class SettingsWindowController: NSWindowController {
         window.delegate = self
     }
     
-    func showWindow() {
+    func showWindow(tab: String? = nil) {
         // Set app to regular mode first
         NSApp.setActivationPolicy(.regular)
         
@@ -75,6 +75,7 @@ class SettingsWindowController: NSWindowController {
             NSApp.activate(ignoringOtherApps: true)
             window?.orderFrontRegardless()
             window?.makeKeyAndOrderFront(nil)
+            postTabSelection(tab)
             return
         }
         
@@ -89,7 +90,17 @@ class SettingsWindowController: NSWindowController {
         // Force window to front after activation
         DispatchQueue.main.async { [weak self] in
             self?.window?.makeKeyAndOrderFront(nil)
+            self?.postTabSelection(tab)
         }
+    }
+
+    private func postTabSelection(_ tab: String?) {
+        guard let tab else { return }
+        NotificationCenter.default.post(
+            name: .selectSettingsTab,
+            object: nil,
+            userInfo: ["tab": tab]
+        )
     }
     
     override func close() {
@@ -103,6 +114,10 @@ class SettingsWindowController: NSWindowController {
         // Set app back to accessory mode immediately
         NSApp.setActivationPolicy(.accessory)
     }
+}
+
+extension Notification.Name {
+    static let selectSettingsTab = Notification.Name("SelectSettingsTab")
 }
 
 extension SettingsWindowController: NSWindowDelegate {

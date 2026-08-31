@@ -139,6 +139,50 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         reply(false)
     }
 
+    // MARK: - Menu Bar Access
+
+    @objc func listMenuBarItems(with reply: @escaping (Data) -> Void) {
+        Task { @MainActor in
+            reply(MenuBarItemController.shared.encodedItems())
+        }
+    }
+
+    @objc func activateMenuBarItem(
+        _ descriptorData: Data,
+        with reply: @escaping (Data) -> Void
+    ) {
+        Task { @MainActor in
+            reply(await MenuBarItemController.shared.activate(descriptorData: descriptorData))
+        }
+    }
+
+    @objc func inspectMenuBarItem(
+        _ descriptorData: Data,
+        with reply: @escaping (Data) -> Void
+    ) {
+        Task { @MainActor in
+            reply(await MenuBarItemController.shared.inspectMenu(descriptorData: descriptorData))
+        }
+    }
+
+    @objc func activateMenuBarMenuEntry(
+        _ requestData: Data,
+        with reply: @escaping (Data) -> Void
+    ) {
+        Task { @MainActor in
+            reply(await MenuBarItemController.shared.activateMenuEntry(requestData: requestData))
+        }
+    }
+
+    @objc func moveMenuBarItem(
+        _ requestData: Data,
+        with reply: @escaping (Data) -> Void
+    ) {
+        Task { @MainActor in
+            reply(await MenuBarItemController.shared.move(requestData: requestData))
+        }
+    }
+
     // MARK: - Private helpers for DisplayServices / IOKit access
     private func displayServicesGetBrightness(displayID: CGDirectDisplayID, out: inout Float) -> Bool {
         guard let sym = dlsym(DisplayServicesHandle.handle, "DisplayServicesGetBrightness") else { return false }

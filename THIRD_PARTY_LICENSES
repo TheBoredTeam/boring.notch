@@ -1,4 +1,16 @@
 -----------------------------------------------------------------------------
+                GNU General Public License v3 or later
+        applies to:
+        - Ice, Copyright (C) 2024 Jordan Baird
+        - Ice 2, Copyright (C) 2024 Jordan Baird
+          and Copyright (C) 2026 Teddy Chan
+
+The offscreen menu bar item Window List capture fallback is adapted from Ice,
+and the menu bar item event barrier is adapted from Ice 2. This project is
+distributed under the GNU General Public License v3; the complete license
+terms are included in the repository's LICENSE file.
+
+-------------------------------------------------------------------------------
                         BSD 3-Clause License
         applies to:
         - MediaRemoteAdapter, Copyright (c) 2025, Jonas van den Berg and contributors
@@ -35,6 +47,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         - Calendr, Copyright (c) 2021 Carlos César Neves Enumo
         - DynamicNotchKit, Copyright (c) 2025 Kai Azim
         - NotchDrop Copyright (c) 2024 Lakr Aream
+        - SaneBar, Copyright (c) 2025-2026 SaneApps (hi@saneapps.com)
+        - Hidden Bar, Copyright (c) 2019 Dwarves Foundation
 -----------------------------------------------------------------------------
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

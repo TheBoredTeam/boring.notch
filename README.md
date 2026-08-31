@@ -100,6 +100,9 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch
 - Launch the app, and voilà—your notch is now the coolest part of your screen.
 - Hover over the notch to see it expand and reveal all its secrets.
 - Use the controls to manage your music like a rockstar.
+- Enable **Timer & Stopwatch** in Settings to add the optional timer tab to the expanded notch.
+- When Bluetooth headphones become the active audio output, the closed notch briefly shows the connected device.
+- To hide original macOS status items, open **Settings → Menu Bar**, choose **Start arranging**, then hold Command while dragging the divider and the items to hide to its left. Finish with **Done and hide**; the eye button in the notch reveals or hides that section afterward.
 - Click the star in your menu bar to customize your notch to your heart's content.
 
 ## 📋 Roadmap
@@ -112,7 +115,8 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch
 - [x] Shelf functionality with AirDrop 📚
 - [x] Notch sizing customization, finetuning on different display sizes 🖥️
 - [x] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️
-- [ ] Bluetooth Live Activity (connect/disconnect for bluetooth devices) 
+- [x] Optional timer and stopwatch activity ⏱️
+- [x] Bluetooth headphone output activity 🎧
 - [ ] Weather integration ⛅️
 - [ ] Customizable Layout options 🛠️
 - [ ] Lock Screen Widgets 🔒
@@ -185,13 +189,15 @@ We would like to express our gratitude to the authors and maintainers of the ope
 ## Notable Projects
 - **[MediaRemoteAdapter](https://github.com/ungive/mediaremote-adapter)** –  An open-source project that allowed us to use the Now Playing source in macOS 15.4+
 - **[NotchDrop](https://github.com/Lakr233/NotchDrop)** – An open-source project that has been instrumental in developing the first version of the "Shelf" feature in Boring Notch.
+- **[not-so-boring-notch](https://github.com/Cris2907/not-so-boring-notch)** – Its timer/stopwatch activity and active Bluetooth headphone output event were used as references and adapted to this branch's existing notch and settings architecture.
+- **[Ice](https://github.com/jordanbaird/Ice) / [Ice 2](https://github.com/teddychan/ice-2)** – Ice's Window List array fallback was adapted for live previews of offscreen status items, while Ice 2's macOS 26 source-PID handling, three-stage event barrier, and hidden-cursor Command-drag flow were adapted for reliable menu bar item rearrangement.
+- **[SaneBar](https://github.com/sane-apps/SaneBar)** – its human-shaped HID Command-drag sequence was adapted as a fallback when an embedded XPC service cannot complete Ice's per-PID event barrier.
+- **[Hidden Bar](https://github.com/dwarvesf/hidden)** – its widest-display boundary sizing and display-change refresh strategy were adapted for the menu bar hidden section.
 
-For a full list of licenses and attributions, please see the [Third-Party Licenses](./THIRD_PARTY_LICENSES.md) file.
+For a full list of licenses and attributions, please see the [Third-Party Licenses](./THIRD_PARTY_LICENSES) file.
 
 ### Icon credits: [@maxtron95](https://github.com/maxtron95)
 ### Website credits: [@himanshhhhuv](https://github.com/himanshhhhuv)
 
 - **SwiftUI**: For making us look like coding wizards.
 - **You**: For being awesome and checking out **boring.notch**!
-
-

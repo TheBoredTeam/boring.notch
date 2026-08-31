@@ -142,6 +142,15 @@
 		B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F0A0012E60000100000001 /* BrightnessManager.swift */; };
 		B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F747F82EC7E94000F841DB /* LottieView.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
+		C0DE00012F00000000000001 /* MenuBarItemsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00012F00000000000002 /* MenuBarItemsView.swift */; };
+		C0DE00022F00000000000001 /* MenuBarSystemVisibilityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00022F00000000000002 /* MenuBarSystemVisibilityController.swift */; };
+		C0DE02012F00000000000001 /* TimeActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE02012F00000000000002 /* TimeActivity.swift */; };
+		C0DE02022F00000000000001 /* TimeActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE02022F00000000000002 /* TimeActivityManager.swift */; };
+		C0DE02032F00000000000001 /* TimeActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE02032F00000000000002 /* TimeActivityView.swift */; };
+		C0DE02042F00000000000001 /* BluetoothHeadphoneProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE02042F00000000000002 /* BluetoothHeadphoneProfile.swift */; };
+		C0DE02052F00000000000001 /* BluetoothAudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE02052F00000000000002 /* BluetoothAudioManager.swift */; };
+		C0DE02062F00000000000001 /* BluetoothDeviceActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE02062F00000000000002 /* BluetoothDeviceActivity.swift */; };
+		C0DE02072F00000000000001 /* IOBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0DE02072F00000000000002 /* IOBluetooth.framework */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -308,6 +317,16 @@
 		B1F0A0012E60000100000001 /* BrightnessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrightnessManager.swift; sourceTree = "<group>"; };
 		B1F747F82EC7E94000F841DB /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
+		C0DE00012F00000000000002 /* MenuBarItemsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarItemsView.swift; sourceTree = "<group>"; };
+		C0DE00022F00000000000002 /* MenuBarSystemVisibilityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarSystemVisibilityController.swift; sourceTree = "<group>"; };
+		C0DE02012F00000000000002 /* TimeActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeActivity.swift; sourceTree = "<group>"; };
+		C0DE02022F00000000000002 /* TimeActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeActivityManager.swift; sourceTree = "<group>"; };
+		C0DE02032F00000000000002 /* TimeActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeActivityView.swift; sourceTree = "<group>"; };
+		C0DE02042F00000000000002 /* BluetoothHeadphoneProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothHeadphoneProfile.swift; sourceTree = "<group>"; };
+		C0DE02052F00000000000002 /* BluetoothAudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothAudioManager.swift; sourceTree = "<group>"; };
+		C0DE02062F00000000000002 /* BluetoothDeviceActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDeviceActivity.swift; sourceTree = "<group>"; };
+		C0DE02072F00000000000002 /* IOBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOBluetooth.framework; path = System/Library/Frameworks/IOBluetooth.framework; sourceTree = SDKROOT; };
+		C0DE03012F00000000000002 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -338,6 +357,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0DE02072F00000000000001 /* IOBluetooth.framework in Frameworks */,
 				111BEA5F2ED07A340079DD4E /* MacroVisionKit in Frameworks */,
 				9A987A102C73CA8D005CA465 /* Collections in Frameworks */,
 				1194E8852EA57D23009C82D6 /* SkyLightWindow in Frameworks */,
@@ -486,6 +506,8 @@
 		1471639B2C5D362F0068B555 /* components */ = {
 			isa = PBXGroup;
 			children = (
+				C0DE00012F00000000000003 /* MenuBarAccess */,
+				C0DE02032F00000000000003 /* Time */,
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
 				B1C448992C97375A001F0858 /* Tips */,
 				14C08BB72C8DE49E000F8AA0 /* Calendar */,
@@ -510,6 +532,8 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				C0DE02022F00000000000002 /* TimeActivityManager.swift */,
+				C0DE02052F00000000000002 /* BluetoothAudioManager.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
@@ -541,6 +565,7 @@
 		14CEF4092C5CAED200855D72 = {
 			isa = PBXGroup;
 			children = (
+				C0DE03012F00000000000003 /* Config */,
 				112B0EB62E30DD0F00562D6C /* mediaremote-adapter */,
 				14CEF4142C5CAED300855D72 /* boringNotch */,
 				11F748502EC9AABA00F841DB /* BoringNotchXPCHelper */,
@@ -599,6 +624,7 @@
 		14D031EC2C689DB70096E6A1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				C0DE02072F00000000000002 /* IOBluetooth.framework */,
 				14D031EF2C689DC00096E6A1 /* ApplicationServices.framework */,
 				14D031ED2C689DB70096E6A1 /* IOKit.framework */,
 				112B0EBA2E30DD5000562D6C /* MediaRemoteAdapter.framework */,
@@ -626,6 +652,8 @@
 		14D570C72C5F38760011E668 /* models */ = {
 			isa = PBXGroup;
 			children = (
+				C0DE02012F00000000000002 /* TimeActivity.swift */,
+				C0DE02042F00000000000002 /* BluetoothHeadphoneProfile.swift */,
 				11F748812ECB07A400F841DB /* MusicControlButton.swift */,
 				118D1FD02E98FF5F00A2FF63 /* SharingStateManager.swift */,
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
@@ -730,6 +758,7 @@
 		B18654312C6F45AE000B926A /* Live activities */ = {
 			isa = PBXGroup;
 			children = (
+				C0DE02062F00000000000002 /* BluetoothDeviceActivity.swift */,
 				115C12EB2ED3D003009754CA /* OpenNotchHUD.swift */,
 				14D570CC2C5F4BB70011E668 /* BoringBattery.swift */,
 				B1C974332C642B6D0000E707 /* MarqueeTextView.swift */,
@@ -755,6 +784,31 @@
 				B1C4489A2C97376A001F0858 /* TipStore.swift */,
 			);
 			path = Tips;
+			sourceTree = "<group>";
+		};
+		C0DE00012F00000000000003 /* MenuBarAccess */ = {
+			isa = PBXGroup;
+			children = (
+				C0DE00012F00000000000002 /* MenuBarItemsView.swift */,
+				C0DE00022F00000000000002 /* MenuBarSystemVisibilityController.swift */,
+			);
+			path = MenuBarAccess;
+			sourceTree = "<group>";
+		};
+		C0DE02032F00000000000003 /* Time */ = {
+			isa = PBXGroup;
+			children = (
+				C0DE02032F00000000000002 /* TimeActivityView.swift */,
+			);
+			path = Time;
+			sourceTree = "<group>";
+		};
+		C0DE03012F00000000000003 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				C0DE03012F00000000000002 /* Signing.xcconfig */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -905,6 +959,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0DE02012F00000000000001 /* TimeActivity.swift in Sources */,
+				C0DE02022F00000000000001 /* TimeActivityManager.swift in Sources */,
+				C0DE02032F00000000000001 /* TimeActivityView.swift in Sources */,
+				C0DE02042F00000000000001 /* BluetoothHeadphoneProfile.swift in Sources */,
+				C0DE02052F00000000000001 /* BluetoothAudioManager.swift in Sources */,
+				C0DE02062F00000000000001 /* BluetoothDeviceActivity.swift in Sources */,
+				C0DE00012F00000000000001 /* MenuBarItemsView.swift in Sources */,
+				C0DE00022F00000000000001 /* MenuBarSystemVisibilityController.swift in Sources */,
 				115C12EC2ED3D003009754CA /* OpenNotchHUD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,
@@ -1039,17 +1101,17 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = BoringNotchXPCHelper/BoringNotchXPCHelper.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 271;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = "$(APPLE_TEAM_ID)";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BoringNotchXPCHelper/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BoringNotchXPCHelper;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.7.3;
+				MARKETING_VERSION = 2.7.3.a;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch.BoringNotchXPCHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -1064,17 +1126,17 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = BoringNotchXPCHelper/BoringNotchXPCHelper.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 271;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = "$(APPLE_TEAM_ID)";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BoringNotchXPCHelper/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BoringNotchXPCHelper;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.7.3;
+				MARKETING_VERSION = 2.7.3.a;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch.BoringNotchXPCHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -1086,6 +1148,7 @@
 		};
 		14CEF41F2C5CAED400855D72 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C0DE03012F00000000000002 /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -1152,6 +1215,7 @@
 		};
 		14CEF4202C5CAED400855D72 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C0DE03012F00000000000002 /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -1218,13 +1282,13 @@
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = boringNotch/boringNotch.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 271;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"boringNotch/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = "$(APPLE_TEAM_ID)";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -1234,7 +1298,7 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = boringNotch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TheBoringNotch;
+				INFOPLIST_KEY_CFBundleDisplayName = TheBoringNotchWithMenuBar;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -1248,7 +1312,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.7.3;
+				MARKETING_VERSION = 2.7.3.a;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1272,13 +1336,13 @@
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = boringNotch/boringNotch.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 271;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"boringNotch/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = "$(APPLE_TEAM_ID)";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1287,7 +1351,7 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = boringNotch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TheBoringNotch;
+				INFOPLIST_KEY_CFBundleDisplayName = TheBoringNotchWithMenuBar;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -1301,7 +1365,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.7.3;
+				MARKETING_VERSION = 2.7.3.a;
 				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
