@@ -74,6 +74,74 @@ extension NSItemProvider {
         }
     }
 
+    /// Fulfills a file promise (e.g. an attachment dragged out of Mail, Spark, Outlook,
+    /// or Messages) by asking the provider to write its bytes to disk via
+    /// `loadFileRepresentation(forTypeIdentifier:)`, then copies the result into the
+    /// app's own temp area before the system reclaims the original temp file.
+    func extractPromisedFile() async -> URL? {
+        guard let typeIdentifier = bestPromisedTypeIdentifier() else { return nil }
+
+        return await withCheckedContinuation { (cont: CheckedContinuation<URL?, Never>) in
+            self.loadFileRepresentation(forTypeIdentifier: typeIdentifier) { url, error in
+                if let error = error {
+                    print("❌ Error fulfilling file promise for type \(typeIdentifier): \(error.localizedDescription)")
+                    cont.resume(returning: nil)
+                    return
+                }
+                guard let url = url else {
+                    cont.resume(returning: nil)
+                    return
+                }
+
+                // The provided URL points at a system-owned temp file that is deleted the
+                // instant this handler returns, so copy it synchronously into our own temp area.
+                let filename = self.suggestedName ?? url.lastPathComponent
+                let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
+                let dirURL = tempDir.appendingPathComponent(UUID().uuidString, isDirectory: true)
+                let destURL = dirURL.appendingPathComponent(filename)
+
+                do {
+                    try FileManager.default.createDirectory(at: dirURL, withIntermediateDirectories: true)
+                    try FileManager.default.copyItem(at: url, to: destURL)
+                    cont.resume(returning: destURL)
+                } catch {
+                    print("❌ Error copying fulfilled file promise: \(error.localizedDescription)")
+                    cont.resume(returning: nil)
+                }
+            }
+        }
+    }
+
+    /// Selects the most specific concrete content type to fulfill a file promise with,
+    /// excluding transport/abstract identifiers. Falls back to `public.data` if the
+    /// provider only advertises the generic type.
+    private func bestPromisedTypeIdentifier() -> String? {
+        let excluded: Set<String> = [
+            UTType.url.identifier,
+            UTType.fileURL.identifier,
+            UTType.plainText.identifier,
+            UTType.utf8PlainText.identifier,
+            "com.apple.pasteboard.promised-file-url",
+        ]
+
+        let candidates = registeredTypeIdentifiers.filter { !excluded.contains($0) }
+
+        // Prefer a concrete type that conforms to data/content/item.
+        if let concrete = candidates.first(where: { identifier in
+            guard let type = UTType(identifier) else { return false }
+            return type.conforms(to: .data) || type.conforms(to: .content) || type.conforms(to: .item)
+        }) {
+            return concrete
+        }
+
+        // Fall back to the generic data type if the provider advertises nothing more specific.
+        if hasItemConformingToTypeIdentifier(UTType.data.identifier) {
+            return UTType.data.identifier
+        }
+
+        return nil
+    }
+
     /// Attempts to extract a URL (web link) from the provider
     func extractURL() async -> URL? {
         if self.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
