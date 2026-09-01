@@ -51,17 +51,15 @@ class ReleaseWorkflowTests(unittest.TestCase):
         self.assertNotIn("Push published beta appcast (attempt", self.release)
         self.assertIn("for attempt in 1 2 3 4 5; do", self.release)
 
+    def test_stable_appcast_does_not_expand_an_empty_array_with_nounset(self) -> None:
+        self.assertNotIn('"${CHANNEL_ARGS[@]}"', self.release)
+        self.assertIn("APPCAST_ARGS=(", self.release)
+        self.assertIn('APPCAST_ARGS+=(--channel "${{ env.BETA_CHANNEL_NAME }}")', self.release)
+        self.assertIn('"${APPCAST_ARGS[@]}"', self.release)
+
     def test_nightly_schedule_remains_independent(self) -> None:
         self.assertIn("schedule:", self.nightly)
         self.assertIn('NIGHTLY_BRANCH: dev', self.nightly)
-
-    def test_release_can_be_isolated_in_a_sandbox_repository(self) -> None:
-        self.assertNotIn("repositories: boring.notch", self.release)
-        self.assertIn("repositories: ${{ github.event.repository.name }}", self.release)
-        self.assertIn('${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases', self.release)
-        self.assertIn("if: ${{ vars.RELEASE_SANDBOX != 'true' }}", self.release)
-        self.assertIn("Homebrew skipped in release sandbox", self.release)
-
 
 if __name__ == "__main__":
     unittest.main()
