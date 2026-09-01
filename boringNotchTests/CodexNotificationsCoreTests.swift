@@ -184,21 +184,19 @@ final class CodexNotificationsCoreTests: XCTestCase {
     }
 
     func testCurrentHashPreservesMatcherForEventsWithMatcherSupport() {
-        for eventName in ["permission_request", "post_tool_use"] {
-            let withoutMatcher = CodexHookTrustState.currentHash(
-                eventName: eventName,
-                command: "echo hello",
-                timeout: 5
-            )
-            let withMatcher = CodexHookTrustState.currentHash(
-                eventName: eventName,
-                matcher: "Bash",
-                command: "echo hello",
-                timeout: 5
-            )
+        let withoutMatcher = CodexHookTrustState.currentHash(
+            eventName: "permission_request",
+            command: "echo hello",
+            timeout: 5
+        )
+        let withMatcher = CodexHookTrustState.currentHash(
+            eventName: "permission_request",
+            matcher: "Bash",
+            command: "echo hello",
+            timeout: 5
+        )
 
-            XCTAssertNotEqual(withMatcher, withoutMatcher, eventName)
-        }
+        XCTAssertNotEqual(withMatcher, withoutMatcher)
     }
 
     func testStatusIconsMatchNotchNotificationGlyphs() {
@@ -493,30 +491,6 @@ final class CodexNotificationsCoreTests: XCTestCase {
                 .missingField("boring_notch_auth.nonce")
             )
         }
-    }
-
-    func testPostToolUseWithoutSharedRequestIdentityPreservesPermissionRequest() throws {
-        var state = CodexNotificationState()
-        state.reduce(.permissionRequest(
-            sessionID: "session-1",
-            turnID: "turn-1",
-            requestID: permissionRequestID,
-            cwd: "/tmp/project",
-            details: CodexPermissionDetails(toolName: "Bash", description: "Run tests"),
-            callback: permissionCallback
-        ))
-        XCTAssertNotNil(state.visibleNotification())
-
-        state.reduce(try CodexHookEventParser.parse(#"""
-        {
-            "hook_event_name":"PostToolUse",
-            "session_id":"session-1",
-            "turn_id":"turn-1",
-            "cwd":"/tmp/project"
-        }
-        """#))
-
-        XCTAssertNotNil(state.visibleNotification())
     }
 
     func testConcurrentSameTurnPermissionRequestsRemainIndependentlyActionable() throws {

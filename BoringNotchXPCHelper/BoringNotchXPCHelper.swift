@@ -375,7 +375,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     private static let codexHookTrustEvents = [
         ("PermissionRequest", "permission_request"),
         ("UserPromptSubmit", "user_prompt_submit"),
-        ("PostToolUse", "post_tool_use"),
         ("Stop", "stop"),
     ]
     private static let codexHookMarker = "boring-notch-notify.py"
@@ -896,7 +895,17 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             }
             _ = try CodexHookSecretStore.load(at: urls.secret)
             let root = try readCodexHookConfiguration(at: urls.configuration)
-            reply(Self.codexHookEvents.allSatisfy {
+            let hasUnsupportedOwnedHook = (root["hooks"] as? [String: Any])?.contains {
+                event, value in
+                guard !Self.codexHookEvents.contains(event),
+                      let groups = value as? [[String: Any]] else {
+                    return false
+                }
+                return groups.contains {
+                    isOwnedCodexHookGroup($0, scriptURL: urls.script)
+                }
+            } ?? false
+            reply(!hasUnsupportedOwnedHook && Self.codexHookEvents.allSatisfy {
                 containsCurrentOwnedCodexHook(
                     in: root,
                     event: $0,
@@ -1081,7 +1090,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
                 where handler["command"] as? String == codexHookCommand(scriptURL: scriptURL) {
                 let timeout = max(handler["timeout"] as? Int ?? 600, 1)
                 let additionalContextLimit: Int?
-                if ["post_tool_use", "user_prompt_submit"].contains(trustEvent),
+                if trustEvent == "user_prompt_submit",
                    let limit = handler["additionalContextLimit"] as? Int,
                    limit != 2_500 {
                     additionalContextLimit = limit

@@ -452,13 +452,6 @@ public enum CodexHookEvent: Equatable, Sendable {
         chatTitle: String? = nil,
         projectName: String? = nil
     )
-    case toolCompleted(
-        sessionID: String,
-        turnID: String?,
-        cwd: String?,
-        chatTitle: String? = nil,
-        projectName: String? = nil
-    )
     case stop(
         sessionID: String,
         turnID: String?,
@@ -540,15 +533,6 @@ public enum CodexHookEventParser {
                 cwd: cwd,
                 details: permissionDetails(from: object, toolName: toolName),
                 callback: permissionCallback(from: object),
-                chatTitle: chatTitle,
-                projectName: projectName
-            )
-
-        case "PostToolUse":
-            return .toolCompleted(
-                sessionID: sessionID,
-                turnID: turnID,
-                cwd: cwd,
                 chatTitle: chatTitle,
                 projectName: projectName
             )
@@ -742,11 +726,6 @@ public struct CodexNotificationState: Equatable, Sendable {
                 date: date
             )
             upsert(notification)
-
-        case .toolCompleted:
-            // PermissionRequest and PostToolUse do not share a reliable request ID.
-            // Keep live approvals until an explicit decision, terminal event, or expiry.
-            break
 
         case .stop(
             let sessionID,

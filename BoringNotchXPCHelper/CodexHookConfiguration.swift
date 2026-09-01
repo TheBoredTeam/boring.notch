@@ -4,7 +4,6 @@ public enum CodexHookConfiguration {
     public static let events = [
         "UserPromptSubmit",
         "PermissionRequest",
-        "PostToolUse",
         "Stop",
     ]
 
@@ -27,21 +26,9 @@ public enum CodexHookConfiguration {
             hooks = [:]
         }
 
-        for event in events {
-            var groups: [[String: Any]]
-            if let existingGroups = hooks[event] {
-                guard let typedGroups = existingGroups as? [[String: Any]] else {
-                    throw configurationError(
-                        code: 5,
-                        message: "Codex hooks.json has invalid \(event) hooks."
-                    )
-                }
-                groups = typedGroups
-            } else {
-                groups = []
-            }
-
-            groups = groups.compactMap { group in
+        for event in Array(hooks.keys) {
+            guard let groups = hooks[event] as? [[String: Any]] else { continue }
+            hooks[event] = groups.compactMap { group in
                 guard let handlers = group["hooks"] as? [[String: Any]] else {
                     return group
                 }
@@ -57,6 +44,22 @@ public enum CodexHookConfiguration {
                 updatedGroup["hooks"] = remainingHandlers
                 return updatedGroup
             }
+        }
+
+        for event in events {
+            var groups: [[String: Any]]
+            if let existingGroups = hooks[event] {
+                guard let typedGroups = existingGroups as? [[String: Any]] else {
+                    throw configurationError(
+                        code: 5,
+                        message: "Codex hooks.json has invalid \(event) hooks."
+                    )
+                }
+                groups = typedGroups
+            } else {
+                groups = []
+            }
+
             if installed {
                 let handler: [String: Any] = [
                     "type": "command",

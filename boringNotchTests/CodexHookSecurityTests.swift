@@ -95,14 +95,12 @@ final class CodexHookSecurityTests: XCTestCase {
             ((permissionGroups[0]["hooks"] as? [[String: Any]])?.first?["timeout"] as? Int),
             75
         )
-        for event in ["UserPromptSubmit", "PostToolUse"] {
-            let groups = try XCTUnwrap(hooks[event] as? [[String: Any]])
-            XCTAssertEqual(groups.count, 1)
-            XCTAssertEqual(
-                ((groups[0]["hooks"] as? [[String: Any]])?.first?["timeout"] as? Int),
-                5
-            )
-        }
+        let promptGroups = try XCTUnwrap(hooks["UserPromptSubmit"] as? [[String: Any]])
+        XCTAssertEqual(promptGroups.count, 1)
+        XCTAssertEqual(
+            ((promptGroups[0]["hooks"] as? [[String: Any]])?.first?["timeout"] as? Int),
+            5
+        )
     }
 
     func testUninstallingHooksRemovesOnlyOwnedGroups() throws {
@@ -122,7 +120,7 @@ final class CodexHookSecurityTests: XCTestCase {
             }
         )
         originalHooks["Stop"] = [unrelatedGroup, ownedGroup]
-        originalHooks["CustomEvent"] = [ownedGroup]
+        originalHooks["CustomEvent"] = [unrelatedGroup, ownedGroup]
         let root: [String: Any] = ["hooks": originalHooks]
 
         let updated = try CodexHookConfiguration.updating(
@@ -141,7 +139,38 @@ final class CodexHookSecurityTests: XCTestCase {
         for event in CodexHookConfiguration.events where event != "Stop" {
             XCTAssertEqual((hooks[event] as? [[String: Any]])?.count, 0)
         }
-        XCTAssertEqual((hooks["CustomEvent"] as? [[String: Any]])?.count, 1)
+        let customGroups = try XCTUnwrap(hooks["CustomEvent"] as? [[String: Any]])
+        XCTAssertEqual(customGroups.count, 1)
+        XCTAssertEqual(
+            ((customGroups[0]["hooks"] as? [[String: Any]])?.first?["command"] as? String),
+            "notify-send done"
+        )
+    }
+
+    func testInstallingHooksRemovesStaleOwnedHandlersFromUnsupportedEvents() throws {
+        let command = "/usr/bin/python3 '/tmp/boring-notch-notify.py'"
+        let root: [String: Any] = [
+            "hooks": [
+                "PostToolUse": [[
+                    "hooks": [
+                        ["type": "command", "command": "notify-send done"],
+                        ["type": "command", "command": command],
+                    ],
+                ]],
+            ],
+        ]
+
+        let updated = try CodexHookConfiguration.updating(
+            root,
+            installed: true,
+            command: command
+        )
+
+        let hooks = try XCTUnwrap(updated["hooks"] as? [String: Any])
+        let groups = try XCTUnwrap(hooks["PostToolUse"] as? [[String: Any]])
+        let handlers = try XCTUnwrap(groups.first?["hooks"] as? [[String: Any]])
+        XCTAssertEqual(handlers.count, 1)
+        XCTAssertEqual(handlers[0]["command"] as? String, "notify-send done")
     }
 
     func testUninstallingHooksPreservesUnrelatedHandlersInOwnedGroups() throws {
