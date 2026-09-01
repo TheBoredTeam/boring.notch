@@ -1,244 +1,369 @@
 name: "Deploy Boring Notch"
 on:
-  issue_comment:
-    types: [created]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (for example 2.8.0 or 2.8.0-rc.1)"
+        required: true
+        type: string
 
 concurrency:
-  group: release-${{ github.event.issue.number || github.run_id }}
-  cancel-in-progress: true
+  group: dev-publication
+  cancel-in-progress: false
+  queue: max
 
 env:
   PROJECT_NAME: boringNotch
   BETA_CHANNEL_NAME: beta
-  RELEASE_COMMAND: /release
-  CODE_SIGN_IDENTITY: "Apple Development"
-  XCODE_VERSION: "16.4"
 
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
 
 jobs:
-  # helper job to test for the release command in the comment; env is safe to use here
-  check_release:
-    name: Check for release command
-    if: ${{ github.event.issue.pull_request }}
-    runs-on: ubuntu-latest
-    outputs:
-      is_release: ${{ steps.check.outputs.is_release }}
-      is_eligible_pr: ${{ steps.check.outputs.is_eligible_pr }}
-    steps:
-      - id: check
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          COMMENT_BODY: ${{ github.event.comment.body }}
-          RELEASE_COMMAND: ${{ env.RELEASE_COMMAND }}
-        run: |
-          set -euo pipefail
-          if [[ "$COMMENT_BODY" == *"$RELEASE_COMMAND"* ]]; then
-            IS_RELEASE=true
-          else
-            IS_RELEASE=false
-          fi
-
-          IS_ELIGIBLE_PR=false
-          PR_NUMBER="${{ github.event.issue.number }}"
-          PR_DATA=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" \
-            --jq '{head_ref: .head.ref, base_ref: .base.ref, head_repo: .head.repo.full_name, base_repo: .base.repo.full_name}')
-          HEAD_REF=$(echo "$PR_DATA" | jq -r '.head_ref')
-          BASE_REF=$(echo "$PR_DATA" | jq -r '.base_ref')
-          HEAD_REPO=$(echo "$PR_DATA" | jq -r '.head_repo')
-          BASE_REPO=$(echo "$PR_DATA" | jq -r '.base_repo')
-
-          if [[ "$HEAD_REPO" == "$REPO" && "$BASE_REPO" == "$REPO" && "$HEAD_REF" == "dev" && "$BASE_REF" == "main" ]]; then
-            IS_ELIGIBLE_PR=true
-          fi
-
-          echo "is_release=$IS_RELEASE" >> "$GITHUB_OUTPUT"
-          echo "is_eligible_pr=$IS_ELIGIBLE_PR" >> "$GITHUB_OUTPUT"
-
   preparation:
     name: Preparation
-    needs: check_release
-    if: ${{ needs.check_release.outputs.is_release == 'true' && needs.check_release.outputs.is_eligible_pr == 'true' }}
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
+      pull-requests: read
     outputs:
+      pr_number: ${{ steps.authorize.outputs.pr_number }}
       is_beta: ${{ steps.extract_version.outputs.is_beta }}
       version: ${{ steps.extract_version.outputs.version }}
-      build_number: ${{ steps.extract_version.outputs.build_number }}
-      xcode_version: ${{ steps.build_config.outputs.xcode_version }}
-      code_sign_identity: ${{ steps.build_config.outputs.code_sign_identity }}
       title: ${{ steps.release_notes.outputs.title }}
       release_notes: ${{ steps.release_notes.outputs.release_notes }}
       release_notes_github: ${{ steps.release_notes.outputs.release_notes_github }}
-      head_ref: ${{ steps.pr_info.outputs.head_ref }}
-      base_ref: ${{ steps.pr_info.outputs.base_ref }}
+      head_ref: ${{ steps.authorize.outputs.head_ref }}
+      head_sha: ${{ steps.authorize.outputs.head_sha }}
+      base_ref: ${{ steps.authorize.outputs.base_ref }}
+      base_sha: ${{ steps.authorize.outputs.base_sha }}
+      source_sha: ${{ steps.sync_branch.outputs.source_sha || steps.authorize.outputs.head_sha }}
     steps:
-      - name: Validate permissions and PR state
+      - name: Require protected release workflow
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKFLOW_REF: ${{ github.ref }}
         run: |
           set -euo pipefail
-          REPO="${{ github.repository }}"
-          COMMENTER="${{ github.event.comment.user.login }}"
-          PR_NUMBER="${{ github.event.issue.number }}"
-
-          # Acknowledge the command
-          gh api "repos/${REPO}/issues/comments/${{ github.event.comment.id }}/reactions" \
-            -f content=eyes --silent
-
-          # Require admin permission
-          PERM=$(gh api "repos/${REPO}/collaborators/${COMMENTER}/permission" --jq '.permission')
-          if [[ "$PERM" != "admin" ]]; then
-            echo "::error::${COMMENTER} is not an admin (permission: ${PERM})"
+          if [[ "$WORKFLOW_REF" != "refs/heads/main" ]]; then
+            echo "::error::Run releases from the protected main workflow, not ${WORKFLOW_REF}"
             exit 1
           fi
 
-          # Require mergeable, non-draft PR
-          IS_DRAFT=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.draft')
-          MERGEABLE=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.mergeable')
+      - id: authorize
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ACTOR: ${{ github.triggering_actor }}
+        run: |
+          set -euo pipefail
+
+          OWNER="${REPO%%/*}"
+          PR_CANDIDATES=$(gh api --method GET "repos/${REPO}/pulls" \
+            -f state=open -f base=main -f head="${OWNER}:dev" -f per_page=2 \
+            --jq '[.[].number]')
+          if [[ "$(jq length <<< "$PR_CANDIDATES")" != "1" ]]; then
+            echo "::error::Expected exactly one open same-repository dev-to-main release PR"
+            exit 1
+          fi
+          PR_NUMBER=$(jq -r '.[0]' <<< "$PR_CANDIDATES")
+
+          PERM=$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" --jq '.permission')
+          if [[ "$PERM" != "admin" ]]; then
+            echo "::error::${ACTOR} is not an admin (permission: ${PERM})"
+            exit 1
+          fi
+
+          PR_DATA=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" \
+            --jq '{head_ref: .head.ref, head_sha: .head.sha, base_ref: .base.ref, base_sha: .base.sha, head_repo: .head.repo.full_name, base_repo: .base.repo.full_name, is_draft: .draft, mergeable: .mergeable}')
+          HEAD_REF=$(echo "$PR_DATA" | jq -r '.head_ref')
+          HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head_sha')
+          BASE_REF=$(echo "$PR_DATA" | jq -r '.base_ref')
+          BASE_SHA=$(echo "$PR_DATA" | jq -r '.base_sha')
+          HEAD_REPO=$(echo "$PR_DATA" | jq -r '.head_repo')
+          BASE_REPO=$(echo "$PR_DATA" | jq -r '.base_repo')
+          IS_DRAFT=$(echo "$PR_DATA" | jq -r '.is_draft')
+          MERGEABLE=$(echo "$PR_DATA" | jq -r '.mergeable')
+
+          if [[ "$HEAD_REPO" != "$REPO" || "$BASE_REPO" != "$REPO" || "$HEAD_REF" != "dev" || "$BASE_REF" != "main" || \
+                ! "$HEAD_SHA" =~ ^[0-9a-fA-F]{40}$ || ! "$BASE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error::Release PR must be a same-repository dev-to-main PR with immutable commit SHAs"
+            exit 1
+          fi
           if [[ "$IS_DRAFT" == "true" || "$MERGEABLE" != "true" ]]; then
             echo "::error::PR #${PR_NUMBER} is not ready to merge (draft=${IS_DRAFT}, mergeable=${MERGEABLE})"
             exit 1
           fi
 
-      - name: Get PR branch info
-        id: pr_info
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          PR_DATA=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}" \
-            --jq '{head_ref: .head.ref, base_ref: .base.ref}')
-          echo "head_ref=$(echo "$PR_DATA" | jq -r '.head_ref')" >> "$GITHUB_OUTPUT"
-          echo "base_ref=$(echo "$PR_DATA" | jq -r '.base_ref')" >> "$GITHUB_OUTPUT"
+          {
+            echo "pr_number=$PR_NUMBER"
+            echo "head_ref=$HEAD_REF"
+            echo "head_sha=$HEAD_SHA"
+            echo "base_ref=$BASE_REF"
+            echo "base_sha=$BASE_SHA"
+          } >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ steps.pr_info.outputs.head_ref }}
+          ref: ${{ steps.authorize.outputs.base_sha }}
+          persist-credentials: false
 
-      - name: Ensure scripts directory exists
-        env:
-          BASE_REF: ${{ steps.pr_info.outputs.base_ref }}
-        run: |
-          if [ ! -f ".github/scripts/extract_version.py" ]; then
-            echo "Script not found in PR branch, fetching from base branch"
-            git fetch origin "$BASE_REF"
-            git checkout "origin/$BASE_REF" -- .github/scripts/
-          fi
-
-      - name: Extract version from comment
+      - name: Extract requested version
         id: extract_version
         env:
-          COMMENT: ${{ github.event.comment.body }}
+          VERSION_INPUT: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          export projname="${{ env.PROJECT_NAME }}"
-          OUTPUT=$(python3 .github/scripts/extract_version.py -c "$COMMENT")
+          OUTPUT=$(python3 .github/scripts/extract_version.py -c "$VERSION_INPUT")
           VERSION=$(awk -F= '/^version=/{print $2; exit}' <<<"$OUTPUT")
           IS_BETA=$(awk -F= '/^is_beta=/{print $2; exit}' <<<"$OUTPUT")
-          BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
+          if [[ -z "$VERSION" || ( "$VERSION_INPUT" != "$VERSION" && "$VERSION_INPUT" != "v$VERSION" ) ]]; then
+            echo "::error::Version must be a complete semantic version, optionally prefixed with v"
+            exit 1
+          fi
           {
             echo "version=$VERSION"
             echo "is_beta=$IS_BETA"
-            echo "build_number=$BUILD_NUMBER"
-          } >> "$GITHUB_OUTPUT"
-          echo "Version: $VERSION | Beta: $IS_BETA | Build: $BUILD_NUMBER"
-
-      - name: Expose build configuration
-        id: build_config
-        run: |
-          {
-            echo "xcode_version=${{ env.XCODE_VERSION }}"
-            echo "code_sign_identity=${{ env.CODE_SIGN_IDENTITY }}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Generate release notes from PR
         id: release_notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.authorize.outputs.pr_number }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          PR_NUMBER="${{ github.event.issue.number }}"
-          REPO="${{ github.repository }}"
           TITLE=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.title // "Release"')
           BODY=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.body // "- No release notes provided"')
 
           # Strip H1 headings for GitHub release notes
           BODY_GITHUB=$(printf '%s' "$BODY" | sed '/^# /d' | perl -pe 's#<h1[^>]*>.*?</h1>##gi')
 
+          TITLE_DELIM="TITLE_$(uuidgen | tr -d '-')"
+          NOTES_DELIM="RELEASE_NOTES_$(uuidgen | tr -d '-')"
+          GH_NOTES_DELIM="RELEASE_NOTES_GH_$(uuidgen | tr -d '-')"
           {
-            echo "title=${TITLE}"
-            echo "release_notes<<RELEASE_NOTES_DELIM"
-            echo "$BODY"
-            echo "RELEASE_NOTES_DELIM"
-            echo "release_notes_github<<RELEASE_NOTES_GH_DELIM"
-            echo "$BODY_GITHUB"
-            echo "RELEASE_NOTES_GH_DELIM"
+            echo "title<<${TITLE_DELIM}"
+            printf '%s\n' "$TITLE"
+            echo "${TITLE_DELIM}"
+            echo "release_notes<<${NOTES_DELIM}"
+            printf '%s\n' "$BODY"
+            echo "${NOTES_DELIM}"
+            echo "release_notes_github<<${GH_NOTES_DELIM}"
+            printf '%s\n' "$BODY_GITHUB"
+            echo "${GH_NOTES_DELIM}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Check version not already released
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
           VERSION: ${{ steps.extract_version.outputs.version }}
         run: |
+          set -euo pipefail
           git fetch --tags
-          if git rev-parse -q --verify "refs/tags/v${VERSION}" >/dev/null; then
-            echo "::error::Version v${VERSION} already exists as a tag"
+          LOOKUP_ERROR="$RUNNER_TEMP/release-lookup-error"
+
+          if IS_DRAFT="$(gh api \
+            "repos/${REPO}/releases/tags/v${VERSION}" \
+            --jq '.draft' \
+            2>"$LOOKUP_ERROR")"; then
+            if [[ "$IS_DRAFT" != "true" ]]; then
+              echo "::error::Version v${VERSION} is already published"
+              exit 1
+            fi
+            echo "Found existing draft release v${VERSION}; it will be refreshed."
+          elif ! grep -q '(HTTP 404)' "$LOOKUP_ERROR"; then
+            cat "$LOOKUP_ERROR" >&2
+            echo "::error::Could not determine whether v${VERSION} already exists"
+            exit 1
+          elif git rev-parse -q --verify "refs/tags/v${VERSION}" >/dev/null; then
+            echo "::error::Tag v${VERSION} exists without a reusable draft release"
             exit 1
           fi
 
+      - name: Create release app token
+        id: release_app_token
+        if: steps.extract_version.outputs.is_beta == 'false'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
+
+      - name: Checkout release base with app token
+        if: steps.extract_version.outputs.is_beta == 'false'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.authorize.outputs.base_sha }}
+          token: ${{ steps.release_app_token.outputs.token }}
+          fetch-depth: 0
+          persist-credentials: false
+
       - name: Sync branch (stable releases only)
+        id: sync_branch
         if: steps.extract_version.outputs.is_beta == 'false'
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          BASE_REF: ${{ steps.pr_info.outputs.base_ref }}
-          HEAD_REF: ${{ steps.pr_info.outputs.head_ref }}
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          BASE_REF: ${{ steps.authorize.outputs.base_ref }}
+          HEAD_REF: ${{ steps.authorize.outputs.head_ref }}
+          HEAD_SHA: ${{ steps.authorize.outputs.head_sha }}
+          BASE_SHA: ${{ steps.authorize.outputs.base_sha }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global credential.https://github.com.helper \
-            "!f() { echo \"username=x-access-token\"; printf \"password=%s\\n\" \"\${GITHUB_TOKEN}\"; }; f"
-          git fetch origin "$BASE_REF"
-          git checkout "$HEAD_REF"
-          git merge --no-ff "origin/$BASE_REF" -m "Sync branch before release"
-          git push origin "$HEAD_REF"
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$AUTH_HEADER" fetch origin \
+            "refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF" \
+            "refs/heads/$HEAD_REF:refs/remotes/origin/$HEAD_REF"
+          REMOTE_HEAD_SHA="$(git rev-parse "refs/remotes/origin/$HEAD_REF")"
+          REMOTE_BASE_SHA="$(git rev-parse "refs/remotes/origin/$BASE_REF")"
+          if [[ "$REMOTE_HEAD_SHA" != "$HEAD_SHA" || "$REMOTE_BASE_SHA" != "$BASE_SHA" ]]; then
+            echo "::error::Release PR refs moved after metadata capture; refusing to synchronize mutable code"
+            exit 1
+          fi
+          git checkout -B "$HEAD_REF" "$HEAD_SHA"
+          git merge --no-ff "$BASE_SHA" -m "Sync branch before release"
+          git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/$HEAD_REF"
+          echo "source_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  reserve_build_number:
+    name: Prepare release source
+    needs: preparation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    concurrency:
+      group: release-build-number
+      cancel-in-progress: false
+    outputs:
+      build_number: ${{ steps.reserve.outputs.build_number }}
+      source_sha: ${{ steps.reserve.outputs.source_sha }}
+    steps:
+      - name: Create release app token
+        id: release_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.preparation.outputs.source_sha }}
+          fetch-depth: 0
+          token: ${{ steps.release_app_token.outputs.token }}
+          persist-credentials: false
+
+      - name: Verify reserved release source
+        env:
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          EXPECTED_SOURCE_SHA: ${{ needs.preparation.outputs.source_sha }}
+          HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$EXPECTED_SOURCE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error::Invalid expected release source SHA"
+            exit 1
+          fi
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$AUTH_HEADER" fetch origin \
+            "refs/heads/$HEAD_REF:refs/remotes/origin/$HEAD_REF"
+          CURRENT_HEAD="$(git rev-parse "refs/remotes/origin/$HEAD_REF")"
+          if [[ "$CURRENT_HEAD" != "$EXPECTED_SOURCE_SHA" ]]; then
+            echo "::error::Release branch moved from ${EXPECTED_SOURCE_SHA} to ${CURRENT_HEAD}; refusing to stamp unreserved code"
+            exit 1
+          fi
+
+      - name: Reserve next build number
+        id: reserve
+        env:
+          VERSION: ${{ needs.preparation.outputs.version }}
+        run: |
+          set -euo pipefail
+          COUNTER_FILE=".github/build-number"
+          PBXPROJ="${PROJECT_NAME}.xcodeproj/project.pbxproj"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          BUILD_NUMBER="$(tr -d '[:space:]' < "$COUNTER_FILE")"
+          if [[ ! "$BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::Invalid build number in ${COUNTER_FILE}: ${BUILD_NUMBER}"
+            exit 1
+          fi
+
+          NEXT_BUILD_NUMBER=$((BUILD_NUMBER + 1))
+          printf '%s\n' "$NEXT_BUILD_NUMBER" > "$COUNTER_FILE"
+          python3 .github/scripts/stamp_version.py \
+            --pbxproj "$PBXPROJ" \
+            --version "$VERSION" \
+            --build-number "$BUILD_NUMBER"
+          git add "$COUNTER_FILE" "$PBXPROJ"
+          git commit -m "Prepare v${VERSION} build ${BUILD_NUMBER}"
+
+          {
+            echo "build_number=${BUILD_NUMBER}"
+            echo "source_sha=$(git rev-parse HEAD)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Push reserved build source
+        env:
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
+        run: |
+          set -euo pipefail
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/$HEAD_REF"
 
   build:
     name: Build and sign
-    needs: preparation
+    needs: [preparation, reserve_build_number]
     permissions:
-      contents: write
+      contents: read
     uses: ./.github/workflows/build_reusable.yml
     with:
-      head_ref: ${{ needs.preparation.outputs.head_ref }}
+      source_sha: ${{ needs.reserve_build_number.outputs.source_sha }}
       version: ${{ needs.preparation.outputs.version }}
-      build_number: ${{ needs.preparation.outputs.build_number }}
-      xcode_version: ${{ needs.preparation.outputs.xcode_version }}
-      code_sign_identity: ${{ needs.preparation.outputs.code_sign_identity }}
+      build_number: ${{ needs.reserve_build_number.outputs.build_number }}
+      update_channel: ${{ needs.preparation.outputs.is_beta == 'true' && 'beta' || 'stable' }}
     secrets:
       BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-      P12_PASSWORD:              ${{ secrets.P12_PASSWORD }}
-      KEYCHAIN_PASSWORD:         ${{ secrets.KEYCHAIN_PASSWORD }}
+      P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
 
   publish:
     name: Publish release
-    needs: [preparation, build]
+    needs: [preparation, reserve_build_number, build]
     runs-on: macos-latest
     permissions:
-      contents: write
+      contents: read
+    outputs:
+      release_head_sha: ${{ steps.commit_stable_appcast.outputs.release_head_sha }}
     env:
       HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
       VERSION: ${{ needs.preparation.outputs.version }}
+      BUILD_NUMBER: ${{ needs.reserve_build_number.outputs.build_number }}
+      SOURCE_SHA: ${{ needs.reserve_build_number.outputs.source_sha }}
       IS_BETA: ${{ needs.preparation.outputs.is_beta }}
     steps:
+      - name: Create release app token
+        id: release_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ env.HEAD_REF }}
+          ref: ${{ needs.reserve_build_number.outputs.source_sha }}
+          token: ${{ steps.release_app_token.outputs.token }}
+          persist-credentials: false
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -342,53 +467,191 @@ jobs:
           test -x "$RUNNER_TEMP/generate_appcast" || {
             echo "::error::$RUNNER_TEMP/generate_appcast missing or not executable"; exit 1;
           }
-          CHANNEL_ARGS=()
+          APPCAST_ARGS=(
+            --ed-key-file -
+            --link "https://github.com/TheBoredTeam/boring.notch/releases"
+            --download-url-prefix "https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/"
+            --embed-release-notes
+          )
+          APPCAST_OUTPUT="$RUNNER_TEMP/appcast-stable.xml"
           if [[ "${IS_BETA}" == "true" ]]; then
-            CHANNEL_ARGS=(--channel "${{ env.BETA_CHANNEL_NAME }}")
+            APPCAST_ARGS+=(--channel "${{ env.BETA_CHANNEL_NAME }}")
+            APPCAST_OUTPUT="$RUNNER_TEMP/appcast-${{ env.BETA_CHANNEL_NAME }}.xml"
+          else
+            cp updater/appcast.xml "$APPCAST_OUTPUT"
           fi
-          printf '%s' "$SPARKLE_PRIVATE_KEY" | "$RUNNER_TEMP/generate_appcast" \
-            --ed-key-file - \
-            --link "https://github.com/TheBoredTeam/boring.notch/releases" \
-            --download-url-prefix "https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/" \
-            --embed-release-notes \
-            "${CHANNEL_ARGS[@]}" \
-            -o updater/appcast.xml \
-            Release/
+          APPCAST_ARGS+=(-o "$APPCAST_OUTPUT")
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | \
+            "$RUNNER_TEMP/generate_appcast" "${APPCAST_ARGS[@]}" Release/
 
-      - name: Commit appcast
+      - name: Create or refresh draft GitHub release
+        id: prepare_release
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          TITLE: ${{ needs.preparation.outputs.title }}
+          NOTES: ${{ needs.preparation.outputs.release_notes_github }}
+        run: |
+          set -euo pipefail
+          TAG="v${VERSION}"
+          LOOKUP_ERROR="$RUNNER_TEMP/release-lookup-error"
+          ALREADY_PUBLISHED=false
+
+          if RELEASE_JSON="$(gh api \
+            "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" \
+            2>"$LOOKUP_ERROR")"; then
+            IS_DRAFT="$(jq -r '.draft' <<< "$RELEASE_JSON")"
+            if [[ "$IS_DRAFT" == "true" ]]; then
+              gh release edit "$TAG" \
+                --draft \
+                --prerelease="$IS_BETA" \
+                --target "$SOURCE_SHA" \
+                --title "${TAG} - ${TITLE}" \
+                --notes "$NOTES"
+              gh release upload "$TAG" Release/boringNotch.dmg --clobber
+            elif [[ "$IS_BETA" == "true" ]]; then
+              RELEASE_TARGET="$(jq -r '.target_commitish' <<< "$RELEASE_JSON")"
+              IS_PRERELEASE="$(jq -r '.prerelease' <<< "$RELEASE_JSON")"
+              ASSET_COUNT="$(jq '[.assets[] | select(.name == "boringNotch.dmg")] | length' <<< "$RELEASE_JSON")"
+
+              if [[ "$RELEASE_TARGET" != "$SOURCE_SHA" ]]; then
+                echo "::error::Published release ${TAG} targets ${RELEASE_TARGET}, expected ${SOURCE_SHA}"
+                exit 1
+              fi
+              if [[ "$IS_PRERELEASE" != "true" ]]; then
+                echo "::error::Published release ${TAG} is not marked as a prerelease"
+                exit 1
+              fi
+              if [[ "$ASSET_COUNT" != "1" ]]; then
+                echo "::error::Published release ${TAG} must contain exactly one boringNotch.dmg asset"
+                exit 1
+              fi
+
+              PUBLISHED_ASSET_DIR="$RUNNER_TEMP/published-release"
+              mkdir -p "$PUBLISHED_ASSET_DIR"
+              gh release download "$TAG" \
+                --repo "$GITHUB_REPOSITORY" \
+                --pattern boringNotch.dmg \
+                --dir "$PUBLISHED_ASSET_DIR"
+
+              EXPECTED_SHA256="$(shasum -a 256 Release/boringNotch.dmg | awk '{print $1}')"
+              PUBLISHED_SHA256="$(shasum -a 256 "$PUBLISHED_ASSET_DIR/boringNotch.dmg" | awk '{print $1}')"
+              if [[ "$PUBLISHED_SHA256" != "$EXPECTED_SHA256" ]]; then
+                echo "::error::Published boringNotch.dmg does not match the artifact built for ${SOURCE_SHA}"
+                exit 1
+              fi
+
+              echo "Published beta release ${TAG} matches this build; resuming appcast publication."
+              ALREADY_PUBLISHED=true
+            else
+              echo "::error::Release ${TAG} already exists and is not a draft"
+              exit 1
+            fi
+          elif grep -q '(HTTP 404)' "$LOOKUP_ERROR"; then
+            RELEASE_FLAGS=(--draft)
+            if [[ "${IS_BETA}" == "true" ]]; then
+              RELEASE_FLAGS+=(--prerelease)
+            fi
+            gh release create "$TAG" Release/boringNotch.dmg \
+              --target "$SOURCE_SHA" \
+              --title "${TAG} - ${TITLE}" \
+              --notes "$NOTES" \
+              "${RELEASE_FLAGS[@]}"
+          else
+            cat "$LOOKUP_ERROR" >&2
+            echo "::error::Could not determine whether release ${TAG} already exists"
+            exit 1
+          fi
+
+          echo "already_published=$ALREADY_PUBLISHED" >> "$GITHUB_OUTPUT"
+
+      - name: Commit stable appcast to release branch
+        id: commit_stable_appcast
+        if: env.IS_BETA == 'false'
+        env:
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if [[ "${IS_BETA}" == "false" ]]; then
-            git add updater/appcast.xml
-            git commit -m "Update version to v${VERSION} and appcast" || true
-            git push origin "HEAD:${HEAD_REF}" || true
-          else
-            # Save generated appcast, switch to main, apply and push
-            cp updater/appcast.xml "$RUNNER_TEMP/appcast.xml"
-            git fetch origin main
-            git checkout main
-            cp "$RUNNER_TEMP/appcast.xml" updater/appcast.xml
-            git add updater/appcast.xml
-            git commit -m "Update appcast with beta release for v${VERSION}" || true
-            git push origin main
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$AUTH_HEADER" fetch origin \
+            "refs/heads/$HEAD_REF:refs/remotes/origin/$HEAD_REF"
+          CURRENT_HEAD="$(git rev-parse "refs/remotes/origin/$HEAD_REF")"
+          if [[ "$CURRENT_HEAD" != "$SOURCE_SHA" ]]; then
+            echo "::error::Release branch moved from ${SOURCE_SHA} to ${CURRENT_HEAD}; refusing to publish an appcast for unbuilt code"
+            exit 1
           fi
 
-      - name: Create GitHub release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TITLE: ${{ needs.preparation.outputs.title }}
-          NOTES: ${{ needs.preparation.outputs.release_notes_github }}
-        run: |
-          RELEASE_FLAGS=()
-          if [[ "${IS_BETA}" == "true" ]]; then
-            RELEASE_FLAGS=(--prerelease)
+          git checkout -B release-appcast "$SOURCE_SHA"
+          cp "$RUNNER_TEMP/appcast-stable.xml" updater/appcast.xml
+          git add updater/appcast.xml
+          if ! git diff --cached --quiet; then
+            git commit -m "Update appcast for v${VERSION}"
           fi
-          gh release create "v${VERSION}" Release/boringNotch.dmg \
-            --title "v${VERSION} - ${TITLE}" \
-            --notes "$NOTES" \
-            "${RELEASE_FLAGS[@]}"
+
+          RELEASE_HEAD_SHA="$(git rev-parse HEAD)"
+          git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/$HEAD_REF"
+          echo "release_head_sha=$RELEASE_HEAD_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub release
+        if: steps.prepare_release.outputs.already_published != 'true'
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5; do
+            if gh release edit "v${VERSION}" --draft=false; then
+              exit 0
+            fi
+            echo "Release publication failed; retrying (${attempt}/5)"
+            sleep $((attempt * 2))
+          done
+          echo "::error::Could not publish v${VERSION} after 5 attempts"
+          exit 1
+
+      - name: Publish beta appcast
+        if: env.IS_BETA == 'true'
+        env:
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          PUSH_ERROR="$RUNNER_TEMP/beta-appcast-push-error"
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git checkout -B release-appcast origin/main
+            python3 .github/scripts/merge_appcast_channel.py \
+              updater/appcast.xml \
+              "$RUNNER_TEMP/appcast-${BETA_CHANNEL_NAME}.xml" \
+              "$BETA_CHANNEL_NAME"
+
+            git add updater/appcast.xml
+            if git diff --cached --quiet; then
+              echo "Published appcast already contains v${VERSION}."
+              exit 0
+            fi
+
+            git commit -m "Update appcast with beta release for v${VERSION}"
+            if git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/main" 2>"$PUSH_ERROR"; then
+              exit 0
+            fi
+
+            cat "$PUSH_ERROR" >&2
+            if ! grep -Eqi 'non-fast-forward|\(fetch first\)' "$PUSH_ERROR"; then
+              echo "::error::Could not publish the beta appcast"
+              exit 1
+            fi
+            if [[ "$attempt" -lt 5 ]]; then
+              echo "main moved while publishing the appcast; retrying (${attempt}/5)"
+              sleep $((attempt * 2))
+            fi
+          done
+
+          echo "::error::Could not publish the beta appcast after 5 attempts"
+          exit 1
 
   upgrade-brew:
     name: Update Homebrew cask
@@ -457,13 +720,23 @@ jobs:
           name: homebrew-cask-${{ env.VERSION }}
           path: boring-notch*.rb
 
+      - name: Create Homebrew tap app token
+        id: tap_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: homebrew-boring-notch
+          permission-contents: write
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: TheBoredTeam/homebrew-boring-notch
-          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           path: homebrew-tap
+          persist-credentials: false
 
       - name: Update casks in tap
+        id: update_casks
         run: |
           set -euo pipefail
           cp boring-notch@rc.rb homebrew-tap/Casks/boring-notch@rc.rb
@@ -478,65 +751,114 @@ jobs:
           git add Casks/
           if git diff --cached --quiet; then
             echo "No changes to commit"
+            echo "casks_changed=false" >> "$GITHUB_OUTPUT"
           else
             git commit -m "$COMMIT_MSG"
-            git push
+            echo "casks_changed=true" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Push casks to tap
+        if: steps.update_casks.outputs.casks_changed == 'true'
+        env:
+          TAP_APP_TOKEN: ${{ steps.tap_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TAP_APP_TOKEN" | base64 | tr -d '\n')"
+          cd homebrew-tap
+          git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/$(git symbolic-ref --short HEAD)"
 
   ending:
     name: Finalize
-    if: ${{ always() && needs.preparation.result != 'skipped' && needs.check_release.outputs.is_release == 'true' }}
-    needs: [check_release, preparation, build, publish, upgrade-brew]
+    if: ${{ always() && needs.preparation.result != 'skipped' }}
+    needs: [preparation, reserve_build_number, build, publish, upgrade-brew]
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     env:
       ALL_RESULTS: ${{ join(needs.*.result, ',') }}
       RELEASE_SUCCEEDED: ${{ !contains(join(needs.*.result, ','), 'failure') && !contains(join(needs.*.result, ','), 'cancelled') }}
     steps:
-      - name: React to trigger comment
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          REPO="${{ github.repository }}"
-          COMMENT_ID="${{ github.event.comment.id }}"
-          if [[ "$ALL_RESULTS" != *"failure"* && "$ALL_RESULTS" != *"cancelled"* ]]; then
-            REACTION="rocket"
-          else
-            REACTION="confused"
-          fi
-          gh api "repos/${REPO}/issues/comments/${COMMENT_ID}/reactions" \
-            -f content="$REACTION" --silent
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Create release app token
+        id: release_app_token
         if: needs.preparation.outputs.is_beta == 'false' && env.RELEASE_SUCCEEDED == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
-          ref: ${{ needs.preparation.outputs.head_ref }}
-          fetch-depth: 0
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
 
-      - name: Merge PR (stable releases only)
+      - name: Merge release PR
+        id: merge_release_pr
         if: needs.preparation.outputs.is_beta == 'false' && env.RELEASE_SUCCEEDED == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
-          BASE_REF: ${{ needs.preparation.outputs.base_ref }}
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          EXPECTED_BASE_SHA: ${{ needs.preparation.outputs.base_sha }}
+          EXPECTED_HEAD_SHA: ${{ needs.publish.outputs.release_head_sha }}
+          PR_NUMBER: ${{ needs.preparation.outputs.pr_number }}
           VERSION: ${{ needs.preparation.outputs.version }}
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global credential.https://github.com.helper \
-            "!f() { echo \"username=x-access-token\"; printf \"password=%s\\n\" \"\${GITHUB_TOKEN}\"; }; f"
-          git fetch origin "$BASE_REF"
-          git checkout "$BASE_REF"
-          git merge --no-ff "origin/$HEAD_REF" -m "Release version v${VERSION}"
-          git push origin "$BASE_REF"
+
+          if [[ -z "$EXPECTED_BASE_SHA" || -z "$EXPECTED_HEAD_SHA" ]]; then
+            echo "::error::Missing expected release branch SHAs"
+            exit 1
+          fi
+
+          for attempt in 1 2 3 4 5; do
+            if ! PR_DATA="$(gh api \
+              "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" \
+              2>"$RUNNER_TEMP/merge-error")"; then
+              cat "$RUNNER_TEMP/merge-error" >&2 || true
+              echo "Could not read PR state; retrying (${attempt}/5)"
+              sleep $((attempt * 2))
+              continue
+            fi
+            CURRENT_HEAD_SHA="$(jq -r '.head.sha' <<< "$PR_DATA")"
+            CURRENT_BASE_SHA="$(jq -r '.base.sha' <<< "$PR_DATA")"
+
+            if [[ "$(jq -r '.merged' <<< "$PR_DATA")" == "true" && \
+                  "$CURRENT_HEAD_SHA" == "$EXPECTED_HEAD_SHA" ]]; then
+              echo "PR #${PR_NUMBER} was already merged at the expected head."
+              exit 0
+            fi
+
+            if [[ "$CURRENT_HEAD_SHA" != "$EXPECTED_HEAD_SHA" ]]; then
+              echo "::error::PR head moved from ${EXPECTED_HEAD_SHA} to ${CURRENT_HEAD_SHA}; refusing to merge unexpected code"
+              exit 1
+            fi
+
+            if [[ "$CURRENT_BASE_SHA" != "$EXPECTED_BASE_SHA" ]]; then
+              echo "::error::main moved from ${EXPECTED_BASE_SHA} to ${CURRENT_BASE_SHA} after the release build; synchronize and rebuild"
+              exit 1
+            fi
+
+            if RESPONSE="$(gh api \
+              --method PUT \
+              "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/merge" \
+              --field sha="$EXPECTED_HEAD_SHA" \
+              --field merge_method=merge \
+              --field commit_title="Release version v${VERSION}" \
+              2>>"$RUNNER_TEMP/merge-error")" && \
+              [[ "$(jq -r '.merged' <<< "$RESPONSE")" == "true" ]]; then
+              exit 0
+            fi
+
+            cat "$RUNNER_TEMP/merge-error" >&2 || true
+            echo "PR merge is not ready; retrying (${attempt}/5)"
+            sleep $((attempt * 2))
+          done
+
+          echo "::error::Could not merge PR #${PR_NUMBER} at ${EXPECTED_HEAD_SHA}"
+          exit 1
 
       - name: Summary
+        if: always()
         env:
           IS_BETA: ${{ needs.preparation.outputs.is_beta }}
           VERSION: ${{ needs.preparation.outputs.version }}
-          BUILD_NUMBER: ${{ needs.preparation.outputs.build_number }}
+          BUILD_NUMBER: ${{ needs.reserve_build_number.outputs.build_number }}
+          MERGE_OUTCOME: ${{ steps.merge_release_pr.outcome }}
         shell: bash
         run: |
           if [[ "${IS_BETA}" == "true" ]]; then
@@ -544,8 +866,14 @@ jobs:
           else
             BUILD_TYPE="stable"
           fi
+
+          FINAL_SUCCEEDED="$RELEASE_SUCCEEDED"
+          if [[ "$IS_BETA" == "false" && "$MERGE_OUTCOME" != "success" ]]; then
+            FINAL_SUCCEEDED=false
+          fi
+
           {
-            if [[ "${RELEASE_SUCCEEDED}" == "true" ]]; then
+            if [[ "$FINAL_SUCCEEDED" == "true" ]]; then
               echo "✅ Released boringNotch v${VERSION} (${BUILD_TYPE} build ${BUILD_NUMBER})"
               echo "🍺 Homebrew cask updated"
               echo "📱 Sparkle appcast updated"
