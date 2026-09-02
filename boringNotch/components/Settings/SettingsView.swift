@@ -227,7 +227,7 @@ struct GeneralSettings: View {
                     }
                 }
                 Picker("Notch height on non-notch displays", selection: $nonNotchHeightMode) {
-                    Text("Match menubar height")
+                    Text("Match menu bar height")
                         .tag(WindowHeightMode.matchMenuBar)
                     Text("Match real notch height")
                         .tag(WindowHeightMode.matchRealNotchSize)

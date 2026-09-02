@@ -12709,12 +12709,12 @@
         }
       }
     },
-    "Match menubar height" : {
+    "Match menu bar height" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Match menubar height"
+            "value" : "Match menu bar height"
           }
         },
         "cs" : {
@@ -12732,13 +12732,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Match menubar height"
+            "value" : "Match menu bar height"
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Match menubar height"
+            "value" : "Match menu bar height"
           }
         },
         "es" : {
@@ -12756,7 +12756,7 @@
         "hu" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Match menubar height"
+            "value" : "Match menu bar height"
           }
         },
         "it" : {
@@ -12780,13 +12780,13 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Match menubar height"
+            "value" : "Match menu bar height"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Match menubar height"
+            "value" : "Match menu bar height"
           }
         },
         "tr" : {
@@ -12798,7 +12798,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Match menubar height"
+            "value" : "Match menu bar height"
           }
         },
         "zh-Hans" : {
