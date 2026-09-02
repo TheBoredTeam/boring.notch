@@ -144,6 +144,10 @@ extension Defaults.Keys {
     static let showBatteryPercentage = Key<Bool>("showBatteryPercentage", default: true)
     static let showPowerStatusIcons = Key<Bool>("showPowerStatusIcons", default: true)
     
+    // MARK: Audio Device Notifications
+    static let showAudioDeviceConnectedNotification = Key<Bool>("showAudioDeviceConnectedNotification", default: true)
+    static let showAudioDeviceBatteryPercentage = Key<Bool>("showAudioDeviceBatteryPercentage", default: true)
+    
     // MARK: Downloads
     static let enableDownloadListener = Key<Bool>("enableDownloadListener", default: true)
     static let enableSafariDownloads = Key<Bool>("enableSafariDownloads", default: true)
