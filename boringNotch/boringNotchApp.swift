@@ -106,6 +106,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             disableSkyLightOnAllWindows()
         }
+        
+        // Check if AirPods/Bluetooth audio device is connected and show notification
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            AudioDeviceManager.shared.checkAndShowNotificationIfBluetoothConnected()
+        }
     }
     
     @MainActor
@@ -421,6 +426,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         setupDragDetectors()
+        
+        // Initialize AudioDeviceManager to start listening for audio device changes
+        _ = AudioDeviceManager.shared
 
         if coordinator.firstLaunch {
             DispatchQueue.main.async {

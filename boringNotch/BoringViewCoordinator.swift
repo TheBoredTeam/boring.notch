@@ -18,6 +18,7 @@ enum SneakContentType {
     case mic
     case battery
     case download
+    case audioDevice
 }
 
 struct sneakPeek {
@@ -44,6 +45,7 @@ struct ExpandedItem {
     var type: SneakContentType = .battery
     var value: CGFloat = 0
     var browser: BrowserType = .chromium
+    var persistent: Bool = false  // Skip auto-dismiss when true
 }
 
 @MainActor
@@ -263,7 +265,8 @@ class BoringViewCoordinator: ObservableObject {
         status: Bool,
         type: SneakContentType,
         value: CGFloat = 0,
-        browser: BrowserType = .chromium
+        browser: BrowserType = .chromium,
+        persistent: Bool = false
     ) {
         Task { @MainActor in
             withAnimation(.smooth) {
@@ -271,6 +274,7 @@ class BoringViewCoordinator: ObservableObject {
                 self.expandingView.type = type
                 self.expandingView.value = value
                 self.expandingView.browser = browser
+                self.expandingView.persistent = persistent
             }
         }
     }
@@ -280,8 +284,20 @@ class BoringViewCoordinator: ObservableObject {
     @Published var expandingView: ExpandedItem = .init() {
         didSet {
             if expandingView.show {
+                // Skip auto-dismiss if persistent mode
+                guard !expandingView.persistent else {
+                    expandingViewTask?.cancel()
+                    return
+                }
+                
                 expandingViewTask?.cancel()
-                let duration: TimeInterval = (expandingView.type == .download ? 2 : 3)
+                let duration: TimeInterval = {
+                    switch expandingView.type {
+                    case .download: return 2
+                    case .audioDevice: return 4
+                    default: return 3
+                    }
+                }()
                 let currentType = expandingView.type
                 expandingViewTask = Task { [weak self] in
                     try? await Task.sleep(for: .seconds(duration))
