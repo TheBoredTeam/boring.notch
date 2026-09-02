@@ -349,6 +349,10 @@ struct GeneralSettings: View {
 }
 
 struct Charge: View {
+    #if DEBUG
+    @ObservedObject private var audioManager = AudioDeviceManager.shared
+    #endif
+    
     var body: some View {
         Form {
             Section {
@@ -370,6 +374,80 @@ struct Charge: View {
                 }
             } header: {
                 Text("Battery Information")
+            }
+            Section {
+                Defaults.Toggle(key: .showAudioDeviceConnectedNotification) {
+                    Text("Show audio device connected notification")
+                }
+                Defaults.Toggle(key: .showAudioDeviceBatteryPercentage) {
+                    Text("Show battery percentage")
+                }
+                #if DEBUG
+                VStack(alignment: .leading, spacing: 8) {
+                    // Debug Status
+                    HStack {
+                        Circle()
+                            .fill(audioManager.isSimulationRunning ? Color.green : Color.red)
+                            .frame(width: 8, height: 8)
+                        Text("Running: \(audioManager.isSimulationRunning ? "Yes" : "No")")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        
+                        Circle()
+                            .fill(audioManager.isPersistentMode ? Color.orange : Color.gray)
+                            .frame(width: 8, height: 8)
+                        Text("Persistent: \(audioManager.isPersistentMode ? "Yes" : "No")")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    HStack(spacing: 8) {
+                        // Play button - starts persistent simulation
+                        Button {
+                            NSLog("🧪 Button: Start pressed")
+                            audioManager.simulateAirPodsConnection(batteryLevel: 85, persistent: true)
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "play.fill")
+                                Text("Start")
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.green)
+                        
+                        // Stop button - stops simulation
+                        Button {
+                            NSLog("🧪 Button: Stop pressed")
+                            audioManager.stopSimulation()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "stop.fill")
+                                Text("Stop")
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.red)
+                        
+                        // Quick test button - auto-dismiss after 4.5s
+                        Button {
+                            NSLog("🧪 Button: Test pressed")
+                            audioManager.simulateAirPodsConnection(batteryLevel: 85, persistent: false)
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "airpodspro")
+                                Text("Test")
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.blue)
+                    }
+                }
+                .padding(.vertical, 4)
+                #endif
+            } header: {
+                Text("Audio Devices")
+            } footer: {
+                Text("Show a notification when AirPods or other Bluetooth audio devices connect")
             }
         }
         .onAppear {
