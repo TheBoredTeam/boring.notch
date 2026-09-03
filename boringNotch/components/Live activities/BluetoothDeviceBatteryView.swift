@@ -8,7 +8,26 @@
 import SwiftUI
 import Defaults
 
-/// Compact view showing Bluetooth device batteries in the notch header
+// MARK: - BluetoothDeviceBatteryView
+
+/// A compact view displaying battery levels for connected Bluetooth input devices.
+///
+/// This view shows a horizontal stack of battery indicators for devices like
+/// Magic Mouse, Magic Keyboard, and Magic Trackpad. Each device is displayed
+/// as a small capsule with an icon and percentage.
+///
+/// The view automatically hides when:
+/// - The `showBluetoothDeviceBattery` setting is disabled
+/// - No devices with battery information are available
+///
+/// ## Usage
+/// ```swift
+/// // Simply add to your view hierarchy
+/// BluetoothDeviceBatteryView()
+/// ```
+///
+/// - Note: This view is currently not used in the header but kept for potential future use.
+///         Battery information is displayed in the Battery popover instead.
 struct BluetoothDeviceBatteryView: View {
     @ObservedObject private var bluetoothManager = BluetoothDeviceManager.shared
     
@@ -23,10 +42,20 @@ struct BluetoothDeviceBatteryView: View {
     }
 }
 
-/// Single device battery indicator
+// MARK: - DeviceBatteryItem
+
+/// A single device battery indicator pill/capsule.
+///
+/// Displays the device type icon and battery percentage in a compact format.
+/// The percentage text color changes based on battery level:
+/// - Green: > 20%
+/// - Orange: 11-20%
+/// - Red: ≤ 10%
 private struct DeviceBatteryItem: View {
+    /// The Bluetooth device to display
     let device: BluetoothInputDevice
     
+    /// Determines the battery percentage text color based on charge level
     private var batteryColor: Color {
         guard let level = device.batteryLevel else { return .gray }
         if level <= 10 { return .red }
@@ -55,6 +84,8 @@ private struct DeviceBatteryItem: View {
         .help("\(device.name): \(device.batteryLevel ?? 0)%")
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     BluetoothDeviceBatteryView()
