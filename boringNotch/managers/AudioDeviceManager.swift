@@ -12,6 +12,25 @@ import Defaults
 import Foundation
 import IOBluetooth
 
+/// Detailed battery information for AirPods (Left, Right, Case)
+struct AirPodsBatteryInfo: Equatable {
+    var left: Int?
+    var right: Int?
+    var caseLevel: Int?
+    
+    /// Returns true if any individual battery info is available
+    var hasDetailedInfo: Bool {
+        left != nil || right != nil || caseLevel != nil
+    }
+    
+    /// Returns the combined/average battery level
+    var combinedLevel: Int? {
+        let levels = [left, right].compactMap { $0 }
+        guard !levels.isEmpty else { return nil }
+        return levels.reduce(0, +) / levels.count
+    }
+}
+
 /// Represents information about a connected audio device
 struct AudioDeviceInfo: Equatable {
     let id: AudioDeviceID
@@ -20,10 +39,23 @@ struct AudioDeviceInfo: Equatable {
     let isAirPods: Bool
     let deviceType: AudioDeviceType
     var batteryLevel: Int? // Battery level 0-100, nil if unavailable
+    var airPodsBattery: AirPodsBatteryInfo? // Detailed battery for AirPods
+    
+    /// Returns true if this device supports individual battery display (AirPods, AirPods Pro, etc.)
+    var supportsIndividualBattery: Bool {
+        switch deviceType {
+        case .airpods, .airpodsPro, .airpodsGen3, .airpods4:
+            return true
+        default:
+            return false
+        }
+    }
     
     enum AudioDeviceType: String {
         case airpodsPro = "AirPods Pro"
         case airpods = "AirPods"
+        case airpodsGen3 = "AirPods Gen3"
+        case airpods4 = "AirPods 4"
         case airpodsMax = "AirPods Max"
         case beatsHeadphones = "Beats"
         case genericBluetooth = "Bluetooth Audio"
@@ -32,7 +64,7 @@ struct AudioDeviceInfo: Equatable {
         
         var iconName: String {
             switch self {
-            case .airpodsPro, .airpods:
+            case .airpodsPro, .airpods, .airpodsGen3, .airpods4:
                 return "airpodspro"
             case .airpodsMax:
                 return "airpodsmax"
@@ -44,6 +76,23 @@ struct AudioDeviceInfo: Equatable {
                 return "speaker.wave.2.fill"
             case .other:
                 return "speaker.wave.2.fill"
+            }
+        }
+        
+        var caseIcon: String {
+            switch self {
+            case .airpodsPro:
+                return "airpods.pro.chargingcase.wireless.fill"
+            case .airpods:
+                return "airpods.chargingcase.wireless.fill"
+            case .airpodsGen3:
+                return "airpods.gen3.chargingcase.wireless.fill"
+            case .airpods4:
+                return "airpods.gen4.chargingcase.wireless.fill"
+            case .airpodsMax:
+                return "airpods.max"
+            default:
+                return "airpods.chargingcase.wireless.fill"
             }
         }
     }
@@ -86,6 +135,10 @@ final class AudioDeviceManager: NSObject, ObservableObject {
             
             var deviceWithBattery = device
             deviceWithBattery.batteryLevel = getBatteryLevel(for: device.name)
+            // Get detailed AirPods battery info if available
+            if device.supportsIndividualBattery {
+                deviceWithBattery.airPodsBattery = getAirPodsBatteryInfo(for: device.name)
+            }
             
             lastConnectedDevice = deviceWithBattery
             deviceJustConnected = true
@@ -140,13 +193,21 @@ final class AudioDeviceManager: NSObject, ObservableObject {
         isPersistentMode = persistent
         NSLog("🧪 AudioDeviceManager: Simulating AirPods Pro connection (battery: \(batteryLevel)%, persistent: \(persistent))")
         
+        // Simulate individual battery levels (slightly different for realism)
+        let simulatedAirPodsBattery = AirPodsBatteryInfo(
+            left: batteryLevel,
+            right: max(0, batteryLevel - 3),  // Right slightly lower
+            caseLevel: min(100, batteryLevel + 10)  // Case slightly higher
+        )
+        
         let simulatedDevice = AudioDeviceInfo(
             id: 9999,
             name: "AirPods Pro",
             isBluetoothDevice: true,
             isAirPods: true,
             deviceType: .airpodsPro,
-            batteryLevel: batteryLevel
+            batteryLevel: batteryLevel,
+            airPodsBattery: simulatedAirPodsBattery
         )
         
         lastConnectedDevice = simulatedDevice
@@ -304,6 +365,10 @@ final class AudioDeviceManager: NSObject, ObservableObject {
             // Try to get battery level
             var deviceWithBattery = device
             deviceWithBattery.batteryLevel = getBatteryLevel(for: device.name)
+            // Get detailed AirPods battery info if available
+            if device.supportsIndividualBattery {
+                deviceWithBattery.airPodsBattery = getAirPodsBatteryInfo(for: device.name)
+            }
             
             lastConnectedDevice = deviceWithBattery
             deviceJustConnected = true
@@ -403,10 +468,15 @@ final class AudioDeviceManager: NSObject, ObservableObject {
     private func determineDeviceType(name: String, transportType: UInt32) -> AudioDeviceInfo.AudioDeviceType {
         let lowercaseName = name.lowercased()
         
+        // AirPods detection (order matters - check specific models first)
         if lowercaseName.contains("airpods pro") {
             return .airpodsPro
         } else if lowercaseName.contains("airpods max") {
             return .airpodsMax
+        } else if lowercaseName.contains("airpods 4") || lowercaseName.contains("airpods (4") {
+            return .airpods4
+        } else if lowercaseName.contains("airpods 3") || lowercaseName.contains("airpods (3") || lowercaseName.contains("3rd generation") {
+            return .airpodsGen3
         } else if lowercaseName.contains("airpods") {
             return .airpods
         }
@@ -432,22 +502,55 @@ final class AudioDeviceManager: NSObject, ObservableObject {
     // MARK: - Bluetooth Battery Level
     
     private func getBatteryLevel(for deviceName: String) -> Int? {
-        // Try to find the Bluetooth device and get its battery level
         guard let pairedDevices = IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice] else {
             return nil
         }
         
         for device in pairedDevices {
             if let name = device.name, name.lowercased().contains(deviceName.lowercased()) || deviceName.lowercased().contains(name.lowercased()) {
-                // Check if device is connected and has battery info
                 if device.isConnected() {
-                    // IOBluetooth doesn't directly expose battery level
-                    // We need to use a workaround via system_profiler or IORegistry
                     return getBatteryLevelFromIORegistry(deviceAddress: device.addressString)
                 }
             }
         }
+        return nil
+    }
+    
+    /// Get detailed AirPods battery info (Left, Right, Case)
+    func getAirPodsBatteryInfo(for deviceName: String) -> AirPodsBatteryInfo? {
+        return getAirPodsBatteryFromIORegistry(deviceName: deviceName)
+    }
+    
+    private func getAirPodsBatteryFromIORegistry(deviceName: String) -> AirPodsBatteryInfo? {
+        let task = Process()
+        task.launchPath = "/usr/sbin/ioreg"
+        task.arguments = ["-r", "-c", "AppleDeviceManagementHIDEventService", "-a"]
         
+        let pipe = Pipe()
+        task.standardOutput = pipe
+        task.standardError = FileHandle.nullDevice
+        
+        do {
+            try task.run()
+            task.waitUntilExit()
+            
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            if let plist = try? PropertyListSerialization.propertyList(from: data, format: nil),
+               let array = plist as? [[String: Any]] {
+                for entry in array {
+                    if let product = entry["Product"] as? String,
+                       product.lowercased().contains("airpods") {
+                        var info = AirPodsBatteryInfo()
+                        info.left = entry["BatteryPercentLeft"] as? Int ?? entry["LeftBatteryPercent"] as? Int
+                        info.right = entry["BatteryPercentRight"] as? Int ?? entry["RightBatteryPercent"] as? Int
+                        info.caseLevel = entry["BatteryPercentCase"] as? Int ?? entry["CaseBatteryPercent"] as? Int
+                        if info.hasDetailedInfo { return info }
+                    }
+                }
+            }
+        } catch {
+            NSLog("⚠️ AudioDeviceManager: Failed to get AirPods battery: \(error)")
+        }
         return nil
     }
     

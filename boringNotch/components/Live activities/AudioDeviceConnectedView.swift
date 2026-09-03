@@ -25,8 +25,8 @@ struct AudioDeviceConnectedView: View {
     var body: some View {
         if let device = audioDeviceManager.lastConnectedDevice {
             HStack(spacing: 0) {
-                // Left side - 3D AirPods Model
-                AirPods3DView(rotation: airPodsRotation)
+                // Left side - Device Icon (3D for AirPods Pro, SF Symbol for others)
+                DeviceIconView(deviceType: device.deviceType, rotation: airPodsRotation)
                     .frame(
                         width: max(0, vm.effectiveClosedNotchHeight + 15),
                         height: max(0, vm.effectiveClosedNotchHeight + 15)
@@ -113,14 +113,209 @@ struct AudioDeviceConnectedView: View {
     }
 }
 
-// MARK: - 3D AirPods View
+// MARK: - Expanded Audio Device View (for open notch state)
 
-struct AirPods3DView: View {
+/// Expanded view shown when hovering over the AirPods notification
+struct AudioDeviceExpandedView: View {
+    @ObservedObject var audioDeviceManager = AudioDeviceManager.shared
+    @EnvironmentObject var vm: BoringViewModel
+    
+    @State private var airPodsRotation: Double = -245
+    @State private var showContent = false
+    
+    var body: some View {
+        if let device = audioDeviceManager.lastConnectedDevice {
+            HStack(spacing: 12) {
+                // Left side - Device Icon
+                DeviceIconView(deviceType: device.deviceType, rotation: airPodsRotation)
+                    .frame(width: 52, height: 52)
+                    .clipShape(Circle())
+                
+                // Center - Connection status and device name
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Verbunden")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.gray)
+                    
+                    Text(device.name)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+                
+                Spacer()
+                
+                // Right side - Battery indicators
+                if let airPodsBattery = device.airPodsBattery, airPodsBattery.hasDetailedInfo {
+                    // Show individual battery levels for AirPods
+                    AirPodsBatteryDetailView(battery: airPodsBattery, deviceType: device.deviceType)
+                } else if let battery = device.batteryLevel {
+                    // Fallback: single battery ring
+                    SingleBatteryRingView(level: battery)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 6)
+            .frame(height: 70)
+            .opacity(showContent ? 1 : 0)
+            .onAppear {
+                withAnimation(.easeOut(duration: 0.3)) { showContent = true }
+            }
+        }
+    }
+}
+
+// MARK: - Single Battery Ring (fallback)
+struct SingleBatteryRingView: View {
+    let level: Int
+    @State private var progress: CGFloat = 0
+    
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(batteryColor.opacity(0.3), lineWidth: 4.5)
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(batteryColor, style: StrokeStyle(lineWidth: 4.5, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            Text("\(level)")
+                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+        }
+        .frame(width: 48, height: 48)
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.6).delay(0.1)) {
+                progress = CGFloat(level) / 100.0
+            }
+        }
+    }
+    
+    private var batteryColor: Color {
+        if level <= 20 { return .red }
+        else if level <= 50 { return .yellow }
+        else { return .green }
+    }
+}
+
+// MARK: - AirPods Detailed Battery View
+struct AirPodsBatteryDetailView: View {
+    let battery: AirPodsBatteryInfo
+    let deviceType: AudioDeviceInfo.AudioDeviceType
+    
+    var body: some View {
+        HStack(spacing: 14) {
+            // Left earpiece
+            if let left = battery.left {
+                BatteryItemView(level: left, icon: "l.circle.fill", label: "L")
+            }
+            
+            // Right earpiece
+            if let right = battery.right {
+                BatteryItemView(level: right, icon: "r.circle.fill", label: "R")
+            }
+            
+            // Case (only for AirPods/AirPods Pro, not Max)
+            if let caseLevel = battery.caseLevel, deviceType != .airpodsMax {
+                BatteryItemView(level: caseLevel, icon: "case.fill", label: nil, isCase: true, deviceType: deviceType)
+            }
+        }
+    }
+}
+
+// MARK: - Individual Battery Item
+struct BatteryItemView: View {
+    let level: Int
+    let icon: String
+    let label: String?
+    var isCase: Bool = false
+    var deviceType: AudioDeviceInfo.AudioDeviceType = .other
+    
+    @State private var progress: CGFloat = 0
+    
+    var body: some View {
+        VStack(spacing: 2) {
+            ZStack {
+                Circle()
+                    .stroke(batteryColor.opacity(0.3), lineWidth: 3)
+                Circle()
+                    .trim(from: 0, to: progress)
+                    .stroke(batteryColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                
+                if isCase {
+                    Image(systemName: deviceType.caseIcon)
+                        .font(.system(size: 9))
+                        .foregroundStyle(.white)
+                } else if let label = label {
+                    Text(label)
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+            }
+            .frame(width: 28, height: 28)
+            
+            Text("\(level)")
+                .font(.system(size: 9, weight: .semibold, design: .rounded))
+                .foregroundStyle(.gray)
+        }
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.6).delay(0.1)) {
+                progress = CGFloat(level) / 100.0
+            }
+        }
+    }
+    
+    private var batteryColor: Color {
+        if level <= 20 { return .red }
+        else if level <= 50 { return .yellow }
+        else { return .green }
+    }
+}
+
+// MARK: - Device Icon View (shows different icons based on device type)
+
+struct DeviceIconView: View {
+    var deviceType: AudioDeviceInfo.AudioDeviceType
+    var rotation: Double
+    
+    var body: some View {
+        switch deviceType {
+        case .airpodsPro:
+            // 3D model for AirPods Pro
+            AirPods3DModelView(modelName: "airpods_pro", rotation: rotation)
+        case .airpods, .airpodsGen3, .airpods4:
+            // 3D model for AirPods (normal/Gen3/4)
+            AirPods3DModelView(modelName: "apple airpods_4", rotation: rotation)
+        case .airpodsMax:
+            // 3D model for AirPods Max
+            AirPods3DModelView(modelName: "apple airpods_max_sky_blue", rotation: rotation)
+        case .beatsHeadphones:
+            // SF Symbol for Beats
+            Image(systemName: "beats.headphones")
+                .font(.system(size: 28, weight: .medium))
+                .foregroundStyle(.white)
+        case .genericBluetooth:
+            // Generic headphones icon
+            Image(systemName: "headphones")
+                .font(.system(size: 28, weight: .medium))
+                .foregroundStyle(.white)
+        case .builtInSpeaker, .other:
+            // Speaker icon for built-in/other
+            Image(systemName: "speaker.wave.2.fill")
+                .font(.system(size: 24, weight: .medium))
+                .foregroundStyle(.white)
+        }
+    }
+}
+
+// MARK: - 3D Model View (supports different models)
+
+struct AirPods3DModelView: View {
+    var modelName: String
     var rotation: Double
     
     var body: some View {
         if #available(macOS 15.0, *) {
-            AirPods3DRealityView(rotation: rotation)
+            AirPods3DRealityView(modelName: modelName, rotation: rotation)
         } else {
             // Fallback for macOS 14: Animated icon
             AirPodsFallbackView(rotation: rotation)
@@ -128,15 +323,25 @@ struct AirPods3DView: View {
     }
 }
 
+// Legacy wrapper for backwards compatibility
+struct AirPods3DView: View {
+    var rotation: Double
+    
+    var body: some View {
+        AirPods3DModelView(modelName: "airpods_pro", rotation: rotation)
+    }
+}
+
 // MARK: - RealityKit View (macOS 15+)
 
 @available(macOS 15.0, *)
 struct AirPods3DRealityView: View {
+    var modelName: String
     var rotation: Double
     
     var body: some View {
         RealityView { content in
-            if let modelURL = Bundle.main.url(forResource: "airpods_pro", withExtension: "usdz") {
+            if let modelURL = Bundle.main.url(forResource: modelName, withExtension: "usdz") {
                 do {
                     let entity = try await Entity(contentsOf: modelURL)
                     let bounds = entity.visualBounds(relativeTo: nil)
