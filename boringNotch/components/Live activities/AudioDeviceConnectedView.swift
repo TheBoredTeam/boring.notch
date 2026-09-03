@@ -9,17 +9,41 @@ import SwiftUI
 import RealityKit
 import Defaults
 
-/// A view that displays the connected audio device with 3D AirPods animation and battery ring
+// MARK: - AudioDeviceConnectedView
+
+/// Displays a connected audio device notification with 3D animation and battery ring.
+///
+/// This view is shown in the notch when a Bluetooth audio device (like AirPods)
+/// connects. It features:
+/// - A 3D rotating AirPods model on the left (using RealityKit on macOS 15+)
+/// - The notch area in the center
+/// - An animated battery ring on the right
+///
+/// ## Animation Sequence
+/// 1. AirPods model rotates from -185° to -305°
+/// 2. Battery ring appears with spring animation
+/// 3. Battery progress fills based on device battery level
+///
+/// ## Usage
+/// This view is automatically displayed by `BoringViewCoordinator` when
+/// `AudioDeviceManager` detects a Bluetooth device connection.
 struct AudioDeviceConnectedView: View {
     @ObservedObject var audioDeviceManager = AudioDeviceManager.shared
     @EnvironmentObject var vm: BoringViewModel
     
+    /// Current rotation angle of the AirPods 3D model
     @State private var airPodsRotation: Double = -185
+    
+    /// Battery ring fill progress (0.0 - 1.0)
     @State private var batteryProgress: CGFloat = 0
+    
+    /// Controls battery ring visibility with spring animation
     @State private var showBatteryRing = false
+    
+    /// Timer for smooth AirPods rotation animation
     @State private var rotationTimer: Timer?
     
-    // Extra height for expanded view
+    /// Extra height added to accommodate the expanded view
     private let extraHeight: CGFloat = 10
     
     var body: some View {
@@ -71,6 +95,9 @@ struct AudioDeviceConnectedView: View {
         }
     }
     
+    /// Returns the appropriate color for a battery level.
+    ///
+    /// Color coding: Red (≤20%), Yellow (21-50%), Green (>50%)
     private func batteryColor(for level: Int?) -> Color {
         guard let level = level else { return .green }
         if level <= 20 { return .red }
@@ -78,6 +105,9 @@ struct AudioDeviceConnectedView: View {
         else { return .green }
     }
     
+    /// Starts the entry animation sequence.
+    ///
+    /// - Parameter batteryLevel: Device battery level for the progress ring
     private func startAnimation(batteryLevel: Int?) {
         airPodsRotation = -185
         showBatteryRing = false
@@ -94,6 +124,9 @@ struct AudioDeviceConnectedView: View {
         }
     }
     
+    /// Starts the smooth AirPods rotation animation using a timer.
+    ///
+    /// Rotates from -185° to -305° at 60 FPS for a smooth showcase effect.
     private func startAirPodsRotation() {
         airPodsRotation = -185
         rotationTimer?.invalidate()
@@ -107,15 +140,24 @@ struct AudioDeviceConnectedView: View {
         }
     }
     
+    /// Stops and cleans up the rotation animation timer.
     private func stopAnimation() {
         rotationTimer?.invalidate()
         rotationTimer = nil
     }
 }
 
-// MARK: - Expanded Audio Device View (for open notch state)
+// MARK: - AudioDeviceExpandedView
 
-/// Expanded view shown when hovering over the AirPods notification
+/// Expanded view displayed when hovering over the AirPods notification.
+///
+/// Shows more detailed information including:
+/// - Device 3D model or icon
+/// - "Verbunden" (Connected) label
+/// - Device name
+/// - Individual battery levels for AirPods (L/R/Case)
+///
+/// This view is displayed when the notch is in the expanded (open) state.
 struct AudioDeviceExpandedView: View {
     @ObservedObject var audioDeviceManager = AudioDeviceManager.shared
     @EnvironmentObject var vm: BoringViewModel
@@ -164,7 +206,12 @@ struct AudioDeviceExpandedView: View {
     }
 }
 
-// MARK: - Single Battery Ring (fallback)
+// MARK: - SingleBatteryRingView
+
+/// Fallback battery ring view for devices without individual battery info.
+///
+/// Displays a single circular progress ring with the overall battery percentage.
+/// Used when detailed L/R/Case battery info is not available.
 struct SingleBatteryRingView: View {
     let level: Int
     @State private var progress: CGFloat = 0
@@ -196,7 +243,16 @@ struct SingleBatteryRingView: View {
     }
 }
 
-// MARK: - AirPods Detailed Battery View
+// MARK: - AirPodsBatteryDetailView
+
+/// Displays individual battery levels for AirPods components.
+///
+/// Shows up to three battery rings:
+/// - Left earpiece (L)
+/// - Right earpiece (R)
+/// - Charging case (with case icon)
+///
+/// The case icon changes based on the AirPods model type.
 struct AirPodsBatteryDetailView: View {
     let battery: AirPodsBatteryInfo
     let deviceType: AudioDeviceInfo.AudioDeviceType
@@ -221,7 +277,12 @@ struct AirPodsBatteryDetailView: View {
     }
 }
 
-// MARK: - Individual Battery Item
+// MARK: - BatteryItemView
+
+/// A single battery indicator with circular progress ring and label.
+///
+/// Used within `AirPodsBatteryDetailView` to show individual component batteries.
+/// Supports both text labels (L/R) and icons (charging case).
 struct BatteryItemView: View {
     let level: Int
     let icon: String
@@ -271,8 +332,12 @@ struct BatteryItemView: View {
     }
 }
 
-// MARK: - Device Icon View (shows different icons based on device type)
+// MARK: - DeviceIconView
 
+/// Displays the appropriate icon or 3D model based on device type.
+///
+/// For AirPods variants (Pro, normal, Gen3, 4, Max), shows a 3D model using RealityKit.
+/// For other devices (Beats, generic Bluetooth), shows the appropriate SF Symbol.
 struct DeviceIconView: View {
     var deviceType: AudioDeviceInfo.AudioDeviceType
     var rotation: Double
@@ -307,8 +372,14 @@ struct DeviceIconView: View {
     }
 }
 
-// MARK: - 3D Model View (supports different models)
+// MARK: - AirPods3DModelView
 
+/// Wrapper view that chooses between RealityKit (macOS 15+) and fallback animation.
+///
+/// Loads USDZ models for different AirPods types:
+/// - `airpods_pro.usdz` - AirPods Pro
+/// - `apple airpods_4.usdz` - AirPods (normal/Gen3/4)
+/// - `apple airpods_max_sky_blue.usdz` - AirPods Max
 struct AirPods3DModelView: View {
     var modelName: String
     var rotation: Double
@@ -323,7 +394,12 @@ struct AirPods3DModelView: View {
     }
 }
 
-// Legacy wrapper for backwards compatibility
+// MARK: - AirPods3DView (Legacy)
+
+/// Legacy wrapper for backwards compatibility.
+///
+/// Simply wraps `AirPods3DModelView` with the AirPods Pro model.
+/// Kept for any existing code that may reference this view directly.
 struct AirPods3DView: View {
     var rotation: Double
     
@@ -332,8 +408,16 @@ struct AirPods3DView: View {
     }
 }
 
-// MARK: - RealityKit View (macOS 15+)
+// MARK: - AirPods3DRealityView
 
+/// RealityKit-based 3D model view for macOS 15+.
+///
+/// Loads a USDZ model asynchronously and displays it with:
+/// - Auto-scaling based on model bounds
+/// - Y-axis rotation controlled by the `rotation` parameter
+/// - Directional and ambient lighting
+///
+/// Falls back to a white sphere if the model fails to load.
 @available(macOS 15.0, *)
 struct AirPods3DRealityView: View {
     var modelName: String
@@ -384,8 +468,12 @@ struct AirPods3DRealityView: View {
     }
 }
 
-// MARK: - Fallback View (macOS 14)
+// MARK: - AirPodsFallbackView
 
+/// Fallback animated view for macOS 14 (without RealityKit).
+///
+/// Displays a pulsing circle animation with an AirPods SF Symbol.
+/// Used when RealityKit is not available (macOS < 15).
 struct AirPodsFallbackView: View {
     var rotation: Double
     
