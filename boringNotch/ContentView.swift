@@ -375,9 +375,14 @@ struct ContentView: View {
                     }
                 }
                 .transition(
-                    .scale(scale: 0.8, anchor: .top)
-                    .combined(with: .opacity)
-                    .animation(.smooth(duration: 0.35))
+                    .asymmetric(
+                        insertion: .scale(scale: 0.92, anchor: .top)
+                            .combined(with: .opacity)
+                            .animation(.spring(response: 0.4, dampingFraction: 0.8)),
+                        removal: .scale(scale: 0.95, anchor: .top)
+                            .combined(with: .opacity)
+                            .animation(.spring(response: 0.3, dampingFraction: 0.9))
+                    )
                 )
                 .zIndex(1)
                 .allowsHitTesting(vm.notchState == .open)
