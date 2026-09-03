@@ -148,9 +148,12 @@
 		E63866773E73A02466EF7E0A /* SystemMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E0C50B152ED98CEF0502F1 /* SystemMonitor.swift */; };
 		D200869D1181B6367F2B8F3E /* BluetoothBatteryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19B81D39FAF39264967ED0D /* BluetoothBatteryManager.swift */; };
 		B471A13C0E2338A9F4D4F6AA /* FocusModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2CDFF05D13E5AE4CABA4A8E /* FocusModeManager.swift */; };
+		BC62221FFFFED865646DF564 /* DeepseekManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F7848A610A4D9AA5A2F5F5D /* DeepseekManager.swift */; };
 		C6AB10E733D8DE56986CB9C6 /* WeatherModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4118E52FF5F9085E3546E9B /* WeatherModels.swift */; };
+		E6136B6DCD53ED0522A0D5E8 /* DeepseekModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F370F15B528038CB015F3B1 /* DeepseekModels.swift */; };
 		48DB0B648FB0724830F83CB4 /* WeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C3863E766009DA73320E3AD /* WeatherView.swift */; };
 		F0CC33DE53A02DC71ECD55A6 /* SystemStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6620C5A41C9648BEF9F1B3F8 /* SystemStatusView.swift */; };
+		6CC848B8068607851C8A1CE6 /* DeepseekBalanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1F5932024092A15F1F15A0 /* DeepseekBalanceView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -322,9 +325,12 @@
 		C5E0C50B152ED98CEF0502F1 /* SystemMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitor.swift; sourceTree = "<group>"; };
 		C19B81D39FAF39264967ED0D /* BluetoothBatteryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothBatteryManager.swift; sourceTree = "<group>"; };
 		F2CDFF05D13E5AE4CABA4A8E /* FocusModeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusModeManager.swift; sourceTree = "<group>"; };
+		7F7848A610A4D9AA5A2F5F5D /* DeepseekManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepseekManager.swift; sourceTree = "<group>"; };
 		F4118E52FF5F9085E3546E9B /* WeatherModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherModels.swift; sourceTree = "<group>"; };
+		5F370F15B528038CB015F3B1 /* DeepseekModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepseekModels.swift; sourceTree = "<group>"; };
 		5C3863E766009DA73320E3AD /* WeatherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherView.swift; sourceTree = "<group>"; };
 		6620C5A41C9648BEF9F1B3F8 /* SystemStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStatusView.swift; sourceTree = "<group>"; };
+		BD1F5932024092A15F1F15A0 /* DeepseekBalanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepseekBalanceView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -531,6 +537,7 @@
 				C5E0C50B152ED98CEF0502F1 /* SystemMonitor.swift */,
 				C19B81D39FAF39264967ED0D /* BluetoothBatteryManager.swift */,
 				F2CDFF05D13E5AE4CABA4A8E /* FocusModeManager.swift */,
+				7F7848A610A4D9AA5A2F5F5D /* DeepseekManager.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
@@ -648,6 +655,7 @@
 			isa = PBXGroup;
 			children = (
 				F4118E52FF5F9085E3546E9B /* WeatherModels.swift */,
+				5F370F15B528038CB015F3B1 /* DeepseekModels.swift */,
 				11F748812ECB07A400F841DB /* MusicControlButton.swift */,
 				118D1FD02E98FF5F00A2FF63 /* SharingStateManager.swift */,
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
@@ -754,6 +762,7 @@
 			children = (
 				5C3863E766009DA73320E3AD /* WeatherView.swift */,
 				6620C5A41C9648BEF9F1B3F8 /* SystemStatusView.swift */,
+				BD1F5932024092A15F1F15A0 /* DeepseekBalanceView.swift */,
 				115C12EB2ED3D003009754CA /* OpenNotchHUD.swift */,
 				14D570CC2C5F4BB70011E668 /* BoringBattery.swift */,
 				B1C974332C642B6D0000E707 /* MarqueeTextView.swift */,
@@ -934,9 +943,12 @@
 				E63866773E73A02466EF7E0A /* SystemMonitor.swift in Sources */,
 				D200869D1181B6367F2B8F3E /* BluetoothBatteryManager.swift in Sources */,
 				B471A13C0E2338A9F4D4F6AA /* FocusModeManager.swift in Sources */,
+				BC62221FFFFED865646DF564 /* DeepseekManager.swift in Sources */,
 				C6AB10E733D8DE56986CB9C6 /* WeatherModels.swift in Sources */,
+				E6136B6DCD53ED0522A0D5E8 /* DeepseekModels.swift in Sources */,
 				48DB0B648FB0724830F83CB4 /* WeatherView.swift in Sources */,
 				F0CC33DE53A02DC71ECD55A6 /* SystemStatusView.swift in Sources */,
+				6CC848B8068607851C8A1CE6 /* DeepseekBalanceView.swift in Sources */,
 				115C12EC2ED3D003009754CA /* OpenNotchHUD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,

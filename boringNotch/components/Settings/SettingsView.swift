@@ -49,6 +49,9 @@ struct SettingsView: View {
                 NavigationLink(value: "System") {
                     Label("System", systemImage: "gauge.with.dots.needle.33percent")
                 }
+                NavigationLink(value: "Deepseek") {
+                    Label("Deepseek", systemImage: "brain.head.profile")
+                }
 //                NavigationLink(value: "Downloads") {
 //                    Label("Downloads", systemImage: "square.and.arrow.down")
 //                }
@@ -89,6 +92,8 @@ struct SettingsView: View {
                     Charge()
                 case "System":
                     SystemSettings()
+                case "Deepseek":
+                    DeepseekSettings()
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":
@@ -492,6 +497,143 @@ struct SystemSettings: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("System")
+    }
+}
+
+struct DeepseekSettings: View {
+    @Default(.deepseekAPIKey) private var apiKey
+    @Default(.showDeepseekBalance) private var showDeepseekBalance
+    @ObservedObject private var manager = DeepseekManager.shared
+    @State private var isTestingConnection = false
+    @State private var testResult: String? = nil
+
+    var body: some View {
+        Form {
+            Section {
+                SecureField("Deepseek API Key", text: $apiKey)
+                    .textFieldStyle(.roundedBorder)
+                    .help("Enter your Deepseek API key from https://platform.deepseek.com")
+
+                Button(action: testConnection) {
+                    HStack {
+                        if isTestingConnection {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                                .progressViewStyle(CircularProgressViewStyle())
+                        }
+                        Text(isTestingConnection ? "Testing..." : "Test Connection")
+                    }
+                }
+                .disabled(apiKey.isEmpty || isTestingConnection)
+
+                if let result = testResult {
+                    HStack {
+                        Image(systemName: result.hasPrefix("Success") ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .foregroundColor(result.hasPrefix("Success") ? .green : .red)
+                        Text(result)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            } header: {
+                Text("API Configuration")
+            } footer: {
+                Text("Your API key is stored unencrypted in this app's local preferences and is only sent to Deepseek's servers to fetch your balance.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            Section {
+                Defaults.Toggle(key: .showDeepseekBalance) {
+                    HStack {
+                        Text("Show Deepseek balance in notch")
+                        customBadge(text: "New")
+                    }
+                }
+            } header: {
+                Text("Notch Display")
+            }
+
+            if !apiKey.isEmpty {
+                Section {
+                    if manager.isLoading {
+                        HStack {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                            Text("Loading balance...")
+                                .foregroundColor(.secondary)
+                        }
+                    } else if let error = manager.errorMessage {
+                        Text(error)
+                            .foregroundColor(.red)
+                            .font(.caption)
+                    } else if !manager.balanceInfos.isEmpty {
+                        ForEach(manager.balanceInfos) { info in
+                            HStack {
+                                Text("\(info.currency) Balance")
+                                Spacer()
+                                Text("¥\(info.totalBalance)")
+                                    .fontWeight(.semibold)
+                            }
+                            HStack {
+                                Text("Topped up")
+                                    .foregroundColor(.secondary)
+                                    .font(.caption)
+                                Spacer()
+                                Text("¥\(info.toppedUpBalance)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            HStack {
+                                Text("Granted")
+                                    .foregroundColor(.secondary)
+                                    .font(.caption)
+                                Spacer()
+                                Text("¥\(info.grantedBalance)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    } else {
+                        Text("No balance data. Tap Test Connection to fetch.")
+                            .foregroundColor(.secondary)
+                            .font(.caption)
+                    }
+                } header: {
+                    HStack {
+                        Text("Current Balance")
+                        if !manager.balanceInfos.isEmpty {
+                            Button("Refresh") {
+                                Task { await manager.fetchBalance() }
+                            }
+                            .font(.caption)
+                            .controlSize(.small)
+                        }
+                    }
+                }
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Deepseek")
+    }
+
+    private func testConnection() {
+        guard !apiKey.isEmpty else { return }
+        isTestingConnection = true
+        testResult = nil
+
+        Task { @MainActor in
+            await manager.fetchBalance()
+            isTestingConnection = false
+
+            if let error = manager.errorMessage {
+                testResult = "Failed: \(error)"
+            } else if manager.isAvailable {
+                testResult = "Success! Connected to Deepseek API."
+            } else {
+                testResult = "Connected but account may be restricted."
+            }
+        }
     }
 }
 

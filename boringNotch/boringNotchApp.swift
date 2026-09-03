@@ -435,6 +435,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        // Initialize Deepseek balance monitoring
+        if Defaults[.showDeepseekBalance] && !Defaults[.deepseekAPIKey].isEmpty {
+            Task { await DeepseekManager.shared.fetchBalance() }
+        }
 
         // Initialize Focus Mode monitoring
         _ = FocusModeManager.shared

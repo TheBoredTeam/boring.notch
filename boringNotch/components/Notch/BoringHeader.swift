@@ -77,6 +77,9 @@ struct BoringHeader: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
+                        if Defaults[.showDeepseekBalance] {
+                            DeepseekBalanceView()
+                        }
                         if Defaults[.showBatteryIndicator] {
                             BoringBatteryView(
                                 batteryWidth: 30,

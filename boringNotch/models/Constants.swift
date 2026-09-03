@@ -198,6 +198,10 @@ extension Defaults.Keys {
     // MARK: System Monitor
     static let showCPUUsage = Key<Bool>("showCPUUsage", default: false)
     static let showRAMUsage = Key<Bool>("showRAMUsage", default: false)
+
+    // MARK: Deepseek
+    static let deepseekAPIKey = Key<String>("deepseekAPIKey", default: "")
+    static let showDeepseekBalance = Key<Bool>("showDeepseekBalance", default: false)
     
     // Helper to determine the default media controller based on NowPlaying deprecation status
     static var defaultMediaController: MediaControllerType {

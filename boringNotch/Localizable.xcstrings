@@ -201,6 +201,9 @@
         }
       }
     },
+    "--" : {
+
+    },
     "'Now Playing' was the only option on previous versions and works with all media apps." : {
       "localizations" : {
         "ar" : {
@@ -700,6 +703,9 @@
           }
         }
       }
+    },
+    "%@ Balance" : {
+
     },
     "%d%%" : {
       "localizations" : {
@@ -1300,6 +1306,9 @@
           }
         }
       }
+    },
+    "¥%@" : {
+
     },
     "About" : {
       "localizations" : {
@@ -2601,6 +2610,9 @@
           }
         }
       }
+    },
+    "API Configuration" : {
+
     },
     "App icon" : {
       "localizations" : {
@@ -6202,6 +6214,9 @@
         }
       }
     },
+    "Current Balance" : {
+
+    },
     "Currently selected: %@" : {
       "localizations" : {
         "ar" : {
@@ -7001,6 +7016,15 @@
           }
         }
       }
+    },
+    "Deepseek" : {
+
+    },
+    "Deepseek API" : {
+
+    },
+    "Deepseek API Key" : {
+
     },
     "Default" : {
       "localizations" : {
@@ -9107,6 +9131,12 @@
         }
       }
     },
+    "Enter your Deepseek API key from https://platform.deepseek.com" : {
+
+    },
+    "Error" : {
+
+    },
     "Expanded drag detection area" : {
       "localizations" : {
         "ar" : {
@@ -10407,6 +10437,9 @@
           }
         }
       }
+    },
+    "Granted" : {
+
     },
     "Hide all-day events" : {
       "localizations" : {
@@ -12008,6 +12041,12 @@
           }
         }
       }
+    },
+    "Loading balance..." : {
+
+    },
+    "Loading…" : {
+
     },
     "Lottie JSON URL" : {
       "localizations" : {
@@ -14509,6 +14548,12 @@
         }
       }
     },
+    "No balance data" : {
+
+    },
+    "No balance data. Tap Test Connection to fetch." : {
+
+    },
     "No custom animation available" : {
       "localizations" : {
         "ar" : {
@@ -15209,6 +15254,9 @@
           }
         }
       }
+    },
+    "Notch Display" : {
+
     },
     "Notch height on non-notch displays" : {
       "localizations" : {
@@ -16909,6 +16957,9 @@
           }
         }
       }
+    },
+    "Refresh" : {
+
     },
     "Release name" : {
       "localizations" : {
@@ -19112,6 +19163,9 @@
         }
       }
     },
+    "Show Deepseek balance in notch" : {
+
+    },
     "Show HUD in open notch" : {
       "localizations" : {
         "ar" : {
@@ -21214,7 +21268,20 @@
         }
       }
     },
+    "Test Connection" : {
+
+    },
+    "Testing..." : {
+
+    },
+    "Time Remaining: %@" : {
+
+    },
+    "Time to Full Charge: %@" : {
+
+    },
     "Time to Full Charge: %lld min" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -21613,6 +21680,9 @@
           }
         }
       }
+    },
+    "Topped up" : {
+
     },
     "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled" : {
       "localizations" : {
@@ -23414,6 +23484,9 @@
           }
         }
       }
+    },
+    "Your API key is stored securely in UserDefaults and is only used to fetch your balance from Deepseek's servers." : {
+
     },
     "Your macOS system accent color" : {
       "localizations" : {
