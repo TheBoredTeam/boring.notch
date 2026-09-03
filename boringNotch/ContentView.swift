@@ -300,6 +300,15 @@ struct ContentView: View {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
                        }
 
+                      // System indicators row (weather, CPU, RAM, VPN) in closed notch
+                      if vm.notchState == .closed && !coordinator.sneakPeek.show && !coordinator.expandingView.show {
+                          HStack(spacing: 12) {
+                              WeatherView()
+                              SystemStatusView()
+                          }
+                          .padding(.bottom, 4)
+                      }
+
                       if coordinator.sneakPeek.show {
                           if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(

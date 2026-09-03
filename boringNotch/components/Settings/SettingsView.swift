@@ -46,6 +46,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
+                NavigationLink(value: "System") {
+                    Label("System", systemImage: "gauge.with.dots.needle.33percent")
+                }
 //                NavigationLink(value: "Downloads") {
 //                    Label("Downloads", systemImage: "square.and.arrow.down")
 //                }
@@ -84,6 +87,8 @@ struct SettingsView: View {
                     HUD()
                 case "Battery":
                     Charge()
+                case "System":
+                    SystemSettings()
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":
@@ -380,6 +385,113 @@ struct Charge: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Battery")
+    }
+}
+
+struct SystemSettings: View {
+    @Default(.showWeather) private var showWeather
+    @Default(.weatherLatitude) private var weatherLat
+    @Default(.weatherLongitude) private var weatherLon
+    @Default(.weatherTemperatureUnit) private var tempUnit
+    @Default(.showCPUUsage) private var showCPU
+    @Default(.showRAMUsage) private var showRAM
+    @ObservedObject private var weatherManager = WeatherManager.shared
+    @ObservedObject private var systemMonitor = SystemMonitor.shared
+
+    var body: some View {
+        Form {
+            // MARK: Weather
+            Section {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Weather")
+                            .font(.headline)
+                        Text("Shows current temperature and conditions in the notch")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer(minLength: 40)
+                    Defaults.Toggle("", key: .showWeather)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                        .controlSize(.large)
+                        .onChange(of: showWeather) { _, newVal in
+                            if newVal {
+                                weatherManager.start()
+                            } else {
+                                weatherManager.stop()
+                            }
+                        }
+                }
+
+                if showWeather {
+                    Picker("Unit", selection: $tempUnit) {
+                        Text("Celsius (°C)").tag("celsius")
+                        Text("Fahrenheit (°F)").tag("fahrenheit")
+                    }
+
+                    HStack {
+                        Text("Latitude")
+                        Spacer()
+                        TextField("0.0", value: $weatherLat, format: .number)
+                            .frame(width: 100)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    HStack {
+                        Text("Longitude")
+                        Spacer()
+                        TextField("0.0", value: $weatherLon, format: .number)
+                            .frame(width: 100)
+                            .multilineTextAlignment(.trailing)
+                    }
+
+                    if weatherManager.cityName != nil {
+                        HStack {
+                            Text("City")
+                            Spacer()
+                            Text(weatherManager.cityName ?? "")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Button("Refresh Now") {
+                        Task { await weatherManager.fetchWeather() }
+                    }
+                    .disabled(weatherManager.isLoading)
+                }
+            } header: {
+                Text("Weather")
+            } footer: {
+                Text("Weather data from Open-Meteo (free, no API key needed). Coordinates are auto-detected on first launch via IP geolocation.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            // MARK: System Monitor
+            Section {
+                Defaults.Toggle(key: .showCPUUsage) {
+                    Text("Show CPU usage")
+                }
+                .onChange(of: showCPU) { _, newVal in
+                    if newVal || showRAM { systemMonitor.start() } else { systemMonitor.stop() }
+                }
+
+                Defaults.Toggle(key: .showRAMUsage) {
+                    Text("Show RAM usage")
+                }
+                .onChange(of: showRAM) { _, newVal in
+                    if newVal || showCPU { systemMonitor.start() } else { systemMonitor.stop() }
+                }
+            } header: {
+                Text("System Monitor")
+            } footer: {
+                Text("CPU and memory indicators appear in the notch when enabled.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("System")
     }
 }
 
