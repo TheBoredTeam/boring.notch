@@ -295,7 +295,6 @@ struct ContentView: View {
                       {
                           AudioDeviceConnectedView()
                               .frame(height: vm.effectiveClosedNotchHeight + 10, alignment: .center)
-                              .padding(.top, 5)
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
@@ -305,9 +304,14 @@ struct ContentView: View {
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
-                           BoringHeader()
-                               .frame(height: max(24, vm.effectiveClosedNotchHeight))
-                               .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
+                           if coordinator.expandingView.type == .audioDevice && coordinator.expandingView.show {
+                               // No header for audio device expanded view - zero height
+                               Color.clear.frame(height: 0)
+                           } else {
+                               BoringHeader()
+                                   .frame(height: max(24, vm.effectiveClosedNotchHeight))
+                                   .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
+                           }
                        } else {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
                        }
@@ -355,12 +359,18 @@ struct ContentView: View {
               }
               .zIndex(2)
             if vm.notchState == .open {
-                VStack {
-                    switch coordinator.currentView {
-                    case .home:
-                        NotchHomeView(albumArtNamespace: albumArtNamespace)
-                    case .shelf:
-                        ShelfView()
+                VStack(spacing: 0) {
+                    // Show expanded audio device view when audioDevice notification is active
+                    if coordinator.expandingView.type == .audioDevice && coordinator.expandingView.show {
+                        AudioDeviceExpandedView()
+                            .frame(height: 70, alignment: .top)
+                    } else {
+                        switch coordinator.currentView {
+                        case .home:
+                            NotchHomeView(albumArtNamespace: albumArtNamespace)
+                        case .shelf:
+                            ShelfView()
+                        }
                     }
                 }
                 .transition(
@@ -515,6 +525,10 @@ struct ContentView: View {
     }
 
     private func doOpen() {
+        // Make audio device view persistent when opening
+        if coordinator.expandingView.type == .audioDevice && coordinator.expandingView.show {
+            coordinator.expandingView.persistent = true
+        }
         withAnimation(animationSpring) {
             vm.open()
         }
@@ -533,6 +547,20 @@ struct ContentView: View {
             
             if vm.notchState == .closed && Defaults[.enableHaptics] {
                 haptics.toggle()
+            }
+            
+            // If audio device notification is showing, make it persistent and open
+            if coordinator.expandingView.type == .audioDevice && coordinator.expandingView.show && vm.notchState == .closed {
+                coordinator.expandingView.persistent = true
+                hoverTask = Task {
+                    try? await Task.sleep(for: .seconds(Defaults[.minimumHoverDuration]))
+                    guard !Task.isCancelled else { return }
+                    await MainActor.run {
+                        guard self.vm.notchState == .closed, self.isHovering else { return }
+                        self.doOpen()
+                    }
+                }
+                return
             }
             
             guard vm.notchState == .closed,
@@ -562,6 +590,10 @@ struct ContentView: View {
                     }
                     
                     if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                        // Clear audio device expanded view when closing
+                        if self.coordinator.expandingView.type == .audioDevice && self.coordinator.expandingView.show {
+                            self.coordinator.toggleExpandingView(status: false, type: .audioDevice)
+                        }
                         self.vm.close()
                     }
                 }
