@@ -148,6 +148,9 @@ extension Defaults.Keys {
     static let showAudioDeviceConnectedNotification = Key<Bool>("showAudioDeviceConnectedNotification", default: true)
     static let showAudioDeviceBatteryPercentage = Key<Bool>("showAudioDeviceBatteryPercentage", default: true)
     
+    // MARK: Bluetooth Input Device Battery
+    static let showBluetoothDeviceBattery = Key<Bool>("showBluetoothDeviceBattery", default: true)
+    
     // MARK: Downloads
     static let enableDownloadListener = Key<Bool>("enableDownloadListener", default: true)
     static let enableSafariDownloads = Key<Bool>("enableSafariDownloads", default: true)
