@@ -12,10 +12,32 @@ import Defaults
 import Foundation
 import IOBluetooth
 
-/// Detailed battery information for AirPods (Left, Right, Case)
+// MARK: - AirPodsBatteryInfo
+
+/// Detailed battery information for AirPods devices.
+///
+/// This struct stores individual battery levels for AirPods components:
+/// - Left earpiece
+/// - Right earpiece
+/// - Charging case
+///
+/// Battery levels are retrieved from macOS IORegistry via `ioreg` command.
+///
+/// ## Example
+/// ```swift
+/// let battery = AirPodsBatteryInfo(left: 85, right: 82, caseLevel: 100)
+/// if battery.hasDetailedInfo {
+///     print("Left: \(battery.left ?? 0)%")
+/// }
+/// ```
 struct AirPodsBatteryInfo: Equatable {
+    /// Battery level of the left earpiece (0-100), nil if unavailable
     var left: Int?
+    
+    /// Battery level of the right earpiece (0-100), nil if unavailable
     var right: Int?
+    
+    /// Battery level of the charging case (0-100), nil if unavailable
     var caseLevel: Int?
     
     /// Returns true if any individual battery info is available
@@ -23,7 +45,7 @@ struct AirPodsBatteryInfo: Equatable {
         left != nil || right != nil || caseLevel != nil
     }
     
-    /// Returns the combined/average battery level
+    /// Returns the combined/average battery level of the earpieces
     var combinedLevel: Int? {
         let levels = [left, right].compactMap { $0 }
         guard !levels.isEmpty else { return nil }
@@ -31,17 +53,44 @@ struct AirPodsBatteryInfo: Equatable {
     }
 }
 
-/// Represents information about a connected audio device
+// MARK: - AudioDeviceInfo
+
+/// Represents information about a connected audio output device.
+///
+/// This struct contains all relevant information about an audio device including
+/// its type, connection status, and battery information (for Bluetooth devices).
+///
+/// ## Properties
+/// - `id`: CoreAudio device identifier
+/// - `name`: Device display name (e.g., "AirPods Pro")
+/// - `isBluetoothDevice`: True for Bluetooth/BLE connections
+/// - `isAirPods`: True for any AirPods variant
+/// - `deviceType`: Categorized device type for icon selection
+/// - `batteryLevel`: Overall battery percentage (if available)
+/// - `airPodsBattery`: Detailed L/R/Case battery info (AirPods only)
 struct AudioDeviceInfo: Equatable {
+    /// CoreAudio device identifier
     let id: AudioDeviceID
-    let name: String
-    let isBluetoothDevice: Bool
-    let isAirPods: Bool
-    let deviceType: AudioDeviceType
-    var batteryLevel: Int? // Battery level 0-100, nil if unavailable
-    var airPodsBattery: AirPodsBatteryInfo? // Detailed battery for AirPods
     
-    /// Returns true if this device supports individual battery display (AirPods, AirPods Pro, etc.)
+    /// Device display name as reported by the system
+    let name: String
+    
+    /// True if connected via Bluetooth or Bluetooth LE
+    let isBluetoothDevice: Bool
+    
+    /// True for any AirPods variant (AirPods, Pro, Max, Gen3, 4)
+    let isAirPods: Bool
+    
+    /// Categorized device type for UI display
+    let deviceType: AudioDeviceType
+    
+    /// Overall battery level (0-100), nil if unavailable
+    var batteryLevel: Int?
+    
+    /// Detailed AirPods battery info (Left/Right/Case), nil for non-AirPods
+    var airPodsBattery: AirPodsBatteryInfo?
+    
+    /// Returns true if this device supports individual battery display (AirPods with earpieces)
     var supportsIndividualBattery: Bool {
         switch deviceType {
         case .airpods, .airpodsPro, .airpodsGen3, .airpods4:
@@ -51,6 +100,12 @@ struct AudioDeviceInfo: Equatable {
         }
     }
     
+    // MARK: - AudioDeviceType
+    
+    /// Categorized audio device types for icon selection and display.
+    ///
+    /// Device types are determined by analyzing the device name and transport type.
+    /// Each type provides appropriate SF Symbol icons for the device and its case.
     enum AudioDeviceType: String {
         case airpodsPro = "AirPods Pro"
         case airpods = "AirPods"
@@ -62,6 +117,7 @@ struct AudioDeviceInfo: Equatable {
         case builtInSpeaker = "Built-in"
         case other = "Audio Device"
         
+        /// SF Symbol name for the device icon
         var iconName: String {
             switch self {
             case .airpodsPro, .airpods, .airpodsGen3, .airpods4:
@@ -79,6 +135,7 @@ struct AudioDeviceInfo: Equatable {
             }
         }
         
+        /// SF Symbol name for the charging case icon (AirPods variants only)
         var caseIcon: String {
             switch self {
             case .airpodsPro:
@@ -98,16 +155,62 @@ struct AudioDeviceInfo: Equatable {
     }
 }
 
-/// Manager that monitors audio device connections and disconnections
+// MARK: - AudioDeviceManager
+
+/// Manages audio device monitoring and Bluetooth connection notifications.
+///
+/// This singleton class monitors macOS audio output device changes using CoreAudio
+/// and displays notifications when Bluetooth devices (especially AirPods) connect.
+///
+/// ## Features
+/// - Real-time monitoring of audio output device changes
+/// - Detection of Bluetooth device connections
+/// - Battery level retrieval for AirPods (individual L/R/Case levels)
+/// - Animated notification display via BoringViewCoordinator
+/// - Screen unlock detection for showing connected device info
+///
+/// ## Usage
+/// ```swift
+/// // Access the shared instance
+/// let manager = AudioDeviceManager.shared
+///
+/// // Check current device
+/// if let device = manager.currentOutputDevice {
+///     print("Current: \(device.name)")
+/// }
+///
+/// // Manually refresh
+/// manager.refresh()
+/// ```
+///
+/// ## Battery Information
+/// Battery levels are retrieved from IORegistry via `ioreg` command.
+/// For AirPods, individual battery levels (Left, Right, Case) are available.
 final class AudioDeviceManager: NSObject, ObservableObject {
+    
+    /// Shared singleton instance
     static let shared = AudioDeviceManager()
     
+    // MARK: - Published Properties
+    
+    /// Currently active audio output device
     @Published private(set) var currentOutputDevice: AudioDeviceInfo?
+    
+    /// Last Bluetooth device that connected (used for notification display)
     @Published private(set) var lastConnectedDevice: AudioDeviceInfo?
+    
+    /// True when a device just connected and notification should be shown
     @Published private(set) var deviceJustConnected: Bool = false
     
+    // MARK: - Private Properties
+    
+    /// Tracks the previous device ID to detect changes
     private var previousDeviceID: AudioDeviceID = kAudioObjectUnknown
+    
+    /// CoreAudio property listener block reference
     private var listenerBlock: AudioObjectPropertyListenerBlock?
+    
+    // MARK: - Initialization
     
     private override init() {
         super.init()
@@ -119,11 +222,19 @@ final class AudioDeviceManager: NSObject, ObservableObject {
         removeAudioDeviceListener()
     }
     
+    // MARK: - Public Methods
+    
+    /// Manually refreshes the current output device information
     func refresh() {
         fetchCurrentOutputDevice()
     }
     
-    /// Call this when screen is unlocked to show notification if AirPods are connected
+    /// Checks if a Bluetooth device is connected and shows notification.
+    ///
+    /// Call this method when the screen is unlocked to display the AirPods
+    /// connection notification if Bluetooth audio is already connected.
+    ///
+    /// - Note: Only shows notification if `showAudioDeviceConnectedNotification` setting is enabled
     func checkAndShowNotificationIfBluetoothConnected() {
         guard Defaults[.showAudioDeviceConnectedNotification] else { return }
         
@@ -159,15 +270,25 @@ final class AudioDeviceManager: NSObject, ObservableObject {
     /// Flag to prevent multiple simultaneous test triggers
     @Published var isSimulationRunning: Bool = false
     
-    /// Persistent mode - keeps the notification visible until stopped
+    /// Persistent mode - keeps the notification visible until manually stopped
     @Published var isPersistentMode: Bool = false
     
-    /// Timer for auto-dismiss
+    /// Timer for auto-dismiss of simulation
     private var simulationTimer: DispatchWorkItem?
     
-    /// Simulates an AirPods Pro connection for testing purposes
-    /// Call this from anywhere to test the notification UI without real AirPods
-    /// Returns false if simulation is already running
+    /// Simulates an AirPods Pro connection for testing the notification UI.
+    ///
+    /// Use this method to test the connection notification without real AirPods.
+    /// Creates a simulated AirPods Pro device with customizable battery level.
+    ///
+    /// - Parameters:
+    ///   - batteryLevel: Simulated overall battery level (0-100). Default is 85.
+    ///   - persistent: If true, notification stays visible until `stopSimulation()` is called.
+    ///
+    /// - Returns: Always returns true (simulation started successfully)
+    ///
+    /// - Note: Only available in DEBUG builds. Individual battery levels are simulated
+    ///         as: Left = batteryLevel, Right = batteryLevel - 3, Case = batteryLevel + 10
     @discardableResult
     func simulateAirPodsConnection(batteryLevel: Int = 85, persistent: Bool = false) -> Bool {
         // Cancel any existing timer
@@ -232,7 +353,10 @@ final class AudioDeviceManager: NSObject, ObservableObject {
         }
     }
     
-    /// Stops the simulation
+    /// Stops the current simulation and hides the notification.
+    ///
+    /// Call this method to dismiss a persistent simulation or to
+    /// immediately stop an auto-dismissing simulation.
     func stopSimulation() {
         NSLog("🧪 AudioDeviceManager: Stopping simulation")
         
@@ -249,8 +373,18 @@ final class AudioDeviceManager: NSObject, ObservableObject {
         }
     }
     
-    /// Simulates different device types for testing
-    /// Returns false if simulation is already running
+    /// Simulates a connection for any supported device type.
+    ///
+    /// Use this method to test notifications for different device types
+    /// (AirPods Max, Beats, generic Bluetooth, etc.).
+    ///
+    /// - Parameters:
+    ///   - type: The device type to simulate
+    ///   - name: Display name for the simulated device
+    ///   - batteryLevel: Optional battery level (0-100)
+    ///   - persistent: If true, notification stays until manually stopped
+    ///
+    /// - Returns: Always returns true
     @discardableResult
     func simulateDeviceConnection(type: AudioDeviceInfo.AudioDeviceType, name: String, batteryLevel: Int? = nil, persistent: Bool = false) -> Bool {
         // Cancel any existing timer
@@ -301,6 +435,10 @@ final class AudioDeviceManager: NSObject, ObservableObject {
     
     // MARK: - Audio Device Listener Setup
     
+    /// Sets up the CoreAudio property listener for output device changes.
+    ///
+    /// Registers a listener block that fires when the default audio output device changes.
+    /// The listener runs on the main queue and calls `handleDeviceChange()`.
     private func setupAudioDeviceListener() {
         var propertyAddress = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultOutputDevice,
@@ -326,6 +464,7 @@ final class AudioDeviceManager: NSObject, ObservableObject {
         }
     }
     
+    /// Removes the CoreAudio property listener when the manager is deallocated.
     private func removeAudioDeviceListener() {
         guard let block = listenerBlock else { return }
         
@@ -345,6 +484,10 @@ final class AudioDeviceManager: NSObject, ObservableObject {
     
     // MARK: - Device Change Handling
     
+    /// Handles audio output device changes detected by the CoreAudio listener.
+    ///
+    /// Determines if a Bluetooth device was just connected (switching from built-in
+    /// or another non-Bluetooth device) and triggers the connection notification.
     private func handleDeviceChange() {
         let newDeviceID = getDefaultOutputDeviceID()
         guard newDeviceID != kAudioObjectUnknown else { return }
@@ -385,6 +528,7 @@ final class AudioDeviceManager: NSObject, ObservableObject {
         previousDeviceID = newDeviceID
     }
     
+    /// Fetches and stores the current audio output device without triggering notifications.
     private func fetchCurrentOutputDevice() {
         let deviceID = getDefaultOutputDeviceID()
         guard deviceID != kAudioObjectUnknown else { return }
@@ -395,6 +539,9 @@ final class AudioDeviceManager: NSObject, ObservableObject {
     
     // MARK: - CoreAudio Helpers
     
+    /// Gets the AudioDeviceID of the current default output device.
+    ///
+    /// - Returns: The device ID, or `kAudioObjectUnknown` if unavailable
     private func getDefaultOutputDeviceID() -> AudioDeviceID {
         var deviceID = kAudioObjectUnknown
         var propertyAddress = AudioObjectPropertyAddress(
@@ -416,6 +563,10 @@ final class AudioDeviceManager: NSObject, ObservableObject {
         return status == noErr ? deviceID : kAudioObjectUnknown
     }
     
+    /// Creates an AudioDeviceInfo struct for the given device ID.
+    ///
+    /// - Parameter deviceID: CoreAudio device identifier
+    /// - Returns: Device info struct, or nil if device ID is unknown
     private func getDeviceInfo(for deviceID: AudioDeviceID) -> AudioDeviceInfo? {
         guard deviceID != kAudioObjectUnknown else { return nil }
         
@@ -437,6 +588,10 @@ final class AudioDeviceManager: NSObject, ObservableObject {
         )
     }
     
+    /// Gets the display name for an audio device.
+    ///
+    /// - Parameter deviceID: CoreAudio device identifier
+    /// - Returns: Device name string, or "Unknown Device" if unavailable
     private func getDeviceName(for deviceID: AudioDeviceID) -> String {
         var propertyAddress = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyDeviceNameCFString,
@@ -451,6 +606,10 @@ final class AudioDeviceManager: NSObject, ObservableObject {
         return status == noErr ? (name as String) : "Unknown Device"
     }
     
+    /// Gets the transport type (Bluetooth, Built-in, etc.) for an audio device.
+    ///
+    /// - Parameter deviceID: CoreAudio device identifier
+    /// - Returns: Transport type constant (e.g., `kAudioDeviceTransportTypeBluetooth`)
     private func getTransportType(for deviceID: AudioDeviceID) -> UInt32 {
         var propertyAddress = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyTransportType,
@@ -465,6 +624,15 @@ final class AudioDeviceManager: NSObject, ObservableObject {
         return status == noErr ? transportType : 0
     }
     
+    /// Determines the device type based on name and transport type.
+    ///
+    /// Uses string matching on the device name to identify specific models.
+    /// Order matters - more specific models (AirPods Pro) are checked before generic (AirPods).
+    ///
+    /// - Parameters:
+    ///   - name: Device display name
+    ///   - transportType: CoreAudio transport type constant
+    /// - Returns: Categorized device type
     private func determineDeviceType(name: String, transportType: UInt32) -> AudioDeviceInfo.AudioDeviceType {
         let lowercaseName = name.lowercased()
         
@@ -501,6 +669,13 @@ final class AudioDeviceManager: NSObject, ObservableObject {
     
     // MARK: - Bluetooth Battery Level
     
+    /// Gets the overall battery level for a Bluetooth device via IOBluetooth.
+    ///
+    /// Searches paired Bluetooth devices for a name match and queries the IORegistry
+    /// for battery information.
+    ///
+    /// - Parameter deviceName: Name of the audio device to find
+    /// - Returns: Battery percentage (0-100), or nil if unavailable
     private func getBatteryLevel(for deviceName: String) -> Int? {
         guard let pairedDevices = IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice] else {
             return nil
@@ -516,11 +691,21 @@ final class AudioDeviceManager: NSObject, ObservableObject {
         return nil
     }
     
-    /// Get detailed AirPods battery info (Left, Right, Case)
+    /// Gets detailed AirPods battery info (Left, Right, Case) from IORegistry.
+    ///
+    /// Queries `AppleDeviceManagementHIDEventService` for individual battery levels.
+    /// Looks for keys like `BatteryPercentLeft`, `BatteryPercentRight`, `BatteryPercentCase`.
+    ///
+    /// - Parameter deviceName: Name of the AirPods device
+    /// - Returns: Battery info struct with L/R/Case levels, or nil if unavailable
     func getAirPodsBatteryInfo(for deviceName: String) -> AirPodsBatteryInfo? {
         return getAirPodsBatteryFromIORegistry(deviceName: deviceName)
     }
     
+    /// Internal method to query IORegistry for AirPods battery levels.
+    ///
+    /// Executes `ioreg -r -c AppleDeviceManagementHIDEventService -a` and parses
+    /// the plist output for battery information.
     private func getAirPodsBatteryFromIORegistry(deviceName: String) -> AirPodsBatteryInfo? {
         let task = Process()
         task.launchPath = "/usr/sbin/ioreg"
@@ -554,11 +739,14 @@ final class AudioDeviceManager: NSObject, ObservableObject {
         return nil
     }
     
+    /// Gets overall battery level from IORegistry for a Bluetooth device.
+    ///
+    /// This is a fallback method when individual battery levels aren't available.
+    /// Queries for `BatteryPercent` key in the HID event service.
+    ///
+    /// - Parameter deviceAddress: Bluetooth device address (optional)
+    /// - Returns: Battery percentage, or nil if unavailable
     private func getBatteryLevelFromIORegistry(deviceAddress: String?) -> Int? {
-        // Try to get battery level from IORegistry
-        // This is a simplified approach - battery levels for Bluetooth devices
-        // are often available through IORegistry
-        
         guard let deviceAddress = deviceAddress else { return nil }
         
         let task = Process()
