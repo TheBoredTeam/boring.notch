@@ -95,6 +95,7 @@ struct BatteryMenuView: View {
     var isInLowPowerMode: Bool
     var onDismiss: () -> Void
 
+    @ObservedObject var bluetoothManager = BluetoothBatteryManager.shared
     @Environment(\.openURL) private var openURL
 
     var body: some View {
@@ -139,7 +140,25 @@ struct BatteryMenuView: View {
                         .font(.subheadline)
                         .fontWeight(.regular)
                 }
-                    
+
+                // Bluetooth device batteries
+                if !bluetoothManager.devices.isEmpty {
+                    Divider().background(Color.white.opacity(0.3))
+                    ForEach(bluetoothManager.devices) { device in
+                        HStack {
+                            Image(systemName: bluetoothIcon(for: device.deviceName))
+                                .font(.subheadline)
+                            Text(device.deviceName)
+                                .font(.subheadline)
+                                .lineLimit(1)
+                            Spacer()
+                            Text("\(device.batteryPercent)%")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                        }
+                    }
+                }
+
             }
             .padding(.vertical, 8)
 
@@ -163,6 +182,16 @@ struct BatteryMenuView: View {
             openURL(url)
             onDismiss()
         }
+    }
+
+    private func bluetoothIcon(for name: String) -> String {
+        let lower = name.lowercased()
+        if lower.contains("airpod") { return "airpods" }
+        if lower.contains("magic keyboard") || lower.contains("keyboard") { return "keyboard" }
+        if lower.contains("magic mouse") || lower.contains("mouse") { return "magicmouse" }
+        if lower.contains("trackpad") { return "rectangle.and.hand.point.up.left.fill" }
+        if lower.contains("headphone") || lower.contains("headset") { return "headphones" }
+        return "antenna.radiowaves.left.and.right"
     }
 }
 

@@ -435,6 +435,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+
+        // Start Bluetooth battery monitoring
+        BluetoothBatteryManager.shared.start()
         previousScreens = NSScreen.screens
     }
 
