@@ -132,12 +132,21 @@ final class YouTubeMusicHTTPClient: ObservableObject {
 
 // MARK: - WebSocket Client
 actor YouTubeMusicWebSocketClient {
-    private var task: URLSessionWebSocketTask?
+    private final class ConnectionState {
+        let task: URLSessionWebSocketTask
+        var suppressDisconnectCallback = false
+
+        init(task: URLSessionWebSocketTask) {
+            self.task = task
+        }
+    }
+
+    private var connection: ConnectionState?
     private let session: URLSession
     private let onMessage: @Sendable (Data) async -> Void
     private let onDisconnect: @Sendable () async -> Void
     
-    var isConnected: Bool { task != nil }
+    var isConnected: Bool { connection != nil }
     
     init(
         onMessage: @escaping @Sendable (Data) async -> Void,
@@ -156,23 +165,29 @@ actor YouTubeMusicWebSocketClient {
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         
         let newTask = session.webSocketTask(with: request)
-        task = newTask
+        let state = ConnectionState(task: newTask)
+        connection = state
         newTask.resume()
         
-        Task { await listenForMessages() }
+        Task { await listenForMessages(for: state) }
     }
     
     func disconnect() async {
-        task?.cancel(with: .goingAway, reason: nil)
-        task = nil
+        guard let currentConnection = connection else { return }
+        
+        currentConnection.suppressDisconnectCallback = true
+        currentConnection.task.cancel(with: .goingAway, reason: nil)
+        if connection === currentConnection {
+            connection = nil
+        }
     }
     
-    private func listenForMessages() async {
-        guard let currentTask = task else { return }
+    private func listenForMessages(for state: ConnectionState) async {
+        guard connection === state else { return }
         
-        while !Task.isCancelled && task != nil {
+        while !Task.isCancelled && connection === state {
             do {
-                let message = try await currentTask.receive()
+                let message = try await state.task.receive()
                 
                 let data: Data
                 switch message {
@@ -189,8 +204,14 @@ actor YouTubeMusicWebSocketClient {
                 break
             }
         }
-        task = nil
-        await onDisconnect()
+        
+        if connection === state {
+            connection = nil
+        }
+        
+        if !state.suppressDisconnectCallback {
+            await onDisconnect()
+        }
     }
 }
 

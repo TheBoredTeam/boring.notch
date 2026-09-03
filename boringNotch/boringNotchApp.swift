@@ -6,7 +6,6 @@
 //
 
 import AVFoundation
-import Combine
 import Defaults
 import KeyboardShortcuts
 import Sparkle
@@ -18,11 +17,15 @@ struct DynamicNotchApp: App {
     @Default(.menubarIcon) var showMenuBarIcon
     @Environment(\.openWindow) var openWindow
 
+    private let sparkleUpdaterDelegate: BoringSparkleUpdaterDelegate
     let updaterController: SPUStandardUpdaterController
 
     init() {
+        let sparkleUpdaterDelegate = BoringSparkleUpdaterDelegate()
+        self.sparkleUpdaterDelegate = sparkleUpdaterDelegate
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+            startingUpdater: true, updaterDelegate: sparkleUpdaterDelegate, userDriverDelegate: nil)
+        SoftwareUpdateStore.updater = updaterController.updater
 
         // Initialize the settings window controller with the updater controller
         SettingsWindowController.shared.setUpdaterController(updaterController)
@@ -49,6 +52,18 @@ struct DynamicNotchApp: App {
     }
 }
 
+@MainActor
+enum SoftwareUpdateStore {
+    static var updater: SPUUpdater?
+}
+
+@MainActor
+final class BoringSparkleUpdaterDelegate: NSObject, SPUUpdaterDelegate {
+    func updaterShouldPromptForPermissionToCheck(forUpdates updater: SPUUpdater) -> Bool {
+        false
+    }
+}
+
 class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
     var windows: [String: NSWindow] = [:] // UUID -> NSWindow
@@ -67,12 +82,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var isScreenLocked: Bool = false
     private var windowScreenDidChangeObserver: Any?
     private var dragDetectors: [String: DragDetector] = [:] // UUID -> DragDetector
+    private var observers: [Any] = []
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        // Flush debounced shelf persistence to avoid losing recent changes
+        ShelfStateViewModel.shared.flushSync()
+
         NotificationCenter.default.removeObserver(self)
         if let observer = screenLockedObserver {
             DistributedNotificationCenter.default().removeObserver(observer)
@@ -85,7 +104,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         MusicManager.shared.destroy()
         cleanupDragDetectors()
         cleanupWindows()
+        BetterDisplayManager.shared.stopObserving()
+        LunarManager.shared.stopListening()
+        LunarManager.shared.configureLunarOSD(hide: false)
         XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
+        
+        observers.forEach { NotificationCenter.default.removeObserver($0) }
+        observers.removeAll()
     }
 
     @MainActor
@@ -168,6 +193,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             self.window = nil
         }
+
+        // ensure OSD integration reflects the current window state
+        coordinator.applyOSDSources()
     }
 
     private func cleanupDragDetectors() {
@@ -225,14 +253,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func handleDragEntersNotchRegion(onScreen screen: NSScreen) {
+        guard Defaults[.boringShelf] else { return }
         guard let uuid = screen.displayUUID else { return }
         
         if Defaults[.showOnAllDisplays], let viewModel = viewModels[uuid] {
-            viewModel.open()
-            coordinator.currentView = .shelf
+            if viewModel.open() {
+                coordinator.currentView = .shelf
+            }
         } else if !Defaults[.showOnAllDisplays], let windowScreen = window?.screen, screen == windowScreen {
-            vm.open()
-            coordinator.currentView = .shelf
+            if vm.open() {
+                coordinator.currentView = .shelf
+            }
         }
     }
 
@@ -293,34 +324,34 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil
         )
 
-        NotificationCenter.default.addObserver(
+        observers.append(NotificationCenter.default.addObserver(
             forName: Notification.Name.selectedScreenChanged, object: nil, queue: nil
         ) { [weak self] _ in
             Task { @MainActor in
                 self?.adjustWindowPosition(changeAlpha: true)
                 self?.setupDragDetectors()
             }
-        }
+        })
 
-        NotificationCenter.default.addObserver(
+        observers.append(NotificationCenter.default.addObserver(
             forName: Notification.Name.notchHeightChanged, object: nil, queue: nil
         ) { [weak self] _ in
             Task { @MainActor in
                 self?.adjustWindowPosition()
                 self?.setupDragDetectors()
             }
-        }
+        })
 
-        NotificationCenter.default.addObserver(
+        observers.append(NotificationCenter.default.addObserver(
             forName: Notification.Name.automaticallySwitchDisplayChanged, object: nil, queue: nil
         ) { [weak self] _ in
             guard let self = self, let window = self.window else { return }
             Task { @MainActor in
                 window.alphaValue = self.coordinator.selectedScreenUUID == self.coordinator.preferredScreenUUID ? 1 : 0
             }
-        }
+        })
 
-        NotificationCenter.default.addObserver(
+        observers.append(NotificationCenter.default.addObserver(
             forName: Notification.Name.showOnAllDisplaysChanged, object: nil, queue: nil
         ) { [weak self] _ in
             Task { @MainActor in
@@ -329,15 +360,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.adjustWindowPosition(changeAlpha: true)
                 self.setupDragDetectors()
             }
-        }
+        })
 
-        NotificationCenter.default.addObserver(
+        observers.append(NotificationCenter.default.addObserver(
             forName: Notification.Name.expandedDragDetectionChanged, object: nil, queue: nil
         ) { [weak self] _ in
             Task { @MainActor in
                 self?.setupDragDetectors()
             }
-        }
+        })
 
         // Use closure-based observers for DistributedNotificationCenter and keep tokens for removal
         screenLockedObserver = DistributedNotificationCenter.default().addObserver(
@@ -361,9 +392,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if Defaults[.sneakPeekStyles] == .inline {
                 let newStatus = !self.coordinator.expandingView.show
                 self.coordinator.toggleExpandingView(status: newStatus, type: .music)
+                KeyboardShortcuts.onKeyUp(for: .toggleSneakPeek) {
+                    self.coordinator.toggleSneakPeek(
+                        status: !self.coordinator.isAnySneakPeekShowing,
+                        type: .music
+                    )
+                }
             } else {
                 self.coordinator.toggleSneakPeek(
-                    status: !self.coordinator.sneakPeek.show,
+                    status: !self.coordinator.isAnySneakPeekShowing,
                     type: .music,
                     duration: 3.0
                 )
@@ -394,9 +431,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                 switch viewModel.notchState {
                 case .closed:
+                    var didOpen = false
                     await MainActor.run {
-                        viewModel.open()
+                        didOpen = viewModel.open()
                     }
+                    guard didOpen else { return }
 
                     let task = Task { [weak viewModel] in
                         do {
@@ -415,6 +454,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        // Sync notch height with real value on app launch if mode is matchRealNotchSize
+        syncNotchHeightIfNeeded()
+        
         if !Defaults[.showOnAllDisplays] {
             let viewModel = self.vm
             let window = createBoringNotchWindow(
@@ -435,15 +477,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.showOnboardingWindow()
             }
             playWelcomeSound()
-        } else if MusicManager.shared.isNowPlayingDeprecated
-            && Defaults[.mediaController] == .nowPlaying
-        {
-            DispatchQueue.main.async {
-                self.showOnboardingWindow(step: .musicPermission)
-            }
         }
 
         previousScreens = NSScreen.screens
+
+        // make sure OSD subsystems are in the right state now that initial
+        // notch windows have been created/cleaned up
+        coordinator.applyOSDSources()
     }
 
     func playWelcomeSound() {
@@ -475,6 +515,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         if screensChanged {
             DispatchQueue.main.async { [weak self] in
+                // Sync notch height with real value if mode is matchRealNotchSize
+                syncNotchHeightIfNeeded()
+                
                 self?.cleanupWindows()
                 self?.adjustWindowPosition()
                 self?.setupDragDetectors()
@@ -548,6 +591,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+
+        // windows might have been added/removed during the earlier logic –
+        // update the OSD subsystems accordingly.
+        coordinator.applyOSDSources()
     }
 
     @objc func togglePopover(_ sender: Any?) {
@@ -578,9 +625,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.title = "Onboarding"
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
+            window.level = .floating
             window.contentView = NSHostingView(
                 rootView: OnboardingView(
                     step: step,
+                    updater: SoftwareUpdateStore.updater,
                     onFinish: {
                         window.orderOut(nil)
 //                        NSApp.setActivationPolicy(.accessory)
@@ -600,28 +649,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 //        NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
+        onboardingWindowController?.window?.level = .floating
         onboardingWindowController?.window?.makeKeyAndOrderFront(nil)
         onboardingWindowController?.window?.orderFrontRegardless()
-    }
-}
-
-extension Notification.Name {
-    static let selectedScreenChanged = Notification.Name("SelectedScreenChanged")
-    static let notchHeightChanged = Notification.Name("NotchHeightChanged")
-    static let showOnAllDisplaysChanged = Notification.Name("showOnAllDisplaysChanged")
-    static let automaticallySwitchDisplayChanged = Notification.Name("automaticallySwitchDisplayChanged")
-    static let expandedDragDetectionChanged = Notification.Name("expandedDragDetectionChanged")
-}
-
-extension CGRect: @retroactive Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(origin.x)
-        hasher.combine(origin.y)
-        hasher.combine(size.width)
-        hasher.combine(size.height)
-    }
-
-    public static func == (lhs: CGRect, rhs: CGRect) -> Bool {
-        return lhs.origin == rhs.origin && lhs.size == rhs.size
     }
 }
