@@ -5,6 +5,7 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
+import ApplicationServices
 import AVFoundation
 import Defaults
 import EventKit
@@ -575,7 +576,9 @@ struct HUD: View {
         .accentColor(.effectiveAccent)
         .navigationTitle("HUDs")
         .task {
-            accessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+            let xpcAuth = await XPCHelperClient.shared.isAccessibilityAuthorized()
+            // Fallback: XPC helper may not inherit main app's accessibility grant
+            accessibilityAuthorized = xpcAuth || AXIsProcessTrusted()
         }
         .onAppear {
             XPCHelperClient.shared.startMonitoringAccessibilityAuthorization()

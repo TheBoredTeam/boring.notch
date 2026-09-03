@@ -6,9 +6,11 @@
 //
 
 import AppKit
+import ApplicationServices
 import Combine
 import Defaults
 import SwiftUI
+import OSLog
 
 enum SneakContentType {
     case brightness
@@ -48,6 +50,8 @@ struct ExpandedItem {
 
 @MainActor
 class BoringViewCoordinator: ObservableObject {
+    private static let logger = Logger(subsystem: "theboringteam.boringnotch", category: "HUD")
+
     static let shared = BoringViewCoordinator()
 
     @Published var currentView: NotchViews = .home
@@ -130,7 +134,11 @@ class BoringViewCoordinator: ObservableObject {
         ) { _ in
             Task { @MainActor in
                 if Defaults[.hudReplacement] {
-                    await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+                    // Fallback: check directly in main process (XPC helper may not inherit permissions)
+                    let xpcAuth = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                    if xpcAuth || AXIsProcessTrusted() {
+                        await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+                    }
                 }
             }
         }
@@ -146,12 +154,15 @@ class BoringViewCoordinator: ObservableObject {
 
                     if change.newValue {
                         self.hudEnableTask = Task { @MainActor in
-                            let granted = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
+                            let xpcGranted = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
+                            // Fallback: XPC helper may not inherit main app's accessibility grant
+                            let granted = xpcGranted || AXIsProcessTrusted()
                             if Task.isCancelled { return }
 
                             if granted {
                                 await MediaKeyInterceptor.shared.start()
                             } else {
+                                Self.logger.warning("Accessibility denied (XPC: \(xpcGranted), direct: \(AXIsProcessTrusted()))")
                                 Defaults[.hudReplacement] = false
                             }
                         }
@@ -165,8 +176,11 @@ class BoringViewCoordinator: ObservableObject {
             helloAnimationRunning = firstLaunch
 
             if Defaults[.hudReplacement] {
-                let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                let xpcAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                // Fallback: XPC helper may not inherit main app's accessibility grant in forks
+                let authorized = xpcAuthorized || AXIsProcessTrusted()
                 if !authorized {
+                    Self.logger.warning("Accessibility not authorized on launch (XPC: \(xpcAuthorized), direct: \(AXIsProcessTrusted()))")
                     Defaults[.hudReplacement] = false
                 } else {
                     await MediaKeyInterceptor.shared.start(promptIfNeeded: false)

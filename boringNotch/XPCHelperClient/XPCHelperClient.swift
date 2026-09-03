@@ -1,9 +1,12 @@
 import Foundation
 import Cocoa
 import AsyncXPCConnection
+import OSLog
 
 final class XPCHelperClient: NSObject {
     nonisolated static let shared = XPCHelperClient()
+
+    private static let logger = Logger(subsystem: "theboringteam.boringnotch", category: "XPC")
     
     private let serviceName = "theboringteam.boringnotch.BoringNotchXPCHelper"
     
@@ -123,6 +126,7 @@ final class XPCHelperClient: NSObject {
             }
             return result
         } catch {
+            Self.logger.warning("isAccessibilityAuthorized failed: \(error)")
             return false
         }
     }
@@ -142,6 +146,7 @@ final class XPCHelperClient: NSObject {
             }
             return result
         } catch {
+            Self.logger.warning("ensureAccessibilityAuthorization failed: \(error)")
             return false
         }
     }
