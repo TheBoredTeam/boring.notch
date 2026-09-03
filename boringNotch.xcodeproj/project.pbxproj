@@ -147,6 +147,7 @@
 		8803AFB1D28C66EF4190A733 /* VPNManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D637FEA12C784DA3402B992F /* VPNManager.swift */; };
 		E63866773E73A02466EF7E0A /* SystemMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E0C50B152ED98CEF0502F1 /* SystemMonitor.swift */; };
 		D200869D1181B6367F2B8F3E /* BluetoothBatteryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19B81D39FAF39264967ED0D /* BluetoothBatteryManager.swift */; };
+		B471A13C0E2338A9F4D4F6AA /* FocusModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2CDFF05D13E5AE4CABA4A8E /* FocusModeManager.swift */; };
 		C6AB10E733D8DE56986CB9C6 /* WeatherModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4118E52FF5F9085E3546E9B /* WeatherModels.swift */; };
 		48DB0B648FB0724830F83CB4 /* WeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C3863E766009DA73320E3AD /* WeatherView.swift */; };
 		F0CC33DE53A02DC71ECD55A6 /* SystemStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6620C5A41C9648BEF9F1B3F8 /* SystemStatusView.swift */; };
@@ -320,6 +321,7 @@
 		D637FEA12C784DA3402B992F /* VPNManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VPNManager.swift; sourceTree = "<group>"; };
 		C5E0C50B152ED98CEF0502F1 /* SystemMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitor.swift; sourceTree = "<group>"; };
 		C19B81D39FAF39264967ED0D /* BluetoothBatteryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothBatteryManager.swift; sourceTree = "<group>"; };
+		F2CDFF05D13E5AE4CABA4A8E /* FocusModeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusModeManager.swift; sourceTree = "<group>"; };
 		F4118E52FF5F9085E3546E9B /* WeatherModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherModels.swift; sourceTree = "<group>"; };
 		5C3863E766009DA73320E3AD /* WeatherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherView.swift; sourceTree = "<group>"; };
 		6620C5A41C9648BEF9F1B3F8 /* SystemStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStatusView.swift; sourceTree = "<group>"; };
@@ -528,6 +530,7 @@
 				D637FEA12C784DA3402B992F /* VPNManager.swift */,
 				C5E0C50B152ED98CEF0502F1 /* SystemMonitor.swift */,
 				C19B81D39FAF39264967ED0D /* BluetoothBatteryManager.swift */,
+				F2CDFF05D13E5AE4CABA4A8E /* FocusModeManager.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
@@ -930,6 +933,7 @@
 				8803AFB1D28C66EF4190A733 /* VPNManager.swift in Sources */,
 				E63866773E73A02466EF7E0A /* SystemMonitor.swift in Sources */,
 				D200869D1181B6367F2B8F3E /* BluetoothBatteryManager.swift in Sources */,
+				B471A13C0E2338A9F4D4F6AA /* FocusModeManager.swift in Sources */,
 				C6AB10E733D8DE56986CB9C6 /* WeatherModels.swift in Sources */,
 				48DB0B648FB0724830F83CB4 /* WeatherView.swift in Sources */,
 				F0CC33DE53A02DC71ECD55A6 /* SystemStatusView.swift in Sources */,

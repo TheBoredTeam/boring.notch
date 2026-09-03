@@ -310,7 +310,21 @@ struct ContentView: View {
                       }
 
                       if coordinator.sneakPeek.show {
-                          if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] && vm.notchState == .closed {
+                          if coordinator.sneakPeek.type == .focus && vm.notchState == .closed {
+                              // Focus mode notification
+                              HStack(spacing: 6) {
+                                  Image(systemName: coordinator.sneakPeek.icon.isEmpty ? "moon.fill" : coordinator.sneakPeek.icon)
+                                      .font(.system(size: 13, weight: .medium))
+                                      .foregroundStyle(.purple)
+                                  Text(FocusModeManager.shared.currentFocusName ?? "Focus")
+                                      .font(.system(size: 13, weight: .medium))
+                                      .foregroundStyle(.white)
+                              }
+                              .padding(.horizontal, 10)
+                              .padding(.vertical, 4)
+                              .background(Capsule().fill(.black))
+                              .padding(.bottom, 10)
+                          } else if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && (coordinator.sneakPeek.type != .focus) && !Defaults[.inlineHUD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
                                   eventType: $coordinator.sneakPeek.type,
                                   value: $coordinator.sneakPeek.value,

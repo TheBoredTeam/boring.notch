@@ -20,6 +20,7 @@ enum SneakContentType {
     case mic
     case battery
     case download
+    case focus
 }
 
 struct sneakPeek {
