@@ -136,32 +136,21 @@ struct GeneralSettings: View {
                     case .matchMenuBar:
                         nonNotchHeight = getMenuBarHeight(hasNotch: false)
                     case .matchRealNotchSize, .custom:
-                        nonNotchHeight = 23
+                        nonNotchHeight = 38 // Default to a reasonable height similar to notch displays
                     }
                     NotificationCenter.default.post(
                         name: Notification.Name.notchHeightChanged, object: nil)
                 }
                 if nonNotchHeightMode == .custom {
-                    // Custom binding to skip values 1-14 (jump from 0 to 10)
-                    let sliderValue = Binding<Double>(
-                        get: { 
-                            nonNotchHeight == 0 ? 0 : nonNotchHeight - 14
-                        },
-                        set: { newValue in
-                            let oldValue = nonNotchHeight
-                            nonNotchHeight = newValue == 0 ? 0 : newValue + 14
-                            if oldValue != nonNotchHeight {
-                                NotificationCenter.default.post(
-                                    name: Notification.Name.notchHeightChanged, object: nil)
-                            }
-                        }
-                    )
-                    
-                    Slider(value: sliderValue, in: 0...26, step: 1) {
+                    Slider(value: $nonNotchHeight, in: 20...50, step: 1) {
                         Text(
                             "Custom notch size - \(nonNotchHeight, format: .number.precision(.fractionLength(0)))",
                             comment: "Slider label showing the custom notch height."
                         )
+                    }
+                    .onChange(of: nonNotchHeight) {
+                        NotificationCenter.default.post(
+                            name: Notification.Name.notchHeightChanged, object: nil)
                     }
                 }
             } header: {

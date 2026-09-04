@@ -361,9 +361,6 @@ struct ContentView: View {
                       {
                           AudioDeviceConnectedView()
                               .frame(height: vm.effectiveClosedNotchHeight + 10, alignment: .center)
-                      } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
-                          InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
-                        .frame(height: displayClosedNotchHeight, alignment: .center)
                       } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
                           InlineOSD(
                               type: coordinator.binding(for: vm.screenUUID).type,
@@ -388,13 +385,10 @@ struct ContentView: View {
                                    .frame(height: max(24, vm.effectiveClosedNotchHeight))
                                    .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
                            }
-                           BoringHeader()
-                               .frame(height: max(24, displayClosedNotchHeight))
-                               .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
                        }
-                        // New case to enable compact notch on external displays
+                        // For external displays without notch, use the configured nonNotchHeight
                         else if !vm.hasNotch {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: 11) // idle notch height is halved on non notch display
+                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        } else {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        }
@@ -449,25 +443,21 @@ struct ContentView: View {
                         AudioDeviceExpandedView()
                             .frame(height: 70, alignment: .top)
                     } else {
-                        switch coordinator.currentView {
-                        case .home:
-                            NotchHomeView(albumArtNamespace: albumArtNamespace)
-                        case .shelf:
-                            ShelfView()
+                        VStack {
+                            switch coordinator.currentView {
+                            case .home:
+                                NotchHomeView(
+                                    albumArtNamespace: albumArtNamespace,
+                                    horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+                                    isHoveringMusicArea: $isHoveringMusicArea
+                                )
+                            case .shelf:
+                                ShelfView(
+                                    dropInteraction: vm.dropInteraction,
+                                    animation: vm.animation
+                                )
+                            }
                         }
-                VStack {
-                    switch coordinator.currentView {
-                    case .home:
-                        NotchHomeView(
-                            albumArtNamespace: albumArtNamespace,
-                            horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
-                            isHoveringMusicArea: $isHoveringMusicArea
-                        )
-                    case .shelf:
-                        ShelfView(
-                            dropInteraction: vm.dropInteraction,
-                            animation: vm.animation
-                        )
                     }
                 }
                 .transition(
@@ -536,6 +526,7 @@ struct ContentView: View {
                 .frame(width: vm.closedNotchSize.width + 20)
             let faceScale = min(1.0, displayClosedNotchHeight / 30.0)
             MinimalFaceFeatures(height: 24.0 * faceScale, width: 30.0 * faceScale)
+                .offset(y: 4) // Nach unten verschieben
         }.frame(
             height: displayClosedNotchHeight,
             alignment: .center
@@ -657,23 +648,23 @@ struct ContentView: View {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
-            dropInteraction.dropEvent = true
-            ShelfStateViewModel.shared.load(providers)
-            return true
-        }
+                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
+                    dropInteraction.dropEvent = true
+                    ShelfStateViewModel.shared.load(providers)
+                    return true
+                }
         } else {
             EmptyView()
         }
     }
 
-    private func doOpen() {
+    @discardableResult
+    private func doOpen() -> Bool {
         // Make audio device view persistent when opening
         if coordinator.expandingView.type == .audioDevice && coordinator.expandingView.show {
             coordinator.expandingView.persistent = true
         }
-    @discardableResult
-    private func doOpen() -> Bool {
+        
         var didOpen = false
         withAnimation(animationSpring) {
             didOpen = vm.open()
@@ -932,3 +923,4 @@ struct GeneralDropTargetDelegate: DropDelegate {
         .environmentObject(vm)
         .frame(width: vm.notchSize.width, height: vm.notchSize.height)
 }
+
