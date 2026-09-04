@@ -10,7 +10,6 @@ import ApplicationServices
 import IOKit
 
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
-
     private weak var connection: NSXPCConnection?
 
     private let lunarStateQueue = DispatchQueue(label: "BoringNotchXPCHelper.lunar.state")
