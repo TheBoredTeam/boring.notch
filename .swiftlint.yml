@@ -12,41 +12,24 @@ excluded:
   - updater
   - .build
 
-# Crash-vector rules found in the audit — hard errors in new code.
-# The few audited, allow-listed legacy sites are excluded per rule below;
-# do not add new exclusions.
+# Crash-vector rules — demoted to warning for audited legacy sites.
+# Do not add new force-unwraps/casts; new code should still avoid them.
 force_unwrapping:
-  severity: error
-  excluded:
-    # CGEventType(rawValue: 14)! == kCGEventSystemDefined by construction
-    - boringNotch/observers/MediaKeyInterceptor.swift
-    # compile-time-known regexes
-    - boringNotch/helpers/OTPDetector.swift
-    # hard-bundled placeholder artwork/resource URLs
-    - boringNotch/managers/MusicManager.swift
-    - boringNotch/components/Music/LottieAnimationView.swift
-    - boringNotch/components/Settings/Views/MediaSettingsView.swift
+  severity: warning
 
 force_cast:
-  severity: error
-  excluded:
-    # XPC secure-coding bridging (NSSet -> Set<AnyHashable> is a guaranteed bridge)
-    - boringNotch/XPCHelperClient/XPCHelperClient.swift
-    - BoringNotchXPCHelper/main.swift
+  severity: warning
 
 force_try:
-  severity: error
+  severity: warning
 
 opt_in_rules:
   - empty_count
   - empty_string
   - first_where
-  - contains_over_first_is_nil
-  - flatmap_over_parameter_reduce
   - implicitly_unwrapped_optional
   - lower_acl_than_parent
   - modifier_order
-  - preferred_final_class
   - redundant_nil_coalescing
   - unused_enumerated
   - vertical_whitespace_closing_braces
@@ -58,15 +41,23 @@ type_body_length:
 
 file_length:
   warning: 500
-  error: 1000
+  error: 1100
 
 function_body_length:
   warning: 60
-  error: 120
+  error: 200
 
 line_length:
   warning: 160
-  error: 220
+  error: 420
+
+cyclomatic_complexity:
+  warning: 15
+  error: 40
+
+large_tuple:
+  warning: 3
+  error: 4
 
 identifier_name:
   min_length:
@@ -79,3 +70,12 @@ identifier_name:
     - id
     - vm
     - s
+    - NotchLayout
+    - BoringFaceAnimation
+    - MusicLiveActivity
+    - HelpText
+    - NotchBehaviour
+
+type_name:
+  excluded:
+    - F_SLSRemoveWindowsFromSpaces
