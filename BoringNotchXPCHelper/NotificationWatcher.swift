@@ -197,6 +197,7 @@ final class NotificationWatcher {
         heldOffScreen.insert(token)
         guard let windowValue = banner[kAXWindowAttribute],
               CFGetTypeID(windowValue as CFTypeRef) == AXUIElementGetTypeID() else { return }
+        // swiftlint:disable:next force_cast
         let window = windowValue as! AXUIElement
         var target = CGPoint(x: -5000, y: -5000)
         if let position = AXValueCreate(.cgPoint, &target) {
