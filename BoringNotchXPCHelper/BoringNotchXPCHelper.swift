@@ -418,6 +418,112 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             return nil
         }()
     }
+    
+    // MARK: - AirPods Battery Info
+    
+    @objc func getAirPodsBatteryInfo(with reply: @escaping (BNAirPodsBatteryInfo?) -> Void) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let result = self.fetchAirPodsBatteryFromSystemProfiler()
+            reply(result)
+        }
+    }
+    
+    /// Fetches AirPods battery info using system_profiler SPBluetoothDataType.
+    /// This runs outside the sandbox and can access the system profiler.
+    private func fetchAirPodsBatteryFromSystemProfiler() -> BNAirPodsBatteryInfo? {
+        let task = Process()
+        task.launchPath = "/usr/sbin/system_profiler"
+        task.arguments = ["SPBluetoothDataType"]
+        
+        let pipe = Pipe()
+        task.standardOutput = pipe
+        task.standardError = FileHandle.nullDevice
+        
+        do {
+            try task.run()
+            task.waitUntilExit()
+            
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            guard let output = String(data: data, encoding: .utf8) else {
+                NSLog("⚠️ XPCHelper: system_profiler returned no data")
+                return nil
+            }
+            
+            var left: Int = -1
+            var right: Int = -1
+            var caseLevel: Int = -1
+            
+            // Parse output line by line looking for AirPods section
+            let lines = output.components(separatedBy: "\n")
+            var foundAirPods = false
+            
+            for line in lines {
+                // Check if we found AirPods section (case insensitive)
+                let lowercaseLine = line.lowercased()
+                if lowercaseLine.contains("airpods") && line.contains(":") {
+                    foundAirPods = true
+                    NSLog("🔋 XPCHelper: Found AirPods section")
+                    continue
+                }
+                
+                // Only parse if we're in AirPods section
+                if foundAirPods {
+                    // Stop if we hit another device section (new device name with colon at similar indentation)
+                    // Device names start with spaces but have the colon right after the name
+                    let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+                    if !trimmedLine.isEmpty && 
+                       !trimmedLine.hasPrefix("Address") &&
+                       !trimmedLine.hasPrefix("Vendor") &&
+                       !trimmedLine.hasPrefix("Product") &&
+                       !trimmedLine.hasPrefix("Case") &&
+                       !trimmedLine.hasPrefix("Left") &&
+                       !trimmedLine.hasPrefix("Right") &&
+                       !trimmedLine.hasPrefix("Firmware") &&
+                       !trimmedLine.hasPrefix("Minor") &&
+                       !trimmedLine.hasPrefix("RSSI") &&
+                       !trimmedLine.hasPrefix("Serial") &&
+                       !trimmedLine.hasPrefix("Services") &&
+                       trimmedLine.contains(":") &&
+                       !trimmedLine.contains("Battery") &&
+                       !trimmedLine.contains("Version") {
+                        // Likely a new device section
+                        break
+                    }
+                    
+                    if line.contains("Left Battery Level:") {
+                        left = extractBatteryValue(from: line)
+                        NSLog("🔋 XPCHelper: Parsed Left Battery: \(left)")
+                    } else if line.contains("Right Battery Level:") {
+                        right = extractBatteryValue(from: line)
+                        NSLog("🔋 XPCHelper: Parsed Right Battery: \(right)")
+                    } else if line.contains("Case Battery Level:") {
+                        caseLevel = extractBatteryValue(from: line)
+                        NSLog("🔋 XPCHelper: Parsed Case Battery: \(caseLevel)")
+                    }
+                }
+            }
+            
+            if left >= 0 || right >= 0 || caseLevel >= 0 {
+                NSLog("🔋 XPCHelper: Returning AirPods battery info - L:\(left) R:\(right) Case:\(caseLevel)")
+                return BNAirPodsBatteryInfo(left: left, right: right, caseLevel: caseLevel)
+            } else {
+                NSLog("⚠️ XPCHelper: Could not parse AirPods battery (foundAirPods: \(foundAirPods))")
+            }
+        } catch {
+            NSLog("⚠️ XPCHelper: Failed to run system_profiler: \(error)")
+        }
+        return nil
+    }
+    
+    /// Extracts battery percentage from a line like "              Left Battery Level: 94 %"
+    private func extractBatteryValue(from line: String) -> Int {
+        guard let colonIndex = line.lastIndex(of: ":") else { return -1 }
+        let valuePart = String(line[line.index(after: colonIndex)...])
+            .trimmingCharacters(in: .whitespaces)
+            .replacingOccurrences(of: "%", with: "")
+            .trimmingCharacters(in: .whitespaces)
+        return Int(valuePart) ?? -1
+    }
 }
 
 // MARK: - Lunar Parsing
