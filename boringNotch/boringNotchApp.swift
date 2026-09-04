@@ -552,6 +552,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
 
                 if let window = windows[uuid], let viewModel = viewModels[uuid] {
+                    // Update notch size for this screen (respects notchHeight vs nonNotchHeight)
+                    let newSize = getClosedNotchSize(screenUUID: uuid)
+                    viewModel.notchSize = newSize
+                    viewModel.closedNotchSize = newSize
+                    
                     positionWindow(window, on: screen, changeAlpha: changeAlpha)
 
                     if viewModel.notchState == .closed {
@@ -577,7 +582,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
 
             vm.screenUUID = selectedScreen.displayUUID
-            vm.notchSize = getClosedNotchSize(screenUUID: selectedScreen.displayUUID)
+            let newSize = getClosedNotchSize(screenUUID: selectedScreen.displayUUID)
+            vm.notchSize = newSize
+            vm.closedNotchSize = newSize
 
             if window == nil {
                 window = createBoringNotchWindow(for: selectedScreen, with: vm)

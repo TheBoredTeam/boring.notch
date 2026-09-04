@@ -432,11 +432,20 @@ struct ContentView: View {
                         AudioDeviceExpandedView()
                             .frame(height: 70, alignment: .top)
                     } else {
-                        switch coordinator.currentView {
-                        case .home:
-                            NotchHomeView(albumArtNamespace: albumArtNamespace)
-                        case .shelf:
-                            ShelfView()
+                        VStack {
+                            switch coordinator.currentView {
+                            case .home:
+                                NotchHomeView(
+                                    albumArtNamespace: albumArtNamespace,
+                                    horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+                                    isHoveringMusicArea: $isHoveringMusicArea
+                                )
+                            case .shelf:
+                                ShelfView(
+                                    dropInteraction: vm.dropInteraction,
+                                    animation: vm.animation
+                                )
+                            }
                         }
                     }
                 }
@@ -506,6 +515,7 @@ struct ContentView: View {
                 .frame(width: vm.closedNotchSize.width + 20)
             let faceScale = min(1.0, displayClosedNotchHeight / 30.0)
             MinimalFaceFeatures(height: 24.0 * faceScale, width: 30.0 * faceScale)
+                .offset(y: 4) // Nach unten verschieben
         }.frame(
             height: displayClosedNotchHeight,
             alignment: .center
@@ -627,17 +637,18 @@ struct ContentView: View {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
-            dropInteraction.dropEvent = true
-            ShelfStateViewModel.shared.load(providers)
-            return true
-        }
+                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
+                    dropInteraction.dropEvent = true
+                    ShelfStateViewModel.shared.load(providers)
+                    return true
+                }
         } else {
             EmptyView()
         }
     }
 
-    private func doOpen() {
+    @discardableResult
+    private func doOpen() -> Bool {
         // Make audio device view persistent when opening
         if coordinator.expandingView.type == .audioDevice && coordinator.expandingView.show {
             coordinator.expandingView.persistent = true
@@ -899,3 +910,4 @@ struct GeneralDropTargetDelegate: DropDelegate {
         .environmentObject(vm)
         .frame(width: vm.notchSize.width, height: vm.notchSize.height)
 }
+

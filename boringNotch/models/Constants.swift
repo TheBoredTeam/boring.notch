@@ -311,15 +311,19 @@ extension Defaults.Keys {
     static let selectedDownloadIndicatorStyle = Key<DownloadIndicatorStyle>("selectedDownloadIndicatorStyle", default: DownloadIndicatorStyle.progress)
     static let selectedDownloadIconStyle = Key<DownloadIconStyle>("selectedDownloadIconStyle", default: DownloadIconStyle.onlyAppIcon)
     
-    // MARK: OSD
+    // MARK: OSD / HUD
     static let osdReplacement = Key<Bool>("osdReplacement", default: false)
+    static let hudReplacement = Key<Bool>("osdReplacement", default: false) // Alias for osdReplacement
     static let inlineOSD = Key<Bool>("inlineOSD", default: false)
+    static let inlineHUD = Key<Bool>("inlineOSD", default: false) // Alias for inlineOSD
     static let enableGradient = Key<Bool>("enableGradient", default: false)
     static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
     static let systemEventIndicatorUseAccent = Key<Bool>("systemEventIndicatorUseAccent", default: false)
     static let showOpenNotchOSD = Key<Bool>("showOpenNotchOSD", default: true)
+    static let showOpenNotchHUD = Key<Bool>("showOpenNotchOSD", default: true) // Alias for showOpenNotchOSD
     static let showOpenNotchOSDPercentage = Key<Bool>("showOpenNotchOSDPercentage", default: true)
     static let showClosedNotchOSDPercentage = Key<Bool>("showClosedNotchOSDPercentage", default: false)
+    static let showClosedNotchHUDPercentage = Key<Bool>("showClosedNotchOSDPercentage", default: false) // Alias
     // Option key modifier behaviour for media keys
     static let optionKeyAction = Key<OptionKeyAction>("optionKeyAction", default: OptionKeyAction.openSettings)
     // Brightness/volume/keyboard source selection
