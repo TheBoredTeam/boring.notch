@@ -75,7 +75,7 @@ struct NotificationLiveActivity: View {
 
             Rectangle()
                 .fill(.black)
-                .frame(width: vm.closedNotchSize.width - cornerRadiusInsets.closed.top)
+                .frame(width: vm.closedNotchSize.width + 64)
 
             HStack(spacing: 8) {
                 Text(code)

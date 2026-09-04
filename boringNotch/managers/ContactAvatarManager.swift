@@ -22,7 +22,7 @@ import SwiftUI
 final class ContactAvatarManager: ObservableObject {
     static let shared = ContactAvatarManager()
 
-    private let store = CNContactStore()
+    private nonisolated(unsafe) let store = CNContactStore()
     private var isAuthorized = false
     /// Exact-name lookups are cheap to repeat but the store fetch isn't;
     /// misses are remembered too so a name that doesn't resolve isn't
@@ -48,32 +48,44 @@ final class ContactAvatarManager: ObservableObject {
         }
     }
 
-    /// Looks up a contact photo by exact display-name match. Returns nil
-    /// immediately (no permission prompt) unless the caller has already
-    /// established access via `requestAccessIfNeeded`.
+    /// Runs a CNContactStore fetch off the main actor so the main thread
+    /// suspends instead of blocking on the Contacts XPC service.
+    private nonisolated func fetchContacts(
+        matching predicate: NSPredicate,
+        keysToFetch keys: [CNKeyDescriptor]
+    ) async -> [CNContact]? {
+        try? store.unifiedContacts(matching: predicate, keysToFetch: keys)
+    }
+
+    /// Returns the cached contact photo, or nil. Never blocks — call
+    /// `prefetchPhoto(forSenderNamed:)` to populate the cache asynchronously.
     func photo(forSenderNamed name: String) -> NSImage? {
-        if let cached = cache.object(forKey: name as NSString) { return cached }
-        if knownMisses.contains(name) { return nil }
-        guard isAuthorized else { return nil }
+        cache.object(forKey: name as NSString)
+    }
+
+    /// Loads a contact photo into the cache off the main thread, then
+    /// publishes a change so observing views pick up the image.
+    func prefetchPhoto(forSenderNamed name: String) async {
+        if cache.object(forKey: name as NSString) != nil { return }
+        if knownMisses.contains(name) { return }
+        guard isAuthorized else { return }
 
         let keys = [CNContactImageDataKey, CNContactThumbnailImageDataKey] as [CNKeyDescriptor]
         let predicate = CNContact.predicateForContacts(matchingName: name)
 
-        guard let contacts = try? store.unifiedContacts(matching: predicate, keysToFetch: keys),
-              // Ambiguous matches (multiple people share a first name) are
-              // worse than no photo — a wrong face is worse than a monogram.
+        guard let contacts = await fetchContacts(matching: predicate, keysToFetch: keys),
               contacts.count == 1,
               let data = contacts[0].thumbnailImageData ?? contacts[0].imageData,
               let image = NSImage(data: data)
         else {
             NSLog("[boringNotch] avatar for \(name.debugDescription): no contact photo, using monogram")
             knownMisses.insert(name)
-            return nil
+            return
         }
 
         NSLog("[boringNotch] avatar for \(name.debugDescription): using contact photo")
         cache.setObject(image, forKey: name as NSString)
-        return image
+        objectWillChange.send()
     }
 
     /// Phone number for a contact, digits only and international, suitable
@@ -90,14 +102,13 @@ final class ContactAvatarManager: ObservableObject {
     ///
     /// Group chats resolve to nothing here, which is correct — a group name
     /// isn't a contact and has no single number to send to.
-    func phoneNumber(forContactNamed name: String) -> String? {
+    func phoneNumber(forContactNamed name: String) async -> String? {
         guard isAuthorized else { return nil }
 
         let keys = [CNContactPhoneNumbersKey as CNKeyDescriptor]
-        guard let contacts = try? store.unifiedContacts(
-            matching: CNContact.predicateForContacts(matchingName: name),
-            keysToFetch: keys
-        ), contacts.count == 1 else { return nil }
+        let predicate = CNContact.predicateForContacts(matchingName: name)
+        guard let contacts = await fetchContacts(matching: predicate, keysToFetch: keys),
+              contacts.count == 1 else { return nil }
 
         // Prefer an explicitly mobile number; a landline won't reach
         // WhatsApp at all.
@@ -147,6 +158,7 @@ struct PersonAvatarView: View {
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
+        .task { await contacts.prefetchPhoto(forSenderNamed: name) }
     }
 
     private var initials: String {
