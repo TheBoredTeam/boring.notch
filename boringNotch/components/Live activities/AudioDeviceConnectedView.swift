@@ -153,7 +153,7 @@ struct AudioDeviceConnectedView: View {
 ///
 /// Shows more detailed information including:
 /// - Device 3D model or icon (with continuous rotation)
-/// - "Verbunden" (Connected) label
+/// - "Connected" label
 /// - Device name
 /// - Individual battery levels for AirPods (L/R/Case)
 ///
@@ -176,7 +176,7 @@ struct AudioDeviceExpandedView: View {
                 
                 // Center - Connection status and device name
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Verbunden")
+                    Text("Connected")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.gray)
                     
