@@ -264,6 +264,10 @@ struct ContentView: View {
                         .frame(width: computedChinWidth, height: vm.chinHeight)
                 }
             }
+            // Apply vertical offset for expanded audio device view (entire notch moves up/down)
+            .offset(y: (vm.notchState == .open && coordinator.expandingView.type == .audioDevice && coordinator.expandingView.show)
+                    ? Defaults[.audioDeviceExpandedOffset] : 0)
+            .animation(.smooth, value: coordinator.expandingView.show)
         }
         .padding(.bottom, 8)
         .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)

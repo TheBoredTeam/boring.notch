@@ -152,7 +152,7 @@ struct AudioDeviceConnectedView: View {
 /// Expanded view displayed when hovering over the AirPods notification.
 ///
 /// Shows more detailed information including:
-/// - Device 3D model or icon
+/// - Device 3D model or icon (with continuous rotation)
 /// - "Verbunden" (Connected) label
 /// - Device name
 /// - Individual battery levels for AirPods (L/R/Case)
@@ -162,15 +162,16 @@ struct AudioDeviceExpandedView: View {
     @ObservedObject var audioDeviceManager = AudioDeviceManager.shared
     @EnvironmentObject var vm: BoringViewModel
     
-    @State private var airPodsRotation: Double = -245
+    @State private var airPodsRotation: Double = -185
     @State private var showContent = false
+    @State private var rotationTimer: Timer?
     
     var body: some View {
         if let device = audioDeviceManager.lastConnectedDevice {
-            HStack(spacing: 12) {
-                // Left side - Device Icon
+            HStack(spacing: 16) {
+                // Left side - Device Icon with continuous rotation
                 DeviceIconView(deviceType: device.deviceType, rotation: airPodsRotation)
-                    .frame(width: 52, height: 52)
+                    .frame(width: 60, height: 60)
                     .clipShape(Circle())
                 
                 // Center - Connection status and device name
@@ -186,12 +187,16 @@ struct AudioDeviceExpandedView: View {
                 
                 Spacer()
                 
-                // Right side - Battery indicators
-                if let airPodsBattery = device.airPodsBattery, airPodsBattery.hasDetailedInfo {
-                    // Show individual battery levels for AirPods
-                    AirPodsBatteryDetailView(battery: airPodsBattery, deviceType: device.deviceType)
+                // Right side - Battery indicators (always show L/R/Case circles for AirPods)
+                if device.isAirPods {
+                    // Always show L/R/Case circles for AirPods
+                    ExpandedAirPodsBatteryView(
+                        airPodsBattery: device.airPodsBattery,
+                        overallBattery: device.batteryLevel,
+                        deviceType: device.deviceType
+                    )
                 } else if let battery = device.batteryLevel {
-                    // Fallback: single battery ring
+                    // Fallback: single battery ring for non-AirPods
                     SingleBatteryRingView(level: battery)
                 }
             }
@@ -201,8 +206,31 @@ struct AudioDeviceExpandedView: View {
             .opacity(showContent ? 1 : 0)
             .onAppear {
                 withAnimation(.easeOut(duration: 0.3)) { showContent = true }
+                startContinuousRotation()
+            }
+            .onDisappear {
+                stopRotation()
             }
         }
+    }
+    
+    /// Starts continuous rotation animation for the 3D model
+    private func startContinuousRotation() {
+        airPodsRotation = -185
+        rotationTimer?.invalidate()
+        rotationTimer = Timer.scheduledTimer(withTimeInterval: 1.0/60.0, repeats: true) { _ in
+            airPodsRotation -= 0.3
+            // Loop back when reaching -360
+            if airPodsRotation <= -360 {
+                airPodsRotation = -185
+            }
+        }
+    }
+    
+    /// Stops the rotation animation timer
+    private func stopRotation() {
+        rotationTimer?.invalidate()
+        rotationTimer = nil
     }
 }
 
@@ -239,6 +267,111 @@ struct SingleBatteryRingView: View {
     private var batteryColor: Color {
         if level <= 20 { return .red }
         else if level <= 50 { return .yellow }
+        else { return .green }
+    }
+}
+
+// MARK: - ExpandedAirPodsBatteryView
+
+/// Battery view for expanded AirPods notification.
+/// Always shows L/R/Case circles, using detailed info if available or overall battery as fallback.
+struct ExpandedAirPodsBatteryView: View {
+    let airPodsBattery: AirPodsBatteryInfo?
+    let overallBattery: Int?
+    let deviceType: AudioDeviceInfo.AudioDeviceType
+    
+    var body: some View {
+        HStack(spacing: 20) {
+            // Left earpiece
+            BatteryCircleView(
+                level: airPodsBattery?.left ?? overallBattery,
+                label: "L"
+            )
+            
+            // Right earpiece
+            BatteryCircleView(
+                level: airPodsBattery?.right ?? overallBattery,
+                label: "R"
+            )
+            
+            // Case (only for AirPods with case, not Max)
+            if deviceType != .airpodsMax {
+                BatteryCircleView(
+                    level: airPodsBattery?.caseLevel ?? overallBattery,
+                    label: nil,
+                    isCase: true,
+                    deviceType: deviceType
+                )
+            }
+        }
+        .padding(.top, 4)
+    }
+}
+
+// MARK: - BatteryCircleView
+
+/// A battery circle indicator for the expanded view.
+/// Shows a circular progress ring with label (L/R) or case icon.
+struct BatteryCircleView: View {
+    let level: Int?
+    var label: String? = nil
+    var isCase: Bool = false
+    var deviceType: AudioDeviceInfo.AudioDeviceType = .other
+    
+    @State private var progress: CGFloat = 0
+    
+    private var displayLevel: Int {
+        level ?? 0
+    }
+    
+    private var hasData: Bool {
+        level != nil
+    }
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            ZStack {
+                // Background circle
+                Circle()
+                    .stroke(batteryColor.opacity(0.3), lineWidth: 4)
+                
+                // Progress circle
+                Circle()
+                    .trim(from: 0, to: progress)
+                    .stroke(batteryColor, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                
+                // Label or icon
+                if isCase {
+                    Image(systemName: deviceType.caseIcon)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.white)
+                } else if let label = label {
+                    Text(label)
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+            }
+            .frame(width: 40, height: 40)
+            
+            // Battery percentage
+            Text(hasData ? "\(displayLevel)%" : "--")
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(.gray)
+        }
+        .onAppear {
+            if hasData {
+                withAnimation(.easeOut(duration: 0.6).delay(0.15)) {
+                    progress = CGFloat(displayLevel) / 100.0
+                }
+            }
+        }
+    }
+    
+    private var batteryColor: Color {
+        guard hasData else { return .gray }
+        if displayLevel <= 20 { return .red }
+        else if displayLevel <= 50 { return .yellow }
         else { return .green }
     }
 }

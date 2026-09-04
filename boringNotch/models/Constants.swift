@@ -301,6 +301,9 @@ extension Defaults.Keys {
     // MARK: Audio Device Notifications
     static let showAudioDeviceConnectedNotification = Key<Bool>("showAudioDeviceConnectedNotification", default: true)
     static let showAudioDeviceBatteryPercentage = Key<Bool>("showAudioDeviceBatteryPercentage", default: true)
+    /// Vertical offset for the expanded audio device notch (e.g., AirPods connected view)
+    /// Negative values move up (above screen edge), positive values move down
+    static let audioDeviceExpandedOffset = Key<CGFloat>("audioDeviceExpandedOffset", default: -50)
     
     // MARK: Bluetooth Input Device Battery
     static let showBluetoothDeviceBattery = Key<Bool>("showBluetoothDeviceBattery", default: true)

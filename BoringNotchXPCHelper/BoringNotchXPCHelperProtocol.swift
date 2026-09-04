@@ -38,6 +38,45 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     }
 }
 
+/// AirPods battery information transferred via XPC.
+/// Uses -1 to indicate unavailable values since NSNumber? doesn't work well with XPC.
+@objc(BNAirPodsBatteryInfo)
+final class BNAirPodsBatteryInfo: NSObject, NSSecureCoding {
+    static var supportsSecureCoding: Bool { true }
+    
+    /// Battery level of the left earpiece (0-100), -1 if unavailable
+    @objc let left: Int
+    /// Battery level of the right earpiece (0-100), -1 if unavailable
+    @objc let right: Int
+    /// Battery level of the charging case (0-100), -1 if unavailable
+    @objc let caseLevel: Int
+    
+    @objc init(left: Int, right: Int, caseLevel: Int) {
+        self.left = left
+        self.right = right
+        self.caseLevel = caseLevel
+        super.init()
+    }
+    
+    required init?(coder: NSCoder) {
+        left = coder.decodeInteger(forKey: "left")
+        right = coder.decodeInteger(forKey: "right")
+        caseLevel = coder.decodeInteger(forKey: "caseLevel")
+        super.init()
+    }
+    
+    func encode(with coder: NSCoder) {
+        coder.encode(left, forKey: "left")
+        coder.encode(right, forKey: "right")
+        coder.encode(caseLevel, forKey: "caseLevel")
+    }
+    
+    /// Returns true if any battery info is available (value >= 0)
+    @objc var hasDetailedInfo: Bool {
+        left >= 0 || right >= 0 || caseLevel >= 0
+    }
+}
+
 @objc protocol BoringNotchXPCHelperProtocol {
     func isAccessibilityAuthorized(with reply: @escaping (Bool) -> Void)
     func requestAccessibilityAuthorization()
@@ -59,6 +98,8 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     func stopLunarEventStream()
     /// Write Lunar's hideOSD preference (disable/enable Lunar's OSD when we replace it).
     func setLunarOSDHidden(_ hide: Bool, with reply: @escaping (Bool) -> Void)
+    // AirPods battery info (requires running outside sandbox to access system_profiler)
+    func getAirPodsBatteryInfo(with reply: @escaping (BNAirPodsBatteryInfo?) -> Void)
 }
 
 /*

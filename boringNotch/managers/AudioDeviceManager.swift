@@ -246,16 +246,37 @@ final class AudioDeviceManager: NSObject, ObservableObject {
             
             var deviceWithBattery = device
             deviceWithBattery.batteryLevel = getBatteryLevel(for: device.name)
-            // Get detailed AirPods battery info if available
-            if device.supportsIndividualBattery {
-                deviceWithBattery.airPodsBattery = getAirPodsBatteryInfo(for: device.name)
-            }
             
             lastConnectedDevice = deviceWithBattery
             deviceJustConnected = true
             
             Task { @MainActor in
                 BoringViewCoordinator.shared.toggleExpandingView(status: true, type: .audioDevice)
+            }
+            
+            // Get detailed AirPods battery info asynchronously via XPC helper
+            if device.supportsIndividualBattery {
+                Task { @MainActor [weak self] in
+                    NSLog("🔋 AudioDeviceManager: Fetching AirPods battery info via XPC helper (screen unlock)...")
+                    let xpcBatteryInfo = await XPCHelperClient.shared.getAirPodsBatteryInfo()
+                    
+                    if let xpcInfo = xpcBatteryInfo, xpcInfo.hasDetailedInfo {
+                        let batteryInfo = AirPodsBatteryInfo(
+                            left: xpcInfo.left >= 0 ? xpcInfo.left : nil,
+                            right: xpcInfo.right >= 0 ? xpcInfo.right : nil,
+                            caseLevel: xpcInfo.caseLevel >= 0 ? xpcInfo.caseLevel : nil
+                        )
+                        NSLog("🔋 AudioDeviceManager: Battery result from XPC (unlock) - L:\(xpcInfo.left) R:\(xpcInfo.right) Case:\(xpcInfo.caseLevel)")
+                        
+                        if var updatedDevice = self?.lastConnectedDevice, updatedDevice.name == device.name {
+                            updatedDevice.airPodsBattery = batteryInfo
+                            self?.lastConnectedDevice = updatedDevice
+                            NSLog("🔋 AudioDeviceManager: Updated lastConnectedDevice with battery info (unlock)")
+                        }
+                    } else {
+                        NSLog("⚠️ AudioDeviceManager: No battery info from XPC helper (screen unlock)")
+                    }
+                }
             }
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) { [weak self] in
@@ -508,16 +529,39 @@ final class AudioDeviceManager: NSObject, ObservableObject {
             // Try to get battery level
             var deviceWithBattery = device
             deviceWithBattery.batteryLevel = getBatteryLevel(for: device.name)
-            // Get detailed AirPods battery info if available
-            if device.supportsIndividualBattery {
-                deviceWithBattery.airPodsBattery = getAirPodsBatteryInfo(for: device.name)
-            }
             
             lastConnectedDevice = deviceWithBattery
             deviceJustConnected = true
             
             Task { @MainActor in
                 BoringViewCoordinator.shared.toggleExpandingView(status: true, type: .audioDevice)
+            }
+            
+            // Fetch AirPods battery info asynchronously via XPC helper (runs outside sandbox)
+            if device.isAirPods {
+                Task { @MainActor [weak self] in
+                    NSLog("🔋 AudioDeviceManager: Fetching AirPods battery info via XPC helper...")
+                    let xpcBatteryInfo = await XPCHelperClient.shared.getAirPodsBatteryInfo()
+                    
+                    // Convert XPC battery info to local AirPodsBatteryInfo
+                    var batteryInfo: AirPodsBatteryInfo? = nil
+                    if let xpcInfo = xpcBatteryInfo, xpcInfo.hasDetailedInfo {
+                        batteryInfo = AirPodsBatteryInfo(
+                            left: xpcInfo.left >= 0 ? xpcInfo.left : nil,
+                            right: xpcInfo.right >= 0 ? xpcInfo.right : nil,
+                            caseLevel: xpcInfo.caseLevel >= 0 ? xpcInfo.caseLevel : nil
+                        )
+                        NSLog("🔋 AudioDeviceManager: Battery result from XPC - L:\(xpcInfo.left) R:\(xpcInfo.right) Case:\(xpcInfo.caseLevel)")
+                    } else {
+                        NSLog("⚠️ AudioDeviceManager: No battery info from XPC helper")
+                    }
+                    
+                    if var updatedDevice = self?.lastConnectedDevice, updatedDevice.name == device.name {
+                        updatedDevice.airPodsBattery = batteryInfo
+                        self?.lastConnectedDevice = updatedDevice
+                        NSLog("🔋 AudioDeviceManager: Updated lastConnectedDevice with battery info")
+                    }
+                }
             }
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) { [weak self] in
@@ -693,19 +737,92 @@ final class AudioDeviceManager: NSObject, ObservableObject {
     
     /// Gets detailed AirPods battery info (Left, Right, Case) from IORegistry.
     ///
-    /// Queries `AppleDeviceManagementHIDEventService` for individual battery levels.
-    /// Looks for keys like `BatteryPercentLeft`, `BatteryPercentRight`, `BatteryPercentCase`.
+    /// Queries system_profiler for individual AirPods battery levels.
     ///
     /// - Parameter deviceName: Name of the AirPods device
     /// - Returns: Battery info struct with L/R/Case levels, or nil if unavailable
     func getAirPodsBatteryInfo(for deviceName: String) -> AirPodsBatteryInfo? {
+        // Try system_profiler first (more reliable for AirPods)
+        if let info = getAirPodsBatteryFromSystemProfiler(), info.hasDetailedInfo {
+            return info
+        }
         return getAirPodsBatteryFromIORegistry(deviceName: deviceName)
     }
     
-    /// Internal method to query IORegistry for AirPods battery levels.
-    ///
-    /// Executes `ioreg -r -c AppleDeviceManagementHIDEventService -a` and parses
-    /// the plist output for battery information.
+    /// Gets AirPods battery info from system_profiler SPBluetoothDataType.
+    private func getAirPodsBatteryFromSystemProfiler() -> AirPodsBatteryInfo? {
+        let task = Process()
+        task.launchPath = "/usr/sbin/system_profiler"
+        task.arguments = ["SPBluetoothDataType"]
+        
+        let pipe = Pipe()
+        task.standardOutput = pipe
+        task.standardError = FileHandle.nullDevice
+        
+        do {
+            try task.run()
+            task.waitUntilExit()
+            
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            guard let output = String(data: data, encoding: .utf8) else {
+                NSLog("⚠️ system_profiler returned no data")
+                return nil
+            }
+            
+            var info = AirPodsBatteryInfo()
+            
+            // Simple regex-like parsing: find battery lines
+            let lines = output.components(separatedBy: "\n")
+            var foundAirPods = false
+            
+            for line in lines {
+                // Check if we found AirPods section
+                if line.lowercased().contains("airpods") && line.contains(":") {
+                    foundAirPods = true
+                    continue
+                }
+                
+                // Only parse if we're in AirPods section
+                if foundAirPods {
+                    // Stop if we hit another device section
+                    if !line.hasPrefix(" ") && line.contains(":") && !line.contains("Battery") {
+                        break
+                    }
+                    
+                    if line.contains("Left Battery Level:") {
+                        info.left = extractBatteryFromLine(line)
+                    } else if line.contains("Right Battery Level:") {
+                        info.right = extractBatteryFromLine(line)
+                    } else if line.contains("Case Battery Level:") {
+                        info.caseLevel = extractBatteryFromLine(line)
+                    }
+                }
+            }
+            
+            if info.hasDetailedInfo {
+                NSLog("🔋 Parsed AirPods battery: L:\(info.left ?? -1)% R:\(info.right ?? -1)% Case:\(info.caseLevel ?? -1)%")
+                return info
+            } else {
+                NSLog("⚠️ Could not parse AirPods battery from system_profiler (foundAirPods: \(foundAirPods))")
+            }
+        } catch {
+            NSLog("⚠️ Failed to run system_profiler: \(error)")
+        }
+        return nil
+    }
+    
+    /// Extracts battery percentage from a line like "              Left Battery Level: 94 %"
+    private func extractBatteryFromLine(_ line: String) -> Int? {
+        // Split by ":" and get the value part, then extract the number
+        guard let colonIndex = line.lastIndex(of: ":") else { return nil }
+        let valuePart = String(line[line.index(after: colonIndex)...])
+            .trimmingCharacters(in: .whitespaces)
+            .replacingOccurrences(of: "%", with: "")
+            .trimmingCharacters(in: .whitespaces)
+        return Int(valuePart)
+    }
+    
+    /// Fallback: query IORegistry for AirPods battery levels.
     private func getAirPodsBatteryFromIORegistry(deviceName: String) -> AirPodsBatteryInfo? {
         let task = Process()
         task.launchPath = "/usr/sbin/ioreg"
