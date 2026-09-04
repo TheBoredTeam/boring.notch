@@ -522,7 +522,7 @@ final class SystemNotificationManager: ObservableObject {
         // only when it resolves unambiguously (see phoneNumber(for:)).
         if notification.bundleID == "net.whatsapp.WhatsApp",
            let sender = notification.sender,
-           let phone = ContactAvatarManager.shared.phoneNumber(forContactNamed: sender),
+           let phone = await ContactAvatarManager.shared.phoneNumber(forContactNamed: sender),
            let encoded = text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
            // whatsapp:// rather than wa.me — the scheme is registered to
            // WhatsApp.app directly, so it opens the app instead of bouncing
