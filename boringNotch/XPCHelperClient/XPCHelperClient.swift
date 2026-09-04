@@ -328,5 +328,23 @@ final class XPCHelperClient: NSObject {
             return false
         }
     }
+    
+    // MARK: - AirPods Battery Info
+    
+    /// Fetches AirPods battery information via XPC helper (runs outside sandbox).
+    /// Returns nil if no AirPods are connected or battery info is unavailable.
+    func getAirPodsBatteryInfo() async -> BNAirPodsBatteryInfo? {
+        do {
+            let service = ensureRemoteService()
+            return try await service.withContinuation { service, continuation in
+                service.getAirPodsBatteryInfo { info in
+                    continuation.resume(returning: info)
+                }
+            }
+        } catch {
+            NSLog("⚠️ XPCHelperClient: Failed to get AirPods battery info: \(error)")
+            return nil
+        }
+    }
 }
 

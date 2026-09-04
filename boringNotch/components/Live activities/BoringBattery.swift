@@ -96,7 +96,8 @@ struct BatteryMenuView: View {
     var isInLowPowerMode: Bool
     var maxAdapterWatts: Int = 0
     var onDismiss: () -> Void
-
+    
+    @ObservedObject private var bluetoothManager = BluetoothDeviceManager.shared
     @Environment(\.openURL) private var openURL
 
     private var formattedTimeToDischarge: String {
@@ -195,6 +196,34 @@ struct BatteryMenuView: View {
                     
             }
             .padding(.vertical, 8)
+            
+            // Bluetooth Device Batteries
+            if Defaults[.showBluetoothDeviceBattery] && !bluetoothManager.devicesWithBattery.isEmpty {
+                Divider().background(Color.white)
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Devices")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                    
+                    ForEach(bluetoothManager.devicesWithBattery) { device in
+                        HStack {
+                            Image(systemName: device.deviceType.iconName)
+                                .frame(width: 16)
+                                .foregroundStyle(.secondary)
+                            Text(device.name)
+                                .font(.subheadline)
+                            Spacer()
+                            if let battery = device.batteryLevel {
+                                Text("\(battery)%")
+                                    .font(.subheadline)
+                                    .foregroundStyle(batteryColor(for: battery))
+                            }
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            }
 
             Divider().background(Color.white)
 
@@ -209,6 +238,12 @@ struct BatteryMenuView: View {
         .padding()
         .frame(width: 280)
         .foregroundColor(.white)
+    }
+    
+    private func batteryColor(for level: Int) -> Color {
+        if level <= 10 { return .red }
+        if level <= 20 { return .orange }
+        return .green
     }
 
     private func openBatteryPreferences() {

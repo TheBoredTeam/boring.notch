@@ -5,6 +5,7 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
+import Defaults
 import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
@@ -135,3 +136,4 @@ struct SettingsView: View {
         }
     }
 }
+

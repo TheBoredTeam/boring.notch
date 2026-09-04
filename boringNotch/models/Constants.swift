@@ -298,21 +298,35 @@ extension Defaults.Keys {
     static let showPowerStatusIcons = Key<Bool>("showPowerStatusIcons", default: true)
     static let showChargingWattage = Key<Bool>("showChargingWattage", default: true)
     
+    // MARK: Audio Device Notifications
+    static let showAudioDeviceConnectedNotification = Key<Bool>("showAudioDeviceConnectedNotification", default: true)
+    static let showAudioDeviceBatteryPercentage = Key<Bool>("showAudioDeviceBatteryPercentage", default: true)
+    /// Vertical offset for the expanded audio device notch (e.g., AirPods connected view)
+    /// Negative values move up (above screen edge), positive values move down
+    static let audioDeviceExpandedOffset = Key<CGFloat>("audioDeviceExpandedOffset", default: -50)
+    
+    // MARK: Bluetooth Input Device Battery
+    static let showBluetoothDeviceBattery = Key<Bool>("showBluetoothDeviceBattery", default: true)
+    
     // MARK: Downloads
     static let enableDownloadListener = Key<Bool>("enableDownloadListener", default: true)
     static let enableSafariDownloads = Key<Bool>("enableSafariDownloads", default: true)
     static let selectedDownloadIndicatorStyle = Key<DownloadIndicatorStyle>("selectedDownloadIndicatorStyle", default: DownloadIndicatorStyle.progress)
     static let selectedDownloadIconStyle = Key<DownloadIconStyle>("selectedDownloadIconStyle", default: DownloadIconStyle.onlyAppIcon)
     
-    // MARK: OSD
+    // MARK: OSD / HUD
     static let osdReplacement = Key<Bool>("osdReplacement", default: false)
+    static let hudReplacement = Key<Bool>("osdReplacement", default: false) // Alias for osdReplacement
     static let inlineOSD = Key<Bool>("inlineOSD", default: false)
+    static let inlineHUD = Key<Bool>("inlineOSD", default: false) // Alias for inlineOSD
     static let enableGradient = Key<Bool>("enableGradient", default: false)
     static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
     static let systemEventIndicatorUseAccent = Key<Bool>("systemEventIndicatorUseAccent", default: false)
     static let showOpenNotchOSD = Key<Bool>("showOpenNotchOSD", default: true)
+    static let showOpenNotchHUD = Key<Bool>("showOpenNotchOSD", default: true) // Alias for showOpenNotchOSD
     static let showOpenNotchOSDPercentage = Key<Bool>("showOpenNotchOSDPercentage", default: true)
     static let showClosedNotchOSDPercentage = Key<Bool>("showClosedNotchOSDPercentage", default: false)
+    static let showClosedNotchHUDPercentage = Key<Bool>("showClosedNotchOSDPercentage", default: false) // Alias
     // Option key modifier behaviour for media keys
     static let optionKeyAction = Key<OptionKeyAction>("optionKeyAction", default: OptionKeyAction.openSettings)
     // Brightness/volume/keyboard source selection

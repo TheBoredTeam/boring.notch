@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var audioDeviceManager = AudioDeviceManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -95,6 +96,11 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
+        } else if coordinator.expandingView.type == .audioDevice && coordinator.expandingView.show
+            && vm.notchState == .closed && Defaults[.showAudioDeviceConnectedNotification]
+        {
+            // Same width calculation as music live activity
+            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -258,6 +264,10 @@ struct ContentView: View {
                         .frame(width: computedChinWidth, height: vm.chinHeight)
                 }
             }
+            // Apply vertical offset for expanded audio device view (entire notch moves up/down)
+            .offset(y: (vm.notchState == .open && coordinator.expandingView.type == .audioDevice && coordinator.expandingView.show)
+                    ? Defaults[.audioDeviceExpandedOffset] : 0)
+            .animation(.smooth, value: coordinator.expandingView.show)
         }
         .padding(.bottom, 8)
         .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
@@ -349,7 +359,12 @@ struct ContentView: View {
                             }
                             .frame(width: 76, alignment: .trailing)
                         }
-                        .frame(height: displayClosedNotchHeight, alignment: .center)
+                        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+                      } else if coordinator.expandingView.type == .audioDevice && coordinator.expandingView.show
+                          && vm.notchState == .closed && Defaults[.showAudioDeviceConnectedNotification]
+                      {
+                          AudioDeviceConnectedView()
+                              .frame(height: vm.effectiveClosedNotchHeight + 10, alignment: .center)
                       } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
                           InlineOSD(
                               type: coordinator.binding(for: vm.screenUUID).type,
@@ -366,13 +381,18 @@ struct ContentView: View {
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
-                           BoringHeader()
-                               .frame(height: max(24, displayClosedNotchHeight))
-                               .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
+                           if coordinator.expandingView.type == .audioDevice && coordinator.expandingView.show {
+                               // No header for audio device expanded view - zero height
+                               Color.clear.frame(height: 0)
+                           } else {
+                               BoringHeader()
+                                   .frame(height: max(24, vm.effectiveClosedNotchHeight))
+                                   .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
+                           }
                        }
-                        // New case to enable compact notch on external displays
+                        // For external displays without notch, use the configured nonNotchHeight
                         else if !vm.hasNotch {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: 11) // idle notch height is halved on non notch display
+                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        } else {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        }
@@ -421,19 +441,27 @@ struct ContentView: View {
               }
               .zIndex(1)
             if vm.notchState == .open {
-                VStack {
-                    switch coordinator.currentView {
-                    case .home:
-                        NotchHomeView(
-                            albumArtNamespace: albumArtNamespace,
-                            horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
-                            isHoveringMusicArea: $isHoveringMusicArea
-                        )
-                    case .shelf:
-                        ShelfView(
-                            dropInteraction: vm.dropInteraction,
-                            animation: vm.animation
-                        )
+                VStack(spacing: 0) {
+                    // Show expanded audio device view when audioDevice notification is active
+                    if coordinator.expandingView.type == .audioDevice && coordinator.expandingView.show {
+                        AudioDeviceExpandedView()
+                            .frame(height: 70, alignment: .top)
+                    } else {
+                        VStack {
+                            switch coordinator.currentView {
+                            case .home:
+                                NotchHomeView(
+                                    albumArtNamespace: albumArtNamespace,
+                                    horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+                                    isHoveringMusicArea: $isHoveringMusicArea
+                                )
+                            case .shelf:
+                                ShelfView(
+                                    dropInteraction: vm.dropInteraction,
+                                    animation: vm.animation
+                                )
+                            }
+                        }
                     }
                 }
                 .transition(
@@ -502,6 +530,7 @@ struct ContentView: View {
                 .frame(width: vm.closedNotchSize.width + 20)
             let faceScale = min(1.0, displayClosedNotchHeight / 30.0)
             MinimalFaceFeatures(height: 24.0 * faceScale, width: 30.0 * faceScale)
+                .offset(y: 4) // Nach unten verschieben
         }.frame(
             height: displayClosedNotchHeight,
             alignment: .center
@@ -623,11 +652,11 @@ struct ContentView: View {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
-            dropInteraction.dropEvent = true
-            ShelfStateViewModel.shared.load(providers)
-            return true
-        }
+                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
+                    dropInteraction.dropEvent = true
+                    ShelfStateViewModel.shared.load(providers)
+                    return true
+                }
         } else {
             EmptyView()
         }
@@ -635,6 +664,11 @@ struct ContentView: View {
 
     @discardableResult
     private func doOpen() -> Bool {
+        // Make audio device view persistent when opening
+        if coordinator.expandingView.type == .audioDevice && coordinator.expandingView.show {
+            coordinator.expandingView.persistent = true
+        }
+        
         var didOpen = false
         withAnimation(animationSpring) {
             didOpen = vm.open()
@@ -655,6 +689,20 @@ struct ContentView: View {
             
             if vm.notchState == .closed && Defaults[.enableHaptics] {
                 haptics.toggle()
+            }
+            
+            // If audio device notification is showing, make it persistent and open
+            if coordinator.expandingView.type == .audioDevice && coordinator.expandingView.show && vm.notchState == .closed {
+                coordinator.expandingView.persistent = true
+                hoverTask = Task {
+                    try? await Task.sleep(for: .seconds(Defaults[.minimumHoverDuration]))
+                    guard !Task.isCancelled else { return }
+                    await MainActor.run {
+                        guard self.vm.notchState == .closed, self.isHovering else { return }
+                        self.doOpen()
+                    }
+                }
+                return
             }
             
             guard vm.notchState == .closed,
@@ -686,6 +734,10 @@ struct ContentView: View {
                     }
                     
                     if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                        // Clear audio device expanded view when closing
+                        if self.coordinator.expandingView.type == .audioDevice && self.coordinator.expandingView.show {
+                            self.coordinator.toggleExpandingView(status: false, type: .audioDevice)
+                        }
                         self.vm.close()
                     }
                 }
@@ -875,3 +927,4 @@ struct GeneralDropTargetDelegate: DropDelegate {
         .environmentObject(vm)
         .frame(width: vm.notchSize.width, height: vm.notchSize.height)
 }
+
