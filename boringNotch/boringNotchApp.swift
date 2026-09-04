@@ -108,6 +108,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         LunarManager.shared.stopListening()
         LunarManager.shared.configureLunarOSD(hide: false)
         XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
+        LockScreenWidgetCoordinator.shared.shutdown()
         
         observers.forEach { NotificationCenter.default.removeObserver($0) }
         observers.removeAll()
@@ -121,6 +122,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             enableSkyLightOnAllWindows()
         }
+        LockScreenWidgetCoordinator.shared.screenDidLock()
     }
 
     @MainActor
@@ -131,6 +133,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             disableSkyLightOnAllWindows()
         }
+        LockScreenWidgetCoordinator.shared.screenDidUnlock()
     }
     
     @MainActor
@@ -325,6 +328,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in
                 self?.adjustWindowPosition(changeAlpha: true)
                 self?.setupDragDetectors()
+                LockScreenWidgetCoordinator.shared.refresh()
             }
         })
 
@@ -513,6 +517,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.cleanupWindows()
                 self?.adjustWindowPosition()
                 self?.setupDragDetectors()
+                LockScreenWidgetCoordinator.shared.refresh()
             }
         }
     }
