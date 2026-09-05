@@ -420,6 +420,10 @@ final class SystemNotificationManager: ObservableObject {
     // MARK: - Acting
 
     enum ReplyOutcome {
+        /// Copy for the indeterminate delivery state. The UI must not present
+        /// this as a retryable send failure.
+        static let deliveryUnconfirmedMessage = "Delivery unconfirmed"
+
         /// Delivered through the live banner's reply field.
         case sent
         /// The banner was gone, so the draft went to the clipboard and the
@@ -429,9 +433,13 @@ final class SystemNotificationManager: ObservableObject {
         /// box. Better than the clipboard, but still not sent — the user
         /// presses send themselves.
         case draftedInApp
-        /// The reply couldn't be delivered in time. The draft is preserved
-        /// and surfaced as an error so the user can retry or handle it
-        /// themselves — never silently stuck on "sending".
+        /// The banner reply deadline elapsed before its result was known.
+        /// The draft remains intact and must not be retried automatically,
+        /// because the helper may still deliver the original reply late.
+        case unknown
+        /// The reply definitively could not be delivered. The draft is
+        /// preserved and surfaced as an error so the user can retry or
+        /// handle it themselves.
         case failed
     }
 
@@ -457,28 +465,64 @@ final class SystemNotificationManager: ObservableObject {
         await performReply(to: notification, text: text)
     }
 
-    /// Races an operation against a timeout; whichever resolves first wins.
-    private func raceTimeout<T: Sendable>(
-        seconds: TimeInterval, fallback: T,
-        operation: @escaping @Sendable () async -> T
-    ) async -> T {
-        await withTaskGroup(of: T.self) { group in
-            group.addTask { await operation() }
-            group.addTask {
-                try? await Task.sleep(for: .seconds(seconds))
-                return fallback
-            }
-            let result = await group.next() ?? fallback
-            group.cancelAll()
-            return result
+    /// Coordinates an operation and deadline without making either task a
+    /// structured child of this function. A cancelled XPC continuation may
+    /// never resume, so a task group would still wait for it while exiting.
+    private actor TimeoutRace<Result: Sendable> {
+        private var result: Result?
+        private var resolved = false
+        private var continuation: CheckedContinuation<Result?, Never>?
+
+        func resolve(_ result: Result?) {
+            guard !resolved else { return }
+            resolved = true
+            self.result = result
+            continuation?.resume(returning: result)
+            continuation = nil
         }
+
+        func wait() async -> Result? {
+            if resolved { return result }
+            return await withCheckedContinuation { continuation in
+                if resolved {
+                    continuation.resume(returning: result)
+                } else {
+                    self.continuation = continuation
+                }
+            }
+        }
+    }
+
+    /// Races an operation against a timeout; whichever resolves first wins.
+    /// The losing task is cancelled but never awaited, so a non-cooperative
+    /// XPC callback cannot postpone the deadline result.
+    private func raceTimeout<T: Sendable>(
+        seconds: TimeInterval,
+        operation: @escaping @Sendable () async -> T
+    ) async -> T? {
+        let race = TimeoutRace<T>()
+        let operationTask = Task {
+            await race.resolve(await operation())
+        }
+        let timeoutTask = Task {
+            do {
+                try? await Task.sleep(for: .seconds(seconds))
+                guard !Task.isCancelled else { return }
+                await race.resolve(nil)
+            }
+        }
+        defer {
+            operationTask.cancel()
+            timeoutTask.cancel()
+        }
+        return await race.wait()
     }
 
     private func performReply(to notification: SystemNotification, text: String) async -> ReplyOutcome {
         // Stage 1 — the banner's own reply field (native, cheap). nil means
         // the attempt stalled: do NOT cross-deliver through another channel
         // — the message may already have gone through.
-        let bannerDelivered: Bool? = await raceTimeout(seconds: bannerReplyTimeout, fallback: nil) {
+        let bannerDelivered = await raceTimeout(seconds: bannerReplyTimeout) {
             await XPCHelperClient.shared.replyToNotification(token: notification.id, text: text)
         }
         if bannerDelivered == true {
@@ -489,7 +533,7 @@ final class SystemNotificationManager: ObservableObject {
         }
         if bannerDelivered == nil {
             NSLog("[boringNotch] reply attempt timed out at the banner for \(notification.appName ?? "-")")
-            return .failed
+            return .unknown
         }
 
         // The banner is gone, so AX can't deliver. Messages is the one
@@ -498,14 +542,20 @@ final class SystemNotificationManager: ObservableObject {
         // becoming a clipboard hand-off. Nothing equivalent exists for
         // WhatsApp/Telegram/Discord.
         if notification.bundleID == "com.apple.MobileSMS",
-           let chatName = notification.sender,
-           await raceTimeout(seconds: imessageScriptTimeout, fallback: false, operation: {
-               await XPCHelperClient.shared.sendIMessage(text, toChatNamed: chatName)
-           }) {
-            NSLog("[boringNotch] reply sent via Messages scripting for \(chatName)")
-            playSentSound()
-            dismissActive(token: notification.id)
-            return .sent
+           let chatName = notification.sender {
+            let iMessageDelivered = await raceTimeout(seconds: imessageScriptTimeout, operation: {
+                await XPCHelperClient.shared.sendIMessage(text, toChatNamed: chatName)
+            })
+            if iMessageDelivered == true {
+                NSLog("[boringNotch] reply sent via Messages scripting for \(chatName)")
+                playSentSound()
+                dismissActive(token: notification.id)
+                return .sent
+            }
+            if iMessageDelivered == nil {
+                NSLog("[boringNotch] reply attempt timed out in Messages for \(chatName)")
+                return .unknown
+            }
         }
 
         // iMessage delivery definitively failed — surface the error, keep

@@ -13,98 +13,125 @@ import CoreImage
 import CoreGraphics
 import CoreImage.CIFilterBuiltins
 
-extension NSImage {
+private struct AverageColorComponents: Sendable {
+    let red: Double
+    let green: Double
+    let blue: Double
+}
 
-    
-    func averageColor(completion: @escaping (NSColor?) -> Void) {
-        DispatchQueue.global(qos: .userInitiated).async {
-            guard let cgImage = self.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-                DispatchQueue.main.async {
-                    completion(nil)
-                }
-                return
-            }
-            
-            let width = cgImage.width
-            let height = cgImage.height
-            let totalPixels = width * height
-            
-            guard let context = CGContext(data: nil,
-                                          width: width,
-                                          height: height,
-                                          bitsPerComponent: 8,
-                                          bytesPerRow: width * 4,
-                                          space: CGColorSpaceCreateDeviceRGB(),
-                                          bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
-                DispatchQueue.main.async {
-                    completion(nil)
-                }
-                return
-            }
-            
-            context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
-            
-            guard let data = context.data else {
-                DispatchQueue.main.async {
-                    completion(nil)
-                }
-                return
-            }
-            
-            let pointer = data.bindMemory(to: UInt32.self, capacity: totalPixels)
-            
-            var totalRed: UInt64 = 0
-            var totalGreen: UInt64 = 0
-            var totalBlue: UInt64 = 0
-            
-            for i in 0..<totalPixels {
-                let color = pointer[i]
-                totalRed += UInt64(color & 0xFF)
-                totalGreen += UInt64((color >> 8) & 0xFF)
-                totalBlue += UInt64((color >> 16) & 0xFF)
-            }
-            
-            let averageRed = CGFloat(totalRed) / CGFloat(totalPixels) / 255.0
-            let averageGreen = CGFloat(totalGreen) / CGFloat(totalPixels) / 255.0
-            let averageBlue = CGFloat(totalBlue) / CGFloat(totalPixels) / 255.0
-            
-            let minBrightness: CGFloat = 0.5
-            let isNearBlack = averageRed < 0.03 && averageGreen < 0.03 && averageBlue < 0.03
-            
-            var finalColor: NSColor
-            
-            if isNearBlack {
-                // If it's near black, just return a gray color with the minimum brightness
-                finalColor = NSColor(white: minBrightness, alpha: 1.0)
-            } else {
-                var color = NSColor(red: averageRed, green: averageGreen, blue: averageBlue, alpha: 1.0)
-                
-                var hue: CGFloat = 0
-                var saturation: CGFloat = 0
-                var brightness: CGFloat = 0
-                var alpha: CGFloat = 0
-                
-                color.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
-                
-                if brightness < minBrightness {
-                    // Increase brightness while maintaining hue and reducing saturation
-                    let saturationScale = brightness / minBrightness
-                    color = NSColor(hue: hue,
-                                    saturation: saturation * saturationScale,
-                                    brightness: minBrightness,
-                                    alpha: alpha)
-                }
-                
-                finalColor = color
-            }
-            
-            DispatchQueue.main.async {
-                completion(finalColor)
-            }
+extension NSImage {
+    @MainActor
+    func averageColor() async -> NSColor? {
+        guard let cgImage = cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            return nil
         }
-        
+
+        let components = await Task.detached(priority: .userInitiated) {
+            Self.averageColorComponents(for: cgImage)
+        }.value
+
+        guard let components else {
+            return nil
+        }
+
+        return NSColor(
+            red: components.red,
+            green: components.green,
+            blue: components.blue,
+            alpha: 1.0
+        )
     }
-    
+
+    nonisolated private static func averageColorComponents(for cgImage: CGImage) -> AverageColorComponents? {
+        let width = cgImage.width
+        let height = cgImage.height
+        let totalPixels = width * height
+
+        guard totalPixels > 0,
+              let context = CGContext(
+                  data: nil,
+                  width: width,
+                  height: height,
+                  bitsPerComponent: 8,
+                  bytesPerRow: width * 4,
+                  space: CGColorSpaceCreateDeviceRGB(),
+                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+              ) else {
+            return nil
+        }
+
+        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+
+        guard let data = context.data else {
+            return nil
+        }
+
+        let pointer = data.bindMemory(to: UInt32.self, capacity: totalPixels)
+        var totalRed: UInt64 = 0
+        var totalGreen: UInt64 = 0
+        var totalBlue: UInt64 = 0
+
+        for i in 0..<totalPixels {
+            let color = pointer[i]
+            totalRed += UInt64(color & 0xFF)
+            totalGreen += UInt64((color >> 8) & 0xFF)
+            totalBlue += UInt64((color >> 16) & 0xFF)
+        }
+
+        let averageRed = Double(totalRed) / Double(totalPixels) / 255.0
+        let averageGreen = Double(totalGreen) / Double(totalPixels) / 255.0
+        let averageBlue = Double(totalBlue) / Double(totalPixels) / 255.0
+        let minBrightness = 0.5
+
+        guard !(averageRed < 0.03 && averageGreen < 0.03 && averageBlue < 0.03) else {
+            return AverageColorComponents(red: minBrightness, green: minBrightness, blue: minBrightness)
+        }
+
+        let maximum = max(averageRed, averageGreen, averageBlue)
+        let minimum = min(averageRed, averageGreen, averageBlue)
+
+        guard maximum < minBrightness else {
+            return AverageColorComponents(red: averageRed, green: averageGreen, blue: averageBlue)
+        }
+
+        let saturation = maximum == 0 ? 0 : (maximum - minimum) / maximum
+        let saturationScale = maximum / minBrightness
+        let chroma = minBrightness * saturation * saturationScale
+        let rawHue: Double
+
+        if maximum == minimum {
+            rawHue = 0
+        } else if maximum == averageRed {
+            rawHue = ((averageGreen - averageBlue) / (maximum - minimum)).truncatingRemainder(dividingBy: 6)
+        } else if maximum == averageGreen {
+            rawHue = ((averageBlue - averageRed) / (maximum - minimum)) + 2
+        } else {
+            rawHue = ((averageRed - averageGreen) / (maximum - minimum)) + 4
+        }
+
+        let hue = rawHue < 0 ? rawHue + 6 : rawHue
+        let x = chroma * (1 - abs((hue.truncatingRemainder(dividingBy: 2)) - 1))
+        let match = minBrightness - chroma
+        let rgb: (Double, Double, Double)
+
+        switch hue {
+        case ..<1:
+            rgb = (chroma, x, 0)
+        case ..<2:
+            rgb = (x, chroma, 0)
+        case ..<3:
+            rgb = (0, chroma, x)
+        case ..<4:
+            rgb = (0, x, chroma)
+        case ..<5:
+            rgb = (x, 0, chroma)
+        default:
+            rgb = (chroma, 0, x)
+        }
+
+        return AverageColorComponents(red: rgb.0 + match, green: rgb.1 + match, blue: rgb.2 + match)
+    }
+
     func getBrightness() -> CGFloat {
         guard let cgImage = self.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
             return 0
