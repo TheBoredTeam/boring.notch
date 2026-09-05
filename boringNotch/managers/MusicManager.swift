@@ -62,6 +62,7 @@ final class MusicManager: ObservableObject {
     private static let runtimeRecoveryDelay: Duration = .seconds(1)
 
     private var controllerCancellables = Set<AnyCancellable>()
+    private var averageColorTask: Task<Void, Never>?
     private var debounceIdleTask: Task<Void, Never>?
     private var availabilityTask: Task<Void, Never>?
     private var runtimeFailureTask: Task<Void, Never>?
@@ -686,6 +687,7 @@ final class MusicManager: ObservableObject {
 
     func updateAlbumArt(newAlbumArt: NSImage) {
         workItem?.cancel()
+        averageColorTask?.cancel()
         withAnimation(.smooth) {
             self.albumArt = newAlbumArt
             if Defaults[.coloredSpectrogram] {
@@ -704,11 +706,17 @@ final class MusicManager: ObservableObject {
     }
 
     func calculateAverageColor() {
-        albumArt.averageColor { [weak self] color in
-            DispatchQueue.main.async {
-                withAnimation(.smooth) {
-                    self?.avgColor = color ?? .white
-                }
+        let artwork = albumArt
+        averageColorTask = Task { [weak self, artwork] in
+            let color = await artwork.averageColor()
+            guard !Task.isCancelled,
+                  let self,
+                  self.albumArt === artwork else {
+                return
+            }
+
+            withAnimation(.smooth) {
+                self.avgColor = color ?? .white
             }
         }
     }
