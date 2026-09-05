@@ -198,14 +198,14 @@ final class AudioOutputRouteResolver {
             mElement: kAudioObjectPropertyElementMain
         )
 
-        var value: CFString = "" as CFString
-        var propertySize: UInt32 = UInt32(MemoryLayout<CFString>.size)
+        var value: Unmanaged<CFString>?
+        var propertySize: UInt32 = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
         guard AudioObjectGetPropertyData(deviceID, &address, 0, nil, &propertySize, &value) == noErr
         else {
             return ""
         }
 
-        return value as String
+        return value?.takeUnretainedValue() as String? ?? ""
     }
 
     private func speakerSymbol(for value: CGFloat) -> String {
