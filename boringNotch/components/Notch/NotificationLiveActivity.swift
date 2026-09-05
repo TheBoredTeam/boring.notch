@@ -145,9 +145,6 @@ struct NotificationExpandedView: View {
             dismissButton
                 .padding(.top, -2)
         }
-        // Rebuild cleanly when one notification replaces another, instead of
-        // reusing the previous one's view state.
-        .id(notification.id)
         .background(WindowAccessor { self.hostWindow = $0 as? BoringNotchSkyLightWindow })
         // This view exists only while the notch is open, so appear/disappear
         // is the open/close signal: pause the countdown while the user is
@@ -157,8 +154,9 @@ struct NotificationExpandedView: View {
         .onAppear {
             manager.holdActive()
             // Cycling the stack rebuilds this view for a different
-            // notification (.id below), so a half-typed reply only survives
-            // if it's restored from the manager rather than kept in @State.
+            // notification (the parent call site's .id), so a half-typed reply
+            // survives only if it's restored from the manager rather than kept
+            // in @State.
             replyText = manager.draft(for: notification.id)
             // Deliberately no auto-focus: mounting this view (hover, arrival,
             // cycle) used to grab key-window status and pre-focus the field,
@@ -548,10 +546,12 @@ struct NotificationExpandedView: View {
     private func send() {
         guard canSend else { return }
         let text = replyText
+        let notificationID = notification.id
         isSending = true
         sendError = nil
         Task {
             let outcome = await manager.reply(to: notification, text: text)
+            guard manager.activeNotification?.id == notificationID else { return }
             isSending = false
 
             if outcome == .failed {
@@ -574,6 +574,7 @@ struct NotificationExpandedView: View {
             didHandOff = outcome == .handedOffToApp || outcome == .draftedInApp
             manager.clearDraft(for: notification.id)
             try? await Task.sleep(for: .milliseconds(1200))
+            guard manager.activeNotification?.id == notificationID else { return }
             manager.dismissActive(token: notification.id)
         }
     }
