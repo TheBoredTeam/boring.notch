@@ -554,6 +554,17 @@ struct NotificationExpandedView: View {
             guard manager.activeNotification?.id == notificationID else { return }
             isSending = false
 
+            if outcome == .unknown {
+                // The deadline elapsed before the helper confirmed anything,
+                // so the reply may still be delivered late. Keep the draft,
+                // but word this so it never reads as "send it again" — a
+                // retry here is how the user ends up sending twice.
+                withAnimation(.smooth) {
+                    sendError = String(localized: "Delivery unconfirmed. Your reply may still send — check Messages before sending it again.")
+                }
+                return
+            }
+
             if outcome == .failed {
                 // Don't pretend. Keep the draft, keep the notch open, and
                 // tell the user plainly what happened.
