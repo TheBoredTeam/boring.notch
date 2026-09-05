@@ -92,8 +92,10 @@ struct NotificationDebugView: View {
                 lastResult = "banner gone — copied to clipboard and opened the app"
             case .draftedInApp:
                 lastResult = "banner gone — opened the conversation with the text pre-filled"
+            case .unknown:
+                lastResult = "delivery unconfirmed (deadline elapsed) — draft preserved, do not retry"
             case .failed:
-                lastResult = "delivery failed (timeout/blocked) — draft preserved"
+                lastResult = "delivery failed (blocked) — draft preserved"
             }
         }
     }
