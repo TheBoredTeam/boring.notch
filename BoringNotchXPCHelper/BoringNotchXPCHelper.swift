@@ -12,6 +12,7 @@ import IOKit
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     private weak var connection: NSXPCConnection?
 
+    private let messagesQueue = DispatchQueue(label: "BoringNotchXPCHelper.messages", qos: .userInitiated)
     private let lunarStateQueue = DispatchQueue(label: "BoringNotchXPCHelper.lunar.state")
     private let lunarExecutableURL = URL(fileURLWithPath: "/Applications/Lunar.app/Contents/MacOS/Lunar")
     private var lunarProcess: Process?
@@ -140,7 +141,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     /// for Messages that recovers a real send instead of a clipboard
     /// hand-off. No other supported app offers an equivalent.
     @objc func sendIMessage(_ text: String, toChatNamed name: String, with reply: @escaping (Bool) -> Void) {
-        DispatchQueue.main.async { reply(MessagesSender.send(text, toChatNamed: name)) }
+        messagesQueue.async { reply(MessagesSender.send(text, toChatNamed: name)) }
     }
 
     @objc func performNotificationAction(_ token: String, name: String, with reply: @escaping (Bool) -> Void) {
@@ -510,4 +511,3 @@ private struct LunarBrightnessEvent: Decodable, Sendable {
     let brightness: Double
     let display: Int
 }
-
