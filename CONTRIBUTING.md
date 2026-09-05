@@ -51,7 +51,7 @@ Please submit all translations to [Crowdin](https://crowdin.com/project/boring-n
    ```
    All code contributions must be based on the `dev` branch, not `main`. Documentation changes should be based on `main` instead.
 
-5. **Create a new feature branch**:
+4. **Create a new feature branch**:
    ```bash
    git checkout -b feature/{your-feature-name}
    ```
@@ -92,13 +92,18 @@ Please submit all translations to [Crowdin](https://crowdin.com/project/boring-n
 
 4. **Be patient**: Reviews take time. Maintainers will get to your PR as soon as they can.
 
-<!-- ## Code Style Guidelines
+## Code Style Guidelines
 
 - Follow the existing code style and conventions used in the project
-- Write clear, self-documenting code with meaningful variable and function names
-- Add comments for complex logic or non-obvious implementations
-- Ensure your code is properly formatted before committing
-- Remove any debugging code, console logs, or commented-out code before submitting -->
+- Write clear, self-documenting code with meaningful variable and function names. Type names are UpperCamelCase, functions/variables lowerCamelCase — file names match the primary type they contain.
+- Add comments for complex logic or non-obvious implementations; explain *why*, not just *what*.
+- No force unwrapping (`!`), force casts (`as!`), or `try!` in new code — these fail CI. The argument for accepting a force unwrap (compile-time constants, guaranteed bridge) belongs in a comment plus a SwiftLint exclusion entry, not in silent code.
+- Log with `os.Logger` via `helpers/Log.swift` (feature categories), never `print()` in production code.
+- Managers publish state/events (e.g. via `NotchUIEventBus`); only the coordinator/presenter layer decides what the UI shows. Don't call `BoringViewCoordinator.shared` from hardware/OS-facing managers.
+- New source files carry the header comment of their neighbors and must not introduce new directories with spaces in their names.
+- Ensure your code builds cleanly before committing: `xcodebuild -scheme boringNotch -configuration Debug build`.
+- Remove any debugging code, console logs, or commented-out code before submitting
+- License header: headers of existing files keep their format; new third-party-derived files must state the license origin (SPDX identifier where practical, e.g. `// SPDX-License-Identifier: GPL-3.0-only`).
 
 ## Reporting Bugs
 

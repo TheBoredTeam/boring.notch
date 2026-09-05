@@ -9,14 +9,15 @@ import Foundation
 import Combine
 import SwiftUI
 
-class SpotifyController: MediaControllerProtocol {
+@MainActor
+final class SpotifyController: MediaControllerProtocol {
     func setFavorite(_ favorite: Bool) async {
         //Placeholder
     }
     
     // MARK: - Properties
     @Published private var playbackState: PlaybackState = PlaybackState(
-        bundleIdentifier: "com.spotify.client"
+        bundleIdentifier: MediaAppBundleID.spotify
     )
     
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
@@ -48,11 +49,7 @@ class SpotifyController: MediaControllerProtocol {
     
     private func setupPlaybackStateChangeObserver() {
         notificationTask = Task { @Sendable [weak self] in
-            let notifications = DistributedNotificationCenter.default().notifications(
-                named: NSNotification.Name("com.spotify.client.PlaybackStateChanged")
-            )
-            
-            for await _ in notifications {
+            for await _ in AppleScriptControllerSupport.playerInfoNotifications(named: "com.spotify.client.PlaybackStateChanged") {
                 await self?.updatePlaybackInfo()
             }
         }
@@ -112,7 +109,7 @@ class SpotifyController: MediaControllerProtocol {
         let artworkURL = descriptor.atIndex(10)?.stringValue ?? ""
         
         var state = PlaybackState(
-            bundleIdentifier: "com.spotify.client",
+            bundleIdentifier: MediaAppBundleID.spotify,
             isPlaying: isPlaying,
             title: currentTrack,
             artist: currentTrackArtist,
@@ -163,8 +160,7 @@ class SpotifyController: MediaControllerProtocol {
 // MARK: - Private Methods
     
     private func executeCommand(_ command: String) async {
-        let script = "tell application \"Spotify\" to \(command)"
-        try? await AppleScriptHelper.executeVoid(script)
+        await AppleScriptControllerSupport.executeCommand(command, appName: "Spotify")
     }
 
     private func executeAndRefresh(_ command: String) async {

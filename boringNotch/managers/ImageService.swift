@@ -8,12 +8,12 @@
 import Foundation
 import Defaults
 
-public protocol ImageServiceProtocol {
+protocol ImageServiceProtocol {
     func fetchImageData(from url: URL) async throws -> Data
 }
 
-public final class ImageService: ImageServiceProtocol {
-    public static let shared = ImageService()
+final class ImageService: ImageServiceProtocol {
+    static let shared = ImageService()
 
     private let session: URLSession
 
@@ -39,7 +39,7 @@ public final class ImageService: ImageServiceProtocol {
         }
     }
 
-    public func fetchImageData(from url: URL) async throws -> Data {
+    func fetchImageData(from url: URL) async throws -> Data {
         guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
             throw URLError(.unsupportedURL)
         }

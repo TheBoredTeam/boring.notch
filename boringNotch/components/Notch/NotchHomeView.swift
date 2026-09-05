@@ -15,11 +15,21 @@ import SwiftUI
 struct MusicPlayerView: View {
     @EnvironmentObject var vm: BoringViewModel
     let albumArtNamespace: Namespace.ID
+    let horizontalMediaGestureFeedback: CGFloat
+    @Binding var isHoveringMusicArea: Bool
 
     var body: some View {
         HStack {
-            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).padding(.all, 5)
-            MusicControlsView().drawingGroup().compositingGroup()
+            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).frame(width: 120).padding(.all, 5 * (vm.notchSize.height / 190))
+            MusicControlsView(horizontalMediaGestureFeedback: horizontalMediaGestureFeedback)
+                .compositingGroup()
+        }
+        .contentShape(Rectangle())
+        .onHover { hovering in
+            isHoveringMusicArea = hovering
+        }
+        .onDisappear {
+            isHoveringMusicArea = false
         }
     }
 }
@@ -41,14 +51,11 @@ struct AlbumArtView: View {
     private var albumArtBackground: some View {
         Image(nsImage: musicManager.albumArt)
             .resizable()
-            .clipped()
+            .aspectRatio(contentMode: .fit)
             .clipShape(
                 RoundedRectangle(
-                    cornerRadius: Defaults[.cornerRadiusScaling]
-                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
-                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
+                    cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.opened)
             )
-            .aspectRatio(1, contentMode: .fit)
             .scaleEffect(x: 1.3, y: 1.4)
             .rotationEffect(.degrees(92))
             .blur(radius: 40)
@@ -74,33 +81,31 @@ struct AlbumArtView: View {
 
     private var albumArtDarkOverlay: some View {
         Rectangle()
-            .aspectRatio(1, contentMode: .fit)
             .foregroundColor(Color.black)
             .opacity(musicManager.isPlaying ? 0 : 0.8)
             .blur(radius: 50)
+            .allowsHitTesting(false)
     }
                 
 
     private var albumArtImage: some View {
         Image(nsImage: musicManager.albumArt)
+            .interpolation(.high)
             .resizable()
-            .aspectRatio(1, contentMode: .fit)
-            .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-            .clipped()
+            .aspectRatio(contentMode: .fit)
             .clipShape(
                 RoundedRectangle(
-                    cornerRadius: Defaults[.cornerRadiusScaling]
-                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
-                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
+                    cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.opened)
             )
+            .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
     }
 
     @ViewBuilder
     private var appIconOverlay: some View {
         if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
-            AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.Music")
+            appIcon(for: musicManager.bundleIdentifier ?? MediaAppBundleID.appleMusic)
                 .resizable()
-                .aspectRatio(contentMode: .fill)
+                .aspectRatio(contentMode: .fit)
                 .frame(width: 30, height: 30)
                 .offset(x: 10, y: 10)
                 .transition(.scale.combined(with: .opacity))
@@ -111,8 +116,9 @@ struct AlbumArtView: View {
 
 struct MusicControlsView: View {
     @ObservedObject var musicManager = MusicManager.shared
-        @EnvironmentObject var vm: BoringViewModel
-        @ObservedObject var webcamManager = WebcamManager.shared
+    @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject var webcamManager = WebcamManager.shared
+    let horizontalMediaGestureFeedback: CGFloat
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
@@ -140,14 +146,11 @@ struct MusicControlsView: View {
 
     private func songInfo(width: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 0) {
+            MarqueeText(musicManager.songTitle, font: .headline, color: .white, frameWidth: width)
             MarqueeText(
-                $musicManager.songTitle, font: .headline, nsFont: .headline, textColor: .white,
-                frameWidth: width)
-            MarqueeText(
-                $musicManager.artistName,
+                musicManager.artistName,
                 font: .headline,
-                nsFont: .headline,
-                textColor: Defaults[.playerColorTinting]
+                color: Defaults[.playerColorTinting]
                     ? Color(nsColor: musicManager.avgColor)
                         .ensureMinimumBrightness(factor: 0.6) : .gray,
                 frameWidth: width
@@ -161,26 +164,34 @@ struct MusicControlsView: View {
                         let progressed = musicManager.elapsedTime + (delta * musicManager.playbackRate)
                         return min(max(progressed, 0), musicManager.songDuration)
                     }()
-                    let line: String = {
-                        if musicManager.isFetchingLyrics { return "Loading lyrics…" }
-                        if !musicManager.syncedLyrics.isEmpty {
-                            return musicManager.lyricLine(at: currentElapsed)
+                    let lyricDisplay: (line: String, displayDuration: Double?, animationID: Double?) = {
+                        if LyricsService.shared.isFetchingLyrics { return ("Loading lyrics…", nil, nil) }
+                        if !LyricsService.shared.syncedLyrics.isEmpty {
+                            let context = LyricsService.shared.lyricLineContext(at: currentElapsed)
+                            let displayDuration = context.endTime.map { max($0 - currentElapsed, 0) }
+                            return (context.text, displayDuration, context.startTime)
                         }
                         let trimmed = musicManager.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
-                        return trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
+                        let line = trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
+                        return (line, nil, nil)
                     }()
+                    let line = lyricDisplay.line
                     let isPersian = line.unicodeScalars.contains { scalar in
                         let v = scalar.value
                         return v >= 0x0600 && v <= 0x06FF
                     }
-                    MarqueeText(
-                        .constant(line),
-                        font: .subheadline,
+                    let lyricFont: Font = isPersian
+                        ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize)
+                        : .subheadline
+                    TimedLyricText(
+                        line,
+                        font: lyricFont,
                         nsFont: .subheadline,
-                        textColor: musicManager.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
+                        color: musicManager.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
+                        displayDuration: lyricDisplay.displayDuration,
+                        animationID: lyricDisplay.animationID,
                         frameWidth: width
                     )
-                    .font(isPersian ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize) : .subheadline)
                     .lineLimit(1)
                     .opacity(musicManager.isPlaying ? 1 : 0)
                     .transition(.opacity.combined(with: .move(edge: .top)))
@@ -190,7 +201,9 @@ struct MusicControlsView: View {
     }
 
     private var musicSlider: some View {
-        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) { timeline in
+        // 0.2s ticks — the most the slider tolerates before steps become visible
+        // (reviewer-capped; the original 10 Hz targeted ~1px on 1.5-2min songs).
+        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.2 : nil)) { timeline in
             MusicSliderView(
                 sliderValue: $sliderValue,
                 duration: $musicManager.songDuration,
@@ -248,6 +261,8 @@ struct MusicControlsView: View {
             HoverButton(icon: "backward.fill", scale: .medium) {
                 MusicManager.shared.previousTrack()
             }
+            .scaleEffect(horizontalMediaGestureFeedback > 0 ? 1.12 : 1)
+            .animation(.interactiveSpring(response: 0.18, dampingFraction: 0.62), value: horizontalMediaGestureFeedback)
         case .playPause:
             HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill", scale: .large) {
                 MusicManager.shared.togglePlay()
@@ -256,10 +271,14 @@ struct MusicControlsView: View {
             HoverButton(icon: "forward.fill", scale: .medium) {
                 MusicManager.shared.nextTrack()
             }
+            .scaleEffect(horizontalMediaGestureFeedback < 0 ? 1.12 : 1)
+            .animation(.interactiveSpring(response: 0.18, dampingFraction: 0.62), value: horizontalMediaGestureFeedback)
         case .repeatMode:
             HoverButton(icon: repeatIcon, iconColor: repeatIconColor, scale: .medium) {
                 MusicManager.shared.toggleRepeat()
             }
+        case .mediaOutput:
+            MediaOutputSlotButton()
         case .volume:
             VolumeControlView()
         case .favorite:
@@ -344,7 +363,7 @@ struct VolumeControlView: View {
                     }
                 }
             }) {
-                Image(systemName: volumeIcon)
+                Image(systemName: musicManager.volumeControlSupported ? AudioOutputRouteResolver.shared.volumeSymbol(for: CGFloat(volumeSliderValue)) : "speaker.slash")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(musicManager.volumeControlSupported ? .white : .gray)
             }
@@ -399,21 +418,6 @@ struct VolumeControlView: View {
             // volumeUpdateTask?.cancel() // No longer needed
         }
     }
-    
-    
-    private var volumeIcon: String {
-        if !musicManager.volumeControlSupported {
-            return "speaker.slash"
-        } else if volumeSliderValue == 0 {
-            return "speaker.slash.fill"
-        } else if volumeSliderValue < 0.33 {
-            return "speaker.1.fill"
-        } else if volumeSliderValue < 0.66 {
-            return "speaker.2.fill"
-        } else {
-            return "speaker.3.fill"
-        }
-    }
 }
 
 // MARK: - Main View
@@ -424,15 +428,12 @@ struct NotchHomeView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
+    let horizontalMediaGestureFeedback: CGFloat
+    @Binding var isHoveringMusicArea: Bool
 
     var body: some View {
-        Group {
-            if !coordinator.firstLaunch {
-                mainContent
-            }
-        }
-        // simplified: use a straightforward opacity transition
-        .transition(.opacity)
+        mainContent
+            .transition(.opacity)
     }
 
     private var shouldShowCamera: Bool {
@@ -441,7 +442,11 @@ struct NotchHomeView: View {
 
     private var mainContent: some View {
         HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
-            MusicPlayerView(albumArtNamespace: albumArtNamespace)
+            MusicPlayerView(
+                albumArtNamespace: albumArtNamespace,
+                horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+                isHoveringMusicArea: $isHoveringMusicArea
+            )
 
             if Defaults[.showCalendar] {
                 CalendarView()
@@ -454,14 +459,14 @@ struct NotchHomeView: View {
             }
 
             if shouldShowCamera {
-                CameraPreviewView(webcamManager: webcamManager)
+                WebcamView(webcamManager: webcamManager)
                     .scaledToFit()
                     .opacity(vm.notchState == .closed ? 0 : 1)
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
                     .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
             }
         }
-        .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))
+        .transition(.opacity)
         .blur(radius: vm.notchState == .closed ? 30 : 0)
     }
 }
@@ -479,32 +484,34 @@ struct MusicSliderView: View {
     let isPlaying: Bool
     var onValueChange: (Double) -> Void
 
+    // Layout options, ported from Atoll (GPL-3.0, itself a boring.notch
+    // fork) so the compact layout can put the times either side of the
+    // track. Defaults reproduce the previous stacked/duration look exactly,
+    // so the standard layout is untouched.
+    var labelLayout: TimeLabelLayout = .stacked
+    var trailingLabel: TrailingLabel = .duration
+    var restingTrackHeight: CGFloat = 5
+    var draggingTrackHeight: CGFloat = 9
+
+    enum TimeLabelLayout {
+        /// Times on a row beneath the track.
+        case stacked
+        /// Times flanking the track on the same row.
+        case inline
+    }
+
+    enum TrailingLabel {
+        case duration
+        /// Counts down: "-2:56".
+        case remaining
+    }
 
     var body: some View {
-        VStack {
-            CustomSlider(
-                value: $sliderValue,
-                range: 0...duration,
-                color: Defaults[.sliderColor] == SliderColorEnum.albumArt
-                    ? Color(nsColor: color).ensureMinimumBrightness(factor: 0.8)
-                    : Defaults[.sliderColor] == SliderColorEnum.accent ? .effectiveAccent : .white,
-                dragging: $dragging,
-                lastDragged: $lastDragged,
-                onValueChange: onValueChange
-            )
-            .frame(height: 10, alignment: .center)
-
-            HStack {
-                Text(timeString(from: sliderValue))
-                Spacer()
-                Text(timeString(from: duration))
+        Group {
+            switch labelLayout {
+            case .stacked: stackedContent
+            case .inline: inlineContent
             }
-            .fontWeight(.medium)
-            .foregroundColor(
-                Defaults[.playerColorTinting]
-                    ? Color(nsColor: color).ensureMinimumBrightness(factor: 0.6) : .gray
-            )
-            .font(.caption)
         }
         .onChange(of: currentDate) {
            guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else { return }
@@ -512,7 +519,80 @@ struct MusicSliderView: View {
         }
     }
 
+    private var stackedContent: some View {
+        VStack {
+            sliderCore
+                .frame(height: sliderFrameHeight, alignment: .center)
+
+            HStack {
+                Text(timeString(from: sliderValue))
+                Spacer()
+                Text(trailingTimeText)
+            }
+            .fontWeight(.medium)
+            .foregroundColor(timeLabelColor)
+            .font(.caption)
+        }
+    }
+
+    private var inlineContent: some View {
+        HStack(spacing: 6) {
+            Text(timeString(from: sliderValue))
+                .font(inlineLabelFont)
+                .foregroundColor(timeLabelColor)
+                .frame(width: 36, alignment: .leading)
+
+            sliderCore
+                .frame(height: sliderFrameHeight)
+                .frame(maxWidth: .infinity)
+
+            Text(trailingTimeText)
+                .font(inlineLabelFont)
+                .foregroundColor(timeLabelColor)
+                .frame(width: 42, alignment: .trailing)
+        }
+    }
+
+    private var sliderCore: some View {
+        CustomSlider(
+            value: $sliderValue,
+            range: 0...duration,
+            color: Defaults[.sliderColor] == SliderColorEnum.albumArt
+                ? Color(nsColor: color).ensureMinimumBrightness(factor: 0.8)
+                : Defaults[.sliderColor] == SliderColorEnum.accent ? .effectiveAccent : .white,
+            dragging: $dragging,
+            lastDragged: $lastDragged,
+            onValueChange: onValueChange,
+            restingTrackHeight: restingTrackHeight,
+            draggingTrackHeight: draggingTrackHeight
+        )
+    }
+
+    private var timeLabelColor: Color {
+        Defaults[.playerColorTinting]
+            ? Color(nsColor: color).ensureMinimumBrightness(factor: 0.6) : .gray
+    }
+
+    private var trailingTimeText: String {
+        switch trailingLabel {
+        case .duration:
+            return timeString(from: duration)
+        case .remaining:
+            return "-" + timeString(from: max(duration - sliderValue, 0))
+        }
+    }
+
+    /// Monospaced digits so the label doesn't jitter as the numbers tick.
+    private var inlineLabelFont: Font {
+        .system(size: 11, weight: .medium).monospacedDigit()
+    }
+
+    private var sliderFrameHeight: CGFloat {
+        max(restingTrackHeight, draggingTrackHeight) + 1
+    }
+
     func timeString(from seconds: Double) -> String {
+        guard seconds.isFinite else { return "--:--" }
         let totalMinutes = Int(seconds) / 60
         let remainingSeconds = Int(seconds) % 60
         let hours = totalMinutes / 60
@@ -534,11 +614,15 @@ struct CustomSlider: View {
     @Binding var lastDragged: Date
     var onValueChange: ((Double) -> Void)?
     var onDragChange: ((Double) -> Void)?
+    /// Defaults match the previous hard-coded 5/9 so the standard layout is
+    /// unchanged; the compact layout passes a chunkier track.
+    var restingTrackHeight: CGFloat = 5
+    var draggingTrackHeight: CGFloat = 9
 
     var body: some View {
         GeometryReader { geometry in
             let width = geometry.size.width
-            let height = CGFloat(dragging ? 9 : 5)
+            let height = CGFloat(dragging ? draggingTrackHeight : restingTrackHeight)
             let rangeSpan = range.upperBound - range.lowerBound
 
             let progress = rangeSpan == .zero ? 0 : (value - range.lowerBound) / rangeSpan
@@ -554,7 +638,7 @@ struct CustomSlider: View {
                     .frame(width: filledTrackWidth, height: height)
             }
             .cornerRadius(height / 2)
-            .frame(height: 10)
+            .frame(height: max(restingTrackHeight, draggingTrackHeight) + 1)
             .contentShape(Rectangle())
             .gesture(
                 DragGesture(minimumDistance: 0)

@@ -17,16 +17,20 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
     case favorite
     case goBackward
     case goForward
+    case mediaOutput
     case none
 
     var id: String { rawValue }
 
+    /// Shuffle and media output round out the default row. The previous
+    /// default left two empty slots, so a fresh install showed only three
+    /// transport buttons with dead space either side.
     static let defaultLayout: [MusicControlButton] = [
-        .none,
+        .shuffle,
         .previous,
         .playPause,
         .next,
-        .none
+        .mediaOutput
     ]
 
     static let minSlotCount: Int = 3
@@ -41,7 +45,8 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
         .favorite,
         .volume,
         .goBackward,
-        .goForward
+        .goForward,
+        .mediaOutput
     ]
 
     var label: String {
@@ -64,6 +69,8 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
             return "Backward 15s"
         case .goForward:
             return "Forward 15s"
+        case .mediaOutput:
+            return "Audio output"
         case .none:
             return "Empty slot"
         }
@@ -89,6 +96,10 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
             return "gobackward.15"
         case .goForward:
             return "goforward.15"
+        case .mediaOutput:
+            // Placeholder for the settings picker; the live button swaps in
+            // the actual route's glyph (laptop / headphones / AirPods).
+            return "laptopcomputer"
         case .none:
             return ""
         }
