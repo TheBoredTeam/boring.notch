@@ -29,10 +29,12 @@ final class AudioCaptureManager: ObservableObject {
     private static let ringCapacity = 4096
     private static let fftIntervalMilliseconds = 33
     private static let fftLeewayMilliseconds = 0
-    private static let floorDB: Float = -58
-    private static let ceilDB: Float = -14
+    private static let floorDB: Float = -64
+    private static let ceilDB: Float = -24
+    private static let responseGamma: Float = 0.72
     private static let referenceHz: Double = 1000
     private static let pinkCompensationSlopePerOctave: Double = 3.0
+    private static let minimumPinkCompensationDB: Double = -1.5
     private static let fftQueueKey = DispatchSpecificKey<Void>()
     private static let lifecycleQueueKey = DispatchSpecificKey<Void>()
     private static let allowedAlreadyDestroyedStatuses: Set<OSStatus> = [
@@ -43,6 +45,7 @@ final class AudioCaptureManager: ObservableObject {
     @Published private(set) var isCapturing: Bool = false
 
     private var cancellables = Set<AnyCancellable>()
+    private var audioProcessObserver: AudioProcessObserver?
 
     private var tapObjectID: AudioObjectID = kAudioObjectUnknown
     private var aggregateDeviceID: AudioDeviceID = 0
@@ -109,6 +112,7 @@ final class AudioCaptureManager: ObservableObject {
         computeBandRanges(sampleRate: sampleRate)
         Task { @MainActor [weak self] in
             self?.observeState()
+            self?.observeAudioProcessList()
         }
     }
 
@@ -217,6 +221,22 @@ final class AudioCaptureManager: ObservableObject {
         }
     }
 
+    @MainActor
+    private func observeAudioProcessList() {
+        guard #available(macOS 14.2, *) else { return }
+        audioProcessObserver = AudioProcessObserver { [weak self] in
+            Task { @MainActor [weak self] in
+                let music = MusicManager.shared
+                self?.evaluate(
+                    isPlaying: music.isPlaying,
+                    displayBundleID: music.bundleIdentifier,
+                    captureBundleIDs: music.audioCaptureBundleIdentifiers,
+                    enabled: Defaults[.realtimeAudioWaveform]
+                )
+            }
+        }
+    }
+
     private func resolvePIDs(displayBundleID: String, captureBundleIDs: [String]) -> [pid_t] {
         let displayApps = NSRunningApplication.runningApplications(withBundleIdentifier: displayBundleID)
         let displayNames = Set(displayApps.compactMap(\.localizedName))
@@ -240,6 +260,12 @@ final class AudioCaptureManager: ObservableObject {
                 pids.insert(app.processIdentifier)
             }
         }
+
+        // Chromium keeps video audio in a sibling helper process. Same app, different room.
+        let normalizedBundleIDs = Set(
+            bundleIDs.map { normalizeBundleIdentifier($0).lowercased() }
+        )
+        pids.formUnion(AudioProcessObserver.processPIDs(matching: normalizedBundleIDs))
 
         if pids.isEmpty {
             return NSRunningApplication
@@ -314,11 +340,6 @@ final class AudioCaptureManager: ObservableObject {
     @available(macOS 14.2, *)
     private func startCaptureOnLifecycleQueue(pids: [pid_t]) {
         dispatchPrecondition(condition: .onQueue(lifecycleQueue))
-        if ioProcID != nil, pids == currentPIDs { return }
-        if captureIsConfigured {
-            stopCaptureOnLifecycleQueue()
-        }
-
         let attachedProcesses = pids.compactMap { pid -> (pid: pid_t, objectID: AudioObjectID)? in
             guard let objectID = translatePIDToAudioObject(pid: pid) else {
                 NSLog("[AudioCaptureManager] Failed to translate PID \(pid) to AudioObjectID")
@@ -326,12 +347,17 @@ final class AudioCaptureManager: ObservableObject {
             }
             return (pid: pid, objectID: objectID)
         }
+        let attachedPIDs = attachedProcesses.map(\.pid)
+        if ioProcID != nil, attachedPIDs == currentPIDs { return }
+        if captureIsConfigured {
+            stopCaptureOnLifecycleQueue()
+        }
         guard !attachedProcesses.isEmpty else {
             currentPIDs.removeAll(keepingCapacity: true)
             return
         }
         let resolvedProcessObjectIDs = attachedProcesses.map(\.objectID)
-        currentPIDs = attachedProcesses.map(\.pid)
+        currentPIDs = attachedPIDs
 
         let tapDescription = CATapDescription(monoMixdownOfProcesses: resolvedProcessObjectIDs)
         tapDescription.muteBehavior = .unmuted
@@ -732,15 +758,18 @@ final class AudioCaptureManager: ObservableObject {
                 let meanPow = sum / Float(range.count)
                 let db = 10 * log10f(max(meanPow, 1e-12)) + pinkCompensationDB[i]
                 let clamped = max(floorDB, min(ceilDB, db))
-                barsBuf[i] = (clamped - floorDB) / dbRange
+                let normalized = (clamped - floorDB) / dbRange
+                // Lift quieter harmonics without turning silence into a tiny disco.
+                barsBuf[i] = powf(normalized, Self.responseGamma)
             }
         }
 
         var maxDelta: Float = 0
         for i in 0..<Self.barCount {
             let target = barsBuf[i]
-            let decayed = smoothed[i] * 0.86
-            let next = target > decayed ? (decayed + (target - decayed) * 0.58) : decayed
+            let current = smoothed[i]
+            let smoothing: Float = target > current ? 0.38 : 0.16
+            let next = current + (target - current) * smoothing
             smoothed[i] = next
             let clipped = max(0, min(1, next))
             barsBuf[i] = clipped
@@ -821,7 +850,8 @@ final class AudioCaptureManager: ObservableObject {
             let endBin = max(startBin + 1, min(halfN, Int((endHz / nyquist) * Double(halfN))))
             ranges.append(startBin..<endBin)
             let centerHz = sqrt(startHz * endHz)
-            pinks.append(Float(Self.pinkCompensationSlopePerOctave * log2(centerHz / Self.referenceHz)))
+            let compensation = Self.pinkCompensationSlopePerOctave * log2(centerHz / Self.referenceHz)
+            pinks.append(Float(max(Self.minimumPinkCompensationDB, compensation)))
         }
         bandRanges = ranges
         pinkCompensationDB = pinks

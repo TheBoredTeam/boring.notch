@@ -764,7 +764,7 @@ struct ContentView: View {
                     ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
                     : Color.gray
                 )
-                .frame(width: 18, height: 12)
+                .frame(width: 20, height: 14)
             }
             .frame(
                 width: max(
