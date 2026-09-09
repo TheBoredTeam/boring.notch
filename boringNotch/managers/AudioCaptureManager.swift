@@ -110,7 +110,6 @@ final class AudioCaptureManager: ObservableObject {
         computeBandRanges(sampleRate: sampleRate)
         Task { @MainActor [weak self] in
             self?.observeState()
-            self?.observeAudioProcessList()
         }
     }
 
@@ -187,6 +186,7 @@ final class AudioCaptureManager: ObservableObject {
         }
     }
 
+    @MainActor
     private func evaluate(
         isPlaying: Bool,
         displayBundleID: String?,
@@ -197,9 +197,12 @@ final class AudioCaptureManager: ObservableObject {
               enabled, isPlaying,
               let resolvedDisplayBundleID = displayBundleID,
               !resolvedDisplayBundleID.isEmpty else {
+            audioProcessObserver = nil
             stopCaptureAsync()
             return
         }
+        // Keep listening while a helper has not appeared yet, even without a tap.
+        observeAudioProcessList()
         let resolvedPIDs = resolvePIDs(
             displayBundleID: resolvedDisplayBundleID,
             captureBundleIDs: captureBundleIDs
@@ -221,7 +224,7 @@ final class AudioCaptureManager: ObservableObject {
 
     @MainActor
     private func observeAudioProcessList() {
-        guard #available(macOS 14.2, *) else { return }
+        guard #available(macOS 14.2, *), audioProcessObserver == nil else { return }
         audioProcessObserver = AudioProcessObserver { [weak self] in
             Task { @MainActor [weak self] in
                 let music = MusicManager.shared
@@ -260,10 +263,17 @@ final class AudioCaptureManager: ObservableObject {
         }
 
         // Chromium keeps video audio in a sibling helper process. Same app, different room.
-        let normalizedBundleIDs = Set(
-            bundleIDs.map { normalizeBundleIdentifier($0).lowercased() }
-        )
-        pids.formUnion(AudioProcessObserver.processPIDs(matching: normalizedBundleIDs))
+        let helperPIDs = AudioProcessObserver.processPIDs(matching: Set(bundleIDs)) { pid in
+            if let app = NSRunningApplication(processIdentifier: pid) {
+                return belongsToDisplayApplication(
+                    app,
+                    displayBundlePaths: displayBundlePaths
+                )
+            }
+            guard let executablePath = executablePath(forPID: pid) else { return false }
+            return displayBundlePaths.contains { pathContainsApp($0, candidatePath: executablePath) }
+        }
+        pids.formUnion(helperPIDs)
 
         if pids.isEmpty {
             return NSRunningApplication

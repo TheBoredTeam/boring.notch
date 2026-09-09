@@ -33,8 +33,11 @@ final class AudioProcessObserver {
         )
     }
 
-    static func processPIDs(matching normalizedBundleIDs: Set<String>) -> Set<pid_t> {
-        guard !normalizedBundleIDs.isEmpty else { return [] }
+    static func processPIDs(
+        matching bundleIDs: Set<String>,
+        belongsToDisplayApp: (pid_t) -> Bool
+    ) -> Set<pid_t> {
+        guard !bundleIDs.isEmpty else { return [] }
         var address = processListAddress
         var size: UInt32 = 0
         let sizeStatus = AudioObjectGetPropertyDataSize(
@@ -56,11 +59,40 @@ final class AudioProcessObserver {
         var pids = Set<pid_t>()
         for objectID in objectIDs {
             guard let bundleID = bundleIdentifier(for: objectID),
-                  normalizedBundleIDs.contains(normalizeBundleIdentifier(bundleID).lowercased()),
-                  let pid = processID(for: objectID) else { continue }
+                  let pid = processID(for: objectID),
+                  isCaptureTarget(
+                    bundleIdentifier: bundleID,
+                    bundleIDs: bundleIDs,
+                    belongsToDisplayApp: belongsToDisplayApp(pid)
+                  ) else { continue }
             pids.insert(pid)
         }
         return pids
+    }
+
+    static func isCaptureTarget(
+        bundleIdentifier: String,
+        bundleIDs: Set<String>,
+        belongsToDisplayApp: @autoclosure () -> Bool
+    ) -> Bool {
+        guard !bundleIdentifier.isEmpty, !bundleIDs.isEmpty else { return false }
+        let candidate = bundleIdentifier.lowercased()
+        // WebKit is shared by many apps; its icon is not proof of ownership.
+        if candidate.hasPrefix("com.apple.webkit.") {
+            return belongsToDisplayApp()
+        }
+        let candidateFamily = helperFamily(for: candidate)
+        return bundleIDs.contains { target in
+            !target.isEmpty && helperFamily(for: target.lowercased()) == candidateFamily
+        }
+    }
+
+    private static func helperFamily(for bundleIdentifier: String) -> String {
+        let components = bundleIdentifier.components(separatedBy: ".")
+        guard let helperIndex = components.firstIndex(of: "helper"), helperIndex > 0 else {
+            return bundleIdentifier
+        }
+        return components[..<helperIndex].joined(separator: ".")
     }
 
     private static var processListAddress: AudioObjectPropertyAddress {
