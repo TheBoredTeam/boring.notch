@@ -18,12 +18,12 @@ class MusicVisualizerModel: NSView, AudioCaptureLevelsConsumer {
 
     private weak var attachedManager: AudioCaptureManager?
     private var lastAppliedLevels: [Float]
-    private static let levelChangeThreshold: Float = 0.01
+    private static let levelChangeThreshold: Float = 0.005
     private static let minBarScale: CGFloat = 0.12
     private static let idleBarScale: CGFloat = 0.3
     private static let animationKey = "scaleAnimation"
 
-    private let barWidth: CGFloat = 2.5
+    private let barWidth: CGFloat = 2
     private let barCount = AudioCaptureManager.barCount
     private let spacing: CGFloat = 1
     private let totalHeight: CGFloat = 14
@@ -229,7 +229,7 @@ struct MusicVisualizer: NSViewRepresentable {
     func makeNSView(context: Context) -> MusicVisualizerModel {
         let spectrum = MusicVisualizerModel()
         spectrum.setTintColor(NSColor(tintColor))
-        spectrum.setUseRealtime(realtimeEnabled)
+        spectrum.setUseRealtime(realtimeEnabled && audioCapture.isCapturing)
         spectrum.setPlaying(isPlaying)
         spectrum.attach(to: audioCapture)
         spectrum.syncCurrentLevels(from: audioCapture)
@@ -238,7 +238,7 @@ struct MusicVisualizer: NSViewRepresentable {
 
     func updateNSView(_ nsView: MusicVisualizerModel, context: Context) {
         nsView.setTintColor(NSColor(tintColor))
-        nsView.setUseRealtime(realtimeEnabled)
+        nsView.setUseRealtime(realtimeEnabled && audioCapture.isCapturing)
         nsView.setPlaying(isPlaying)
         nsView.syncCurrentLevels(from: audioCapture)
     }
@@ -248,7 +248,7 @@ struct MusicVisualizer: NSViewRepresentable {
     ZStack {
         Color.black
         MusicVisualizer(isPlaying: true, tintColor: .green)
-            .frame(width: 20, height: 14)
+            .frame(width: 18, height: 14)
     }
     .padding()
 }
