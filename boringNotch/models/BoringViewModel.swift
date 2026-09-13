@@ -216,6 +216,9 @@ class BoringViewModel: NSObject, ObservableObject {
         } else if !coordinator.openLastTabByDefault {
             coordinator.currentView = .home
         }
+
+        // The branches above can land on a tab whose feature is disabled.
+        coordinator.normalizeCurrentViewIfNeeded()
     }
 
     func closeHello() {

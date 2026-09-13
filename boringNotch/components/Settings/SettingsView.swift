@@ -51,6 +51,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(value: "Clipboard") {
+                    Label("Clipboard", systemImage: "clipboard")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -85,6 +88,8 @@ struct SettingsView: View {
                     Charge()
                 case "Shelf":
                     Shelf()
+                case "Clipboard":
+                    ClipboardSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -1015,6 +1020,118 @@ struct Shelf: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Shelf")
+    }
+}
+
+struct ClipboardSettings: View {
+    @Default(.clipboardHistoryEnabled) var historyEnabled: Bool
+    @Default(.clipboardHistoryLimit) var historyLimit: Int
+    @ObservedObject private var store = ClipboardStore.shared
+
+    @State private var blobBytes: Int = 0
+
+    private var storageDescription: String {
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = [.useKB, .useMB]
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: Int64(blobBytes))
+    }
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .clipboardHistoryEnabled) {
+                    Text("Enable clipboard history")
+                }
+
+                Picker("Items to keep", selection: $historyLimit) {
+                    Text("20").tag(20)
+                    Text("50").tag(50)
+                    Text("100").tag(100)
+                    Text("200").tag(200)
+                }
+                .pickerStyle(.menu)
+                .disabled(!historyEnabled)
+
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(store.items.count) items stored")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("Images on disk: \(storageDescription)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    Button("Clear History", role: .destructive) {
+                        ClipboardActionService.clearAll()
+                        refreshStorageSize()
+                    }
+                    .disabled(store.isEmpty)
+                }
+                .padding(.vertical, 2)
+            } header: {
+                HStack {
+                    Text("General")
+                }
+            }
+
+            Section {
+                Defaults.Toggle(key: .clipboardCaptureText) {
+                    Text("Text")
+                }
+                Defaults.Toggle(key: .clipboardCaptureLinks) {
+                    Text("Links")
+                }
+                Defaults.Toggle(key: .clipboardCaptureImages) {
+                    Text("Images")
+                }
+                Defaults.Toggle(key: .clipboardCaptureFiles) {
+                    Text("Files")
+                }
+            } header: {
+                HStack {
+                    Text("Capture")
+                }
+            } footer: {
+                Text("Choose which kinds of copied content are recorded.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .disabled(!historyEnabled)
+
+            Section {
+                Defaults.Toggle(key: .clipboardIgnoreConcealed) {
+                    Text("Ignore sensitive content")
+                }
+                .disabled(!historyEnabled)
+            } header: {
+                HStack {
+                    Text("Privacy")
+                }
+            } footer: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Password managers mark copied passwords as concealed. When this is on, those items are never recorded.")
+                    Text("Clipboard history is stored unencrypted in Application Support.")
+                }
+                .font(.caption)
+                .foregroundColor(.secondary)
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Clipboard")
+        .onAppear { refreshStorageSize() }
+        .onChange(of: store.items.count) { refreshStorageSize() }
+    }
+
+    private func refreshStorageSize() {
+        Task {
+            // Detached so the directory scan does not run on main; the closure captures nothing
+            // from the view.
+            blobBytes = await Task.detached(priority: .utility) {
+                ClipboardBlobStore.shared.totalBytesOnDisk()
+            }.value
+        }
     }
 }
 
