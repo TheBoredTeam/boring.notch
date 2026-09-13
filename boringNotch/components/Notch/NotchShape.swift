@@ -35,85 +35,54 @@ struct NotchShape: Shape {
 
     func path(in rect: CGRect) -> Path {
         var path = Path()
+        let tcr = topCornerRadius
+        let bcr = bottomCornerRadius
+        // How far the cubic control points reach along each tangent. ~0.55 gives
+        // a near-circular arc; nudging it makes the flare ease in/out more
+        // gradually so the bottom corners read as smooth, continuous curvature
+        // rather than a tight quarter-circle.
+        let k: CGFloat = 0.62
 
-        path.move(
-            to: CGPoint(
-                x: rect.minX,
-                y: rect.minY
-            )
-        )
+        // Top-left start.
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
 
+        // Top-left inner corner (small).
         path.addQuadCurve(
-            to: CGPoint(
-                x: rect.minX + topCornerRadius,
-                y: rect.minY + topCornerRadius
-            ),
-            control: CGPoint(
-                x: rect.minX + topCornerRadius,
-                y: rect.minY
-            )
+            to: CGPoint(x: rect.minX + tcr, y: rect.minY + tcr),
+            control: CGPoint(x: rect.minX + tcr, y: rect.minY)
         )
 
-        path.addLine(
-            to: CGPoint(
-                x: rect.minX + topCornerRadius,
-                y: rect.maxY - bottomCornerRadius
-            )
+        // Left edge down.
+        path.addLine(to: CGPoint(x: rect.minX + tcr, y: rect.maxY - bcr))
+
+        // Bottom-left flare — cubic for smooth, continuous curvature.
+        path.addCurve(
+            to: CGPoint(x: rect.minX + tcr + bcr, y: rect.maxY),
+            control1: CGPoint(x: rect.minX + tcr, y: rect.maxY - bcr * (1 - k)),
+            control2: CGPoint(x: rect.minX + tcr + bcr * (1 - k), y: rect.maxY)
         )
 
+        // Bottom edge.
+        path.addLine(to: CGPoint(x: rect.maxX - tcr - bcr, y: rect.maxY))
+
+        // Bottom-right flare — cubic.
+        path.addCurve(
+            to: CGPoint(x: rect.maxX - tcr, y: rect.maxY - bcr),
+            control1: CGPoint(x: rect.maxX - tcr - bcr * (1 - k), y: rect.maxY),
+            control2: CGPoint(x: rect.maxX - tcr, y: rect.maxY - bcr * (1 - k))
+        )
+
+        // Right edge up.
+        path.addLine(to: CGPoint(x: rect.maxX - tcr, y: rect.minY + tcr))
+
+        // Top-right inner corner.
         path.addQuadCurve(
-            to: CGPoint(
-                x: rect.minX + topCornerRadius + bottomCornerRadius,
-                y: rect.maxY
-            ),
-            control: CGPoint(
-                x: rect.minX + topCornerRadius,
-                y: rect.maxY
-            )
+            to: CGPoint(x: rect.maxX, y: rect.minY),
+            control: CGPoint(x: rect.maxX - tcr, y: rect.minY)
         )
 
-        path.addLine(
-            to: CGPoint(
-                x: rect.maxX - topCornerRadius - bottomCornerRadius,
-                y: rect.maxY
-            )
-        )
-
-        path.addQuadCurve(
-            to: CGPoint(
-                x: rect.maxX - topCornerRadius,
-                y: rect.maxY - bottomCornerRadius
-            ),
-            control: CGPoint(
-                x: rect.maxX - topCornerRadius,
-                y: rect.maxY
-            )
-        )
-
-        path.addLine(
-            to: CGPoint(
-                x: rect.maxX - topCornerRadius,
-                y: rect.minY + topCornerRadius
-            )
-        )
-
-        path.addQuadCurve(
-            to: CGPoint(
-                x: rect.maxX,
-                y: rect.minY
-            ),
-            control: CGPoint(
-                x: rect.maxX - topCornerRadius,
-                y: rect.minY
-            )
-        )
-
-        path.addLine(
-            to: CGPoint(
-                x: rect.minX,
-                y: rect.minY
-            )
-        )
+        // Top edge back to start.
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
 
         return path
     }
