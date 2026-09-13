@@ -365,24 +365,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        KeyboardShortcuts.onKeyDown(for: .clipboardHistoryPanel) { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                guard Defaults[.enableClipboardHistory] else { return }
+
+                let viewModel = self.viewModelForMouseScreen()
+
+                if viewModel.notchState == .open && self.coordinator.currentView == .clipboard {
+                    viewModel.close()
+                } else {
+                    self.closeNotchTask?.cancel()
+                    self.closeNotchTask = nil
+                    self.coordinator.currentView = .clipboard
+                    viewModel.open()
+                }
+            }
+        }
+
         KeyboardShortcuts.onKeyDown(for: .toggleNotchOpen) { [weak self] in
             Task { [weak self] in
                 guard let self = self else { return }
 
-                let mouseLocation = NSEvent.mouseLocation
-
-                var viewModel = self.vm
-
-                if Defaults[.showOnAllDisplays] {
-                    for screen in NSScreen.screens {
-                        if screen.frame.contains(mouseLocation) {
-                            if let uuid = screen.displayUUID, let screenViewModel = self.viewModels[uuid] {
-                                viewModel = screenViewModel
-                                break
-                            }
-                        }
-                    }
-                }
+                let viewModel = await self.viewModelForMouseScreen()
 
                 self.closeNotchTask?.cancel()
                 self.closeNotchTask = nil
@@ -421,6 +426,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         setupDragDetectors()
+
+        Task { @MainActor in
+            ClipboardHistoryViewModel.shared.bootstrap()
+            BluetoothDeviceManager.shared.start()
+        }
 
         if coordinator.firstLaunch {
             DispatchQueue.main.async {
@@ -540,6 +550,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+    }
+
+    @MainActor
+    private func viewModelForMouseScreen() -> BoringViewModel {
+        let mouseLocation = NSEvent.mouseLocation
+
+        if Defaults[.showOnAllDisplays] {
+            for screen in NSScreen.screens where screen.frame.contains(mouseLocation) {
+                if let uuid = screen.displayUUID, let screenViewModel = viewModels[uuid] {
+                    return screenViewModel
+                }
+            }
+        }
+
+        return vm
     }
 
     @objc func togglePopover(_ sender: Any?) {

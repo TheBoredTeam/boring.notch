@@ -183,6 +183,36 @@ extension Defaults.Keys {
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
     
+    // MARK: Timer
+    static let enableTimerFeature = Key<Bool>("enableTimerFeature", default: true)
+    static let pomodoroWorkMinutes = Key<Int>("pomodoroWorkMinutes", default: 25)
+    static let pomodoroShortBreakMinutes = Key<Int>("pomodoroShortBreakMinutes", default: 5)
+    static let pomodoroLongBreakMinutes = Key<Int>("pomodoroLongBreakMinutes", default: 15)
+    static let pomodoroSessionsBeforeLongBreak = Key<Int>("pomodoroSessionsBeforeLongBreak", default: 4)
+    static let pomodoroAutoAdvance = Key<Bool>("pomodoroAutoAdvance", default: false)
+    static let timerNotificationEnabled = Key<Bool>("timerNotificationEnabled", default: true)
+    static let timerSoundEnabled = Key<Bool>("timerSoundEnabled", default: true)
+    static let showTimerLiveActivity = Key<Bool>("showTimerLiveActivity", default: true)
+
+    // MARK: Visualizer background
+    static let visualizerBackgroundEnabled = Key<Bool>("visualizerBackgroundEnabled", default: false)
+    static let visualizerBackgroundStyle = Key<VisualizerBackgroundStyle>(
+        "visualizerBackgroundStyle",
+        default: .bars
+    )
+    static let visualizerBackgroundIntensity = Key<CGFloat>("visualizerBackgroundIntensity", default: 0.35)
+
+    // MARK: Clipboard
+    static let enableClipboardHistory = Key<Bool>("enableClipboardHistory", default: false)
+    static let clipboardHistorySize = Key<Int>("clipboardHistorySize", default: 25)
+    static let clipboardIgnoreConcealed = Key<Bool>("clipboardIgnoreConcealed", default: true)
+    static let clipboardStoreImages = Key<Bool>("clipboardStoreImages", default: true)
+    static let clipboardAutoCloseOnCopy = Key<Bool>("clipboardAutoCloseOnCopy", default: true)
+
+    // MARK: Bluetooth
+    static let enableBluetoothLiveActivity = Key<Bool>("enableBluetoothLiveActivity", default: true)
+    static let bluetoothActivityShowPercentage = Key<Bool>("bluetoothActivityShowPercentage", default: true)
+
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)
