@@ -5,8 +5,9 @@
 //  Created by Richard Kunkli on 09/08/2024.
 //
 
-import SwiftUI
+import Defaults
 import Sparkle
+import SwiftUI
 
 final class CheckForUpdatesViewModel: ObservableObject {
     @Published var canCheckForUpdates = false
@@ -37,6 +38,8 @@ struct CheckForUpdatesView: View {
 struct UpdaterSettingsView: View {
     private let updater: SPUUpdater
     
+    @Default(.updateChannel) private var updateChannel
+    @Default(.updateChannelUserSelected) private var updateChannelUserSelected
     @State private var automaticallyChecksForUpdates: Bool
     @State private var automaticallyDownloadsUpdates: Bool
     
@@ -47,21 +50,40 @@ struct UpdaterSettingsView: View {
     }
     
     var body: some View {
-        Section {
+        Section(
+            header: HStack {
+                Text("Software updates")
+            },
+            footer: Text(
+                NSLocalizedString(
+                    "Stable and Beta come from official releases.",
+                    comment: "Software updates channel footer"
+                )
+            )
+        ) {
+            Picker(
+                NSLocalizedString("Update channel", comment: "Software updates channel picker label"),
+                selection: $updateChannel
+            ) {
+                ForEach(UpdateChannel.visibleCases) { channel in
+                    Text(channel.title).tag(channel)
+                }
+            }
+            .onChange(of: updateChannel) { _, _ in
+                updateChannelUserSelected = true
+                updater.resetUpdateCycle()
+            }
+
             Toggle("Automatically check for updates", isOn: $automaticallyChecksForUpdates)
                 .onChange(of: automaticallyChecksForUpdates) { _, newValue in
                     updater.automaticallyChecksForUpdates = newValue
                 }
-            
+
             Toggle("Automatically download updates", isOn: $automaticallyDownloadsUpdates)
                 .disabled(!automaticallyChecksForUpdates)
                 .onChange(of: automaticallyDownloadsUpdates) { _, newValue in
                     updater.automaticallyDownloadsUpdates = newValue
                 }
-        } header: {
-            HStack {
-                Text("Software updates")
-            }
         }
     }
 }

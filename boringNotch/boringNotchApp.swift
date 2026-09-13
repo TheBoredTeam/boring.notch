@@ -18,11 +18,16 @@ struct DynamicNotchApp: App {
     @Default(.menubarIcon) var showMenuBarIcon
     @Environment(\.openWindow) var openWindow
 
+    private let updaterDelegate: BoringSparkleUpdaterDelegate
     let updaterController: SPUStandardUpdaterController
 
     init() {
+        UpdateChannel.applyBundledDefaultIfNeeded()
+
+        let updaterDelegate = BoringSparkleUpdaterDelegate()
+        self.updaterDelegate = updaterDelegate
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+            startingUpdater: true, updaterDelegate: updaterDelegate, userDriverDelegate: nil)
 
         // Initialize the settings window controller with the updater controller
         SettingsWindowController.shared.setUpdaterController(updaterController)
@@ -46,6 +51,21 @@ struct DynamicNotchApp: App {
             }
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
         }
+    }
+}
+
+@MainActor
+final class BoringSparkleUpdaterDelegate: NSObject, SPUUpdaterDelegate {
+    @objc func feedURLString(for updater: SPUUpdater) -> String? {
+        Defaults[.updateChannel].feedURLString
+    }
+
+    @objc func allowedChannels(for updater: SPUUpdater) -> Set<String> {
+        Defaults[.updateChannel].allowedSparkleChannels
+    }
+
+    func updaterShouldPromptForPermissionToCheck(forUpdates updater: SPUUpdater) -> Bool {
+        false
     }
 }
 
