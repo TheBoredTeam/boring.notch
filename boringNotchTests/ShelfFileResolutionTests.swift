@@ -317,6 +317,7 @@ final class ShelfFileResolutionTests: XCTestCase {
             let view = NSView()
             let menu = ShelfContextMenuBuilder.makeMenu(
                 item: link, in: view, selectedItems: [link], onShare: { _ in }, onQuickLook: { _ in },
+                shelfState: ShelfStateViewModel(items: [link], resolver: ShelfBookmarkResolver { _, _ in nil }),
                 discoverApplications: { _ in
                     await withCheckedContinuation { continuation in
                         discovery = continuation
@@ -341,6 +342,98 @@ final class ShelfFileResolutionTests: XCTestCase {
                 menu.delegate?.menuDidClose?(menu)
             }
         }
+    }
+
+    @MainActor
+    func testOpenWithMixedSelectionsPreferClickedOpenableItemAndFallBack() async throws {
+        let text = ShelfItem(kind: .text(string: "note"))
+        let linkURL = try XCTUnwrap(URL(string: "https://example.com"))
+        let link = ShelfItem(kind: .link(url: linkURL))
+        let folder = ShelfItem(kind: .file(bookmark: Data("folder".utf8)))
+        let file = ShelfItem(kind: .file(bookmark: Data("file".utf8)))
+        let fileURL = URL(fileURLWithPath: "/tmp/document.txt")
+        let application = ShelfContextMenuBuilder.OpenWithApplication(
+            url: URL(fileURLWithPath: "/Applications/Example.app"), title: "Example",
+            isDefault: true, iconData: nil)
+        let cases: [(ShelfItem, [ShelfItem], URL)] = [
+            (text, [text, link], linkURL),
+            (folder, [folder, file], fileURL),
+            (folder, [folder, link], linkURL),
+            (link, [file, link], linkURL),
+            (file, [link, file], fileURL)
+        ]
+        for (clicked, selection, expectedURL) in cases {
+            let state = ShelfStateViewModel(items: selection, resolver: ShelfBookmarkResolver { data, _ in
+                ResolvedShelfFile(url: data == Data("folder".utf8) ? URL(fileURLWithPath: "/tmp/folder") : fileURL,
+                                  refreshedBookmarkData: nil, displayName: "fixture",
+                                  isDirectory: data == Data("folder".utf8), contentTypeIdentifier: nil)
+            })
+            var discoveredURLs: [URL] = []
+            let menu = ShelfContextMenuBuilder.makeMenu(
+                item: clicked, in: NSView(), selectedItems: selection,
+                onShare: { _ in }, onQuickLook: { _ in }, shelfState: state,
+                discoverApplications: { url in
+                    discoveredURLs.append(url)
+                    return [application]
+                })
+            let submenu = try XCTUnwrap(menu.items.first(where: { $0.title == Strings.openWith })?.submenu)
+            for _ in 0..<100 where submenu.items.first?.representedObject as? URL == nil {
+                try await Task.sleep(for: .milliseconds(5))
+            }
+            XCTAssertEqual(discoveredURLs, [expectedURL])
+            XCTAssertEqual(submenu.items.first?.representedObject as? URL, application.url)
+            XCTAssertEqual(submenu.items.first?.state, .on)
+            XCTAssertNotNil(submenu.items.first?.target)
+            XCTAssertNotNil(submenu.items.first?.action)
+            menu.delegate?.menuDidClose?(menu)
+        }
+    }
+
+    @MainActor
+    func testOpenWithFallbackStopsAfterMenuCloseDuringFileResolution() async throws {
+        let folder = ShelfItem(kind: .file(bookmark: Data("blocked-folder".utf8)))
+        let link = ShelfItem(kind: .link(url: try XCTUnwrap(URL(string: "https://example.com"))))
+        let blocking = BlockingShelfResolution(result: ResolvedShelfFile(
+            url: URL(fileURLWithPath: "/tmp/folder"), refreshedBookmarkData: nil,
+            displayName: "folder", isDirectory: true, contentTypeIdentifier: nil))
+        let state = ShelfStateViewModel(items: [folder, link], resolver: ShelfBookmarkResolver(resolution: blocking.resolve))
+        var discoveredURLs: [URL] = []
+        let menu = ShelfContextMenuBuilder.makeMenu(
+            item: folder, in: NSView(), selectedItems: [folder, link],
+            onShare: { _ in }, onQuickLook: { _ in }, shelfState: state,
+            discoverApplications: { url in discoveredURLs.append(url); return [] })
+        let started = await blocking.waitUntilStarted()
+        XCTAssertTrue(started)
+        menu.delegate?.menuDidClose?(menu)
+        blocking.unblock()
+        try await Task.sleep(for: .milliseconds(30))
+        XCTAssertTrue(discoveredURLs.isEmpty)
+    }
+
+    @MainActor
+    func testOpenWithDiscoveryDoesNotPublishAfterRepresentativeRemoval() async throws {
+        let text = ShelfItem(kind: .text(string: "note"))
+        let link = ShelfItem(kind: .link(url: try XCTUnwrap(URL(string: "https://example.com"))))
+        let state = ShelfStateViewModel(items: [text, link], resolver: ShelfBookmarkResolver { _, _ in nil })
+        var discovery: CheckedContinuation<[ShelfContextMenuBuilder.OpenWithApplication], Never>?
+        let started = expectation(description: "fallback discovery starts")
+        let menu = ShelfContextMenuBuilder.makeMenu(
+            item: text, in: NSView(), selectedItems: [text, link],
+            onShare: { _ in }, onQuickLook: { _ in }, shelfState: state,
+            discoverApplications: { _ in
+                await withCheckedContinuation { continuation in
+                    discovery = continuation
+                    started.fulfill()
+                }
+            })
+        let submenu = try XCTUnwrap(menu.items.first(where: { $0.title == Strings.openWith })?.submenu)
+        await fulfillment(of: [started], timeout: 1)
+        state.remove(link)
+        discovery?.resume(returning: [.init(url: URL(fileURLWithPath: "/Applications/Example.app"),
+                                          title: "Example", isDefault: true, iconData: nil)])
+        try await Task.sleep(for: .milliseconds(30))
+        XCTAssertNil(submenu.items.first?.representedObject)
+        menu.delegate?.menuDidClose?(menu)
     }
 
     @MainActor

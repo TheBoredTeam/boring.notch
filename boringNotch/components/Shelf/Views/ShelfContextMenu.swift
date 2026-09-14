@@ -72,17 +72,28 @@ struct OpenWithApplication: Sendable {
     let iconData: Data?
 }
 
-static func openWithApplications(for item: ShelfItem) async -> [OpenWithApplication] {
-    let url: URL
-    switch item.kind {
-    case .file:
-        guard let file = await ShelfStateViewModel.shared.resolveFile(
-            for: item, intent: .userInitiated, refresh: true
-        ), !file.isDirectory else { return [] }
-        url = file.url
-    case .link(let link): url = link
-    case .text: return []
+static func openWithTarget(
+    for clickedItem: ShelfItem, selectedItems: [ShelfItem], shelfState: ShelfStateViewModel
+) async -> (item: ShelfItem, url: URL)? {
+    let candidates = [clickedItem] + selectedItems.filter { $0.id != clickedItem.id }
+    for candidate in candidates {
+        guard !Task.isCancelled else { return nil }
+        guard let current = shelfState.items.first(where: { $0.id == candidate.id }) else { continue }
+        switch current.kind {
+        case .file:
+            guard let file = await shelfState.resolveFile(
+                for: current, intent: .userInitiated, refresh: true
+            ), !file.isDirectory,
+               let resolvedItem = shelfState.items.first(where: { $0.id == current.id }) else { continue }
+            return (resolvedItem, file.url)
+        case .link(let url): return (current, url)
+        case .text: continue
+        }
     }
+    return nil
+}
+
+static func openWithApplications(for url: URL) async -> [OpenWithApplication] {
     return await ShelfBookmarkResolutionExecutor.shared.execute {
         let accessing = url.startAccessingSecurityScopedResource()
         defer { if accessing { url.stopAccessingSecurityScopedResource() } }
@@ -109,7 +120,8 @@ static func openWithApplications(for item: ShelfItem) async -> [OpenWithApplicat
 static func makeMenu(
     item: ShelfItem, in view: NSView, selectedItems: [ShelfItem],
     onShare: @escaping (NSView?) -> Void, onQuickLook: @escaping ([URL]) -> Void,
-    discoverApplications: ((ShelfItem) async -> [OpenWithApplication])? = nil
+    shelfState: ShelfStateViewModel = .shared,
+    discoverApplications: ((URL) async -> [OpenWithApplication])? = nil
 ) -> NSMenu {
     let menu = NSMenu()
     var openWithSubmenu: NSMenu?
@@ -123,7 +135,7 @@ static func makeMenu(
     }
 
     let resolvedFiles = selectedItems.compactMap {
-        ShelfStateViewModel.shared.resolvedFile(for: $0)
+        shelfState.resolvedFile(for: $0)
     }
     let hasSelectedFiles = selectedItems.contains { item in
         if case .file = item.kind { return true }
@@ -136,7 +148,7 @@ static func makeMenu(
     let hasOpenableItems = selectedItems.contains { selectedItem in
         if case .link = selectedItem.kind { return true }
         if case .file = selectedItem.kind {
-            return ShelfStateViewModel.shared.resolvedFile(for: selectedItem)?.isDirectory != true
+            return shelfState.resolvedFile(for: selectedItem)?.isDirectory != true
         }
         return false
     }
@@ -238,7 +250,7 @@ static func makeMenu(
     menu.addItem(NSMenuItem.separator())
     addMenuItem(title: Strings.remove, contextAction: .remove)
 
-    let actionTarget = MenuActionTarget(item: item, view: view, onShare: onShare, onQuickLook: onQuickLook)
+    let actionTarget = MenuActionTarget(item: item, selectedItems: selectedItems, shelfState: shelfState, view: view, onShare: onShare, onQuickLook: onQuickLook)
 
     for menuItem in menu.items {
         if menuItem.isSeparatorItem { continue }
@@ -259,7 +271,15 @@ static func makeMenu(
     menu.delegate = actionTarget
     if let submenu = openWithSubmenu {
         actionTarget.discoveryTask = Task { [weak actionTarget, weak submenu] in
-            let applications = await (discoverApplications ?? openWithApplications)(item)
+            let target = await openWithTarget(for: item, selectedItems: selectedItems, shelfState: shelfState)
+            guard !Task.isCancelled else { return }
+            let applications: [OpenWithApplication]
+            if let target {
+                applications = await (discoverApplications ?? openWithApplications)(target.url)
+                guard shelfState.containsCurrentVersion(of: target.item) else { return }
+            } else {
+                applications = []
+            }
             guard !Task.isCancelled, let actionTarget, let submenu else { return }
             submenu.removeItem(at: 0)
             if applications.isEmpty {
@@ -294,6 +314,8 @@ private final class MenuActionTarget: NSObject, NSMenuDelegate {
 
     private static var copiedURLs: [URL] = []
     let item: ShelfItem
+    let selectedItems: [ShelfItem]
+    let shelfState: ShelfStateViewModel
     weak var view: NSView?
     let onShare: (NSView?) -> Void
     let onQuickLook: ([URL]) -> Void
@@ -301,8 +323,10 @@ private final class MenuActionTarget: NSObject, NSMenuDelegate {
     // Keep associated objects (like accessory view handlers) without magic keys
     private static var sliderHandlerAssoc = AssociatedObject<AnyObject>()
 
-    init(item: ShelfItem, view: NSView, onShare: @escaping (NSView?) -> Void, onQuickLook: @escaping ([URL]) -> Void) {
+    init(item: ShelfItem, selectedItems: [ShelfItem], shelfState: ShelfStateViewModel, view: NSView, onShare: @escaping (NSView?) -> Void, onQuickLook: @escaping ([URL]) -> Void) {
         self.item = item
+        self.selectedItems = selectedItems
+        self.shelfState = shelfState
         self.view = view
         self.onShare = onShare
         self.onQuickLook = onQuickLook
@@ -319,7 +343,7 @@ private final class MenuActionTarget: NSObject, NSMenuDelegate {
         let action = actionRaw.flatMap { ContextMenuAction(rawValue: $0) }
 
         if let appURL = sender.representedObject as? URL {
-            let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+            let selected = selectedItems
 
             Task {
                     var allSelectedURLs: [URL] = []
@@ -472,10 +496,11 @@ private final class MenuActionTarget: NSObject, NSMenuDelegate {
     @MainActor
     private func resolveURLs(for items: [ShelfItem]) async -> [URL] {
         var urls: [URL] = []
-        for selectedItem in items {
+        for item in items {
+            guard let selectedItem = shelfState.items.first(where: { $0.id == item.id }) else { continue }
             switch selectedItem.kind {
             case .file:
-                if let file = await ShelfStateViewModel.shared.resolveFile(
+                if let file = await shelfState.resolveFile(
                     for: selectedItem,
                     intent: .userInitiated,
                     refresh: true
@@ -543,7 +568,7 @@ private final class MenuActionTarget: NSObject, NSMenuDelegate {
 
         let panel = NSOpenPanel()
         panel.title = String(localized: "Choose Application")
-        panel.message = String(localized: "Choose an application to open the document “\(item.displayName)”.")
+        panel.message = String(format: String(localized: "Choose an application to open the document \"%@\"."), item.displayName)
         panel.prompt = String(localized: "Open")
         panel.allowsMultipleSelection = false
         panel.canChooseFiles = true
