@@ -100,6 +100,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        ClipboardHistoryManager.shared.stopMonitoring()
         // Flush debounced shelf persistence to avoid losing recent changes
         ShelfStateViewModel.shared.flushSync()
 
@@ -136,6 +137,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        ClipboardHistoryManager.shared.startMonitoring()
 
         NotificationCenter.default.addObserver(
             self,

@@ -11,7 +11,11 @@ import SwiftUI
 
 let shadowPadding: CGFloat = 20
 let openNotchSize: CGSize = .init(width: 640, height: 190)
-let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
+let windowSize: CGSize = .init(width: openNotchSize.width, height: 310 + shadowPadding)
+
+func notchOpenSize(for view: NotchViews) -> CGSize {
+    view == .clipboard ? CGSize(width: openNotchSize.width, height: 310) : openNotchSize
+}
 let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
 
 /// Compact mode uses a much rounder opened shape than the standard layout
