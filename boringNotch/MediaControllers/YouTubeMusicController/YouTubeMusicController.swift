@@ -205,13 +205,15 @@ final class YouTubeMusicController: MediaControllerProtocol {
             guard isCurrent(expected) else { return }
             let revision = metadataRevision
             let response = try await http.getPlaybackInfo(token: token)
-            guard isCurrent(expected), metadataRevision == revision else { return }
-            updatePlaybackState(with: response)
-            // Capture track identity: like responses from an earlier song are obsolete.
-            let track = (playbackState.title, playbackState.artist)
+            guard isCurrent(expected) else { return }
+            if metadataRevision == revision { updatePlaybackState(with: response) }
+            // A socket position can supersede the song snapshot without making
+            // favorite reconciliation obsolete. Bind that readback to the track
+            // current when its request starts, including its album.
+            let track = (playbackState.title, playbackState.artist, playbackState.album)
             do {
                 let like = try await http.getLikeState(token: token)
-                guard isCurrent(expected), track == (playbackState.title, playbackState.artist) else { return }
+                guard isCurrent(expected), track == (playbackState.title, playbackState.artist, playbackState.album) else { return }
                 playbackState.isFavorite = like.state?.uppercased() == "LIKE"
             } catch YouTubeMusicError.authenticationRequired {
                 authenticationRejected(generation: expected)
@@ -594,9 +596,12 @@ final class YouTubeMusicController: MediaControllerProtocol {
     }
 
     private func resetPlaybackState() {
+        // MusicManager ignores the initial distantPast sentinel. An intentional
+        // reset is a current snapshot that must clear the accepted old endpoint.
         playbackState = PlaybackState(
             bundleIdentifier: configuration.bundleIdentifier,
-            isPlaying: false
+            isPlaying: false,
+            lastUpdated: Date()
         )
     }
     

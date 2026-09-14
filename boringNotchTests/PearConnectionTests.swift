@@ -1,10 +1,12 @@
 import XCTest
+import Combine
 @testable import boringNotch
 
 private actor PearHTTPProbe {
     var requests: [URLRequest] = []
     var songRejection: Int?
     var authenticationFailures = 0
+    var liked = true
     var heldPath: String?
     var pending: CheckedContinuation<(Int, Data), Never>?
     var hasPendingRequest: Bool { pending != nil }
@@ -31,6 +33,10 @@ private actor PearHTTPProbe {
             }
             let count = requests.filter { $0.url?.path.hasPrefix("/auth/") == true }.count
             return (200, Data("{\"accessToken\":\"token-\(count)\"}".utf8))
+        }
+        if path == "/api/v1/like" { liked.toggle() }
+        if path == "/api/v1/like-state" {
+            return (200, Data("{\"state\":\"\(liked ? "LIKE" : "DISLIKE")\"}".utf8))
         }
         if path == "/api/v1/song" {
             if let status = songRejection { songRejection = nil; return (status, Data()) }
@@ -147,6 +153,86 @@ final class PearConnectionTests: XCTestCase {
         XCTAssertEqual(controller.playbackState.title, "Fixture")
         let authCount = await http.authenticationCount
         XCTAssertEqual(authCount, 2)
+    }
+
+    private func flushSubscriberQueue() async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            DispatchQueue.main.async { continuation.resume() }
+        }
+    }
+
+    func testEndpointResetReachesSubscriberWhileReplacementAuthenticationIsPending() async throws {
+        let http = PearHTTPProbe()
+        let controller = makeController(http)
+        defer { controller.stopConnection() }
+        var accepted: [PlaybackState] = []
+        // Match MusicManager's main-queue subscription and initialized-state
+        // boundary: initial sentinel snapshots must still be ignored.
+        let subscription = controller.playbackStatePublisher
+            .receive(on: DispatchQueue.main)
+            .filter { $0.lastUpdated != .distantPast }
+            .sink { accepted.append($0) }
+        defer { subscription.cancel() }
+        await flushSubscriberQueue()
+        XCTAssertTrue(accepted.isEmpty)
+        controller.startConnection()
+        try await eventually { accepted.last?.title == "Fixture" && accepted.last?.isPlaying == true }
+        let old = try XCTUnwrap(sockets.first)
+        await old.emit("{\"isPaused\":false,\"title\":\"Fixture\",\"elapsedSeconds\":42,\"imageSrc\":\"https://fixture.invalid/art.png\"}")
+        try await eventually { accepted.last?.artwork != nil && accepted.last?.currentTime == 42 }
+        await http.holdNext("/auth/boringNotch")
+        controller.configure(port: 26539)
+        try await eventually { await http.hasPendingRequest }
+        await flushSubscriberQueue()
+        let cleared = try XCTUnwrap(accepted.last)
+        XCTAssertEqual(cleared.title, "")
+        XCTAssertFalse(cleared.isPlaying)
+        XCTAssertNil(cleared.artwork)
+        XCTAssertEqual(cleared.currentTime, 0)
+        XCTAssertNotEqual(cleared.lastUpdated, .distantPast)
+        await old.emit("{\"isPaused\":false,\"title\":\"Obsolete\"}")
+        await flushSubscriberQueue()
+        XCTAssertEqual(accepted.last?.title, "")
+        await http.releaseHeld("{\"accessToken\":\"replacement\"}")
+        try await eventually { controller.playbackState.title == "Fixture" }
+    }
+
+    func testFavoriteReconcilesWhileSocketPositionSupersedesSlowSongResponse() async throws {
+        let http = PearHTTPProbe()
+        let controller = makeController(http)
+        defer { controller.stopConnection() }
+        controller.startConnection()
+        try await eventually { controller.playbackState.isFavorite }
+        let socket = try XCTUnwrap(sockets.first)
+        await socket.emit("{\"type\":\"POSITION_CHANGED\",\"position\":40}")
+        let previousLikeRequests = await http.requests.filter { $0.url?.path == "/api/v1/like-state" }.count
+        await http.holdNext("/api/v1/song")
+        let favorite = Task { await controller.setFavorite(false) }
+        try await eventually { await http.hasPendingRequest }
+        await socket.emit("{\"type\":\"POSITION_CHANGED\",\"position\":42}")
+        await http.releaseHeld("{\"isPaused\":false,\"title\":\"Fixture\",\"artist\":\"Pear\",\"elapsedSeconds\":3}")
+        await favorite.value
+        XCTAssertEqual(controller.playbackState.currentTime, 42)
+        XCTAssertFalse(controller.playbackState.isFavorite)
+        let likeRequests = await http.requests.filter { $0.url?.path == "/api/v1/like-state" }.count
+        XCTAssertGreaterThan(likeRequests, previousLikeRequests)
+    }
+
+    func testLikeResponseCannotAttachToAnotherTrack() async throws {
+        let http = PearHTTPProbe()
+        let controller = makeController(http)
+        defer { controller.stopConnection() }
+        controller.startConnection()
+        try await eventually { controller.playbackState.isFavorite }
+        let socket = try XCTUnwrap(sockets.first)
+        await http.holdNext("/api/v1/like-state")
+        let refresh = Task { await controller.updatePlaybackInfo() }
+        try await eventually { await http.hasPendingRequest }
+        await socket.emit("{\"isPaused\":false,\"title\":\"Another track\",\"artist\":\"Pear\"}")
+        await http.releaseHeld("{\"state\":\"LIKE\"}")
+        await refresh.value
+        XCTAssertEqual(controller.playbackState.title, "Another track")
+        XCTAssertFalse(controller.playbackState.isFavorite)
     }
 
     func testRepeatedStartCoalescesInitialization() async throws {
