@@ -5,54 +5,32 @@
 //  Created by Alexander on 2025-10-06.
 //
 
-import Cocoa
+import AppKit
 
-class ShareServiceFinder: NSObject, NSSharingServicePickerDelegate {
-    @MainActor
-    private var onServicesCaptured: (([NSSharingService]) -> Void)?
+struct NamedSharingService {
+    let name: NSSharingService.Name
+    let service: NSSharingService
+}
 
-    /// Returns share services asynchronously without blocking the UI
-    @MainActor
-    func findApplicableServices(for items: [Any], timeout: TimeInterval = 2.0) async -> [NSSharingService] {
-        let dummyView = NSView(frame: .zero)
-        let picker = NSSharingServicePicker(items: items)
-        picker.delegate = self
+@MainActor
+final class ShareServiceFinder {
+    /// Public stable identities available through `NSSharingService(named:)`.
+    static let supportedServiceNames: [NSSharingService.Name] = [
+        .sendViaAirDrop,
+        .composeEmail,
+        .composeMessage,
+        .addToSafariReadingList,
+        .useAsDesktopPicture,
+        .cloudSharing
+    ]
 
-        return await withCheckedContinuation { continuation in
-            var didResume = false
-
-            // Capture services callback
-            Task { @MainActor in
-                self.onServicesCaptured = { services in
-                    guard !didResume else { return }
-                    didResume = true
-                    picker.close()
-                    continuation.resume(returning: services)
-                }
+    func findApplicableServices(for items: [Any]) async -> [NamedSharingService] {
+        Self.supportedServiceNames.compactMap { name in
+            guard let service = NSSharingService(named: name),
+                  service.canPerform(withItems: items) else {
+                return nil
             }
-
-            picker.show(relativeTo: dummyView.bounds, of: dummyView, preferredEdge: .minY)
-
-            // Timeout task
-            Task { @MainActor in
-                try? await Task.sleep(for: .seconds(timeout))
-                guard !didResume else { return }
-                didResume = true
-                picker.close()  // Ensure picker is closed even on timeout
-                Log.shelf.debug("Warning: timed out waiting for sharing services")
-                continuation.resume(returning: [])
-            }
+            return NamedSharingService(name: name, service: service)
         }
-    }
-
-    // MARK: NSSharingServicePickerDelegate
-
-    func sharingServicePicker(_ picker: NSSharingServicePicker,
-                              sharingServicesForItems items: [Any],
-                              proposedSharingServices proposed: [NSSharingService]) -> [NSSharingService] {
-        Task { @MainActor in
-            self.onServicesCaptured?(proposed)
-        }
-        return proposed
     }
 }

@@ -73,7 +73,6 @@ final class SharingLifecycleDelegate: NSObject, NSSharingServiceDelegate, NSShar
 	private var pickerActive = false
 	private var serviceInProgress = false
 	private var finished = false
-	private var timeoutTask: Task<Void, Never>?
 
 	init(id: UUID, onEnd: @escaping () -> Void, onBegin: @escaping () -> Void, onFinish: @escaping () -> Void) {
 		self.id = id
@@ -81,11 +80,7 @@ final class SharingLifecycleDelegate: NSObject, NSSharingServiceDelegate, NSShar
 		self.onBegin = onBegin
 		self.onFinish = onFinish
 	}
-
-	deinit {
-		timeoutTask?.cancel()
-	}
-
+	
 	func markPickerBegan() {
 		guard !pickerActive else { return }
 		pickerActive = true
@@ -96,26 +91,17 @@ final class SharingLifecycleDelegate: NSObject, NSSharingServiceDelegate, NSShar
 		guard !serviceInProgress else { return }
 		serviceInProgress = true
 		onBegin()
-		startTimeoutFallback()
-	}
-
-	private func startTimeoutFallback() {
-		timeoutTask?.cancel()
-		timeoutTask = Task { @MainActor [weak self] in
-			try? await Task.sleep(for: .seconds(2))
-			guard let self = self, !Task.isCancelled else { return }
-			if !self.finished {
-				self.finishIfNeeded()
-			}
-		}
 	}
 
 	private func finishIfNeeded() {
 		guard !finished else { return }
 		finished = true
-		timeoutTask?.cancel()
 		onFinish()
 		onEnd()
+	}
+
+	func cancel() {
+		finishIfNeeded()
 	}
 
 	// MARK: - NSSharingServicePickerDelegate
@@ -130,7 +116,6 @@ final class SharingLifecycleDelegate: NSObject, NSSharingServiceDelegate, NSShar
 
 		service?.delegate = self
 		serviceInProgress = true
-		startTimeoutFallback()
 	}
 
 	// MARK: - NSSharingServiceDelegate

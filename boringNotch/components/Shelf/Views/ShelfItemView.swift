@@ -108,7 +108,6 @@ struct ShelfItemView: View {
         Image(nsImage: viewModel.presentationIcon)
             .resizable()
             .aspectRatio(contentMode: .fit)
->>>>>>> 22dcf9ee (Resolve shelf bookmarks without blocking UI)
             .frame(width: 56, height: 56)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 2)
