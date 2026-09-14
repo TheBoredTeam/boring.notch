@@ -93,7 +93,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var windows: [String: NSWindow] { windowManager.windows }
     var viewModels: [String: BoringViewModel] { windowManager.viewModels }
     var window: NSWindow? { windowManager.window }
-    var vm: BoringViewModel { windowManager.primaryViewModel }
+    var vm: BoringViewModel? { windowManager.primaryViewModel }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -149,7 +149,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             Task { @MainActor in
                 self?.windowManager.adjustWindowPosition(changeAlpha: true)
-                self?.windowManager.setupDragDetectors()
             }
         })
 
@@ -158,16 +157,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             Task { @MainActor in
                 self?.windowManager.adjustWindowPosition()
-                self?.windowManager.setupDragDetectors()
             }
         })
 
         observers.append(NotificationCenter.default.addObserver(
             forName: Notification.Name.automaticallySwitchDisplayChanged, object: nil, queue: nil
         ) { [weak self] _ in
-            guard let self = self, let window = self.window else { return }
             Task { @MainActor in
-                window.alphaValue = self.coordinator.selectedScreenUUID == self.coordinator.preferredScreenUUID ? 1 : 0
+                self?.windowManager.adjustWindowPosition(changeAlpha: true)
             }
         })
 
@@ -176,9 +173,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             Task { @MainActor in
                 guard let self = self else { return }
-                self.windowManager.cleanupWindows(shouldInvert: true)
                 self.windowManager.adjustWindowPosition(changeAlpha: true)
-                self.windowManager.setupDragDetectors()
             }
         })
 
@@ -245,6 +240,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                         }
                     }
                 }
+
+                guard let viewModel else { return }
 
                 self.closeNotchTask?.cancel()
                 self.closeNotchTask = nil
