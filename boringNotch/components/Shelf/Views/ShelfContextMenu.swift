@@ -653,8 +653,8 @@ private final class MenuActionTarget: NSObject {
                 let didStart = fileURL.startAccessingSecurityScopedResource()
 
                 let savePanel = NSSavePanel()
-                savePanel.title = "Rename File"
-                savePanel.prompt = "Rename"
+                savePanel.title = String(localized: "Rename File")
+                savePanel.prompt = String(localized: "Rename")
                 savePanel.nameFieldStringValue = fileURL.lastPathComponent
                 savePanel.directoryURL = fileURL.deletingLastPathComponent()
                 savePanel.begin { response in

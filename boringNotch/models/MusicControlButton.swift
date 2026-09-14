@@ -77,6 +77,17 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
         }
     }
 
+    func actionLabel(isPlaying: Bool, isFavorite: Bool) -> String {
+        switch self {
+        case .playPause:
+            return isPlaying ? String(localized: "Pause") : String(localized: "Play")
+        case .favorite:
+            return isFavorite ? String(localized: "Remove from Favorites") : String(localized: "Add to Favorites")
+        default:
+            return label
+        }
+    }
+
     var iconName: String {
         switch self {
         case .shuffle:

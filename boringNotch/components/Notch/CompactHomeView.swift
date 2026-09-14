@@ -167,6 +167,9 @@ struct CompactHomeView: View {
         HStack(spacing: 10) {
             ForEach(Array(displayedSlots.enumerated()), id: \.offset) { _, slot in
                 slotView(for: slot)
+                    .help(slot.actionLabel(isPlaying: musicManager.isPlaying, isFavorite: musicManager.isFavoriteTrack))
+                    .accessibilityLabel(slot.actionLabel(isPlaying: musicManager.isPlaying, isFavorite: musicManager.isFavoriteTrack))
+                    .accessibilityHidden(slot == .none)
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
