@@ -186,7 +186,7 @@ final class BoringViewModel: NSObject, ObservableObject {
     func open() -> Bool {
         guard !coordinator.firstLaunch, notchState != .open else { return false }
 
-        self.notchSize = openNotchSize
+        self.notchSize = notchOpenSize(for: coordinator.currentView)
         self.notchState = .open
         
         // Force music information update when notch is opened
