@@ -69,6 +69,11 @@ final class NSScreenUUIDCache {
         }
     }
     
+    /// Refresh before lifecycle reconciliation, independent of notification observer order.
+    func refresh() {
+        rebuildCache()
+    }
+
     private func rebuildCache() {
         var newCache: [String: NSScreen] = [:]
         

@@ -29,7 +29,7 @@ struct NotificationLiveActivity: View {
     @State private var ringScale: CGFloat = 1
     @State private var ringOpacity: Double = 0
 
-    private var itemSize: CGFloat { max(0, vm.effectiveClosedNotchHeight - 12) }
+    private var itemSize: CGFloat { max(0, vm.geometry.contentHeight - 12) }
 
     var body: some View {
         Group {
@@ -39,7 +39,7 @@ struct NotificationLiveActivity: View {
                 statusPill
             }
         }
-        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+        .frame(height: vm.geometry.contentHeight, alignment: .center)
         .onAppear { pulse() }
         .onChange(of: notification.id) { _, _ in pulse() }
     }

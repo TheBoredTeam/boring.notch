@@ -96,6 +96,15 @@ final class BoringViewModel: NSObject, ObservableObject {
         return noNotchAndFullscreen ? 0 : closedNotchSize.height
     }
 
+    var geometry: NotchGeometry {
+        let screen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) } ?? NSScreen.main
+        return NotchGeometry(
+            closedSize: CGSize(width: closedNotchSize.width, height: effectiveClosedNotchHeight),
+            hardwareHeight: screen?.safeAreaInsets.top ?? 0,
+            availableWidth: min(windowSize.width, screen?.frame.width ?? windowSize.width)
+        )
+    }
+
     /// Whether the current screen has a notch (safe area top inset > 0)
     var hasNotch: Bool {
         let currentScreen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) } ?? NSScreen.main

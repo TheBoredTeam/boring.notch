@@ -28,7 +28,7 @@ struct ShelfView: View {
                 FileShareView(dropInteraction: dropInteraction)
                     .aspectRatio(1, contentMode: .fit)
                 panel(quickLookService: quickLookService)
-                    .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $interaction.dragDetectorTargeting) { providers in
+                    .onDrop(of: ShelfTransferTypes.acceptedTypes, isTargeted: $interaction.dragDetectorTargeting) { providers in
                         handleDrop(providers: providers)
                     }
             }
@@ -36,8 +36,8 @@ struct ShelfView: View {
     }
     
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
-        guard !ShelfSelectionModel.shared.isDragging else { return false }
-        dropInteraction.dropEvent = true
+        guard Defaults[.boringShelf], ShelfTransferTypes.supports(providers), !ShelfSelectionModel.shared.isDragging else { return false }
+        dropInteraction.finish(dropped: true)
         shelfState.load(providers)
         return true
     }
@@ -93,7 +93,7 @@ struct ShelfView: View {
                 }
                 .padding(-spacing)
                 .scrollIndicators(.never)
-                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $interaction.dragDetectorTargeting) { providers in
+                .onDrop(of: ShelfTransferTypes.acceptedTypes, isTargeted: $interaction.dragDetectorTargeting) { providers in
                     handleDrop(providers: providers)
                 }
             }

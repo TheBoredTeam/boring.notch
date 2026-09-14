@@ -10,6 +10,24 @@ import AppKit
 import Foundation
 import UniformTypeIdentifiers
 
+/// Advertised representations the current shelf decoder can attempt to load.
+/// Acceptance is existential: extra private types must not reject a usable item.
+/// Decoding still validates the actual payload; native promises need a receiver first.
+enum ShelfTransferTypes {
+    static let acceptedTypes: [UTType] = [.fileURL, .url, .utf8PlainText, .plainText, .data]
+
+    static func supports(typeIdentifiers: [String]) -> Bool {
+        typeIdentifiers.contains { identifier in
+            guard let type = UTType(identifier) else { return false }
+            return acceptedTypes.contains { type.conforms(to: $0) }
+        }
+    }
+
+    static func supports(_ providers: [NSItemProvider]) -> Bool {
+        providers.contains { supports(typeIdentifiers: $0.registeredTypeIdentifiers) }
+    }
+}
+
 extension NSItemProvider {
     
     func extractItem() async -> URL? {

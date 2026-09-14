@@ -29,7 +29,7 @@ struct BoringHeader: View {
 
             if vm.notchState == .open {
                 Rectangle()
-                    .fill(NSScreen.screen(withUUID: coordinator.selectedScreenUUID)?.safeAreaInsets.top ?? 0 > 0 ? .black : .clear)
+                    .fill(vm.hasNotch ? .black : .clear)
                     .frame(width: vm.closedNotchSize.width)
                     .mask {
                         NotchShape()
