@@ -98,9 +98,9 @@ private actor PearArtworkProbe {
 final class PearConnectionTests: XCTestCase {
     private var sockets: [PearSocketProbe] = []
 
-    private func makeController(_ http: PearHTTPProbe, reconnectDelay: ClosedRange<TimeInterval> = 0.02...0.08, fetchArtwork: @escaping (URL) async throws -> Data = { _ in Data() }) -> YouTubeMusicController {
+    private func makeController(_ http: PearHTTPProbe, baseURL: String = "http://localhost:26538", reconnectDelay: ClosedRange<TimeInterval> = 0.02...0.08, fetchArtwork: @escaping (URL) async throws -> Data = { _ in Data() }) -> YouTubeMusicController {
         PearURLProtocol.handler = { await http.respond($0) }
-        let configuration = YouTubeMusicConfiguration(baseURL: "http://localhost:26538", bundleIdentifier: "fixture.pear", reconnectDelay: reconnectDelay, updateInterval: 0.01)
+        let configuration = YouTubeMusicConfiguration(baseURL: baseURL, bundleIdentifier: "fixture.pear", reconnectDelay: reconnectDelay, updateInterval: 0.01)
         return YouTubeMusicController(
             configuration: configuration, observeEnvironment: false, startAutomatically: false,
             makeHTTPClient: { baseURL in
@@ -124,6 +124,66 @@ final class PearConnectionTests: XCTestCase {
         }
         XCTFail("Timed out waiting for Pear fixture", file: file, line: line)
         throw CancellationError()
+    }
+
+    func testPortConfigurationUsesLoopbackAndRejectsOutOfRangeValues() throws {
+        XCTAssertNil(YouTubeMusicConfiguration.default.withLoopbackPort(0))
+        XCTAssertNil(YouTubeMusicConfiguration.default.withLoopbackPort(65536))
+        for port in [1, 26538, 26539, 65535] {
+            let configuration = try XCTUnwrap(YouTubeMusicConfiguration.default.withLoopbackPort(port))
+            let url = try XCTUnwrap(URL(string: configuration.baseURL))
+            XCTAssertEqual(url.host, "localhost")
+            XCTAssertEqual(url.scheme, "http")
+            XCTAssertEqual(url.port, port)
+            XCTAssertEqual(WebSocketURLBuilder.buildURL(from: configuration.baseURL)?.port, port)
+        }
+    }
+
+    func testControllerReplacementUsesFreshPortCredentialAndRetiresOldWork() async throws {
+        let http = PearHTTPProbe()
+        let artwork = PearArtworkProbe()
+        let old = makeController(http, fetchArtwork: { _ in try await artwork.fetch() })
+        old.startConnection()
+        try await eventually { old.playbackState.isFavorite }
+        let oldSocket = try XCTUnwrap(sockets.first)
+        await oldSocket.emit("{\"isPaused\":false,\"title\":\"Old track\",\"imageSrc\":\"https://fixture.invalid/old.png\"}")
+        try await eventually { await artwork.count == 1 }
+        await http.holdNext("/api/v1/song")
+        let oldPoll = Task { await old.updatePlaybackInfo() }
+        try await eventually { await http.hasPendingRequest }
+
+        old.stopConnection()
+        let configuration = try XCTUnwrap(YouTubeMusicConfiguration.default.withLoopbackPort(26539))
+        let replacement = makeController(http, baseURL: configuration.baseURL)
+        defer { replacement.stopConnection() }
+        replacement.startConnection()
+        try await eventually { replacement.playbackState.isFavorite }
+        let socketURL = await sockets.last?.url
+        let token = await sockets.last?.token
+        XCTAssertEqual(socketURL?.port, 26539)
+        XCTAssertEqual(token, "token-2")
+        await replacement.play()
+        await old.play()
+        let requests = await http.requests
+        let command = try XCTUnwrap(requests.last { $0.url?.path == "/api/v1/play" })
+        XCTAssertEqual(requests.filter { $0.url?.path == "/api/v1/play" }.count, 1)
+        XCTAssertEqual(command.url?.port, 26539)
+        XCTAssertEqual(command.value(forHTTPHeaderField: "Authorization"), "Bearer token-2")
+        let authentication = requests.filter { $0.url?.path.hasPrefix("/auth/") == true }
+        XCTAssertEqual(authentication.compactMap { $0.url?.port }, [26538, 26539])
+
+        await http.releaseHeld("{\"isPaused\":false,\"title\":\"Obsolete HTTP\"}")
+        await oldPoll.value
+        await artwork.finish(0, data: Data([1]))
+        await oldSocket.emit("{\"isPaused\":false,\"title\":\"Obsolete socket\"}")
+        await oldSocket.close(.unauthorized)
+        XCTAssertEqual(old.playbackState.title, "")
+        XCTAssertNil(old.playbackState.artwork)
+        XCTAssertEqual(replacement.playbackState.title, "Fixture")
+        XCTAssertNil(replacement.playbackState.artwork)
+        XCTAssertEqual(sockets.count, 2)
+        let count = await http.authenticationCount
+        XCTAssertEqual(count, 2)
     }
 
     private func flushSubscriberQueue() async {

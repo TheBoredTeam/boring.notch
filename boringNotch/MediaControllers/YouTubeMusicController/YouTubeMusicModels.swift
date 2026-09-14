@@ -14,6 +14,15 @@ struct YouTubeMusicConfiguration: Sendable {
     let reconnectDelay: ClosedRange<TimeInterval>
     let updateInterval: TimeInterval
     
+    static let defaultPort = 26538
+    static let validPorts = 1...65535
+
+    func withLoopbackPort(_ port: Int) -> Self? {
+        guard Self.validPorts.contains(port) else { return nil }
+        return Self(baseURL: "http://localhost:\(port)", bundleIdentifier: bundleIdentifier,
+                    reconnectDelay: reconnectDelay, updateInterval: updateInterval)
+    }
+
     static let `default` = YouTubeMusicConfiguration(
         baseURL: "http://localhost:26538",
         bundleIdentifier: MediaAppBundleID.youTubeMusic,
