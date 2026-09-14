@@ -228,6 +228,9 @@ struct MusicControlsView: View {
         return HStack(spacing: 6) {
             ForEach(Array(slots.enumerated()), id: \.offset) { index, slot in
                 slotView(for: slot)
+                    .help(slot.actionLabel(isPlaying: musicManager.isPlaying, isFavorite: musicManager.isFavoriteTrack))
+                    .accessibilityLabel(slot.actionLabel(isPlaying: musicManager.isPlaying, isFavorite: musicManager.isFavoriteTrack))
+                    .accessibilityHidden(slot == .none)
                     .frame(alignment: .center)
             }
         }
@@ -370,6 +373,8 @@ struct VolumeControlView: View {
             .buttonStyle(PlainButtonStyle())
             .disabled(!musicManager.volumeControlSupported)
             .frame(width: 24)
+            .help(MusicControlButton.volume.label)
+            .accessibilityLabel(MusicControlButton.volume.label)
 
             if showVolumeSlider && musicManager.volumeControlSupported {
                 CustomSlider(
@@ -390,6 +395,7 @@ struct VolumeControlView: View {
                     }
                 )
                 .frame(width: 48, height: 8)
+                .accessibilityLabel(MusicControlButton.volume.label)
                 .transition(.scale.combined(with: .opacity))
             }
         }
