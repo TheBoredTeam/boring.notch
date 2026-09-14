@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
+import Combine
 import Defaults
 import SwiftUI
 
@@ -30,8 +31,13 @@ final class NotchWindowManager {
     private(set) var isScreenLocked = false
     private var unlockTask: Task<Void, Never>?
     private var workspaceObservers: [NSObjectProtocol] = []
+    private var shelfPreferenceObserver: AnyCancellable?
 
     private init() {
+        shelfPreferenceObserver = Defaults.publisher(.boringShelf)
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.setupDragDetectors() }
         for name in [NSWorkspace.didWakeNotification, NSWorkspace.sessionDidBecomeActiveNotification] {
             workspaceObservers.append(NSWorkspace.shared.notificationCenter.addObserver(
                 forName: name, object: nil, queue: .main
@@ -175,7 +181,10 @@ final class NotchWindowManager {
 
     private func stopDragDetector(_ context: ScreenContext) {
         context.dragGeneration = UUID()
+        context.viewModel.dropInteraction.finish()
         context.dragDetector?.onDragEntersNotchRegion = nil
+        context.dragDetector?.onDragExitsNotchRegion = nil
+        context.dragDetector?.onDragEnded = nil
         context.dragDetector?.stopMonitoring()
         context.dragDetector = nil
     }
@@ -196,21 +205,41 @@ final class NotchWindowManager {
 
     private func setupDragDetector(for screen: NSScreen, context: ScreenContext) {
         stopDragDetector(context)
-        guard Defaults[.expandedDragDetection], let uuid = screen.displayUUID else { return }
-        let notchRegion = CGRect(
-            x: screen.frame.midX - openNotchSize.width / 2,
-            y: screen.frame.maxY - openNotchSize.height,
-            width: openNotchSize.width, height: openNotchSize.height
-        )
-        let detector = DragDetector(notchRegion: notchRegion)
+        guard Defaults[.boringShelf], let uuid = screen.displayUUID else { return }
+        let detector = DragDetector()
         let generation = context.dragGeneration
-        detector.onDragEntersNotchRegion = { [weak self, weak context] in
-            Task { @MainActor in
-                guard let self, let context, self.contexts[uuid] === context,
-                      context.dragGeneration == generation,
-                      NSScreen.screens.contains(where: { $0.displayUUID == uuid }),
-                      Defaults[.boringShelf], Defaults[.expandedDragDetection] else { return }
-                if context.viewModel.open() { BoringViewCoordinator.shared.currentView = .shelf }
+        // The closed activation strip and the actual expanded destination have
+        // different bounds. Opening must never be triggered by the future panel.
+        detector.region = { [weak context] in
+            guard let context else { return .zero }
+            if context.viewModel.notchState == .open,
+               let panel = context.window as? BoringNotchSkyLightWindow {
+                return panel.convertToScreen(panel.interactionRect)
+            }
+            return context.viewModel.geometry.activationRect(on: screen.frame)
+        }
+        let isCurrent: () -> Bool = { [weak self, weak context] in
+            guard let self, let context else { return false }
+            return self.contexts[uuid] === context && context.dragGeneration == generation
+                && NSScreen.screens.contains(where: { $0.displayUUID == uuid })
+                && Defaults[.boringShelf]
+        }
+        detector.onDragEntersNotchRegion = { [weak context] in
+            guard isCurrent(), Defaults[.expandedDragDetection], let context else { return }
+            context.viewModel.dropInteraction.detectorTargeting = true
+        }
+        detector.onDragExitsNotchRegion = { [weak context] in
+            guard isCurrent(), let interaction = context?.viewModel.dropInteraction else { return }
+            interaction.detectorTargeting = false
+            // Destination exit is debounced by ContentView so moving into the
+            // growing panel does not close it between two native callbacks.
+        }
+        detector.onDragEnded = { [weak context] in
+            // Local mouse-up monitors run before the native receiver. Let a
+            // successful performDrop finish first, then discard stale callbacks.
+            DispatchQueue.main.async {
+                guard isCurrent() else { return }
+                context?.viewModel.dropInteraction.finish()
             }
         }
         context.dragDetector = detector

@@ -159,5 +159,64 @@ enum MusicPlayerImageSizes {
         notchHeight = screen.safeAreaInsets.top > 0 ? Defaults[.notchHeight] : Defaults[.nonNotchHeight]
     }
 
-    return .init(width: notchWidth, height: notchHeight)
+    return NotchGeometry(closedSize: .init(width: notchWidth, height: notchHeight), availableWidth: selectedScreen?.frame.width ?? windowSize.width).closedSize
+}
+
+/// Hiding a closed notch removes both drawing and layout height. The separate
+/// activation strip owns reveal hit testing; this content never uses near-zero alpha.
+struct NotchContentVisibility: ViewModifier {
+    let hidden: Bool
+    func body(content: Content) -> some View {
+        content
+            .opacity(hidden ? 0 : 1)
+            .frame(height: hidden ? 0 : nil, alignment: .top)
+    }
+}
+
+/// Small sizing contract shared by the closed views and drag activation.
+/// Tiny closed strips stay at the configured height when idle. Content that
+/// cannot fit uses a 32-point row below the physical cutout, like a sneak peek.
+struct NotchGeometry: Equatable {
+    enum Capacity { case hidden, compact, expanded }
+    let closedSize: CGSize
+    let hardwareHeight: CGFloat
+    let availableWidth: CGFloat
+
+    init(closedSize: CGSize, hardwareHeight: CGFloat = 0, availableWidth: CGFloat = 640) {
+        func finite(_ value: CGFloat) -> CGFloat { value.isFinite ? max(0, value) : 0 }
+        self.availableWidth = finite(availableWidth)
+        self.closedSize = CGSize(width: min(finite(closedSize.width), self.availableWidth), height: finite(closedSize.height))
+        self.hardwareHeight = finite(hardwareHeight)
+    }
+
+    var capacity: Capacity {
+        if closedSize.height == 0 { return .hidden }
+        return closedSize.height >= 24 ? .compact : .expanded
+    }
+    var contentHeight: CGFloat {
+        switch capacity {
+        case .hidden: return 0
+        case .compact: return closedSize.height
+        case .expanded: return 32
+        }
+    }
+    var contentTopInset: CGFloat { capacity == .expanded ? hardwareHeight : 0 }
+    var artworkSize: CGFloat { max(0, contentHeight - 12) }
+    var inlineLabelWidth: CGFloat {
+        min(110, max(0, (availableWidth - closedSize.width - 2 * artworkSize - 64) / 2))
+    }
+    var activationSize: CGSize {
+        CGSize(width: closedSize.width, height: max(10, closedSize.height))
+    }
+    func activationRect(on screen: CGRect) -> CGRect {
+        CGRect(x: screen.midX - activationSize.width / 2, y: screen.maxY - activationSize.height,
+               width: activationSize.width, height: activationSize.height)
+    }
+}
+
+/// A transient peek is independent of the persistent music activity preference.
+enum ClosedMusicPresentation {
+    static func isVisible(hasMedia: Bool, persistentEnabled: Bool, transientPeek: Bool, otherExpansion: Bool) -> Bool {
+        hasMedia && !otherExpansion && (persistentEnabled || transientPeek)
+    }
 }

@@ -9,6 +9,7 @@ import Cocoa
 import SkyLightWindow
 import Defaults
 import Combine
+import SwiftUI
 
 extension SkyLightOperator {
     func undelegateWindow(_ window: NSWindow) {
@@ -33,6 +34,40 @@ extension SkyLightOperator {
 
 class BoringNotchSkyLightWindow: NSPanel {
     private var isSkyLightEnabled: Bool = false
+    private(set) var interactionRect: CGRect = .zero
+    private var pointerMonitor: Any?
+    private var localPointerMonitor: Any?
+
+    func updateInteractionRect(_ rect: CGRect) {
+        interactionRect = rect
+        updatePointerAcceptance()
+    }
+
+    private func updatePointerAcceptance() {
+        ignoresMouseEvents = !acceptsPointer(atScreenPoint: NSEvent.mouseLocation)
+    }
+
+    func acceptsPointer(atScreenPoint point: CGPoint) -> Bool {
+        interactionRect.contains(convertPoint(fromScreen: point))
+    }
+
+    private func startPointerMonitoring() {
+        let mask: NSEvent.EventTypeMask = [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged]
+        pointerMonitor = NSEvent.addGlobalMonitorForEvents(matching: mask) { [weak self] _ in
+            self?.updatePointerAcceptance()
+        }
+        localPointerMonitor = NSEvent.addLocalMonitorForEvents(matching: mask) { [weak self] event in
+            self?.updatePointerAcceptance()
+            return event
+        }
+    }
+
+    private func stopPointerMonitoring() {
+        [pointerMonitor, localPointerMonitor].compactMap { $0 }.forEach(NSEvent.removeMonitor)
+        pointerMonitor = nil
+        localPointerMonitor = nil
+    }
+
     
     override init(
         contentRect: NSRect,
@@ -49,6 +84,8 @@ class BoringNotchSkyLightWindow: NSPanel {
         
         configureWindow()
         setupObservers()
+        startPointerMonitoring()
+        ignoresMouseEvents = true
     }
     
     private func configureWindow() {
@@ -140,6 +177,7 @@ class BoringNotchSkyLightWindow: NSPanel {
     private var observers: Set<AnyCancellable> = []
     
     private func cleanupObservers() {
+        stopPointerMonitoring()
         Task { @MainActor in
             self.observers.forEach { $0.cancel() }
             self.observers.removeAll()
@@ -167,4 +205,24 @@ class BoringNotchSkyLightWindow: NSPanel {
 
     override var canBecomeKey: Bool { wantsKeyForTextInput }
     override var canBecomeMain: Bool { false }
+}
+
+/// Reports the actual SwiftUI layout in window coordinates. Returning nil from
+/// this view's hitTest alone would not pass clicks through an NSWindow, so the
+/// panel also updates ignoresMouseEvents while the pointer is outside the region.
+struct NotchInteractionRegion: NSViewRepresentable {
+    func makeNSView(context: Context) -> RegionView { RegionView() }
+    func updateNSView(_ nsView: RegionView, context: Context) { nsView.report() }
+
+    final class RegionView: NSView {
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
+        override func viewDidMoveToWindow() { super.viewDidMoveToWindow(); report() }
+        override func layout() { super.layout(); report() }
+        override func setFrameSize(_ newSize: NSSize) { super.setFrameSize(newSize); report() }
+        override func setFrameOrigin(_ newOrigin: NSPoint) { super.setFrameOrigin(newOrigin); report() }
+        func report() {
+            guard !bounds.isEmpty, let panel = window as? BoringNotchSkyLightWindow else { return }
+            panel.updateInteractionRect(convert(bounds, to: nil))
+        }
+    }
 }

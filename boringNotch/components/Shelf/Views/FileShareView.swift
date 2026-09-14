@@ -28,9 +28,10 @@ struct FileShareView: View {
 
         dropArea
             .background(NSViewHost(view: $hostView))
-            .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data, .image], isTargeted: $interaction.dropZoneTargeting) { providers in
+            .onDrop(of: ShelfTransferTypes.acceptedTypes, isTargeted: $interaction.dropZoneTargeting) { providers in
+                guard Defaults[.boringShelf], ShelfTransferTypes.supports(providers) else { return false }
                 interactionNonce = .init()
-                interaction.dropEvent = true
+                interaction.finish(dropped: true)
                 Task { await handleDrop(providers) }
                 return true
             }

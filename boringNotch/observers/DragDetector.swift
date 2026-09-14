@@ -1,123 +1,90 @@
-//
-//  DragDetector.swift
-//  boringNotch
-//
-//  Created by Alexander on 2025-11-20.
-//
+// SPDX-License-Identifier: GPL-3.0-only
 
 import Cocoa
-import UniformTypeIdentifiers
 
-final class DragDetector {
+/// Observes drags outside our native destination. Native destination callbacks
+/// take over once the pointer reaches the panel; this detector never receives data.
+final class DragDetector: NSObject {
+    var onDragEntersNotchRegion: (() -> Void)?
+    var onDragExitsNotchRegion: (() -> Void)?
+    var onDragEnded: (() -> Void)?
+    var region: (() -> CGRect)?
 
-    // MARK: - Callbacks
-
-    typealias VoidCallback = () -> Void
-    typealias PositionCallback = (_ globalPoint: CGPoint) -> Void
-
-    var onDragEntersNotchRegion: VoidCallback?
-    var onDragExitsNotchRegion: VoidCallback?
-    var onDragMove: PositionCallback?
-
-
-    private var mouseDownMonitor: Any?
-    private var mouseDraggedMonitor: Any?
-    private var mouseUpMonitor: Any?
-
-    private var pasteboardChangeCount: Int = -1
-    private var isDragging: Bool = false
-    private var isContentDragging: Bool = false
-    private var hasEnteredNotchRegion: Bool = false
-
-    private let notchRegion: CGRect
+    private var globalMonitor: Any?
+    private var localMonitor: Any?
+    private var endTimer: Timer?
+    private var pasteboardChangeCount = -1
+    private var isDragging = false
+    private var isContentDragging = false
+    private var hasEnteredNotchRegion = false
     private let dragPasteboard = NSPasteboard(name: .drag)
-
-    init(notchRegion: CGRect) {
-        self.notchRegion = notchRegion
-    }
-
-    // MARK: - Private Helpers
-    
-    /// Checks if the drag pasteboard contains valid content types that can be dropped on the shelf
-    private func hasValidDragContent() -> Bool {
-        let validTypes: [NSPasteboard.PasteboardType] = [
-            .fileURL,
-            NSPasteboard.PasteboardType(UTType.url.identifier),
-            .string
-        ]
-        let isValid = dragPasteboard.pasteboardItems?.allSatisfy { item in
-            item.types.allSatisfy { validTypes.contains($0) }
-        }
-        return isValid ?? false
-    }
 
     func startMonitoring() {
         stopMonitoring()
-
-        // Track pasteboard to detect content drag
-        mouseDownMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown]) { [weak self] _ in
-            guard let self = self else { return }
-            self.pasteboardChangeCount = self.dragPasteboard.changeCount
-            self.isDragging = true
-            self.isContentDragging = false
-            self.hasEnteredNotchRegion = false
-        }
-
-        // Track drag movement and notch region intersection
-        mouseDraggedMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDragged]) { [weak self] event in
-            guard let self = self else { return }
-            guard self.isDragging else { return }
-
-            let newContent = self.dragPasteboard.changeCount != self.pasteboardChangeCount
-            
-            // Detect if actual content is being dragged AND it's valid content
-            if newContent && !self.isContentDragging && self.hasValidDragContent() {
-                self.isContentDragging = true
-            }
-
-            // Only process position when content is being dragged
-            if self.isContentDragging {
-                let mouseLocation = NSEvent.mouseLocation
-                self.onDragMove?(mouseLocation)
-                
-                // Track notch region entry/exit
-                let containsMouse = self.notchRegion.contains(mouseLocation)
-                if containsMouse && !self.hasEnteredNotchRegion {
-                    self.hasEnteredNotchRegion = true
-                    self.onDragEntersNotchRegion?()
-                } else if !containsMouse && self.hasEnteredNotchRegion {
-                    self.hasEnteredNotchRegion = false
-                    self.onDragExitsNotchRegion?()
-                }
-            }
-        }
-
-        mouseUpMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] _ in
-            guard let self = self else { return }
-            guard self.isDragging else { return }
-            
-            self.isDragging = false
-            self.isContentDragging = false
-            self.hasEnteredNotchRegion = false
-            self.pasteboardChangeCount = -1
+        let mask: NSEvent.EventTypeMask = [.leftMouseDown, .leftMouseDragged, .leftMouseUp]
+        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: mask) { [weak self] in self?.handle($0) }
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: mask.union(.keyDown)) { [weak self] event in
+            self?.handle(event)
+            return event
         }
     }
 
-    func stopMonitoring() {
-        [mouseDownMonitor, mouseDraggedMonitor, mouseUpMonitor].forEach { monitor in
-            if let monitor = monitor {
-                NSEvent.removeMonitor(monitor)
+    private func handle(_ event: NSEvent) {
+        switch event.type {
+        case .leftMouseDown:
+            finish()
+            pasteboardChangeCount = dragPasteboard.changeCount
+            isDragging = true
+        case .leftMouseDragged:
+            guard isDragging else { return }
+            if !isContentDragging, dragPasteboard.changeCount != pasteboardChangeCount {
+                isContentDragging = dragPasteboard.pasteboardItems?.contains {
+                    ShelfTransferTypes.supports(typeIdentifiers: $0.types.map(\.rawValue))
+                } ?? false
+                if isContentDragging {
+                    // A source can consume the terminating mouse-up. This check
+                    // only runs during a content drag and never requests key access.
+                    endTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self,
+                                                   selector: #selector(checkForDragEnd), userInfo: nil, repeats: true)
+                }
             }
+            guard isContentDragging else { return }
+            let contains = region?().contains(NSEvent.mouseLocation) ?? false
+            if contains != hasEnteredNotchRegion {
+                hasEnteredNotchRegion = contains
+                if contains { onDragEntersNotchRegion?() }
+                else { onDragExitsNotchRegion?() }
+            }
+        case .leftMouseUp:
+            finish()
+        case .keyDown where event.keyCode == 53:
+            finish()
+        default:
+            break
         }
-        mouseDownMonitor = nil
-        mouseDraggedMonitor = nil
-        mouseUpMonitor = nil
+    }
+
+    @objc private func checkForDragEnd() {
+        if NSEvent.pressedMouseButtons & 1 == 0 { finish() }
+    }
+
+    private func finish() {
+        let wasContentDragging = isContentDragging
+        endTimer?.invalidate()
+        endTimer = nil
         isDragging = false
         isContentDragging = false
         hasEnteredNotchRegion = false
+        pasteboardChangeCount = -1
+        if wasContentDragging { onDragEnded?() }
     }
 
-    deinit {
-        stopMonitoring()
+    func stopMonitoring() {
+        [globalMonitor, localMonitor].compactMap { $0 }.forEach(NSEvent.removeMonitor)
+        globalMonitor = nil
+        localMonitor = nil
+        finish()
     }
+
+    deinit { stopMonitoring() }
 }

@@ -40,12 +40,11 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.boringShelf) private var shelfEnabled
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
 
-    private let extendedHoverPadding: CGFloat = 30
-    private let zeroHeightHoverPadding: CGFloat = 10
     private let nowPlayingFallbackNoticeWidth: CGFloat = 330
 
     // MARK: - Corner Radius Scaling
@@ -100,20 +99,13 @@ struct ContentView: View {
     /// it drops out of this list on its own and music comes back — no
     /// explicit "restore previous activity" bookkeeping needed.
     private var liveActivities: [LiveActivityItem] {
-        var items: [LiveActivityItem] = []
-
-        if let notification = notificationManager.activeNotification {
-            items.append(.notification(notification))
-        }
-
-        let musicIsShowing = (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
-            && (musicManager.isPlaying || !musicManager.isPlayerIdle)
-            && coordinator.musicLiveActivityEnabled
-        if musicIsShowing {
-            items.append(.music)
-        }
-
-        return items
+        let musicIsShowing = ClosedMusicPresentation.isVisible(
+            hasMedia: musicManager.isPlaying || !musicManager.isPlayerIdle,
+            persistentEnabled: coordinator.musicLiveActivityEnabled,
+            transientPeek: showingInlineMusicPeek,
+            otherExpansion: coordinator.expandingView.show && coordinator.expandingView.type != .music
+        )
+        return LiveActivityItem.current(notification: notificationManager.activeNotification, showMusic: musicIsShowing)
     }
 
     /// A notification is a glance, not a workspace — it doesn't need the full
@@ -150,48 +142,6 @@ struct ContentView: View {
         return items[min(max(activityIndex, 0), items.count - 1)]
     }
 
-    private var computedChinWidth: CGFloat {
-        var chinWidth: CGFloat = vm.closedNotchSize.width
-
-        if shouldDisplayNowPlayingFallbackNotice {
-            chinWidth = nowPlayingFallbackNoticeWidth
-        } else if coordinator.expandingView.type == .battery && coordinator.expandingView.show
-            && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
-        {
-            chinWidth = 640
-        } else if vm.notchState == .closed, !vm.hideOnClosed, let activity = selectedActivity {
-            // Sized for whichever activity is actually on top, not for
-            // whichever happens to exist — otherwise swiping to music while a
-            // notification is still in the stack leaves the chin at the
-            // notification's width.
-            switch activity {
-            case .notification(let notification) where notification.detectedCode != nil:
-                // The code + copy button live on the wing right of the
-                // physical notch; a flat 420 assumes a narrow cutout, and on
-                // standard-notch displays the wing fell short so the code
-                // clipped under the hardware bezel.
-                chinWidth = max(420, vm.closedNotchSize.width + 2 * 112)
-            case .notification:
-                chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
-            case .music:
-                chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
-                // The inline song-change peek widens the pill itself, so the
-                // chin has to grow with it — otherwise the hover region is
-                // narrower than what's on screen.
-                if showingInlineMusicPeek {
-                    chinWidth += 2 * inlineMusicPeekLabelWidth
-                }
-            }
-        } else if !coordinator.expandingView.show && vm.notchState == .closed
-            && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
-            && !vm.hideOnClosed
-        {
-            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
-        }
-
-        return chinWidth
-    }
-
     private var shouldDisplayNowPlayingFallbackNotice: Bool {
         guard musicManager.nowPlayingNotice != nil else { return false }
 
@@ -207,11 +157,13 @@ struct ContentView: View {
             && !isNotchHeightZero
     }
 
-    // If the closed notch height is 0 (any display/setting), display a 10pt nearly-invisible notch
-    // instead of fully hiding it. This preserves layout while avoiding visual artifacts.
-    private var isNotchHeightZero: Bool { vm.effectiveClosedNotchHeight == 0 }
-
-    private var displayClosedNotchHeight: CGFloat { isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight }
+    private var isNotchHeightZero: Bool { vm.geometry.capacity == .hidden }
+    private var displayClosedNotchHeight: CGFloat { vm.geometry.contentHeight }
+    private var hasClosedContent: Bool {
+        !liveActivities.isEmpty || coordinator.expandingView.show
+            || coordinator.shouldShowSneakPeek(on: vm.screenUUID)
+            || shouldDisplayNowPlayingFallbackNotice || Defaults[.showNotHumanFace]
+    }
 
     var body: some View {
         @Bindable var dropInteraction = vm.dropInteraction
@@ -245,8 +197,6 @@ struct ContentView: View {
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
                             ? .black.opacity(0.7) : .clear, radius: 6
                     )
-                    // Removed conditional bottom padding when using custom 0 notch to keep layout stable
-                    .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
                 
                 mainLayout
                     // alignment: .top matters here — without it this frame
@@ -257,6 +207,7 @@ struct ContentView: View {
                     // top-anchored origin. That's what read as "the notch
                     // sits a bit off the top of the screen."
                     .frame(height: vm.notchState == .open ? openNotchHeight : nil, alignment: .top)
+                    .modifier(NotchContentVisibility(hidden: isNotchHeightZero && vm.notchState == .closed))
                     .conditionalModifier(true) { view in
                         return view
                             .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchState)
@@ -369,12 +320,24 @@ struct ContentView: View {
                         //                    }
                         //                    .keyboardShortcut("E", modifiers: .command)
                     }
-                if vm.chinHeight > 0 {
-                    Rectangle()
-                        .fill(Color.black.opacity(0.01))
-                        .frame(width: computedChinWidth, height: vm.chinHeight)
+                // A configured zero height has no rendered pixels. Reveal is
+                // an explicit clear activation strip, separate from the layout.
+                if isNotchHeightZero && vm.notchState == .closed {
+                    Color.clear
+                        .frame(width: vm.geometry.activationSize.width, height: vm.geometry.activationSize.height)
+                        .contentShape(Rectangle())
+                        .onHover(perform: handleHover)
+                        .onTapGesture { doOpen() }
+                } else if !hasClosedContent && vm.chinHeight > 0 {
+                    // Preserve the explicit title-bar activation extension
+                    // without drawing a faint rectangle over menu items.
+                    Color.clear
+                        .frame(width: vm.geometry.closedSize.width, height: vm.chinHeight)
+                        .contentShape(Rectangle())
+                        .onHover(perform: handleHover)
                 }
             }
+            .background(NotchInteractionRegion())
         }
         .padding(.bottom, 8)
         .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
@@ -386,13 +349,27 @@ struct ContentView: View {
             anchor: .top
         )
         .animation(.smooth, value: gestureProgress)
-        .background(dragDetector)
+        .background(alignment: .top) { dragDetector }
         .preferredColorScheme(.dark)
         .environmentObject(vm)
+        .onChange(of: dropInteraction.finishRevision) { _, _ in
+            hoverTask?.cancel()
+            anyDropDebounceTask?.cancel()
+            isHovering = false
+            if !dropInteraction.dropEvent && !SharingStateManager.shared.preventNotchClose {
+                vm.close()
+            }
+        }
+        .onDisappear {
+            hoverTask?.cancel()
+            anyDropDebounceTask?.cancel()
+            dropInteraction.finish()
+        }
         .onChange(of: dropInteraction.anyDropZoneTargeting) { _, isTargeted in
             anyDropDebounceTask?.cancel()
 
             if isTargeted {
+                hoverTask?.cancel()
                 if Defaults[.boringShelf] && vm.notchState == .closed {
                     if doOpen() {
                         coordinator.currentView = .shelf
@@ -410,7 +387,7 @@ struct ContentView: View {
                     return
                 }
 
-                dropInteraction.dropEvent = false
+                dropInteraction.finish()
                 if !SharingStateManager.shared.preventNotchClose {
                     vm.close()
                 }
@@ -422,8 +399,11 @@ struct ContentView: View {
     func NotchLayout() -> some View {
         @Bindable var dropInteraction = vm.dropInteraction
 
-        VStack(alignment: .leading) {
-            VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
+                if vm.notchState == .closed && hasClosedContent && !isNotchHeightZero {
+                    Color.clear.frame(height: vm.geometry.contentTopInset)
+                }
                 if coordinator.helloAnimationRunning {
                     Spacer()
                     HelloAnimation(onFinish: {
@@ -447,11 +427,14 @@ struct ContentView: View {
                                 Text(batteryModel.statusText)
                                     .font(.subheadline)
                                     .foregroundStyle(.white)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
                             }
+                            .frame(width: 160, alignment: .leading)
 
                             Rectangle()
                                 .fill(.black)
-                                .frame(width: vm.closedNotchSize.width + 10)
+                                .frame(width: vm.geometry.closedSize.width + 2 * liveActivityEdgeMargin)
 
                             HStack {
                                 BoringBatteryView(
@@ -464,7 +447,7 @@ struct ContentView: View {
                                     isForNotification: true
                                 )
                             }
-                            .frame(width: 76, alignment: .trailing)
+                            .frame(width: 160, alignment: .trailing)
                         }
                         .frame(height: displayClosedNotchHeight, alignment: .center)
                         } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
@@ -496,14 +479,12 @@ struct ContentView: View {
                            // which is what was stretching the whole panel
                            // out around a short message.
                            BoringHeader()
-                               .frame(height: max(24, displayClosedNotchHeight))
+                               .frame(height: max(32, displayClosedNotchHeight))
                                .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
                        }
                         // New case to enable compact notch on external displays
-                        else if !vm.hasNotch {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: 11) // idle notch height is halved on non notch display
-                       } else {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
+                        else {
+                           Color.clear.frame(width: max(0, vm.geometry.closedSize.width - 28), height: vm.geometry.closedSize.height)
                        }
 
                         if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
@@ -591,7 +572,7 @@ struct ContentView: View {
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
         }
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))
+        .onDrop(of: shelfEnabled ? ShelfTransferTypes.acceptedTypes : [], delegate: GeneralDropTargetDelegate(interaction: dropInteraction))
     }
 
     private func nowPlayingFallbackNotice(_ notice: NowPlayingFallbackNotice) -> some View {
@@ -671,22 +652,22 @@ struct ContentView: View {
     /// hardware is, and keeps liveActivityEdgeMargin in play so content
     /// clears the bezel — the inline path had dropped it entirely.
     private var musicActivityCenterWidth: CGFloat {
-        let margin = vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin)
+        let margin = vm.geometry.closedSize.width + (2 * liveActivityEdgeMargin)
         guard showingInlineMusicPeek else { return margin }
         return margin + (2 * inlineMusicPeekLabelWidth)
     }
 
     /// Space reserved for the title (left of the cutout) and artist (right).
-    private let inlineMusicPeekLabelWidth: CGFloat = 110
+    private var inlineMusicPeekLabelWidth: CGFloat { vm.geometry.inlineLabelWidth }
 
     @ViewBuilder
     func MusicLiveActivity() -> some View {
         HStack(spacing: 0) {
             // Closed-mode album art: scale padding and corner radius according to cornerRadiusScaleFactor
-            let baseArtSize = displayClosedNotchHeight - 12
+            let baseArtSize = vm.geometry.artworkSize
             let scaledArtSize: CGFloat = {
                 if let scale = cornerRadiusScaleFactor {
-                    return displayClosedNotchHeight - 12 * scale
+                    return max(0, displayClosedNotchHeight - 12 * scale)
                 }
                 return baseArtSize
             }()
@@ -718,7 +699,7 @@ struct ContentView: View {
                     // .center, not .top: the album art beside this is
                     // vertically centered, so top-aligned labels sat visibly
                     // high against it.
-                    HStack(alignment: .center) {
+                    HStack(alignment: .center, spacing: 0) {
                         if coordinator.expandingView.show
                             && coordinator.expandingView.type == .music
                         {
@@ -753,7 +734,7 @@ struct ContentView: View {
                                 )
                         }
                     }
-                    .padding(.horizontal, 8)
+                    .padding(.horizontal, liveActivityEdgeMargin)
                 )
                 .frame(width: musicActivityCenterWidth)
 
@@ -791,10 +772,11 @@ struct ContentView: View {
 
         if Defaults[.boringShelf] && vm.notchState == .closed && !shouldDisplayNowPlayingFallbackNotice {
             Color.clear
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(width: vm.geometry.activationSize.width, height: vm.geometry.activationSize.height)
                 .contentShape(Rectangle())
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
-            dropInteraction.dropEvent = true
+        .onDrop(of: ShelfTransferTypes.acceptedTypes, isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
+            guard ShelfTransferTypes.supports(providers) else { return false }
+            dropInteraction.finish(dropped: true)
             ShelfStateViewModel.shared.load(providers)
             return true
         }
@@ -867,7 +849,7 @@ struct ContentView: View {
                     // Pointer left — let the notification age out again.
                     self.notificationManager.resumeDismiss()
 
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                    if self.vm.notchState == .open && !self.vm.dropInteraction.anyDropZoneTargeting && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
                         self.vm.close()
                     }
                 }
@@ -1031,22 +1013,26 @@ struct FullScreenDropDelegate: DropDelegate {
 }
 
 struct GeneralDropTargetDelegate: DropDelegate {
-    @Binding var isTargeted: Bool
+    let interaction: DropInteractionState
 
+    func validateDrop(info: DropInfo) -> Bool {
+        Defaults[.boringShelf] && ShelfTransferTypes.supports(info.itemProviders(for: ShelfTransferTypes.acceptedTypes))
+    }
     func dropEntered(info: DropInfo) {
-        isTargeted = true
+        guard validateDrop(info: info) else { return }
+        interaction.generalDropTargeting = true
     }
-
-    func dropExited(info: DropInfo) {
-        isTargeted = false
-    }
-
+    func dropExited(info: DropInfo) { interaction.generalDropTargeting = false }
     func dropUpdated(info: DropInfo) -> DropProposal? {
-        return DropProposal(operation: .cancel)
+        DropProposal(operation: validateDrop(info: info) ? .copy : .forbidden)
     }
-
     func performDrop(info: DropInfo) -> Bool {
-        return false
+        let providers = info.itemProviders(for: ShelfTransferTypes.acceptedTypes)
+        guard Defaults[.boringShelf], !ShelfSelectionModel.shared.isDragging,
+              ShelfTransferTypes.supports(providers) else { interaction.finish(); return false }
+        interaction.finish(dropped: true)
+        ShelfStateViewModel.shared.load(providers)
+        return true
     }
 }
 

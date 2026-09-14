@@ -28,11 +28,11 @@ struct InlineOSD: View {
                     .allowsTightening(true)
                     .contentTransition(.numericText())
             }
-            .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.notchSize.height - (hoverAnimation ? 0 : 12), alignment: .leading)
+            .frame(width: max(0, 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2), height: max(0, vm.geometry.contentHeight - (hoverAnimation ? 0 : 12)), alignment: .leading)
             
             Rectangle()
                 .fill(.black)
-                .frame(width: vm.closedNotchSize.width - 20)
+                .frame(width: vm.closedNotchSize.width + 2 * liveActivityEdgeMargin)
             
             HStack {
                 if (type == .mic) {
@@ -74,9 +74,9 @@ struct InlineOSD: View {
                 }
             }
             .padding(.trailing, 4)
-            .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.closedNotchSize.height - (hoverAnimation ? 0 : 12), alignment: .center)
+            .frame(width: max(0, 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2), height: max(0, vm.geometry.contentHeight - (hoverAnimation ? 0 : 12)), alignment: .center)
         }
-        .frame(height: vm.closedNotchSize.height + (hoverAnimation ? 8 : 0), alignment: .center)
+        .frame(height: vm.geometry.contentHeight, alignment: .center)
     }
     
     func osdTypeName(_ type: SneakContentType) -> String {

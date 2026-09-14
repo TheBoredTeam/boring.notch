@@ -24,6 +24,12 @@ enum LiveActivityItem: Identifiable, Equatable {
     case notification(SystemNotification)
     case music
 
+    static func current(notification: SystemNotification?, showMusic: Bool) -> [Self] {
+        var items = notification.map { [Self.notification($0)] } ?? []
+        if showMusic { items.append(.music) }
+        return items
+    }
+
     var id: String {
         switch self {
         case .notification(let notification): "notification-\(notification.id)"
