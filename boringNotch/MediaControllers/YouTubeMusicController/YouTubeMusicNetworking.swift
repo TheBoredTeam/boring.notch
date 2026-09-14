@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 // MARK: - HTTP Client
 final class YouTubeMusicHTTPClient: ObservableObject {
@@ -158,11 +159,9 @@ actor YouTubeMusicWebSocketClient {
         self.session = session
     }
     
-    func connect(to url: URL, with token: String) async throws {
-        await disconnect()
-        
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    func connect(to url: URL, with token: String) throws {
+        let request = try WebSocketURLBuilder.authenticatedRequest(to: url, token: token)
+        disconnect()
         
         let newTask = session.webSocketTask(with: request)
         let state = ConnectionState(task: newTask)
@@ -172,7 +171,7 @@ actor YouTubeMusicWebSocketClient {
         Task { await listenForMessages(for: state) }
     }
     
-    func disconnect() async {
+    func disconnect() {
         guard let currentConnection = connection else { return }
         
         currentConnection.suppressDisconnectCallback = true
@@ -188,6 +187,7 @@ actor YouTubeMusicWebSocketClient {
         while !Task.isCancelled && connection === state {
             do {
                 let message = try await state.task.receive()
+                guard connection === state, !state.suppressDisconnectCallback else { return }
                 
                 let data: Data
                 switch message {
@@ -231,6 +231,30 @@ struct WebSocketURLBuilder {
 
         components.path = "/api/v1/ws"
         return components.url
+    }
+
+    /// Pear authenticates its WebSocket using the query token. Build it with
+    /// URLComponents so reserved token characters cannot change the query.
+    static func authenticatedRequest(to url: URL, token: String) throws -> URLRequest {
+        guard !token.isEmpty else { throw YouTubeMusicError.authenticationRequired }
+        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              components.scheme == "ws" || components.scheme == "wss",
+              let host = components.host, !host.isEmpty
+        else {
+            throw YouTubeMusicError.invalidURL
+        }
+
+        var items = components.queryItems ?? []
+        items.removeAll { $0.name == "token" }
+        items.append(URLQueryItem(name: "token", value: token))
+        components.queryItems = items
+        // URLSearchParams uses form decoding, where an unescaped + means space.
+        components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+        guard let authenticatedURL = components.url else { throw YouTubeMusicError.invalidURL }
+
+        var request = URLRequest(url: authenticatedURL)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        return request
     }
 }
 
