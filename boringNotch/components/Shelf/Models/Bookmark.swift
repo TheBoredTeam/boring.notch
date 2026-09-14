@@ -43,7 +43,7 @@ enum ShelfBookmarkResolutionIntent: Hashable, Sendable {
     case userInitiated
 }
 
-private final class ShelfBookmarkResolutionExecutor: @unchecked Sendable {
+final class ShelfBookmarkResolutionExecutor: @unchecked Sendable {
     static let shared = ShelfBookmarkResolutionExecutor(maxConcurrentOperationCount: 2)
     private let queue: OperationQueue
 

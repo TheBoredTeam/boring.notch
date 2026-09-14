@@ -1,5 +1,7 @@
 import XCTest
 import Combine
+import SwiftUI
+import AppKit
 import UniformTypeIdentifiers
 @testable import boringNotch
 
@@ -225,17 +227,120 @@ final class ShelfFileResolutionTests: XCTestCase {
     }
 
     @MainActor
-    func testMixedDragTracksOnlyItemsThatProducedExports() {
+    func testNativeDragRefreshesBookmarkAfterExternalRename() async throws {
+        let root = FileManager.default.temporaryDirectory.resolvingSymlinksInPath().appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let before = root.appendingPathComponent("before.txt")
+        let after = root.appendingPathComponent("after.txt")
+        try Data("original".utf8).write(to: before)
+        let bookmark = try before.bookmarkData(options: [])
+        let item = ShelfItem(kind: .file(bookmark: bookmark))
+        let state = ShelfStateViewModel(items: [item], resolver: ShelfBookmarkResolver { data, _ in
+            var stale = false
+            guard let url = try? URL(resolvingBookmarkData: data, options: [.withoutUI, .withoutMounting],
+                                     bookmarkDataIsStale: &stale) else { return nil }
+            return ResolvedShelfFile(url: url, refreshedBookmarkData: nil,
+                                     displayName: url.lastPathComponent, isDirectory: false,
+                                     contentTypeIdentifier: UTType.plainText.identifier)
+        })
+        _ = await state.resolveFile(for: item)
+        try FileManager.default.moveItem(at: before, to: after)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: before.path))
+        XCTAssertEqual(state.resolvedFileURL(for: item)?.lastPathComponent, "before.txt")
+
+        let exports = await ShelfItemInteractionView<EmptyView>.InteractionView.prepareDragExports(
+            for: [item], shelfState: state)
+        let writer = try XCTUnwrap(exports.first?.payload as? NSURL)
+        XCTAssertEqual((writer as URL).resolvingSymlinksInPath(), after.resolvingSymlinksInPath())
+        XCTAssertTrue(writer.writableTypes(for: .general).contains(.fileURL))
+        XCTAssertEqual(state.items.first?.id, item.id)
+    }
+
+    @MainActor
+    func testNativeDragSkipsUnavailableFilesAndPreservesTextPayload() async {
         let available = ShelfItem(kind: .file(bookmark: Data("available".utf8)))
-        let unavailable = ShelfItem(kind: .file(bookmark: Data("unavailable".utf8)))
+        let unavailable = ShelfItem(kind: .file(bookmark: Data()))
         let text = ShelfItem(kind: .text(string: "text"))
-
-        let exports = compactShelfExports([available, unavailable, text]) { item -> String? in
-            item.id == unavailable.id ? nil : item.id.uuidString
-        }
-
+        let state = ShelfStateViewModel(items: [available, unavailable, text], resolver: ShelfBookmarkResolver { data, _ in
+            guard !data.isEmpty else { return nil }
+            return ResolvedShelfFile(url: URL(fileURLWithPath: "/tmp/available"), refreshedBookmarkData: nil,
+                                     displayName: "available", isDirectory: false, contentTypeIdentifier: nil)
+        })
+        let exports = await ShelfItemInteractionView<EmptyView>.InteractionView.prepareDragExports(
+            for: [available, unavailable, text], shelfState: state)
         XCTAssertEqual(exports.map(\.item.id), [available.id, text.id])
-        XCTAssertEqual(exports.map(\.payload), [available.id.uuidString, text.id.uuidString])
+        XCTAssertTrue(exports.first?.payload is NSURL)
+        XCTAssertTrue(exports.last?.payload is NSPasteboardItem)
+    }
+
+    @MainActor
+    func testMouseUpAndRemovalCancelLateNativeDragPreparation() async throws {
+        for removeItem in [false, true] {
+            let item = ShelfItem(kind: .file(bookmark: Data("blocked-drag".utf8)))
+            let blocking = BlockingShelfResolution(result: ResolvedShelfFile(
+                url: URL(fileURLWithPath: "/tmp/late-drag"), refreshedBookmarkData: nil,
+                displayName: "late-drag", isDirectory: false, contentTypeIdentifier: nil))
+            let state = ShelfStateViewModel(items: [item], resolver: ShelfBookmarkResolver(resolution: blocking.resolve))
+            let view = ShelfItemInteractionView<EmptyView>.InteractionView()
+            view.item = item
+            view.shelfState = state
+            let didBegin = expectation(description: "late drag never begins")
+            didBegin.isInverted = true
+            view.beginPreparedDrag = { _, _ in didBegin.fulfill() }
+            func event(_ type: NSEvent.EventType, _ x: CGFloat) throws -> NSEvent {
+                try XCTUnwrap(NSEvent.mouseEvent(with: type, location: NSPoint(x: x, y: 0),
+                                                modifierFlags: [], timestamp: 0, windowNumber: 0,
+                                                context: nil, eventNumber: 0, clickCount: 1, pressure: 0))
+            }
+            view.mouseDown(with: try event(.leftMouseDown, 0))
+            view.mouseDragged(with: try event(.leftMouseDragged, 10))
+            let started = await blocking.waitUntilStarted()
+            XCTAssertTrue(started)
+            if removeItem { state.remove(item) }
+            else { view.mouseUp(with: try event(.leftMouseUp, 10)) }
+            blocking.unblock()
+            await fulfillment(of: [didBegin], timeout: 0.2)
+            view.cancelDragPreparation()
+        }
+    }
+
+    @MainActor
+    func testOpenWithMenuLoadsDirectApplicationsAndCancelsOnClose() async throws {
+        let link = ShelfItem(kind: .link(url: try XCTUnwrap(URL(string: "https://example.com"))))
+        let application = ShelfContextMenuBuilder.OpenWithApplication(
+            url: URL(fileURLWithPath: "/Applications/Example.app"), title: "Example",
+            isDefault: true, iconData: nil)
+        for closesMenu in [false, true] {
+            var discovery: CheckedContinuation<[ShelfContextMenuBuilder.OpenWithApplication], Never>?
+            let started = expectation(description: "application discovery starts")
+            let view = NSView()
+            let menu = ShelfContextMenuBuilder.makeMenu(
+                item: link, in: view, selectedItems: [link], onShare: { _ in }, onQuickLook: { _ in },
+                discoverApplications: { _ in
+                    await withCheckedContinuation { continuation in
+                        discovery = continuation
+                        started.fulfill()
+                    }
+                })
+            let submenu = try XCTUnwrap(menu.items.first(where: { $0.title == Strings.openWith })?.submenu)
+            XCTAssertEqual(submenu.items.first?.title, String(localized: "Loading…"))
+            XCTAssertEqual(submenu.items.last?.representedObject as? String, "__OTHER__")
+            await fulfillment(of: [started], timeout: 1)
+            if closesMenu { menu.delegate?.menuDidClose?(menu) }
+            discovery?.resume(returning: [application])
+            // Yield to the menu's continuation without opening any native menu or application.
+            try await Task.sleep(for: .milliseconds(30))
+            if closesMenu {
+                XCTAssertEqual(submenu.items.first?.title, String(localized: "Loading…"))
+            } else {
+                XCTAssertEqual(submenu.items.first?.representedObject as? URL, application.url)
+                XCTAssertEqual(submenu.items.first?.state, .on)
+                XCTAssertNotNil(submenu.items.first?.target)
+                XCTAssertNotNil(submenu.items.first?.action)
+                menu.delegate?.menuDidClose?(menu)
+            }
+        }
     }
 
     @MainActor
@@ -278,15 +383,13 @@ final class ShelfFileResolutionTests: XCTestCase {
         let renamedItem = try XCTUnwrap(state.items.first)
         XCTAssertEqual(renamedItem.id, id)
         XCTAssertNil(viewModel.resolvedFileURL)
-        XCTAssertFalse(viewModel.canDrag)
 
         await viewModel.synchronize(with: renamedItem)
         XCTAssertEqual(viewModel.displayName, "new-name")
         XCTAssertEqual(viewModel.resolvedFileURL, renamedFile.url)
-        XCTAssertTrue(viewModel.canDrag)
-        XCTAssertTrue(
-            viewModel.dragItemProvider().hasItemConformingToTypeIdentifier(UTType.fileURL.identifier)
-        )
+        let exports = await ShelfItemInteractionView<EmptyView>.InteractionView.prepareDragExports(
+            for: [renamedItem], shelfState: state)
+        XCTAssertEqual(exports.first?.payload as? NSURL, renamedFile.url as NSURL)
     }
 
     @MainActor

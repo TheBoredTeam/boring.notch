@@ -9,15 +9,6 @@ import SwiftUI
 
 protocol ShelfItemInteractionSurface: AnyObject {}
 
-func compactShelfExports<Payload>(
-    _ items: [ShelfItem],
-    transform: (ShelfItem) -> Payload?
-) -> [(item: ShelfItem, payload: Payload)] {
-    items.compactMap { item in
-        transform(item).map { (item, $0) }
-    }
-}
-
 /// A narrow AppKit bridge for Shelf pointer and native drag interactions.
 struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
     let item: ShelfItem
@@ -51,7 +42,7 @@ struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
     }
 
     final class InteractionView: NSView, NSDraggingSource, ShelfItemInteractionSurface {
-        var item: ShelfItem!
+        var item: ShelfItem?
         weak var viewModel: ShelfItemViewModel?
         var dragPreviewProvider: (() -> NSImage)?
         var onPrimaryClick: ((NSEvent, NSView) -> Void)?
@@ -59,6 +50,9 @@ struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
 
         private let dragThreshold: CGFloat = 3
         private var mouseDownEvent: NSEvent?
+        var shelfState: ShelfStateViewModel = .shared
+        var beginPreparedDrag: (([NSDraggingItem], NSEvent) -> Void)?
+        private var preparationTask: Task<Void, Never>?
         private var draggedURLs: [URL] = []
         private var draggedItems: [ShelfItem] = []
 
@@ -67,12 +61,13 @@ struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
         }
 
         override func mouseDown(with event: NSEvent) {
+            cancelDragPreparation()
             mouseDownEvent = event
             onPrimaryClick?(event, self)
         }
 
         override func mouseDragged(with event: NSEvent) {
-            guard viewModel?.canDrag == true else { return }
+            guard preparationTask == nil else { return }
             guard let mouseDownEvent else {
                 super.mouseDragged(with: event)
                 return
@@ -89,60 +84,85 @@ struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
             }
 
             startDragSession(with: event)
-            self.mouseDownEvent = nil
+        }
+
+        override func mouseUp(with event: NSEvent) {
+            cancelDragPreparation()
+            super.mouseUp(with: event)
+        }
+
+        override func viewWillMove(toWindow newWindow: NSWindow?) {
+            if newWindow == nil { cancelDragPreparation() }
+            super.viewWillMove(toWindow: newWindow)
+        }
+
+        func cancelDragPreparation() {
+            mouseDownEvent = nil
+            preparationTask?.cancel()
+            preparationTask = nil
         }
 
         private func startDragSession(with event: NSEvent) {
-            let selectedItems = ShelfSelectionModel.shared.selectedItems(
-                in: ShelfStateViewModel.shared.items
-            )
+            guard let item else { return }
+            let selectedItems = ShelfSelectionModel.shared.selectedItems(in: shelfState.items)
             let itemsToDrag = selectedItems.count > 1
                 && selectedItems.contains(where: { $0.id == item.id })
                 ? selectedItems
                 : [item]
 
-            let exports = compactShelfExports(itemsToDrag, transform: makeDraggingItem)
-            draggedItems = exports.map { $0.item }
-            let draggingItems = exports.map { $0.payload }
-
-            guard !draggingItems.isEmpty else { return }
-            beginDraggingSession(with: draggingItems, event: event, source: self)
-        }
-
-        private func makeDraggingItem(for item: ShelfItem) -> NSDraggingItem? {
-            guard let writer = pasteboardWriter(for: item) else { return nil }
-
-            let draggingItem = NSDraggingItem(pasteboardWriter: writer)
-            let image = dragPreviewProvider?() ?? viewModel?.presentationIcon ?? NSImage()
-            draggingItem.setDraggingFrame(
-                NSRect(origin: .zero, size: image.size),
-                contents: image
-            )
-            return draggingItem
-        }
-
-        private func pasteboardWriter(for item: ShelfItem) -> (any NSPasteboardWriting)? {
-            switch item.kind {
-            case .file:
-                guard let url = ShelfStateViewModel.shared.resolvedFileURL(for: item) else { return nil }
-
-                if url.startAccessingSecurityScopedResource() {
-                    draggedURLs.append(url)
-                    NSLog("🔐 Started security-scoped access for drag: \(url.path)")
+            preparationTask = Task { [weak self, shelfState] in
+                let exports = await Self.prepareDragExports(for: itemsToDrag, shelfState: shelfState)
+                guard !Task.isCancelled, let self, self.mouseDownEvent != nil,
+                      self.shelfState.items.contains(where: { $0.id == item.id }) else { return }
+                self.preparationTask = nil
+                self.mouseDownEvent = nil
+                guard !exports.isEmpty else { return }
+                self.draggedItems = exports.map(\.item)
+                self.draggedURLs = exports.compactMap { $0.payload as? NSURL }
+                    .map { $0 as URL }.filter { $0.startAccessingSecurityScopedResource() }
+                let image = self.dragPreviewProvider?() ?? self.viewModel?.presentationIcon ?? NSImage()
+                let draggingItems = exports.map { export in
+                    let draggingItem = NSDraggingItem(pasteboardWriter: export.payload)
+                    draggingItem.setDraggingFrame(NSRect(origin: .zero, size: image.size), contents: image)
+                    return draggingItem
                 }
-                return url as NSURL
-
-            case .text(let string):
-                let pasteboardItem = NSPasteboardItem()
-                pasteboardItem.setString(string, forType: .string)
-                return pasteboardItem
-
-            case .link(let url):
-                let pasteboardItem = NSPasteboardItem()
-                pasteboardItem.setString(url.absoluteString, forType: .URL)
-                pasteboardItem.setString(url.absoluteString, forType: .string)
-                return pasteboardItem
+                if let beginPreparedDrag = self.beginPreparedDrag {
+                    beginPreparedDrag(draggingItems, event)
+                } else {
+                    self.beginDraggingSession(with: draggingItems, event: event, source: self)
+                }
             }
+        }
+
+        /// Resolve at the native export boundary, using the same request owner as
+        /// presentation and actions. Prepared payloads live only for this gesture.
+        static func prepareDragExports(
+            for items: [ShelfItem], shelfState: ShelfStateViewModel
+        ) async -> [(item: ShelfItem, payload: any NSPasteboardWriting)] {
+            var exports: [(item: ShelfItem, payload: any NSPasteboardWriting)] = []
+            for item in items {
+                guard !Task.isCancelled else { return [] }
+                let writer: any NSPasteboardWriting
+                switch item.kind {
+                case .file:
+                    guard let file = await shelfState.resolveFile(
+                        for: item, intent: .userInitiated, refresh: true
+                    ) else { continue }
+                    writer = file.url as NSURL
+                case .text(let string):
+                    let pasteboardItem = NSPasteboardItem()
+                    pasteboardItem.setString(string, forType: .string)
+                    writer = pasteboardItem
+                case .link(let url):
+                    let pasteboardItem = NSPasteboardItem()
+                    pasteboardItem.setString(url.absoluteString, forType: .URL)
+                    pasteboardItem.setString(url.absoluteString, forType: .string)
+                    writer = pasteboardItem
+                }
+                exports.append((item, writer))
+            }
+            guard !Task.isCancelled else { return [] }
+            return exports.filter { export in shelfState.items.contains { $0.id == export.item.id } }
         }
 
         func draggingSession(
