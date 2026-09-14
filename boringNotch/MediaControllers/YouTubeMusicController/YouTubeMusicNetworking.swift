@@ -6,16 +6,18 @@
 //
 
 import Foundation
+import os
 import Combine
 
 // MARK: - HTTP Client
-final class YouTubeMusicHTTPClient: ObservableObject {
+final class YouTubeMusicHTTPClient: Sendable {
     private let session: URLSession
     private let baseURL: String
+    private let retired = OSAllocatedUnfairLock(initialState: false)
     private static let decoder = JSONDecoder()
     private static let encoder = JSONEncoder()
     
-    init(baseURL: String) {
+    init(baseURL: String, session: URLSession? = nil) {
         self.baseURL = baseURL
         
         let config = URLSessionConfiguration.default
@@ -24,9 +26,24 @@ final class YouTubeMusicHTTPClient: ObservableObject {
         config.timeoutIntervalForRequest = 5
         config.timeoutIntervalForResource = 10
         
-        self.session = URLSession(configuration: config)
+        self.session = session ?? URLSession(configuration: config)
     }
     
+    deinit { session.invalidateAndCancel() }
+
+    func cancelAllRequests() {
+        retired.withLock { $0 = true }
+        // Async callers may already be entering URLSession. Invalidating it here
+        // can raise an Objective-C exception while such a caller creates a task.
+        session.getAllTasks { tasks in tasks.forEach { $0.cancel() } }
+    }
+
+    private func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+        try Task.checkCancellation()
+        guard !retired.withLock({ $0 }) else { throw CancellationError() }
+        return try await session.data(for: request)
+    }
+
     // MARK: - Authentication
     func authenticate() async throws -> String {
         guard let url = URL(string: "\(baseURL)/auth/boringNotch") else {
@@ -36,7 +53,7 @@ final class YouTubeMusicHTTPClient: ObservableObject {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
 
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await data(for: request)
         try validateResponse(response)
 
         let authResponse: AuthResponse = try Self.decoder.decode(AuthResponse.self, from: data)
@@ -86,7 +103,7 @@ final class YouTubeMusicHTTPClient: ObservableObject {
             token: token
         )
         
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await data(for: request)
         try validateResponse(response)
         
         return data
@@ -132,7 +149,22 @@ final class YouTubeMusicHTTPClient: ObservableObject {
 }
 
 // MARK: - WebSocket Client
-actor YouTubeMusicWebSocketClient {
+protocol YouTubeMusicWebSocketConnecting: AnyObject, Sendable {
+    func connect(to url: URL, with token: String) async throws
+    func disconnect() async
+}
+
+enum PearDisconnectReason: Sendable {
+    case unauthorized
+    case transient
+
+    static func classify(closeCode: URLSessionWebSocketTask.CloseCode, response: URLResponse?) -> Self {
+        let status = (response as? HTTPURLResponse)?.statusCode
+        return closeCode == .policyViolation || status == 401 || status == 403 ? .unauthorized : .transient
+    }
+}
+
+actor YouTubeMusicWebSocketClient: YouTubeMusicWebSocketConnecting {
     private final class ConnectionState {
         let task: URLSessionWebSocketTask
         var suppressDisconnectCallback = false
@@ -145,13 +177,13 @@ actor YouTubeMusicWebSocketClient {
     private var connection: ConnectionState?
     private let session: URLSession
     private let onMessage: @Sendable (Data) async -> Void
-    private let onDisconnect: @Sendable () async -> Void
+    private let onDisconnect: @Sendable (PearDisconnectReason) async -> Void
     
     var isConnected: Bool { connection != nil }
     
     init(
         onMessage: @escaping @Sendable (Data) async -> Void,
-        onDisconnect: @escaping @Sendable () async -> Void,
+        onDisconnect: @escaping @Sendable (PearDisconnectReason) async -> Void,
         session: URLSession = .shared
     ) {
         self.onMessage = onMessage
@@ -205,13 +237,9 @@ actor YouTubeMusicWebSocketClient {
             }
         }
         
-        if connection === state {
-            connection = nil
-        }
-        
-        if !state.suppressDisconnectCallback {
-            await onDisconnect()
-        }
+        guard connection === state, !state.suppressDisconnectCallback else { return }
+        connection = nil
+        await onDisconnect(.classify(closeCode: state.task.closeCode, response: state.task.response))
     }
 }
 

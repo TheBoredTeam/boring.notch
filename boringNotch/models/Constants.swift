@@ -372,6 +372,7 @@ extension Defaults.Keys {
     
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
+    static let pearAPIPort = Key<Int>("pearAPIPort", default: YouTubeMusicConfiguration.defaultPort)
     static let didChooseMediaController = Key<Bool>("didChooseMediaController", default: false)
     static let didMigrateMediaControllerChoice = Key<Bool>("didMigrateMediaControllerChoice", default: false)
     static let lastSupportedNowPlayingBundleIdentifier = Key<String?>(

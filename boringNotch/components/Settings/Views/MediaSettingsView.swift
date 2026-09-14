@@ -15,6 +15,9 @@ struct MediaSettingsView: View {
     @Default(.enableSneakPeek) private var enableSneakPeek
     @Default(.sneakPeekStyles) var sneakPeekStyles
 
+    @Default(.pearAPIPort) private var pearAPIPort
+    @State private var pearPortText = ""
+
     @Default(.enableLyrics) var enableLyrics
     @ObservedObject private var musicManager = MusicManager.shared
 
@@ -37,6 +40,26 @@ struct MediaSettingsView: View {
                 mediaSourceFooter
             }
             
+            if musicManager.preferredMediaController == .youtubeMusic {
+                Section {
+                    TextField("API server port", text: $pearPortText)
+                        .onSubmit { applyPearPort() }
+                    Button("Apply Port") { applyPearPort() }
+                        .disabled(validPearPort == nil || validPearPort == pearAPIPort)
+                    if validPearPort == nil {
+                        Text("Enter a port from 1 to 65535.")
+                            .foregroundStyle(.secondary)
+                    }
+                } header: {
+                    Text("Pear connection")
+                } footer: {
+                    Text("In Pear, enable Plugins → API Server. Enter the same port shown there (default: 26538), then approve Boring Notch’s access request in Pear. The connection stays on this Mac.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .onAppear { pearPortText = String(pearAPIPort) }
+            }
+
             Section {
                 Toggle(
                     "Show music live activity",
@@ -108,6 +131,16 @@ struct MediaSettingsView: View {
         .task {
             musicManager.ensureNowPlayingAvailabilityChecked()
         }
+    }
+
+    private var validPearPort: Int? {
+        guard let port = Int(pearPortText), YouTubeMusicConfiguration.validPorts.contains(port) else { return nil }
+        return port
+    }
+
+    private func applyPearPort() {
+        guard let port = validPearPort else { return }
+        pearAPIPort = port
     }
 
     private var mediaControllerSelection: Binding<MediaControllerType> {
