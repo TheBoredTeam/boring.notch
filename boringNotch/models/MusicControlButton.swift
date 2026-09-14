@@ -17,6 +17,7 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
     case favorite
     case goBackward
     case goForward
+    case share
     case mediaOutput
     case none
 
@@ -43,6 +44,7 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
         .next,
         .repeatMode,
         .favorite,
+        .share,
         .volume,
         .goBackward,
         .goForward,
@@ -69,6 +71,8 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
             return "Backward 15s"
         case .goForward:
             return "Forward 15s"
+        case .share:
+            return "Share"
         case .mediaOutput:
             return "Audio output"
         case .none:
@@ -96,6 +100,8 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
             return "gobackward.15"
         case .goForward:
             return "goforward.15"
+        case .share:
+            return "link"
         case .mediaOutput:
             // Placeholder for the settings picker; the live button swaps in
             // the actual route's glyph (laptop / headphones / AirPods).
