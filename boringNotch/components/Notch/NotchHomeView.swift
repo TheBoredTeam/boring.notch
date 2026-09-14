@@ -158,12 +158,7 @@ struct MusicControlsView: View {
             .fontWeight(.medium)
             if Defaults[.enableLyrics] {
                 TimelineView(.animation(minimumInterval: 0.25)) { timeline in
-                    let currentElapsed: Double = {
-                        guard musicManager.isPlaying else { return musicManager.elapsedTime }
-                        let delta = timeline.date.timeIntervalSince(musicManager.timestampDate)
-                        let progressed = musicManager.elapsedTime + (delta * musicManager.playbackRate)
-                        return min(max(progressed, 0), musicManager.songDuration)
-                    }()
+                    let currentElapsed = musicManager.estimatedPlaybackPosition(at: timeline.date)
                     let lyricDisplay: (line: String, displayDuration: Double?, animationID: Double?) = {
                         if LyricsService.shared.isFetchingLyrics { return ("Loading lyrics…", nil, nil) }
                         if !LyricsService.shared.syncedLyrics.isEmpty {
@@ -260,6 +255,7 @@ struct MusicControlsView: View {
             HoverButton(icon: "shuffle", iconColor: musicManager.isShuffled ? .red : .primary, scale: .medium) {
                 MusicManager.shared.toggleShuffle()
             }
+            .disabled(!musicManager.capabilities.shuffle)
         case .previous:
             HoverButton(icon: "backward.fill", scale: .medium) {
                 MusicManager.shared.previousTrack()
@@ -280,6 +276,7 @@ struct MusicControlsView: View {
             HoverButton(icon: repeatIcon, iconColor: repeatIconColor, scale: .medium) {
                 MusicManager.shared.toggleRepeat()
             }
+            .disabled(musicManager.capabilities.repeatModes.count < 2)
         case .mediaOutput:
             MediaOutputSlotButton()
         case .volume:
@@ -562,7 +559,7 @@ struct MusicSliderView: View {
     private var sliderCore: some View {
         CustomSlider(
             value: $sliderValue,
-            range: 0...duration,
+            range: PlaybackTime.seekRange(duration: duration) ?? 0...1,
             color: Defaults[.sliderColor] == SliderColorEnum.albumArt
                 ? Color(nsColor: color).ensureMinimumBrightness(factor: 0.8)
                 : Defaults[.sliderColor] == SliderColorEnum.accent ? .effectiveAccent : .white,
@@ -572,6 +569,8 @@ struct MusicSliderView: View {
             restingTrackHeight: restingTrackHeight,
             draggingTrackHeight: draggingTrackHeight
         )
+        .disabled(PlaybackTime.seekRange(duration: duration) == nil)
+        .opacity(PlaybackTime.seekRange(duration: duration) == nil ? 0.4 : 1)
     }
 
     private var timeLabelColor: Color {
@@ -580,6 +579,7 @@ struct MusicSliderView: View {
     }
 
     private var trailingTimeText: String {
+        guard PlaybackTime.seekRange(duration: duration) != nil else { return "--:--" }
         switch trailingLabel {
         case .duration:
             return timeString(from: duration)
@@ -598,17 +598,7 @@ struct MusicSliderView: View {
     }
 
     func timeString(from seconds: Double) -> String {
-        guard seconds.isFinite else { return "--:--" }
-        let totalMinutes = Int(seconds) / 60
-        let remainingSeconds = Int(seconds) % 60
-        let hours = totalMinutes / 60
-        let minutes = totalMinutes % 60
-
-        if hours > 0 {
-            return String(format: "%d:%02d:%02d", hours, minutes, remainingSeconds)
-        } else {
-            return String(format: "%d:%02d", minutes, remainingSeconds)
-        }
+        PlaybackTime.string(from: seconds)
     }
 }
 

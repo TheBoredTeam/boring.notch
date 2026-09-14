@@ -28,6 +28,9 @@ final class YouTubeMusicController: MediaControllerProtocol {
     }
 
     var supportsFavorite: Bool { true }
+    var capabilities: MediaCapabilities {
+        MediaCapabilities(favorite: true, shuffle: true, repeatModes: [.off, .all, .one])
+    }
 
     func setFavorite(_ favorite: Bool) async {
         do {
