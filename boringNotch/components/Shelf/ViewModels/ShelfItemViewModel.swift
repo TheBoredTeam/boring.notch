@@ -17,24 +17,118 @@ final class ShelfItemViewModel: ObservableObject {
     @Published private(set) var item: ShelfItem
 
     @Published var thumbnail: NSImage?
+    @Published private(set) var fileResolutionState = ShelfFileResolutionState()
     @Published var isDropTargeted: Bool = false
     @Published var isRenaming: Bool = false
     @Published var draftTitle: String = ""
     private var sharingLifecycle: SharingLifecycleDelegate?
     private var quickShareLifecycle: SharingLifecycleDelegate?
     private var sharingAccessingURLs: [URL] = []
+    private let resolutionTimeout: Duration
+    private var resolutionTask: Task<Void, Never>?
+    private var timeoutTask: Task<Void, Never>?
 
     private let selection = ShelfSelectionModel.shared
 
-    init(item: ShelfItem) {
+    init(item: ShelfItem, resolutionTimeout: Duration = .seconds(2)) {
         self.item = item
-        self.draftTitle = item.displayName
+        self.resolutionTimeout = resolutionTimeout
+        self.draftTitle = Self.nonFileDisplayName(for: item.kind) ?? ""
+        if case .file = item.kind { startFileResolution() }
     }
 
     func loadThumbnail() async {
-        guard let url = item.fileURL else { return }
+        guard let url = resolvedFileURL else { return }
         if let image = await ThumbnailService.shared.thumbnail(for: url, size: CGSize(width: 56, height: 56)) {
+            guard resolvedFileURL == url else { return }
             self.thumbnail = NSImage(cgImage: image, size: CGSize(width: 56, height: 56))
+        }
+    }
+
+    var fileResolutionPhase: ShelfFileResolutionPhase? {
+        guard case .file = item.kind else { return nil }
+        return fileResolutionState.phase
+    }
+
+    var resolvedFileURL: URL? {
+        guard case .available(let file) = fileResolutionState.phase else { return nil }
+        return file.url
+    }
+
+    var isUnavailableFile: Bool {
+        guard case .file = item.kind else { return false }
+        return fileResolutionState.phase == .unavailable
+    }
+
+    var canDrag: Bool {
+        guard case .file = item.kind else { return true }
+        return resolvedFileURL != nil
+    }
+
+    var displayName: String {
+        if let name = Self.nonFileDisplayName(for: item.kind) { return name }
+        switch fileResolutionState.phase {
+        case .loading: return "Loading…"
+        case .available(let file): return file.displayName
+        case .unavailable: return "File unavailable"
+        }
+    }
+
+    var presentationIcon: NSImage {
+        if let thumbnail { return thumbnail }
+        let symbol = isUnavailableFile ? "doc.questionmark" : "doc"
+        return NSImage(systemSymbolName: symbol, accessibilityDescription: displayName) ?? NSImage()
+    }
+
+    func retryResolution() {
+        guard isUnavailableFile else { return }
+        startFileResolution()
+    }
+
+    private func startFileResolution() {
+        guard case .file(let bookmarkData) = item.kind else { return }
+        resolutionTask?.cancel()
+        timeoutTask?.cancel()
+        thumbnail = nil
+        let generation = fileResolutionState.begin(preservingAvailableFile: true)
+        let resolutionItem = item
+        let pendingToken = ShelfStateViewModel.shared.prefetchFileResolution(for: resolutionItem)
+
+        resolutionTask = Task { [weak self] in
+            let file = await ShelfStateViewModel.shared.resolveFile(for: resolutionItem)
+            guard !Task.isCancelled, let self,
+                  self.fileResolutionState.finish(file, generation: generation) else { return }
+            if let file {
+                let data = file.refreshedBookmarkData ?? bookmarkData
+                self.item = ShelfItem(id: self.item.id, kind: .file(bookmark: data), isTemporary: self.item.isTemporary)
+                self.draftTitle = file.displayName
+                await self.loadThumbnail()
+            }
+        }
+
+        timeoutTask = Task { [weak self] in
+            try? await Task.sleep(for: resolutionTimeout)
+            guard !Task.isCancelled, let self,
+                  self.fileResolutionState.timeOut(generation: generation) else { return }
+            if let pendingToken {
+                ShelfStateViewModel.shared.invalidatePendingResolution(
+                    for: resolutionItem.id,
+                    bookmarkData: bookmarkData,
+                    token: pendingToken
+                )
+            }
+        }
+    }
+
+    private static func nonFileDisplayName(for kind: ShelfItemKind) -> String? {
+        switch kind {
+        case .file: return nil
+        case .text(let string): return string.trimmingCharacters(in: .whitespacesAndNewlines)
+        case .link(let url):
+            let value = url.absoluteString
+            if value.hasPrefix("https://") { return String(value.dropFirst(8)) }
+            if value.hasPrefix("http://") { return String(value.dropFirst(7)) }
+            return value
         }
     }
 

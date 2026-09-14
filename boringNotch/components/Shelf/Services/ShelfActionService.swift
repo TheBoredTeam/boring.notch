@@ -14,9 +14,16 @@ enum ShelfActionService {
 
     static func open(_ item: ShelfItem) {
         switch item.kind {
-        case .file(let bookmarkData):
-            Bookmark(data: bookmarkData).withAccess { url in
-                NSWorkspace.shared.open(url)
+        case .file:
+            Task {
+                guard let file = await ShelfStateViewModel.shared.resolveFile(
+                    for: item,
+                    intent: .userInitiated,
+                    refresh: true
+                ) else { return }
+                _ = file.url.accessSecurityScopedResource { url in
+                    NSWorkspace.shared.open(url)
+                }
             }
         case .link(let url):
             NSWorkspace.shared.open(url)
@@ -27,17 +34,31 @@ enum ShelfActionService {
     }
 
     static func reveal(_ item: ShelfItem) {
-        guard case .file(let bookmarkData) = item.kind else { return }
-        Bookmark(data: bookmarkData).withAccess { url in
-            NSWorkspace.shared.activateFileViewerSelecting([url])
+        guard case .file = item.kind else { return }
+        Task {
+            guard let file = await ShelfStateViewModel.shared.resolveFile(
+                for: item,
+                intent: .userInitiated,
+                refresh: true
+            ) else { return }
+            file.url.accessSecurityScopedResource { url in
+                NSWorkspace.shared.activateFileViewerSelecting([url])
+            }
         }
     }
 
     static func copyPath(_ item: ShelfItem) {
-        guard case .file(let bookmarkData) = item.kind else { return }
-        Bookmark(data: bookmarkData).withAccess { url in
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(url.path, forType: .string)
+        guard case .file = item.kind else { return }
+        Task {
+            guard let file = await ShelfStateViewModel.shared.resolveFile(
+                for: item,
+                intent: .userInitiated,
+                refresh: true
+            ) else { return }
+            file.url.accessSecurityScopedResource { url in
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(url.path, forType: .string)
+            }
         }
     }
 
@@ -45,4 +66,3 @@ enum ShelfActionService {
         ShelfStateViewModel.shared.remove(item)
     }
 }
-

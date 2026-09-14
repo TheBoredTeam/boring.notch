@@ -92,8 +92,8 @@ struct ShelfItemView: View {
                 viewModel: viewModel,
                 dragPreview: {
                     DragPreviewView(
-                        thumbnail: viewModel.thumbnail ?? item.icon,
-                        displayName: item.displayName
+                        thumbnail: viewModel.presentationIcon,
+                        displayName: viewModel.displayName
                     )
                 },
                 onPrimaryClick: viewModel.handleClick,
@@ -103,7 +103,7 @@ struct ShelfItemView: View {
     }
 
     private var iconView: some View {
-        Image(nsImage: viewModel.thumbnail ?? item.icon)
+        Image(nsImage: viewModel.presentationIcon)
             .resizable()
             .aspectRatio(contentMode: .fit)
             .frame(width: 56, height: 56)
@@ -112,9 +112,13 @@ struct ShelfItemView: View {
     }
 
     private var textView: some View {
-        Text(item.displayName)
+        Text(viewModel.displayName)
             .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(.primary)
+            .foregroundStyle(
+                viewModel.resolvedFileURL == nil && viewModel.fileResolutionPhase != nil
+                    ? Color.secondary
+                    : Color.primary
+            )
             .lineLimit(2)
             .truncationMode(.middle)
             .multilineTextAlignment(.center)
