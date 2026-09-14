@@ -11,33 +11,47 @@ import Defaults
 import SwiftUI
 
 private final class CameraSessionIntent: @unchecked Sendable {
+    struct Operation: Equatable, Sendable {
+        let id = UUID()
+        let owner: UUID?
+        let preferredCameraID: String?
+    }
+
     private let lock = NSLock()
-    private var generation: UInt = 0
-    private var desired = false
+    private var operation: Operation?
 
-    func requestStart() -> UInt {
+    var current: Operation? {
+        lock.withLock { operation }
+    }
+
+    func requestStart(owner: UUID?, preferredCameraID: String?) -> Operation {
         lock.withLock {
-            generation &+= 1
-            desired = true
-            return generation
+            let next = Operation(owner: owner, preferredCameraID: preferredCameraID)
+            operation = next
+            return next
         }
     }
 
-    func requestStop() {
+    func replace(_ expected: Operation, preferredCameraID: String?) -> Operation? {
         lock.withLock {
-            generation &+= 1
-            desired = false
+            guard operation == expected else { return nil }
+            let next = Operation(owner: expected.owner, preferredCameraID: preferredCameraID)
+            operation = next
+            return next
         }
     }
 
-    func isCurrent(_ expectedGeneration: UInt) -> Bool {
+    @discardableResult
+    func requestStop(ifCurrent expected: Operation? = nil) -> Bool {
         lock.withLock {
-            desired && generation == expectedGeneration
+            if let expected, operation != expected { return false }
+            operation = nil
+            return true
         }
     }
 
-    var isDesired: Bool {
-        lock.withLock { desired }
+    func isCurrent(_ expected: Operation) -> Bool {
+        lock.withLock { operation == expected }
     }
 }
 
@@ -91,9 +105,6 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
     private let dependencies: Dependencies
     private let sessionQueue: DispatchQueue
     private let intent = CameraSessionIntent()
-    private let generationLock = NSLock()
-    private var activeGeneration: UInt?
-    private var activePreferredCameraID: String?
     private var captureSession: AVCaptureSession?
     private var activeDeviceID: String?
     private var pendingStartCompletions: [(SessionStartResult) -> Void] = []
@@ -205,10 +216,8 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         precondition(Thread.isMainThread)
         dependencies.persistSelectedCamera(id)
         selectedCameraID = id
-        setCurrentPreferredCameraID(id)
-
-        guard let generation = currentGeneration(), intent.isCurrent(generation) else { return }
-        restartSession(generation: generation, preferredID: id)
+        guard let current = intent.current else { return }
+        startSessionOperation(current, preferredCameraID: id, reuseExistingSession: false)
     }
 
     @discardableResult
@@ -232,13 +241,13 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
 
     func startSession(owner: UUID? = nil, completion: ((SessionStartResult) -> Void)? = nil) {
         precondition(Thread.isMainThread)
-        if isSessionDesired && sessionOwner != owner { stopSession() }
+        if let current = intent.current, current.owner != owner { stopSession() }
         sessionOwner = owner
         requestSessionStart(completion: completion)
     }
 
     func ownsSession(_ owner: UUID) -> Bool {
-        isSessionDesired && sessionOwner == owner
+        intent.current?.owner == owner
     }
 
     nonisolated func releaseSession(owner: UUID) {
@@ -253,9 +262,8 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
 
     func stopSession(owner: UUID? = nil) {
         precondition(Thread.isMainThread)
-        if let owner, sessionOwner != owner { return }
+        if let owner, intent.current?.owner != owner { return }
         intent.requestStop()
-        setCurrentGeneration(nil)
         isSessionDesired = false
         sessionOwner = nil
         isSessionRunning = false
@@ -276,20 +284,19 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
             pendingStartCompletions.append(completion)
         }
 
-        if intent.isDesired {
+        if intent.current != nil {
             if isSessionRunning {
                 finishPendingStarts(with: .started)
             }
             return
         }
 
-        let generation = intent.requestStart()
-        setCurrentGeneration(generation, preferredCameraID: selectedCameraID)
+        let operation = intent.requestStart(owner: sessionOwner, preferredCameraID: selectedCameraID)
         isSessionDesired = true
 
         switch refreshAuthorizationStatus() {
         case .authorized:
-            configureAndStart(generation: generation)
+            startSessionOperation(operation, preferredCameraID: operation.preferredCameraID, reuseExistingSession: false)
         case .notDetermined:
             if !isRequestingAuthorization {
                 isRequestingAuthorization = true
@@ -298,9 +305,9 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
                 }
             }
         case .denied, .restricted:
-            cancelStart(generation: generation, result: .accessDenied)
+            cancelStart(operation: operation, result: .accessDenied)
         @unknown default:
-            cancelStart(generation: generation, result: .accessDenied)
+            cancelStart(operation: operation, result: .accessDenied)
         }
     }
 
@@ -310,21 +317,18 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
             self.isRequestingAuthorization = false
             self.authorizationStatus = granted ? .authorized : .denied
 
-            guard let generation = self.currentGeneration() else { return }
-            guard self.intent.isCurrent(generation) else { return }
+            guard let operation = self.intent.current else { return }
             if granted {
-                self.configureAndStart(generation: generation)
+                self.startSessionOperation(operation, preferredCameraID: operation.preferredCameraID, reuseExistingSession: false)
             } else {
-                self.cancelStart(generation: generation, result: .accessDenied)
+                self.cancelStart(operation: operation, result: .accessDenied)
             }
         }
     }
 
-    private func cancelStart(generation: UInt, result: SessionStartResult) {
+    private func cancelStart(operation: CameraSessionIntent.Operation, result: SessionStartResult) {
         precondition(Thread.isMainThread)
-        guard intent.isCurrent(generation) else { return }
-        intent.requestStop()
-        setCurrentGeneration(nil)
+        guard intent.requestStop(ifCurrent: operation) else { return }
         isSessionDesired = false
         sessionOwner = nil
         isSessionRunning = false
@@ -332,50 +336,69 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         finishPendingStarts(with: result)
     }
 
-    private func configureAndStart(generation: UInt) {
-        let preferredID = selectedCameraID
+    private func startSessionOperation(
+        _ current: CameraSessionIntent.Operation,
+        preferredCameraID: String?,
+        reuseExistingSession: Bool
+    ) {
+        guard let operation = intent.replace(current, preferredCameraID: preferredCameraID) else { return }
         sessionQueue.async { [weak self] in
-            self?.configureAndStartOnSessionQueue(generation: generation, preferredID: preferredID)
+            self?.startOnSessionQueue(operation, reuseExistingSession: reuseExistingSession)
         }
     }
 
-    private func configureAndStartOnSessionQueue(generation: UInt, preferredID: String?) {
-        guard intent.isCurrent(generation), dependencies.authorizationStatus() == .authorized else { return }
-        cleanupExistingSession()
+    private func startOnSessionQueue(
+        _ operation: CameraSessionIntent.Operation,
+        reuseExistingSession: Bool
+    ) {
+        guard intent.isCurrent(operation), dependencies.authorizationStatus() == .authorized else { return }
+        if reuseExistingSession, let session = captureSession {
+            if !session.isRunning { session.startRunning() }
+            guard intent.isCurrent(operation) else {
+                cleanupExistingSession()
+                return
+            }
+            if session.isRunning {
+                publishRunningSession(session, devices: dependencies.discoverDevices(), operation: operation)
+                return
+            }
+        }
 
+        cleanupExistingSession()
+        publishStoppedSession(operation: operation)
         do {
             let session = dependencies.makeSession()
             let devices = dependencies.discoverDevices()
-            let activeDeviceID = try dependencies.configureSession(session, devices, preferredID)
+            let activeDeviceID = try dependencies.configureSession(session, devices, operation.preferredCameraID)
 
-            guard intent.isCurrent(generation), dependencies.authorizationStatus() == .authorized else { return }
+            guard intent.isCurrent(operation), dependencies.authorizationStatus() == .authorized else { return }
             captureSession = session
             self.activeDeviceID = activeDeviceID
             session.startRunning()
 
-            guard intent.isCurrent(generation), session.isRunning else {
+            guard intent.isCurrent(operation), session.isRunning else {
                 cleanupExistingSession()
-                if intent.isCurrent(generation) {
-                    publishStartFailure(generation: generation)
-                }
+                publishStartFailure(operation: operation)
                 return
             }
 
-            publishRunningSession(session, devices: devices, generation: generation)
+            publishRunningSession(session, devices: devices, operation: operation)
         } catch {
             NSLog("Failed to setup capture session: \(error.localizedDescription)")
+            // Session work is serial: a replacement cannot have installed its
+            // session here yet. The delayed publication must also match this attempt.
             cleanupExistingSession()
-            publishStartFailure(generation: generation)
+            publishStartFailure(operation: operation)
         }
     }
 
     private func publishRunningSession(
         _ session: AVCaptureSession,
         devices: [AVCaptureDevice],
-        generation: UInt
+        operation: CameraSessionIntent.Operation
     ) {
         publishOnMain { [weak self] in
-            guard let self, self.intent.isCurrent(generation) else { return }
+            guard let self, self.intent.isCurrent(operation) else { return }
             self.availableCameras = devices
             self.cameraAvailable = true
             let previewLayer: AVCaptureVideoPreviewLayer
@@ -391,11 +414,9 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         }
     }
 
-    private func publishStartFailure(generation: UInt) {
+    private func publishStartFailure(operation: CameraSessionIntent.Operation) {
         publishOnMain { [weak self] in
-            guard let self, self.intent.isCurrent(generation) else { return }
-            self.intent.requestStop()
-            self.setCurrentGeneration(nil)
+            guard let self, self.intent.requestStop(ifCurrent: operation) else { return }
             self.isSessionDesired = false
             self.sessionOwner = nil
             self.isSessionRunning = false
@@ -430,77 +451,16 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         activeDeviceID = nil
     }
 
-    private func restartSession(generation: UInt, preferredID: String?) {
-        sessionQueue.async { [weak self] in
-            guard let self, self.intent.isCurrent(generation),
-                  self.dependencies.authorizationStatus() == .authorized else { return }
-            self.cleanupExistingSession()
-            self.publishStoppedSession(generation: generation)
-            self.configureAndStartOnSessionQueue(
-                generation: generation,
-                preferredID: preferredID
-            )
-        }
+    private func resumeSession(_ current: CameraSessionIntent.Operation) {
+        startSessionOperation(current, preferredCameraID: current.preferredCameraID, reuseExistingSession: true)
     }
 
-    private func resumeSession(generation: UInt) {
-        sessionQueue.async { [weak self] in
-            guard let self, self.intent.isCurrent(generation),
-                  self.dependencies.authorizationStatus() == .authorized else { return }
-
-            if let session = self.captureSession {
-                if !session.isRunning {
-                    session.startRunning()
-                }
-
-                if session.isRunning {
-                    self.publishRunningSession(
-                        session,
-                        devices: self.dependencies.discoverDevices(),
-                        generation: generation
-                    )
-                    return
-                }
-            }
-
-            self.cleanupExistingSession()
-            self.configureAndStartOnSessionQueue(
-                generation: generation,
-                preferredID: self.currentPreferredCameraID()
-            )
-        }
-    }
-
-    private func publishStoppedSession(generation: UInt) {
+    private func publishStoppedSession(operation: CameraSessionIntent.Operation) {
         publishOnMain { [weak self] in
-            guard let self, self.intent.isCurrent(generation) else { return }
+            guard let self, self.intent.isCurrent(operation) else { return }
             self.isSessionRunning = false
             self.previewLayer = nil
         }
-    }
-
-    private func currentGeneration() -> UInt? {
-        generationLock.withLock { activeGeneration }
-    }
-
-    private func setCurrentGeneration(
-        _ generation: UInt?,
-        preferredCameraID: String? = nil
-    ) {
-        generationLock.withLock {
-            activeGeneration = generation
-            activePreferredCameraID = generation == nil ? nil : preferredCameraID
-        }
-    }
-
-    private func setCurrentPreferredCameraID(_ id: String?) {
-        generationLock.withLock {
-            activePreferredCameraID = id
-        }
-    }
-
-    private func currentPreferredCameraID() -> String? {
-        generationLock.withLock { activePreferredCameraID }
     }
 
     private func observeLifecycleEvents() {
@@ -526,8 +486,8 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         }
         observe(NSWorkspace.didWakeNotification, center: dependencies.workspaceNotificationCenter) {
             [weak self] _ in
-            guard let self, let generation = self.currentGeneration() else { return }
-            self.resumeSession(generation: generation)
+            guard let self, let operation = self.intent.current else { return }
+            self.resumeSession(operation)
         }
         observe(NSWorkspace.willSleepNotification, center: dependencies.workspaceNotificationCenter) {
             [weak self] _ in
@@ -545,33 +505,34 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
     }
 
     private func deviceWasDisconnected(_ notification: Notification) {
+        checkCameraAvailability()
         guard let disconnectedDevice = notification.object as? AVCaptureDevice else { return }
         sessionQueue.async { [weak self] in
             guard let self,
                   self.activeDeviceID == disconnectedDevice.uniqueID,
-                  let generation = self.currentGeneration(),
-                  self.intent.isCurrent(generation) else { return }
+                  let operation = self.intent.current,
+                  self.intent.isCurrent(operation) else { return }
             self.cleanupExistingSession()
-            self.publishStoppedSession(generation: generation)
+            self.publishStoppedSession(operation: operation)
         }
     }
 
     private func deviceWasConnected() {
         checkCameraAvailability()
-        guard let generation = currentGeneration(), intent.isCurrent(generation) else { return }
-        resumeSession(generation: generation)
+        guard let operation = intent.current else { return }
+        resumeSession(operation)
     }
 
     private func suspendCurrentSession() {
         sessionQueue.async { [weak self] in
             guard let self,
-                  let generation = self.currentGeneration(),
-                  self.intent.isCurrent(generation),
+                  let operation = self.intent.current,
+                  self.intent.isCurrent(operation),
                   let session = self.captureSession else { return }
             if session.isRunning {
                 session.stopRunning()
             }
-            self.publishStoppedSession(generation: generation)
+            self.publishStoppedSession(operation: operation)
         }
     }
 
@@ -580,14 +541,10 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         sessionQueue.async { [weak self] in
             guard let self,
                   failedSession === self.captureSession,
-                  let generation = self.currentGeneration(),
-                  self.intent.isCurrent(generation) else { return }
-            self.cleanupExistingSession()
-            self.publishStoppedSession(generation: generation)
-            self.configureAndStartOnSessionQueue(
-                generation: generation,
-                preferredID: self.currentPreferredCameraID()
-            )
+                  let operation = self.intent.current,
+                  self.intent.isCurrent(operation) else { return }
+            guard let replacement = self.intent.replace(operation, preferredCameraID: operation.preferredCameraID) else { return }
+            self.startOnSessionQueue(replacement, reuseExistingSession: false)
         }
     }
 
@@ -596,8 +553,8 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         sessionQueue.async { [weak self] in
             guard let self,
                   interruptedSession === self.captureSession,
-                  let generation = self.currentGeneration() else { return }
-            self.publishStoppedSession(generation: generation)
+                  let operation = self.intent.current else { return }
+            self.publishStoppedSession(operation: operation)
         }
     }
 
@@ -606,25 +563,8 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         sessionQueue.async { [weak self] in
             guard let self,
                   resumedSession === self.captureSession,
-                  self.dependencies.authorizationStatus() == .authorized,
-                  let generation = self.currentGeneration(),
-                  self.intent.isCurrent(generation) else { return }
-            if !resumedSession.isRunning {
-                resumedSession.startRunning()
-            }
-            if resumedSession.isRunning {
-                self.publishRunningSession(
-                    resumedSession,
-                    devices: self.dependencies.discoverDevices(),
-                    generation: generation
-                )
-            } else {
-                self.cleanupExistingSession()
-                self.configureAndStartOnSessionQueue(
-                    generation: generation,
-                    preferredID: self.currentPreferredCameraID()
-                )
-            }
+                  let operation = self.intent.current else { return }
+            self.resumeSession(operation)
         }
     }
 
