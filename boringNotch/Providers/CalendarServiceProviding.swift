@@ -289,7 +289,7 @@ private extension EKReminder {
     }
 }
 
-private extension DateComponents {
+extension DateComponents {
     var isAllDayReminder: Bool {
         hour == nil && minute == nil && second == nil
     }
