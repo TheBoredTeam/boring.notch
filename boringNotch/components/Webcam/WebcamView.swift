@@ -12,9 +12,6 @@ import SwiftUI
 struct WebcamView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var webcamManager: WebcamManager
-    
-    // Track if authorization request is in progress to avoid multiple requests
-    @State private var isRequestingAuthorization: Bool = false
     @Default(.isMirrored) private var isMirrored
     
     var body: some View {
@@ -56,17 +53,14 @@ struct WebcamView: View {
     }
     
     private func handleCameraTap() {
-        if isRequestingAuthorization {
-            return // Prevent multiple authorization requests
+        if webcamManager.isSessionDesired {
+            webcamManager.stopSession()
+            return
         }
-        
+
         switch webcamManager.refreshAuthorizationStatus() {
         case .authorized:
-            if webcamManager.isSessionRunning {
-                webcamManager.stopSession()
-            } else if webcamManager.cameraAvailable {
-                webcamManager.startSession()
-            }
+            webcamManager.startSession()
         case .denied, .restricted:
             DispatchQueue.main.async {
                 let alert = NSAlert()
@@ -82,12 +76,7 @@ struct WebcamView: View {
                 }
             }
         case .notDetermined:
-            isRequestingAuthorization = true
-            webcamManager.checkAndRequestVideoAuthorization()
-            // Reset the request flag after a reasonable delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                isRequestingAuthorization = false
-            }
+            webcamManager.startSession()
         @unknown default:
             break
         }
@@ -99,17 +88,29 @@ struct WebcamPreviewLayer: NSViewRepresentable {
 
     func makeNSView(context: Context) -> NSView {
         let view = NSView(frame: .zero)
-        previewLayer.frame = view.bounds
-        previewLayer.videoGravity = .resizeAspectFill
-        view.layer = previewLayer
         view.wantsLayer = true
+        Self.attach(previewLayer, to: view)
         return view
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
+        Self.attach(previewLayer, to: nsView)
+    }
+
+    static func dismantleNSView(_ nsView: NSView, coordinator: ()) {
+        (nsView.layer as? AVCaptureVideoPreviewLayer)?.removeFromSuperlayer()
+        nsView.layer = nil
+    }
+
+    static func attach(_ previewLayer: AVCaptureVideoPreviewLayer, to view: NSView) {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        previewLayer.frame = nsView.bounds
+        if view.layer !== previewLayer {
+            (view.layer as? AVCaptureVideoPreviewLayer)?.removeFromSuperlayer()
+            view.layer = previewLayer
+        }
+        previewLayer.videoGravity = .resizeAspectFill
+        previewLayer.frame = view.bounds
         CATransaction.commit()
     }
 }
