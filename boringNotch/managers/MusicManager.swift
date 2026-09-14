@@ -102,13 +102,7 @@ final class MusicManager: ObservableObject {
     @Published var usingAppIconForArtwork: Bool = false
     @Published var canFavoriteTrack: Bool = false
     @Published private(set) var capabilities: MediaCapabilities = .unsupported
-    @Published private(set) var mediaCommandStatus: MediaCommandStatus = .idle
     private var acceptedPlaybackState: PlaybackState?
-    private var pendingMediaCommand: MediaCommand?
-    private var mediaCommandTask: Task<Void, Never>?
-    private var mediaCommandDeadlineTask: Task<Void, Never>?
-    private let mediaCommandTimeout: Duration
-    private var mediaCommandGeneration = UUID()
     
     // Lyrics are now managed by LyricsService
     var lyricsService: LyricsService { LyricsService.shared }
@@ -133,7 +127,6 @@ final class MusicManager: ObservableObject {
 
     // MARK: - Initialization
     init() {
-        mediaCommandTimeout = .seconds(1)
         Self.migrateMediaControllerPreferenceIfNeeded()
         preferredMediaController = Defaults[.mediaController]
 
@@ -146,10 +139,8 @@ final class MusicManager: ObservableObject {
     }
 
     /// Injecting a controller bypasses provider construction and preference
-    /// migration while exercising the same subscription and command lifecycle.
-    init(controller: any MediaControllerProtocol, type: MediaControllerType,
-         commandTimeout: Duration = .seconds(1)) {
-        mediaCommandTimeout = commandTimeout
+    /// migration while exercising the same subscription and command paths.
+    init(controller: any MediaControllerProtocol, type: MediaControllerType) {
         preferredMediaController = type
         activateController(controller, type: type)
     }
@@ -166,8 +157,6 @@ final class MusicManager: ObservableObject {
     }
 
     deinit {
-        mediaCommandTask?.cancel()
-        mediaCommandDeadlineTask?.cancel()
         debounceIdleTask?.cancel()
         availabilityTask?.cancel()
         runtimeFailureTask?.cancel()
@@ -181,9 +170,6 @@ final class MusicManager: ObservableObject {
     func destroy() {
         guard !isDestroyed else { return }
         isDestroyed = true
-        mediaCommandTask?.cancel()
-        mediaCommandDeadlineTask?.cancel()
-        mediaCommandGeneration = UUID()
 
         debounceIdleTask?.cancel()
         availabilityTask?.cancel()
@@ -419,15 +405,9 @@ final class MusicManager: ObservableObject {
     private func resetPublishedPlaybackState() {
         debounceIdleTask?.cancel()
         debounceIdleTask = nil
-        mediaCommandTask?.cancel()
-        mediaCommandDeadlineTask?.cancel()
-        mediaCommandTask = nil
-        mediaCommandGeneration = UUID()
-        pendingMediaCommand = nil
         acceptedPlaybackState = nil
         capabilities = .unsupported
         canFavoriteTrack = false
-        mediaCommandStatus = .idle
 
         songTitle = ""
         artistName = ""
@@ -514,23 +494,10 @@ final class MusicManager: ObservableObject {
         }
 
         let identityChanged = acceptedPlaybackState?.identity != state.identity
-        if identityChanged {
-            mediaCommandTask?.cancel()
-            mediaCommandDeadlineTask?.cancel()
-            mediaCommandGeneration = UUID()
-            pendingMediaCommand = nil
-            mediaCommandStatus = .idle
-        }
         acceptedPlaybackState = state
         capabilities = state.capabilities ?? activeController?.capabilities ?? .unsupported
         canFavoriteTrack = capabilities.favorite
         volumeControlSupported = activeController?.supportsVolumeControl ?? false
-        if let command = pendingMediaCommand, command.isConfirmed(by: state) {
-            mediaCommandDeadlineTask?.cancel()
-            mediaCommandDeadlineTask = nil
-            mediaCommandStatus = .confirmed
-            pendingMediaCommand = nil
-        }
 
         // Check for playback state changes (playing/paused)
         let playingStateChanged = state.isPlaying != self.isPlaying
@@ -665,42 +632,10 @@ final class MusicManager: ObservableObject {
     }
 
     func setFavorite(_ favorite: Bool) {
-        sendMediaCommand(.favorite(favorite))
-    }
-
-    private func sendMediaCommand(_ command: MediaCommand) {
-        guard command.isSupported(by: capabilities), mediaCommandStatus != .pending,
-              let controller = activeController, let identity = acceptedPlaybackState?.identity else { return }
-        let generation = UUID()
-        mediaCommandGeneration = generation
-        pendingMediaCommand = command
-        mediaCommandStatus = .pending
-        let commandCapabilities = capabilities
-        let deadline = ContinuousClock.now.advanced(by: mediaCommandTimeout)
-        // Start the deadline independently: AppleScript or provider refresh can
-        // remain suspended even after its Swift task is cancelled.
-        mediaCommandDeadlineTask = Task { @MainActor [weak self] in
-            do { try await Task.sleep(until: deadline, clock: .continuous) } catch { return }
-            guard let self, self.mediaCommandGeneration == generation,
-                  self.activeController === controller,
-                  self.acceptedPlaybackState?.identity == identity,
-                  self.pendingMediaCommand != nil else { return }
-            self.mediaCommandGeneration = UUID()
-            self.pendingMediaCommand = nil
-            self.mediaCommandTask?.cancel()
-            self.mediaCommandTask = nil
-            self.mediaCommandDeadlineTask = nil
-            self.mediaCommandStatus = .failed
-        }
-        mediaCommandTask = Task { @MainActor [weak self] in
-            guard !Task.isCancelled, let self, self.mediaCommandGeneration == generation,
-                  self.activeController === controller,
-                  self.acceptedPlaybackState?.identity == identity else { return }
-            await command.perform(on: controller, capabilities: commandCapabilities)
-            guard !Task.isCancelled, self.mediaCommandGeneration == generation else { return }
-            await controller.updatePlaybackInfo()
-            guard !Task.isCancelled, self.mediaCommandGeneration == generation else { return }
-            self.mediaCommandTask = nil
+        guard capabilities.favorite, let controller = activeController else { return }
+        Task { @MainActor [weak self, controller] in
+            guard self?.activeController === controller else { return }
+            await controller.setFavorite(favorite)
         }
     }
 
@@ -833,12 +768,20 @@ final class MusicManager: ObservableObject {
     }
 
     func toggleShuffle() {
-        sendMediaCommand(.shuffle(!isShuffled))
+        guard capabilities.shuffle, let controller = activeController else { return }
+        Task { @MainActor [weak self, controller] in
+            guard self?.activeController === controller else { return }
+            await controller.toggleShuffle()
+        }
     }
 
     func toggleRepeat() {
-        guard let mode = capabilities.nextRepeatMode(after: repeatMode) else { return }
-        sendMediaCommand(.repeatMode(mode))
+        guard capabilities.nextRepeatMode(after: repeatMode) != nil,
+              let controller = activeController else { return }
+        Task { @MainActor [weak self, controller] in
+            guard self?.activeController === controller else { return }
+            await controller.toggleRepeat()
+        }
     }
     
     func togglePlay() {

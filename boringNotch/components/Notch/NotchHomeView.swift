@@ -254,7 +254,7 @@ struct MusicControlsView: View {
             HoverButton(icon: "shuffle", iconColor: musicManager.isShuffled ? .red : .primary, scale: .medium) {
                 MusicManager.shared.toggleShuffle()
             }
-            .disabled(!musicManager.capabilities.shuffle || musicManager.mediaCommandStatus == .pending)
+            .disabled(!musicManager.capabilities.shuffle)
         case .previous:
             HoverButton(icon: "backward.fill", scale: .medium) {
                 MusicManager.shared.previousTrack()
@@ -275,7 +275,7 @@ struct MusicControlsView: View {
             HoverButton(icon: repeatIcon, iconColor: repeatIconColor, scale: .medium) {
                 MusicManager.shared.toggleRepeat()
             }
-            .disabled(musicManager.capabilities.repeatModes.count < 2 || musicManager.mediaCommandStatus == .pending)
+            .disabled(musicManager.capabilities.repeatModes.count < 2)
         case .mediaOutput:
             MediaOutputSlotButton()
         case .volume:
@@ -323,7 +323,7 @@ struct FavoriteControlButton: View {
         HoverButton(icon: iconName, iconColor: iconColor, scale: .medium) {
             MusicManager.shared.toggleFavoriteTrack()
         }
-        .disabled(!musicManager.canFavoriteTrack || musicManager.mediaCommandStatus == .pending)
+        .disabled(!musicManager.canFavoriteTrack)
         .opacity(musicManager.canFavoriteTrack ? 1 : 0.35)
     }
 

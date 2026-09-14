@@ -4,42 +4,52 @@ import XCTest
 
 final class MediaCapabilityTests: XCTestCase {
     @MainActor
-    func testUnsupportedCommandsNeverReachController() async {
-        let controller = RecordingMediaController()
-        for command in [MediaCommand.favorite(true), .shuffle(true), .repeatMode(.one)] {
-            let sent = await command.perform(on: controller, capabilities: .unsupported)
-            XCTAssertFalse(sent)
-        }
-        let repeatOne = await MediaCommand.repeatMode(.one).perform(on: controller, capabilities: .spotify)
-        let favorite = await MediaCommand.favorite(true).perform(on: controller, capabilities: .spotify)
-        XCTAssertFalse(repeatOne)
-        XCTAssertFalse(favorite)
+    func testManagerDoesNotDispatchUnavailableControls() async {
+        let controller = RecordingMediaController(capabilities: .unsupported)
+        let manager = MusicManager(controller: controller, type: .appleMusic)
+        defer { manager.destroy() }
+
+        manager.setFavorite(true)
+        manager.toggleShuffle()
+        manager.toggleRepeat()
+        await Task.yield()
+
         XCTAssertTrue(controller.commands.isEmpty)
     }
 
     @MainActor
-    func testSupportedCommandsAreDispatchedWithoutOptimisticState() async {
-        let controller = RecordingMediaController()
-        let shuffle = MediaCommand.shuffle(true)
-        let repeatMode = MediaCommand.repeatMode(.all)
-        let sentShuffle = await shuffle.perform(on: controller, capabilities: .spotify)
-        let sentRepeat = await repeatMode.perform(on: controller, capabilities: .spotify)
-        XCTAssertTrue(sentShuffle)
-        XCTAssertTrue(sentRepeat)
-        XCTAssertEqual(controller.commands, ["shuffle", "repeat"])
-        XCTAssertFalse(shuffle.isConfirmed(by: controller.state))
-        XCTAssertFalse(repeatMode.isConfirmed(by: controller.state))
+    func testManagerDispatchesAvailableControlsDirectly() async {
+        let controller = RecordingMediaController(capabilities: .appleMusic)
+        let manager = MusicManager(controller: controller, type: .appleMusic)
+        defer { manager.destroy() }
+        let dispatched = expectation(description: "provider commands dispatched")
+        dispatched.expectedFulfillmentCount = 3
+        controller.onCommand = { dispatched.fulfill() }
+
+        manager.setFavorite(true)
+        manager.toggleShuffle()
+        manager.toggleRepeat()
+
+        await fulfillment(of: [dispatched], timeout: 1)
+        XCTAssertEqual(Set(controller.commands), ["favorite", "shuffle", "repeat"])
     }
 
     @MainActor
-    func testFavoriteSourceUpdateWhileCommandIsPendingIsAuthoritative() async {
-        let controller = RecordingMediaController()
-        controller.confirmFavorite = true
-        let command = MediaCommand.favorite(true)
-        let sent = await command.perform(on: controller, capabilities: .appleMusic)
-        XCTAssertTrue(sent)
-        XCTAssertTrue(command.isConfirmed(by: controller.state))
-        XCTAssertEqual(controller.commands, ["favorite"])
+    func testSourcePublishedFavoriteStateIsAuthoritative() async {
+        let controller = RecordingMediaController(capabilities: .appleMusic)
+        let manager = MusicManager(controller: controller, type: .appleMusic)
+        defer { manager.destroy() }
+        let accepted = expectation(description: "source state accepted")
+        let subscription = manager.$isFavoriteTrack
+            .filter { $0 }
+            .prefix(1)
+            .sink { _ in accepted.fulfill() }
+
+        controller.state.isFavorite = true
+
+        await fulfillment(of: [accepted], timeout: 1)
+        XCTAssertTrue(manager.isFavoriteTrack)
+        withExtendedLifetime(subscription) {}
     }
 
     func testRepeatCyclesOnlyThroughSupportedModes() {
@@ -48,33 +58,38 @@ final class MediaCapabilityTests: XCTestCase {
         XCTAssertEqual(MediaCapabilities.appleMusic.nextRepeatMode(after: .all), .one)
         XCTAssertNil(MediaCapabilities.unsupported.nextRepeatMode(after: .off))
     }
-
-    @MainActor
-    func testTrackWithoutFavoriteSupportCannotBeFavorited() async {
-        let controller = RecordingMediaController()
-        var capabilities = MediaCapabilities.appleMusic
-        capabilities.favorite = false
-        let sent = await MediaCommand.favorite(true).perform(on: controller, capabilities: capabilities)
-        XCTAssertFalse(sent)
-        XCTAssertTrue(controller.commands.isEmpty)
-    }
 }
 
 @MainActor
 private final class RecordingMediaController: MediaControllerProtocol {
-    @Published var state = PlaybackState(bundleIdentifier: "com.apple.Music")
+    @Published var state: PlaybackState
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> { $state.eraseToAnyPublisher() }
     var supportsVolumeControl: Bool { false }
-    var supportsFavorite: Bool { true }
+    var supportsFavorite: Bool { capabilities.favorite }
+    var capabilities: MediaCapabilities { state.capabilities ?? .unsupported }
     var commands: [String] = []
-    var confirmFavorite = false
+    var onCommand: (() -> Void)?
+
+    init(capabilities: MediaCapabilities) {
+        state = PlaybackState(
+            bundleIdentifier: "com.apple.Music",
+            capabilities: capabilities,
+            lastUpdated: Date()
+        )
+    }
+
     func setFavorite(_ favorite: Bool) async {
         commands.append("favorite")
-        if confirmFavorite { state.isFavorite = favorite }
-        await Task.yield()
+        onCommand?()
     }
-    func toggleShuffle() async { commands.append("shuffle") }
-    func toggleRepeat() async { commands.append("repeat") }
+    func toggleShuffle() async {
+        commands.append("shuffle")
+        onCommand?()
+    }
+    func toggleRepeat() async {
+        commands.append("repeat")
+        onCommand?()
+    }
     func play() async {}
     func pause() async {}
     func seek(to time: Double) async {}
@@ -82,6 +97,6 @@ private final class RecordingMediaController: MediaControllerProtocol {
     func previousTrack() async {}
     func togglePlay() async {}
     func setVolume(_ level: Double) async {}
-    func isActive() -> Bool { true }
+    func isActive() -> Bool { false }
     func updatePlaybackInfo() async {}
 }

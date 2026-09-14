@@ -222,32 +222,34 @@ struct NowPlayingPayload: Codable, Sendable {
 extension NowPlayingUpdate {
     func applying(to previous: PlaybackState, receivedAt now: Date = Date()) -> PlaybackState {
         let p = payload
-        let isDiff = diff == true
-        let source = normalizeBundleIdentifier(p.parentApplicationBundleIdentifier ?? p.bundleIdentifier ?? (isDiff ? previous.bundleIdentifier : ""))
-        let sameSource = source.lowercased() == previous.identity.source
-        let metadataChanged = (p.title.map { $0 != previous.title } ?? p.presentFields.contains("title"))
-            || (p.artist.map { $0 != previous.artist } ?? p.presentFields.contains("artist"))
-            || (p.album.map { $0 != previous.album } ?? p.presentFields.contains("album"))
-        let keep = isDiff && sameSource && !metadataChanged
+        let preservesOmittedFields = diff == true
+        let source = normalizeBundleIdentifier(
+            p.parentApplicationBundleIdentifier
+                ?? p.bundleIdentifier
+                ?? (preservesOmittedFields ? previous.bundleIdentifier : "")
+        )
         func field<T>(_ name: String, _ value: T?, _ old: T, _ empty: T) -> T {
-            value ?? (keep && !p.presentFields.contains(name) ? old : empty)
+            value ?? (preservesOmittedFields && !p.presentFields.contains(name) ? old : empty)
         }
-        var state = keep ? previous : PlaybackState(bundleIdentifier: source)
+        var state = preservesOmittedFields ? previous : PlaybackState(bundleIdentifier: source)
         state.bundleIdentifier = source
         state.audioCaptureBundleIdentifiers = p.bundleIdentifier.map { [$0] }
-            ?? (isDiff && sameSource ? previous.effectiveAudioCaptureBundleIdentifiers : [source])
+            ?? (preservesOmittedFields ? previous.effectiveAudioCaptureBundleIdentifiers : [source])
         state.title = field("title", p.title, previous.title, "")
         state.artist = field("artist", p.artist, previous.artist, "")
         state.album = field("album", p.album, previous.album, "")
         state.duration = PlaybackTime.sanitized(field("duration", p.duration, previous.duration, 0))
-        state.isPlaying = p.playing ?? (isDiff && sameSource && !p.presentFields.contains("playing") ? previous.isPlaying : false)
+        state.isPlaying = p.playing
+            ?? (preservesOmittedFields && !p.presentFields.contains("playing") ? previous.isPlaying : false)
         state.playbackRate = PlaybackTime.sanitized(field("playbackRate", p.playbackRate, previous.playbackRate, 1))
         state.isShuffled = field("shuffleMode", p.shuffleMode.map { $0 != 1 }, previous.isShuffled, false)
         state.repeatMode = field("repeatMode", p.repeatMode.flatMap(RepeatMode.init(rawValue:)), previous.repeatMode, .off)
-        state.volume = min(1, PlaybackTime.sanitized(p.volume ?? (isDiff && sameSource && !p.presentFields.contains("volume") ? previous.volume : 0.5)))
+        state.volume = min(1, PlaybackTime.sanitized(
+            p.volume ?? (preservesOmittedFields && !p.presentFields.contains("volume") ? previous.volume : 0.5)
+        ))
         if let artwork = p.artworkData {
             state.artwork = Data(base64Encoded: artwork.trimmingCharacters(in: .whitespacesAndNewlines))
-        } else if !keep || p.presentFields.contains("artworkData") {
+        } else if !preservesOmittedFields || p.presentFields.contains("artworkData") {
             state.artwork = nil
         }
         let hasElapsedField = p.elapsedTime != nil || p.presentFields.contains("elapsedTime")
@@ -255,7 +257,7 @@ extension NowPlayingUpdate {
         if hasElapsedField {
             state.sourceElapsedTime = PlaybackTime.sanitized(p.elapsedTime ?? 0)
         } else {
-            state.sourceElapsedTime = keep ? previous.sourceElapsedTime ?? previous.currentTime : 0
+            state.sourceElapsedTime = preservesOmittedFields ? previous.sourceElapsedTime ?? previous.currentTime : 0
         }
         if hasTimestampField {
             state.sourceTimestamp = p.timestamp.flatMap { ISO8601DateFormatter().date(from: $0) }
@@ -263,14 +265,14 @@ extension NowPlayingUpdate {
         // The adapter diffs elapsedTime and timestamp independently. Merge the
         // raw pair before projecting it into the display clock. Receipt-time
         // estimation is only for play/rate/duration changes without a sample.
-        let timingChanged = !keep || hasElapsedField || hasTimestampField
+        let timingChanged = !preservesOmittedFields || hasElapsedField || hasTimestampField
             || state.duration != previous.duration || state.isPlaying != previous.isPlaying
             || state.playbackRate != previous.playbackRate
         if timingChanged {
             if hasElapsedField || hasTimestampField {
                 state.currentTime = state.sourceElapsedTime ?? 0
                 state.lastUpdated = state.sourceTimestamp ?? now
-            } else if keep {
+            } else if preservesOmittedFields {
                 state.currentTime = PlaybackTime.position(elapsed: previous.currentTime, duration: previous.duration,
                     rate: previous.playbackRate, playing: previous.isPlaying, sampledAt: previous.lastUpdated, now: now)
                 state.lastUpdated = now
@@ -282,15 +284,15 @@ extension NowPlayingUpdate {
         if let range = PlaybackTime.seekRange(duration: state.duration) {
             state.currentTime = min(state.currentTime, range.upperBound)
         }
-        // Only advertise source modes actually observed on this identity.
-        let knownSource = source == "com.apple.Music" || source == "com.spotify.client"
-        var capabilities = keep ? previous.capabilities ?? .unsupported : .unsupported
-        if !knownSource { capabilities = .unsupported }
-        if knownSource && (p.shuffleMode != nil || p.presentFields.contains("shuffleMode") || !keep) {
+        // MediaRemote accepts integer repeat modes independently of Spotify's
+        // Boolean AppleScript `repeating` property. Advertise only state fields
+        // observed in the MediaRemote snapshot.
+        var capabilities = preservesOmittedFields ? previous.capabilities ?? .unsupported : .unsupported
+        if p.shuffleMode != nil || p.presentFields.contains("shuffleMode") || !preservesOmittedFields {
             capabilities.shuffle = p.shuffleMode != nil
         }
-        if knownSource && (p.repeatMode != nil || p.presentFields.contains("repeatMode") || !keep) {
-            capabilities.repeatModes = p.repeatMode == nil ? [] : (source == "com.spotify.client" ? [.off, .all] : [.off, .all, .one])
+        if p.repeatMode != nil || p.presentFields.contains("repeatMode") || !preservesOmittedFields {
+            capabilities.repeatModes = p.repeatMode == nil ? [] : [.off, .all, .one]
         }
         state.capabilities = capabilities
         return state
