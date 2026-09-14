@@ -85,6 +85,8 @@ final class ShelfTransferTests: XCTestCase {
     func testPromisedPackageCopiesDirectoryContents() async throws {
         let fixture = try makeFixture()
         defer { try? FileManager.default.removeItem(at: fixture.root) }
+        let sibling = fixture.sources.appendingPathComponent("keep.txt")
+        try Data("keep".utf8).write(to: sibling)
         let package = fixture.sources.appendingPathComponent("Document.bundle", isDirectory: true)
         try FileManager.default.createDirectory(at: package, withIntermediateDirectories: true)
         try Data("inside".utf8).write(to: package.appendingPathComponent("contents.txt"))
@@ -94,6 +96,7 @@ final class ShelfTransferTests: XCTestCase {
             suggestedName: "Document.bundle"
         )
 
+        XCTAssertTrue(ShelfTransferTypes.supports([provider]))
         let batch = await ShelfTransferDecoder(storage: fixture.storage).decode([provider])
         defer { batch.resources.release() }
         guard case .file(let file) = batch.values.first else {
@@ -103,7 +106,43 @@ final class ShelfTransferTests: XCTestCase {
             try Data(contentsOf: file.url.appendingPathComponent("contents.txt")),
             Data("inside".utf8)
         )
+        batch.resources.release()
+
         XCTAssertTrue(FileManager.default.fileExists(atPath: package.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: fixture.sources.path))
+        XCTAssertEqual(try Data(contentsOf: sibling), Data("keep".utf8))
+    }
+
+    func testPromisedDirectoryCopiesHierarchyWithoutDeletingProviderParent() async throws {
+        let fixture = try makeFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.root) }
+        let sibling = fixture.sources.appendingPathComponent("keep.txt")
+        try Data("keep".utf8).write(to: sibling)
+        let directory = fixture.sources.appendingPathComponent("Folder", isDirectory: true)
+        let nested = directory.appendingPathComponent("Nested", isDirectory: true)
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+        try Data("inside".utf8).write(to: nested.appendingPathComponent("contents.txt"))
+        let provider = promisedProvider(
+            source: directory,
+            type: .directory,
+            suggestedName: "Folder"
+        )
+
+        XCTAssertTrue(ShelfTransferTypes.supports([provider]))
+        let batch = await ShelfTransferDecoder(storage: fixture.storage).decode([provider])
+        defer { batch.resources.release() }
+        guard case .file(let file) = batch.values.first else {
+            return XCTFail("Expected copied directory")
+        }
+        XCTAssertEqual(
+            try Data(contentsOf: file.url.appendingPathComponent("Nested/contents.txt")),
+            Data("inside".utf8)
+        )
+        batch.resources.release()
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: directory.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: fixture.sources.path))
+        XCTAssertEqual(try Data(contentsOf: sibling), Data("keep".utf8))
     }
 
     @MainActor
@@ -231,6 +270,12 @@ final class ShelfTransferTests: XCTestCase {
         )
         XCTAssertFalse(
             ShelfTransferTypes.supports(typeIdentifiers: ["com.example.private"])
+        )
+        XCTAssertTrue(
+            ShelfTransferTypes.supports(typeIdentifiers: [UTType.directory.identifier])
+        )
+        XCTAssertTrue(
+            ShelfTransferTypes.supports(typeIdentifiers: [UTType.package.identifier])
         )
     }
 
