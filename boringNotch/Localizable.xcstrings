@@ -1,6 +1,21 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "API server port" : {
+      "extractionState" : "manual"
+    },
+    "Apply Port" : {
+      "extractionState" : "manual"
+    },
+    "Enter a port from 1 to 65535." : {
+      "extractionState" : "manual"
+    },
+    "Pear connection" : {
+      "extractionState" : "manual"
+    },
+    "In Pear, enable Plugins → API Server. Enter the same port shown there (default: 26538), then approve Boring Notch’s access request in Pear. The connection stays on this Mac." : {
+      "extractionState" : "manual"
+    },
     "" : {
       "localizations" : {
         "en" : {

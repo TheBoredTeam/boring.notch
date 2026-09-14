@@ -9,58 +9,61 @@ import Foundation
 
 // MARK: - Authentication Manager
 actor YouTubeMusicAuthManager {
+    private struct Attempt {
+        let id = UUID()
+        let task: Task<String, Error>
+    }
+
     private var accessToken: String?
-    private var authenticationTask: Task<String, Error>?
-    private let httpClient: YouTubeMusicHTTPClient
-    
+    private var attempt: Attempt?
+    private var generation: UInt64 = 0
+    private let requestAuthentication: @Sendable () async throws -> String
+
     init(httpClient: YouTubeMusicHTTPClient) {
-        self.httpClient = httpClient
+        requestAuthentication = { try await httpClient.authenticate() }
     }
-    
-    var currentToken: String? {
-        accessToken
+
+    init(requestAuthentication: @escaping @Sendable () async throws -> String) {
+        self.requestAuthentication = requestAuthentication
     }
-    
+
+    var currentToken: String? { accessToken }
+
     func authenticate() async throws -> String {
-        // Return existing token if valid
-        if let token = accessToken {
-            return token
+        try Task.checkCancellation()
+        if let token = accessToken { return token }
+        let expectedGeneration = generation
+        let active: Attempt
+        if let attempt {
+            active = attempt
+        } else {
+            let request = requestAuthentication
+            active = Attempt(task: Task { try await request() })
+            attempt = active
         }
-        
-        // Wait for ongoing authentication if in progress
-        if let task = authenticationTask {
-            return try await task.value
-        }
-        
-        // Start new authentication
-        let task = Task<String, Error> {
-            do {
-                let token = try await httpClient.authenticate()
-                await setToken(token)
-                return token
-            } catch {
-                await clearAuthenticationTask()
-                throw error
+
+        do {
+            let token = try await active.task.value
+            guard generation == expectedGeneration else { throw CancellationError() }
+            guard !token.isEmpty else { throw YouTubeMusicError.authenticationRequired }
+            if attempt?.id == active.id {
+                accessToken = token
+                attempt = nil
             }
+            try Task.checkCancellation()
+            return token
+        } catch {
+            // Another caller may already have started a replacement attempt.
+            if attempt?.id == active.id { attempt = nil }
+            throw error
         }
-        
-        authenticationTask = task
-        return try await task.value
     }
-    
-    func invalidateToken() async {
+
+    func invalidateToken() {
+        generation &+= 1
         accessToken = nil
-        authenticationTask?.cancel()
-        authenticationTask = nil
-    }
-    
-    private func setToken(_ token: String) async {
-        accessToken = token
-        authenticationTask = nil
-    }
-    
-    private func clearAuthenticationTask() async {
-        authenticationTask = nil
+        attempt?.task.cancel()
+        attempt = nil
     }
 }
 

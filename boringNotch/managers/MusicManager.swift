@@ -123,6 +123,8 @@ final class MusicManager: ObservableObject {
     @Published var isTransitioning: Bool = false
     private var transitionWorkItem: DispatchWorkItem?
 
+    private var pearPortObserver: AnyCancellable?
+
     // MARK: - Initialization
     init() {
         Self.migrateMediaControllerPreferenceIfNeeded()
@@ -133,6 +135,19 @@ final class MusicManager: ObservableObject {
             ensureNowPlayingAvailabilityChecked()
         } else {
             activateControllerIfNeeded(preferredMediaController)
+        }
+
+        pearPortObserver = Defaults.publisher(.pearAPIPort, options: []).sink { [weak self] change in
+            Task { @MainActor [weak self] in
+                guard let self, !self.isDestroyed,
+                      self.effectiveMediaController == .youtubeMusic,
+                      change.newValue != change.oldValue,
+                      Defaults[.pearAPIPort] == change.newValue,
+                      let configuration = YouTubeMusicConfiguration.default.withLoopbackPort(change.newValue)
+                else { return }
+                // Replacement uses the same teardown and publication boundary as a source change.
+                self.activateController(YouTubeMusicController(configuration: configuration), type: .youtubeMusic)
+            }
         }
     }
 
@@ -161,6 +176,7 @@ final class MusicManager: ObservableObject {
     func destroy() {
         guard !isDestroyed else { return }
         isDestroyed = true
+        pearPortObserver = nil
 
         debounceIdleTask?.cancel()
         availabilityTask?.cancel()
@@ -175,6 +191,7 @@ final class MusicManager: ObservableObject {
         flipWorkItem?.cancel()
         transitionWorkItem?.cancel()
         (activeController as? any NowPlayingRuntimeControlling)?.stopRuntimeStream()
+        (activeController as? YouTubeMusicController)?.stopConnection()
 
         activeController = nil
         effectiveMediaController = nil
@@ -342,7 +359,9 @@ final class MusicManager: ObservableObject {
         case .spotify:
             SpotifyController()
         case .youtubeMusic:
-            YouTubeMusicController()
+            YouTubeMusicController(
+                configuration: YouTubeMusicConfiguration.default.withLoopbackPort(Defaults[.pearAPIPort]) ?? .default
+            )
         }
     }
 
@@ -355,6 +374,7 @@ final class MusicManager: ObservableObject {
         runtimeFailureTask?.cancel()
         runtimeFailureTask = nil
         (activeController as? any NowPlayingRuntimeControlling)?.stopRuntimeStream()
+        (activeController as? YouTubeMusicController)?.stopConnection()
         controllerCancellables.removeAll()
 
         flipWorkItem?.cancel()
