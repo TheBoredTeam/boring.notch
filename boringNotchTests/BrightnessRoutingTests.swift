@@ -56,6 +56,119 @@ private final class FakeBrightnessClient: BrightnessHardwareControlling {
 
 @MainActor
 final class BrightnessRoutingTests: XCTestCase {
+    func testStandaloneDispositionPassesThroughDiscoveringAndUnsupportedTargets() async {
+        let client = FakeBrightnessClient()
+        client.targetID = 7
+        client.values[7] = 0.4
+        let manager = makeManager(client: client) { _, _ in }
+        var normalCalls = 0
+        func dispatch() -> Bool {
+            MediaKeyInterceptor.dispatchKey(
+                keyCode: 2, option: false, shift: false, command: false,
+                brightnessSupported: manager.canAdjustBrightness,
+                optionAction: { XCTFail("unexpected option action"); return false },
+                normalAction: { normalCalls += 1 })
+        }
+        XCTAssertFalse(dispatch())
+        XCTAssertEqual(normalCalls, 0)
+        await settle()
+        XCTAssertTrue(dispatch())
+        XCTAssertEqual(normalCalls, 1)
+        client.targetID = nil
+        manager.invalidateTopology()
+        XCTAssertFalse(dispatch())
+        await settle()
+        XCTAssertFalse(dispatch())
+        XCTAssertEqual(normalCalls, 1)
+    }
+
+    func testStandaloneDispositionPreservesCommandAndOptionActions() {
+        for keyCode in [2, 3] {
+            var normalCalls = 0
+            var optionCalls = 0
+            let command = MediaKeyInterceptor.dispatchKey(
+                keyCode: keyCode, option: false, shift: false, command: true,
+                brightnessSupported: false,
+                optionAction: { optionCalls += 1; return true },
+                normalAction: { normalCalls += 1 })
+            XCTAssertTrue(command)
+            XCTAssertEqual(normalCalls, 1)
+            XCTAssertEqual(optionCalls, 0)
+            let option = MediaKeyInterceptor.dispatchKey(
+                keyCode: keyCode, option: true, shift: false, command: false,
+                brightnessSupported: false,
+                optionAction: { optionCalls += 1; return true },
+                normalAction: { normalCalls += 1 })
+            XCTAssertTrue(option)
+            XCTAssertEqual(normalCalls, 1)
+            XCTAssertEqual(optionCalls, 1)
+            XCTAssertFalse(MediaKeyInterceptor.dispatchKey(
+                keyCode: keyCode, option: true, shift: true, command: false,
+                brightnessSupported: false,
+                optionAction: { XCTFail("fine adjustment is not an option action"); return true },
+                normalAction: { XCTFail("unsupported normal adjustment") }))
+        }
+    }
+
+    func testQueuedAbsoluteAndRelativeWritesRecheckDisabledLifecycleBeforeDispatch() async {
+        for invalidate in [false, true] {
+            let client = FakeBrightnessClient()
+            client.targetID = 7
+            client.values[7] = 0.4
+            var enabled = true
+            var events = 0
+            let manager = BrightnessManager(
+                client: client, displayUUID: { "display-\($0)" }, eventSink: { _, _ in events += 1 },
+                observeTopology: false, controlEnabled: { enabled })
+            await settle()
+            manager.setAbsolute(value: 0.8)
+            manager.setRelative(delta: 0.1)
+            enabled = false
+            if invalidate { manager.invalidateTopology() }
+            await settle()
+            XCTAssertTrue(client.sets.isEmpty)
+            XCTAssertTrue(client.adjustments.isEmpty)
+            XCTAssertEqual(client.values[7], 0.4)
+            XCTAssertEqual(events, 0)
+            enabled = true
+            if invalidate {
+                manager.invalidateTopology()
+                await settle()
+            }
+            manager.setRelative(delta: 0.2)
+            await settle()
+            XCTAssertEqual(client.adjustments.count, 1)
+            XCTAssertEqual(client.adjustments.first?.0 ?? -1, 0.2, accuracy: 0.0001)
+        }
+    }
+
+    func testQueuedWritesCannotFollowAReplacementTarget() async {
+        let client = FakeBrightnessClient()
+        client.targetID = 7
+        client.values[7] = 0.4
+        client.values[8] = 0.2
+        let manager = makeManager(client: client) { _, _ in }
+        await settle()
+        manager.setAbsolute(value: 0.8)
+        manager.setRelative(delta: 0.1)
+        client.targetID = 8
+        manager.invalidateTopology()
+        await settle()
+        XCTAssertTrue(client.sets.isEmpty)
+        XCTAssertTrue(client.adjustments.isEmpty)
+        manager.setRelative(delta: 0.2)
+        await settle()
+        XCTAssertEqual(client.adjustments.count, 1)
+        XCTAssertEqual(client.adjustments.first?.1, 8)
+        XCTAssertEqual(client.values[7], 0.4)
+        XCTAssertEqual(client.values[8] ?? -1, 0.4, accuracy: 0.0001)
+        manager.setAbsolute(value: 0.8)
+        await settle()
+        XCTAssertEqual(client.sets.count, 1)
+        XCTAssertEqual(client.sets.first?.1, 8)
+        XCTAssertEqual(client.values[8], 0.8)
+    }
+
     func testDisabledLifecycleSkipsWriteBasedDiscoveryAndRefreshesOnEnable() async {
         let client = FakeBrightnessClient()
         client.targetID = 7

@@ -113,7 +113,7 @@ final class BrightnessManager: ObservableObject {
 	}
 
 	@MainActor func setRelative(delta: Float) {
-		guard controlEnabled(), target != nil else { return }
+		guard controlEnabled(), let operationTarget = target else { return }
 		pendingDelta += delta
 		guard flushTask == nil else { return }
 		nextFlushTaskToken &+= 1
@@ -122,20 +122,23 @@ final class BrightnessManager: ObservableObject {
 		flushTask = Task { @MainActor in
 			defer {
 				if flushTaskToken == taskToken {
+					pendingDelta = 0
 					flushTask = nil
 					flushTaskToken = nil
 				}
 			}
-			while pendingDelta != 0, let operationTarget = target {
+			while pendingDelta != 0 {
+				guard !Task.isCancelled, controlEnabled(),
+					  flushTaskToken == taskToken, target == operationTarget else { return }
 				let delta = pendingDelta
 				pendingDelta = 0
 				guard let result = await client.adjustScreenBrightness(
 					by: delta, displayID: operationTarget.displayID),
-					  !Task.isCancelled,
-					  target == operationTarget,
+					  !Task.isCancelled, controlEnabled(),
+					  flushTaskToken == taskToken, target == operationTarget,
 					  result.displayID == operationTarget.displayID
 				else {
-					if !Task.isCancelled { invalidateTopology() }
+					if !Task.isCancelled, flushTaskToken == taskToken { invalidateTopology() }
 					return
 				}
 				publish(brightness: result.brightness, touchDate: true)
@@ -148,10 +151,10 @@ final class BrightnessManager: ObservableObject {
 		let clamped = max(0, min(1, value))
 		guard controlEnabled(), let operationTarget = target else { return }
 		Task { @MainActor [weak self] in
-			guard let self,
+			guard let self, !Task.isCancelled, controlEnabled(), target == operationTarget,
 				  let result = await client.setScreenBrightness(
 					clamped, displayID: operationTarget.displayID),
-				  target == operationTarget,
+				  !Task.isCancelled, controlEnabled(), target == operationTarget,
 				  result.displayID == operationTarget.displayID
 			else { return }
 			publish(brightness: result.brightness, touchDate: true)
@@ -160,12 +163,10 @@ final class BrightnessManager: ObservableObject {
 	}
 
 	private func publish(brightness: Float, touchDate: Bool) {
-		DispatchQueue.main.async {
-			if self.rawBrightness != brightness || touchDate {
-				if touchDate { self.lastChangeAt = Date() }
-				self.rawBrightness = brightness
-				self.animatedBrightness = brightness
-			}
+		if rawBrightness != brightness || touchDate {
+			if touchDate { lastChangeAt = Date() }
+			rawBrightness = brightness
+			animatedBrightness = brightness
 		}
 	}
 }
@@ -178,7 +179,6 @@ final class KeyboardBacklightManager: ObservableObject {
 
 	@Published private(set) var rawBrightness: Float = 0
 	@Published private(set) var lastChangeAt: Date = .distantPast
-	@Published private(set) var canAdjustBrightness = false
 
 	private let visibleDuration: TimeInterval = 1.2
 	private let client = XPCHelperClient.shared
@@ -195,10 +195,7 @@ final class KeyboardBacklightManager: ObservableObject {
 	func refresh() {
 		Task { @MainActor in
 			if let current = await client.currentKeyboardBrightness() {
-				canAdjustBrightness = true
 				publish(brightness: current, touchDate: false)
-			} else {
-				canAdjustBrightness = false
 			}
 		}
 	}
@@ -216,10 +213,8 @@ final class KeyboardBacklightManager: ObservableObject {
 				let target = max(0, min(1, rawBrightness + delta))
 				let ok = await client.setKeyboardBrightness(target)
 				if ok {
-					canAdjustBrightness = true
 					publish(brightness: target, touchDate: true)
 				} else {
-					canAdjustBrightness = false
 					refresh()
 					return
 				}
@@ -233,10 +228,8 @@ final class KeyboardBacklightManager: ObservableObject {
 		Task { @MainActor in
 			let ok = await client.setKeyboardBrightness(clamped)
 			if ok {
-				canAdjustBrightness = true
 				publish(brightness: clamped, touchDate: true)
 			} else {
-				canAdjustBrightness = false
 				refresh()
 			}
 		}
