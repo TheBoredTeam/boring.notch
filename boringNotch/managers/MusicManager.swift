@@ -175,6 +175,7 @@ final class MusicManager: ObservableObject {
         flipWorkItem?.cancel()
         transitionWorkItem?.cancel()
         (activeController as? any NowPlayingRuntimeControlling)?.stopRuntimeStream()
+        (activeController as? YouTubeMusicController)?.stopConnection()
 
         activeController = nil
         effectiveMediaController = nil
@@ -355,6 +356,7 @@ final class MusicManager: ObservableObject {
         runtimeFailureTask?.cancel()
         runtimeFailureTask = nil
         (activeController as? any NowPlayingRuntimeControlling)?.stopRuntimeStream()
+        (activeController as? YouTubeMusicController)?.stopConnection()
         controllerCancellables.removeAll()
 
         flipWorkItem?.cancel()
