@@ -41,6 +41,18 @@ private final class FakeVolumeHardware: VolumeHardwareIO {
         }
         return true
     }
+    func settleNextVolumeWrite() {
+        guard !deferredVolumeWrites.isEmpty else { return }
+        let (device, element, value) = deferredVolumeWrites.removeFirst()
+        volumes[device, default: [:]][element] = value
+    }
+
+    func configureChannels() {
+        elements[1] = [1, 2]
+        access[1] = [1: .init(readable: true, settable: true), 2: .init(readable: true, settable: true)]
+        volumes[1] = [1: 0.25, 2: 0.5]
+    }
+
     func settleVolumeWrites() {
         for (device, element, value) in deferredVolumeWrites {
             volumes[device, default: [:]][element] = value
@@ -71,6 +83,63 @@ private final class FakeVolumeHardware: VolumeHardwareIO {
 }
 
 final class VolumeRouteTests: XCTestCase {
+    func testRecoveryForcesReverseAgainstStaleMasterAndChannels() {
+        for channels in [false, true] {
+            let io = FakeVolumeHardware()
+            if channels { io.configureChannels() }
+            else { io.configureMaster(device: 1, volume: 0.5, muteValue: nil) }
+            io.defersVolumeWrites = true
+            let engine = VolumeRouteEngine(io: io)
+            let initial = engine.switchToDefaultRoute()
+            _ = engine.queueVolume(0.5625, expectedGeneration: initial.generation, sequence: 1)
+            _ = engine.flushVolume(expectedGeneration: initial.generation)
+            _ = engine.queueVolume(0.5, expectedGeneration: initial.generation, sequence: 2)
+            _ = engine.flushVolume(expectedGeneration: initial.generation)
+            XCTAssertEqual(io.volumeWrites.count, channels ? 2 : 1)
+            _ = engine.recoverVolume(expectedGeneration: initial.generation, sequence: 1)
+            XCTAssertEqual(io.volumeWrites.map(\.2), channels ? [0.28125, 0.5625, 0.25, 0.5] : [0.5625, 0.5])
+            XCTAssertNil(engine.recoverVolume(expectedGeneration: initial.generation, sequence: 1))
+            io.settleVolumeWrites()
+            let final = engine.handlePropertyEvent(deviceID: 1, expectedGeneration: initial.generation)
+            XCTAssertEqual(final?.volume, 0.5)
+        }
+    }
+
+    func testRecoveryPreservesBalanceAfterOnlyOneChannelSettles() {
+        let io = FakeVolumeHardware()
+        io.configureChannels()
+        io.defersVolumeWrites = true
+        let engine = VolumeRouteEngine(io: io)
+        let initial = engine.switchToDefaultRoute()
+        _ = engine.queueVolume(0.5625, expectedGeneration: initial.generation, sequence: 1)
+        _ = engine.flushVolume(expectedGeneration: initial.generation)
+        io.settleNextVolumeWrite()
+        _ = engine.handlePropertyEvent(deviceID: 1, expectedGeneration: initial.generation)
+        _ = engine.queueVolume(0.625, expectedGeneration: initial.generation, sequence: 2)
+        _ = engine.recoverVolume(expectedGeneration: initial.generation, sequence: 1)
+        XCTAssertEqual(Array(io.volumeWrites.suffix(2)).map(\.2), [0.3125, 0.625])
+        io.settleVolumeWrites()
+        XCTAssertEqual(io.volumes[1]?[1], 0.3125)
+        XCTAssertEqual(io.volumes[1]?[2], 0.625)
+    }
+
+    func testChannelPartialAcknowledgementDoesNotReleasePendingIntent() {
+        let io = FakeVolumeHardware()
+        io.configureChannels()
+        io.defersVolumeWrites = true
+        let engine = VolumeRouteEngine(io: io)
+        let initial = engine.switchToDefaultRoute()
+        _ = engine.queueVolume(0.5625, expectedGeneration: initial.generation, sequence: 1)
+        _ = engine.flushVolume(expectedGeneration: initial.generation)
+        _ = engine.queueVolume(0.625, expectedGeneration: initial.generation, sequence: 2)
+        io.settleNextVolumeWrite()
+        XCTAssertNil(engine.handlePropertyEvent(deviceID: 1, expectedGeneration: initial.generation)?.volume)
+        XCTAssertEqual(io.volumeWrites.count, 2)
+        io.settleNextVolumeWrite()
+        XCTAssertNil(engine.handlePropertyEvent(deviceID: 1, expectedGeneration: initial.generation)?.volume)
+        XCTAssertEqual(io.volumeWrites.count, 4)
+    }
+
     func testAcceptedWriteCannotSurviveRouteReplacement() {
         let io = FakeVolumeHardware()
         io.configureMaster(device: 1, volume: 0.5)
@@ -84,6 +153,7 @@ final class VolumeRouteTests: XCTestCase {
         let current = engine.switchToDefaultRoute()
         io.settleVolumeWrites()
         XCTAssertNil(engine.handlePropertyEvent(deviceID: 1, expectedGeneration: initial.generation))
+        XCTAssertNil(engine.recoverVolume(expectedGeneration: initial.generation, sequence: 1))
         XCTAssertEqual(current.volume, 0.8)
         XCTAssertEqual(engine.handlePropertyEvent(deviceID: 2, expectedGeneration: current.generation)?.volume, 0.8)
     }
@@ -299,6 +369,79 @@ private final class DeferredVolumeDelivery {
 
 @MainActor
 final class VolumeManagerDeliveryTests: XCTestCase {
+    func testDelayedIncreaseDecreaseRestoresMasterAndChannelVolumes() async {
+        for channels in [false, true] {
+            let io = FakeVolumeHardware()
+            if channels { io.configureChannels() }
+            else { io.configureMaster(device: 1, volume: 0.5, muteValue: nil) }
+            io.defersVolumeWrites = true
+            let (manager, delivery) = makeManager(io: io)
+            await applyNext(delivery)
+            manager.increase()
+            await applyNext(delivery)
+            manager.decrease()
+            await applyNext(delivery)
+            XCTAssertEqual(manager.rawVolume, 0.5, accuracy: 0.0001)
+            io.settleVolumeWrites()
+            manager.processRoutePropertyChange(deviceID: 1, generation: 1)
+            await applyNext(delivery)
+            io.settleVolumeWrites()
+            manager.processRoutePropertyChange(deviceID: 1, generation: 1)
+            await applyNext(delivery)
+            XCTAssertEqual(manager.rawVolume, 0.5, accuracy: 0.0001)
+            XCTAssertEqual(io.volumes[1]?[channels ? 2 : 0], 0.5)
+            if channels { XCTAssertEqual(io.volumes[1]?[1], 0.25) }
+        }
+    }
+
+    func testPartialSettlementPreservesThreeCallerIncrements() async {
+        let io = FakeVolumeHardware()
+        io.configureMaster(device: 1, volume: 0.5, muteValue: nil)
+        io.defersVolumeWrites = true
+        let (manager, delivery) = makeManager(io: io)
+        await applyNext(delivery)
+        manager.increase()
+        await applyNext(delivery)
+        manager.increase()
+        await applyNext(delivery)
+        io.settleNextVolumeWrite()
+        manager.processRoutePropertyChange(deviceID: 1, generation: 1)
+        await applyNext(delivery)
+        XCTAssertEqual(manager.rawVolume, 0.625, accuracy: 0.0001)
+        manager.increase()
+        await applyNext(delivery)
+        io.settleNextVolumeWrite()
+        manager.processRoutePropertyChange(deviceID: 1, generation: 1)
+        await applyNext(delivery)
+        io.settleNextVolumeWrite()
+        manager.processRoutePropertyChange(deviceID: 1, generation: 1)
+        await applyNext(delivery)
+        XCTAssertEqual(io.volumeWrites.map(\.2), [0.5625, 0.625, 0.6875])
+        XCTAssertEqual(io.volumes[1]?[0], 0.6875)
+        XCTAssertEqual(manager.rawVolume, 0.6875, accuracy: 0.0001)
+        io.volumes[1]?[0] = 0.7
+        manager.processRoutePropertyChange(deviceID: 1, generation: 1)
+        await applyNext(delivery)
+        manager.increase()
+        await applyNext(delivery)
+        XCTAssertEqual(manager.rawVolume, 0.7625, accuracy: 0.0001)
+    }
+
+    func testRecoveryReconcilesExternalChange() async {
+        let io = FakeVolumeHardware()
+        io.configureMaster(device: 1, volume: 0.5, muteValue: nil)
+        io.quantizesSmallWrites = true
+        let (manager, delivery) = makeManager(io: io, acknowledgementRecoveryInterval: 0.02)
+        await applyNext(delivery)
+        manager.increase()
+        await applyNext(delivery)
+        io.volumes[1]?[0] = 0.7
+        manager.processRoutePropertyChange(deviceID: 1, generation: 1)
+        await applyNext(delivery)
+        await applyNext(delivery)
+        XCTAssertEqual(manager.rawVolume, 0.7, accuracy: 0.0001)
+    }
+
     func testExternalPropertyChangeEmitsHUDAndInitialSyncIsQuiet() async {
         let io = FakeVolumeHardware()
         io.configureMaster(device: 1, volume: 0.5, muteValue: nil)
@@ -330,7 +473,7 @@ final class VolumeManagerDeliveryTests: XCTestCase {
         manager.increase()
         await applyNext(delivery)
         XCTAssertEqual(manager.rawVolume, 0.625, accuracy: 0.0001)
-        XCTAssertEqual(io.volumeWrites.count, 2)
+        XCTAssertEqual(io.volumeWrites.count, 1)
 
         io.settleVolumeWrites()
         manager.processRoutePropertyChange(deviceID: 1, generation: 1)
@@ -354,7 +497,7 @@ final class VolumeManagerDeliveryTests: XCTestCase {
         let io = FakeVolumeHardware()
         io.configureMaster(device: 1, volume: 0.5, muteValue: nil)
         io.quantizesSmallWrites = true
-        let (manager, delivery) = makeManager(io: io)
+        let (manager, delivery) = makeManager(io: io, acknowledgementRecoveryInterval: 0.02)
         await applyNext(delivery)
         manager.increase()
         await applyNext(delivery)
@@ -362,6 +505,7 @@ final class VolumeManagerDeliveryTests: XCTestCase {
         XCTAssertEqual(manager.rawVolume, 0.5625, accuracy: 0.0001)
         manager.increase()
         await applyNext(delivery)
+        await applyNext(delivery) // bounded recovery releases the queued real change
         XCTAssertEqual(io.volumeWrites.map(\.2), [0.5625, 0.625])
         XCTAssertEqual(io.volumes[1]?[0], 0.625)
         XCTAssertEqual(manager.rawVolume, 0.625, accuracy: 0.0001)
@@ -536,12 +680,14 @@ final class VolumeManagerDeliveryTests: XCTestCase {
     }
 
     private func makeManager(
-        io: FakeVolumeHardware, writeFlushInterval: TimeInterval = 0
+        io: FakeVolumeHardware, writeFlushInterval: TimeInterval = 0,
+        acknowledgementRecoveryInterval: TimeInterval = 0.25
     ) -> (VolumeManager, DeferredVolumeDelivery) {
         let delivery = DeferredVolumeDelivery()
         let manager = VolumeManager(
             io: io, audioQueue: DispatchQueue(label: "VolumeManagerDeliveryTests"),
             writeFlushInterval: writeFlushInterval,
+            acknowledgementRecoveryInterval: acknowledgementRecoveryInterval,
             mainDelivery: { delivery.enqueue($0) })
         manager.refreshRoute()
         return (manager, delivery)
@@ -558,7 +704,7 @@ final class VolumeManagerDeliveryTests: XCTestCase {
     }
 
     private func nextAction(_ delivery: DeferredVolumeDelivery) async -> () -> Void {
-        for _ in 0..<200 {
+        for _ in 0..<1000 {
             if let action = delivery.pop() { return action }
             try? await Task.sleep(nanoseconds: 1_000_000)
         }
