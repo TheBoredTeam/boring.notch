@@ -443,13 +443,9 @@ final class SystemNotificationManager: ObservableObject {
         case failed
     }
 
-    /// iMessage/AX delivery attempts can stall on an unresponsive Messages
-    /// process or a wedged XPC reply; race them so the UI always resolves.
-    /// Notifications-banner replies are nearly free; iMessage scripting is
-    /// expensive (Messages.app cold-launch can take seconds), so each stage
-    /// gets its own budget instead of one shared race.
+    /// A banner reply can stall on a wedged XPC callback; race it so the UI
+    /// resolves without attempting a second send after an uncertain result.
     private let bannerReplyTimeout: TimeInterval = 2.0
-    private let imessageScriptTimeout: TimeInterval = 4.0
 
     /// Sends an inline reply.
     ///
@@ -458,8 +454,8 @@ final class SystemNotificationManager: ObservableObject {
     /// The helper retains elements after their banner fades (the
     /// notification lives on in Notification Center), which is what makes
     /// replying work beyond the ~5s banner. If it genuinely can't be
-    /// reached, hand off rather than dropping a typed message: the draft
-    /// goes to the clipboard and the app opens so it's one paste away.
+    /// reached, Messages keeps the draft and reports failure. Other apps
+    /// can open a draft or hand off through the clipboard.
     @discardableResult
     func reply(to notification: SystemNotification, text: String) async -> ReplyOutcome {
         await performReply(to: notification, text: text)
@@ -536,31 +532,9 @@ final class SystemNotificationManager: ObservableObject {
             return .unknown
         }
 
-        // The banner is gone, so AX can't deliver. Messages is the one
-        // supported app that can still be sent to properly — it has a real
-        // scripting dictionary, so the reply goes out for real instead of
-        // becoming a clipboard hand-off. Nothing equivalent exists for
-        // WhatsApp/Telegram/Discord.
-        if notification.bundleID == "com.apple.MobileSMS",
-           let chatName = notification.sender {
-            let iMessageDelivered = await raceTimeout(seconds: imessageScriptTimeout, operation: {
-                await XPCHelperClient.shared.sendIMessage(text, toChatNamed: chatName)
-            })
-            if iMessageDelivered == true {
-                NSLog("[boringNotch] reply sent via Messages scripting for \(chatName)")
-                playSentSound()
-                dismissActive(token: notification.id)
-                return .sent
-            }
-            if iMessageDelivered == nil {
-                NSLog("[boringNotch] reply attempt timed out in Messages for \(chatName)")
-                return .unknown
-            }
-        }
-
-        // iMessage delivery definitively failed — surface the error, keep
-        // the user's draft, and let them handle it directly in Messages
-        // (no silent clipboard gymnastics).
+        // A display name does not identify the originating Messages chat.
+        // Preserve the draft and report failure instead of guessing a
+        // recipient or handing the text to the clipboard.
         if notification.bundleID == "com.apple.MobileSMS" {
             return .failed
         }
@@ -573,13 +547,9 @@ final class SystemNotificationManager: ObservableObject {
         if notification.bundleID == "net.whatsapp.WhatsApp",
            let sender = notification.sender,
            let phone = await ContactAvatarManager.shared.phoneNumber(forContactNamed: sender),
-           let encoded = text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-           // whatsapp:// rather than wa.me — the scheme is registered to
-           // WhatsApp.app directly, so it opens the app instead of bouncing
-           // the message text through a browser.
-           let url = URL(string: "whatsapp://send?phone=\(phone)&text=\(encoded)") {
+           let url = Self.whatsAppDraftURL(phone: phone, text: text) {
+            guard NSWorkspace.shared.open(url) else { return .failed }
             NSLog("[boringNotch] reply drafted in WhatsApp conversation for \(sender)")
-            NSWorkspace.shared.open(url)
             playHandOffSound()
             dismissActive(token: notification.id)
             return .draftedInApp
@@ -592,6 +562,21 @@ final class SystemNotificationManager: ObservableObject {
         await open(notification)
         dismissActive(token: notification.id)
         return .handedOffToApp
+    }
+
+    /// Use the app's scheme and keep arbitrary reply text in one query value.
+    nonisolated static func whatsAppDraftURL(phone: String, text: String) -> URL? {
+        var components = URLComponents()
+        components.scheme = "whatsapp"
+        components.host = "send"
+        components.queryItems = [
+            URLQueryItem(name: "phone", value: phone),
+            URLQueryItem(name: "text", value: text)
+        ]
+        // Some URL handlers interpret '+' as a form-encoded space.
+        components.percentEncodedQuery = components.percentEncodedQuery?
+            .replacingOccurrences(of: "+", with: "%2B")
+        return components.url
     }
 
     /// Only on a real send. A "sent" sound when nothing was sent is a lie

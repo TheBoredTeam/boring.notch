@@ -129,6 +129,16 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
     
     var id: String { self.rawValue }
 
+    init?(rawValue: String) {
+        switch rawValue {
+        case "nowPlaying", "Now Playing": self = .nowPlaying
+        case "appleMusic", "Apple Music": self = .appleMusic
+        case "spotify", "Spotify": self = .spotify
+        case "youtubeMusic", "YouTube Music": self = .youtubeMusic
+        default: return nil
+        }
+    }
+
     init?(nowPlayingBundleIdentifier bundleIdentifier: String) {
         switch bundleIdentifier {
         case "com.apple.Music":
@@ -166,6 +176,14 @@ enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     case inline
     
     var id: String { self.rawValue }
+
+    init?(rawValue: String) {
+        switch rawValue {
+        case "standard", "Default": self = .standard
+        case "inline", "Inline": self = .inline
+        default: return nil
+        }
+    }
     
     var localizedString: String {
         switch self {
@@ -184,6 +202,15 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
     case none
 
     var id: String { self.rawValue }
+
+    init?(rawValue: String) {
+        switch rawValue {
+        case "openSettings", "Open System Settings": self = .openSettings
+        case "showOSD", "Show HUD": self = .showOSD
+        case "none", "No Action": self = .none
+        default: return nil
+        }
+    }
     
     var localizedString: String {
         switch self {
@@ -214,6 +241,22 @@ enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable
         case .lunar:
             return "Lunar"
         }
+    }
+}
+
+enum PreferenceCompatibility {
+    /// Runs before Defaults.Key registers its fallback, so a saved false is
+    /// distinguishable from a missing value. Keep the old key for older builds.
+    static func migratedKeyName(
+        _ name: String,
+        from legacyName: String,
+        in defaults: UserDefaults = .standard
+    ) -> String {
+        if defaults.object(forKey: name) == nil,
+           let legacyValue = defaults.object(forKey: legacyName) as? Bool {
+            defaults.set(legacyValue, forKey: name)
+        }
+        return name
     }
 }
 
@@ -304,8 +347,8 @@ extension Defaults.Keys {
     static let selectedDownloadIconStyle = Key<DownloadIconStyle>("selectedDownloadIconStyle", default: DownloadIconStyle.onlyAppIcon)
     
     // MARK: OSD
-    static let osdReplacement = Key<Bool>("osdReplacement", default: false)
-    static let inlineOSD = Key<Bool>("inlineOSD", default: false)
+    static let osdReplacement = Key<Bool>(PreferenceCompatibility.migratedKeyName("osdReplacement", from: "hudReplacement"), default: false)
+    static let inlineOSD = Key<Bool>(PreferenceCompatibility.migratedKeyName("inlineOSD", from: "inlineHUD"), default: false)
 
     // MARK: Layout
     /// Swaps the opened notch for a smaller, player-only layout: no tab
@@ -339,9 +382,9 @@ extension Defaults.Keys {
     static let enableGradient = Key<Bool>("enableGradient", default: false)
     static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
     static let systemEventIndicatorUseAccent = Key<Bool>("systemEventIndicatorUseAccent", default: false)
-    static let showOpenNotchOSD = Key<Bool>("showOpenNotchOSD", default: true)
-    static let showOpenNotchOSDPercentage = Key<Bool>("showOpenNotchOSDPercentage", default: true)
-    static let showClosedNotchOSDPercentage = Key<Bool>("showClosedNotchOSDPercentage", default: false)
+    static let showOpenNotchOSD = Key<Bool>(PreferenceCompatibility.migratedKeyName("showOpenNotchOSD", from: "showOpenNotchHUD"), default: true)
+    static let showOpenNotchOSDPercentage = Key<Bool>(PreferenceCompatibility.migratedKeyName("showOpenNotchOSDPercentage", from: "showOpenNotchHUDPercentage"), default: true)
+    static let showClosedNotchOSDPercentage = Key<Bool>(PreferenceCompatibility.migratedKeyName("showClosedNotchOSDPercentage", from: "showClosedNotchHUDPercentage"), default: false)
     // Option key modifier behaviour for media keys
     static let optionKeyAction = Key<OptionKeyAction>("optionKeyAction", default: OptionKeyAction.openSettings)
     // Brightness/volume/keyboard source selection

@@ -71,6 +71,10 @@ final class NotificationWatcher {
             if notchOpen, !oldValue {
                 // Re-arm the skip log for the next closed episode.
                 skipLogged.removeAll()
+                // Park existing holds before the next keep-alive can expand them.
+                for token in Array(held) {
+                    hold(token: token)
+                }
             } else if oldValue, !notchOpen {
                 collapseHeldBanners()
             }
@@ -268,9 +272,9 @@ final class NotificationWatcher {
     ///
     /// The park is gated on notchOpen, consistent with the keep-alive gate
     /// in refreshHeldBanners: with the notch closed the banner keeps its
-    /// normal visible life and expires naturally (the app re-calls hold
-    /// when the notch opens, which is where a closed-notch hold gets
-    /// parked). The window is Notification Center's shared window — parking
+    /// normal visible life and expires naturally. Opening the notch replays
+    /// existing holds here before the next keep-alive. The window is
+    /// Notification Center's shared window — parking
     /// it also hides every unrelated banner in it — so the original
     /// position is recorded on first park and restored when the last
     /// parked hold on it ends (release, banner-gone, stop).
