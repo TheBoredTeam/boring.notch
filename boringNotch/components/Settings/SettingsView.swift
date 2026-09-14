@@ -15,6 +15,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     case media
     case notifications
     case calendar
+    case calendarLayout
     case osd
     case battery
     case shelf
@@ -32,6 +33,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .media: "Media"
         case .notifications: "Notifications"
         case .calendar: "Calendar"
+        case .calendarLayout: "Calendar Layout"
         case .osd: "OSD"
         case .battery: "Battery"
         case .shelf: "Shelf"
@@ -49,6 +51,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .media: "play.laptopcomputer"
         case .notifications: "bell.badge"
         case .calendar: "calendar"
+        case .calendarLayout: "arrow.left.and.right"
         case .osd: "dial.medium.fill"
         case .battery: "battery.100.bolt"
         case .shelf: "books.vertical"
@@ -95,6 +98,8 @@ struct SettingsView: View {
                     NotificationSettingsView()
                 case .calendar:
                     CalendarSettings()
+                case .calendarLayout:
+                    CalendarLayoutSettings()
                 case .osd:
                     OSDSettings()
                 case .battery:
