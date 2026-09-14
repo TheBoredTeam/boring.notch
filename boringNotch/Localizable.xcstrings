@@ -1,6 +1,54 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Choose files to share via %@" : {
+      "extractionState" : "manual"
+    },
+    "No shareable items were found." : {
+      "extractionState" : "manual"
+    },
+    "Select Files for %@" : {
+      "extractionState" : "manual"
+    },
+    "Share" : {
+      "extractionState" : "manual"
+    },
+    "System Share Menu" : {
+      "extractionState" : "manual"
+    },
+    "The System Share Menu could not be shown." : {
+      "extractionState" : "manual"
+    },
+    "This sharing service is unavailable." : {
+      "extractionState" : "manual"
+    },
+    "Unavailable" : {
+      "extractionState" : "manual"
+    },
+    "“%@” is unavailable for these items." : {
+      "extractionState" : "manual"
+    },
+    "API server port" : {
+      "extractionState" : "manual"
+    },
+    "Apply Port" : {
+      "extractionState" : "manual"
+    },
+    "Enter a port from 1 to 65535." : {
+      "extractionState" : "manual"
+    },
+    "File unavailable" : {
+      "extractionState" : "manual"
+    },
+    "In Pear, enable Plugins → API Server. Enter the same port shown there (default: 26538), then approve Boring Notch’s access request in Pear. The connection stays on this Mac." : {
+      "extractionState" : "manual"
+    },
+    "Loading…" : {
+      "extractionState" : "manual"
+    },
+    "Pear connection" : {
+      "extractionState" : "manual"
+    },
     "Play" : {
 
     },
