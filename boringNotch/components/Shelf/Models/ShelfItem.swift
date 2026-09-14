@@ -60,49 +60,8 @@ struct ShelfItem: Identifiable, Codable, Equatable {
 
     var displayName: String {
         switch kind {
-        case .file(let bookmarkData):
-            let bookmark = Bookmark(data: bookmarkData)
-            guard let resolvedURL = bookmark.resolvedURL else { return "" }
-
-            // Check for stored data files (text blocks, weblocs, etc.) to provide friendly names
-            if resolvedURL.pathExtension.lowercased() == "json" && resolvedURL.path.contains("TextBlocks") {
-                do {
-                    let data = try Data(contentsOf: resolvedURL)
-                    let decoder = JSONDecoder()
-                    decoder.dateDecodingStrategy = .iso8601
-                    struct TextBlockData: Codable {
-                        let content: String
-                        let title: String?
-                        var displayTitle: String {
-                            if let title = title, !title.isEmpty {
-                                return title
-                            }
-                            let firstLine = content.components(separatedBy: .newlines).first ?? content
-                            if firstLine.count > 50 {
-                                return String(firstLine.prefix(47)) + "..."
-                            }
-                            return firstLine
-                        }
-                    }
-                    if let textData = try? decoder.decode(TextBlockData.self, from: data) {
-                        return textData.displayTitle
-                    }
-                } catch {
-                    // Fall through to default naming
-                }
-            } else if resolvedURL.pathExtension.lowercased() == "webloc" && resolvedURL.path.contains("WebLocs") {
-                do {
-                    let data = try Data(contentsOf: resolvedURL)
-                    if let plist = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
-                       let urlString = plist["URL"] as? String {
-                        let title = plist["Title"] as? String
-                        return title ?? urlString
-                    }
-                } catch {
-                    // Fall through to default naming
-                }
-            }
-            return (try? resolvedURL.resourceValues(forKeys: [.localizedNameKey]).localizedName) ?? resolvedURL.lastPathComponent
+        case .file:
+            return ShelfStateViewModel.shared.resolvedFile(for: self)?.displayName ?? "Loading…"
         case .text(let string):
             return string.trimmingCharacters(in: .whitespacesAndNewlines)
         case .link(let url):
@@ -118,14 +77,14 @@ struct ShelfItem: Identifiable, Codable, Equatable {
     }
 
     var fileURL: URL? {
-        guard case let .file(bookmarkData) = kind else { return nil }
-        return Bookmark(data: bookmarkData).resolvedURL
+        guard case .file = kind else { return nil }
+        return ShelfStateViewModel.shared.resolvedFileURL(for: self)
     }
 
     var URL: URL? {
         switch kind {
-        case .file(let bookmarkData):
-            return Bookmark(data: bookmarkData).resolvedURL
+        case .file:
+            return ShelfStateViewModel.shared.resolvedFileURL(for: self)
         case .link(let url):
             return url
         case .text:
@@ -137,21 +96,7 @@ struct ShelfItem: Identifiable, Codable, Equatable {
         guard case .file = kind else {
             return Self.thumbnailSymbolImage(systemName: kind.iconSymbolName) ?? NSImage()
         }
-        if let resolvedURL = fileURL {
-            return NSWorkspace.shared.icon(forFile: resolvedURL.path)
-        }
-        return NSImage()
-    }
-
-    func cleanupStoredData() {
-        guard case let .file(bookmarkData) = kind,
-              let url = Bookmark(data: bookmarkData).resolvedURL else { return }
-
-        // Handle temporary files
-        if isTemporary {
-            TemporaryFileStorageService.shared.removeTemporaryFileIfNeeded(at: url)
-            return
-        }
+        return Self.thumbnailSymbolImage(systemName: "doc") ?? NSImage()
     }
 }
 
@@ -192,10 +137,7 @@ extension ShelfItem {
     var identityKey: String {
         switch kind {
         case .file(let bookmarkData):
-            if let url = Bookmark(data: bookmarkData).resolvedURL {
-                return "file://" + url.standardizedFileURL.path
-            }
-            return "file://missing/" + bookmarkData.base64EncodedString()
+            return "file-bookmark://" + bookmarkData.base64EncodedString()
         case .link(let u):
             return "link://" + u.absoluteString
         case .text(let s):

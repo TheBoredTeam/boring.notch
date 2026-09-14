@@ -29,6 +29,7 @@ struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
 
     private func update(_ view: InteractionView) {
         view.item = item
+        view.viewModel = viewModel
         view.dragPreviewProvider = renderDragPreview
         view.onPrimaryClick = onPrimaryClick
         view.onContextClick = onContextClick
@@ -37,11 +38,12 @@ struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
     private func renderDragPreview() -> NSImage {
         let renderer = ImageRenderer(content: dragPreview())
         renderer.scale = NSScreen.main?.backingScaleFactor ?? 2
-        return renderer.nsImage ?? viewModel.thumbnail ?? item.icon
+        return renderer.nsImage ?? viewModel.presentationIcon
     }
 
     final class InteractionView: NSView, NSDraggingSource, ShelfItemInteractionSurface {
         var item: ShelfItem!
+        weak var viewModel: ShelfItemViewModel?
         var dragPreviewProvider: (() -> NSImage)?
         var onPrimaryClick: ((NSEvent, NSView) -> Void)?
         var onContextClick: ((NSEvent, NSView) -> Void)?
@@ -61,6 +63,7 @@ struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
         }
 
         override func mouseDragged(with event: NSEvent) {
+            guard viewModel?.canDrag == true else { return }
             guard let mouseDownEvent else {
                 super.mouseDragged(with: event)
                 return
@@ -100,7 +103,7 @@ struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
             guard let writer = pasteboardWriter(for: item) else { return nil }
 
             let draggingItem = NSDraggingItem(pasteboardWriter: writer)
-            let image = dragPreviewProvider?() ?? item.icon
+            let image = dragPreviewProvider?() ?? viewModel?.presentationIcon ?? NSImage()
             draggingItem.setDraggingFrame(
                 NSRect(origin: .zero, size: image.size),
                 contents: image
@@ -111,11 +114,7 @@ struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
         private func pasteboardWriter(for item: ShelfItem) -> (any NSPasteboardWriting)? {
             switch item.kind {
             case .file:
-                guard let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) else {
-                    let fallback = NSPasteboardItem()
-                    fallback.setString(item.displayName, forType: .string)
-                    return fallback
-                }
+                guard let url = ShelfStateViewModel.shared.resolvedFileURL(for: item) else { return nil }
 
                 if url.startAccessingSecurityScopedResource() {
                     draggedURLs.append(url)

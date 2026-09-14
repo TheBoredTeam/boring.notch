@@ -92,8 +92,8 @@ struct ShelfItemView: View {
                 viewModel: viewModel,
                 dragPreview: {
                     DragPreviewView(
-                        thumbnail: viewModel.thumbnail ?? item.icon,
-                        displayName: item.displayName
+                        thumbnail: viewModel.presentationIcon,
+                        displayName: viewModel.displayName
                     )
                 },
                 onPrimaryClick: viewModel.handleClick,
@@ -103,17 +103,23 @@ struct ShelfItemView: View {
     }
 
     private var iconView: some View {
-        Image(nsImage: viewModel.thumbnail ?? item.icon)
-            .resizable().scaledToFit()
+        Image(nsImage: viewModel.presentationIcon)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+>>>>>>> 22dcf9ee (Resolve shelf bookmarks without blocking UI)
             .frame(width: 56, height: 56)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 2)
     }
 
     private var textView: some View {
-        Text(item.displayName)
+        Text(viewModel.displayName)
             .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(.primary)
+            .foregroundStyle(
+                viewModel.resolvedFileURL == nil && viewModel.fileResolutionPhase != nil
+                    ? Color.secondary
+                    : Color.primary
+            )
             .lineLimit(2)
             .truncationMode(.middle)
             .multilineTextAlignment(.center)
