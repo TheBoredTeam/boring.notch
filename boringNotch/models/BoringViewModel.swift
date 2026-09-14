@@ -32,6 +32,7 @@ final class BoringViewModel: NSObject, ObservableObject {
     @Published var closedNotchSize: CGSize = getClosedNotchSize()
     
     let webcamManager = WebcamManager.shared
+    let cameraSessionOwnerID = UUID()
     @Published var isCameraExpanded: Bool = false
     
     deinit {
@@ -53,6 +54,12 @@ final class BoringViewModel: NSObject, ObservableObject {
         closedNotchSize = notchSize
 
         setupDetectorObserver()
+        webcamManager.$sessionOwner
+            .sink { [weak self] owner in
+                guard let self, owner != self.cameraSessionOwnerID else { return }
+                self.isCameraExpanded = false
+            }
+            .store(in: &cancellables)
     }
     
     private func setupDetectorObserver() {
@@ -121,17 +128,17 @@ final class BoringViewModel: NSObject, ObservableObject {
     }
 
     func toggleCameraPreview() {
-        if isCameraExpanded || webcamManager.isSessionDesired {
-            webcamManager.stopSession()
+        if webcamManager.ownsSession(cameraSessionOwnerID) {
+            webcamManager.stopSession(owner: cameraSessionOwnerID)
             isCameraExpanded = false
             return
         }
 
         switch webcamManager.refreshAuthorizationStatus() {
         case .authorized, .notDetermined:
-            webcamManager.startSession { [weak self] result in
+            webcamManager.startSession(owner: cameraSessionOwnerID) { [weak self] result in
                 guard let self else { return }
-                if result == .started && self.webcamManager.isSessionDesired {
+                if result == .started && self.webcamManager.ownsSession(self.cameraSessionOwnerID) {
                     self.isCameraExpanded = true
                 } else if result != .cancelled {
                     self.isCameraExpanded = false
@@ -197,9 +204,7 @@ final class BoringViewModel: NSObject, ObservableObject {
         self.notchSize = getClosedNotchSize(screenUUID: self.screenUUID)
         self.closedNotchSize = self.notchSize
         self.notchState = .closed
-        if self.isCameraExpanded || self.webcamManager.isSessionDesired {
-            self.webcamManager.stopSession()
-        }
+        self.webcamManager.stopSession(owner: cameraSessionOwnerID)
         self.isCameraExpanded = false
         self.isBatteryPopoverActive = false
         if self.coordinator.shouldShowSneakPeek(on: self.screenUUID) {

@@ -60,6 +60,7 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         var makePreviewLayer: (AVCaptureSession) -> AVCaptureVideoPreviewLayer
         var notificationCenter: NotificationCenter
         var workspaceNotificationCenter: NotificationCenter
+        var persistSelectedCamera: (String?) -> Void = { Defaults[.mirrorCameraID] = $0 }
 
         static var live: Dependencies {
             Dependencies(
@@ -80,6 +81,7 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
     @Published private(set) var previewLayer: AVCaptureVideoPreviewLayer?
     @Published private(set) var isSessionRunning = false
     @Published private(set) var isSessionDesired = false
+    @Published private(set) var sessionOwner: UUID?
     @Published private(set) var isRequestingAuthorization = false
     @Published private(set) var authorizationStatus: AVAuthorizationStatus
     @Published private(set) var cameraAvailable = false
@@ -201,7 +203,7 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
 
     func setSelectedCamera(id: String?) {
         precondition(Thread.isMainThread)
-        Defaults[.mirrorCameraID] = id
+        dependencies.persistSelectedCamera(id)
         selectedCameraID = id
         setCurrentPreferredCameraID(id)
 
@@ -228,16 +230,24 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         }
     }
 
-    func startSession(completion: ((SessionStartResult) -> Void)? = nil) {
+    func startSession(owner: UUID? = nil, completion: ((SessionStartResult) -> Void)? = nil) {
         precondition(Thread.isMainThread)
+        if isSessionDesired && sessionOwner != owner { stopSession() }
+        sessionOwner = owner
         requestSessionStart(completion: completion)
     }
 
-    func stopSession() {
+    func ownsSession(_ owner: UUID) -> Bool {
+        isSessionDesired && sessionOwner == owner
+    }
+
+    func stopSession(owner: UUID? = nil) {
         precondition(Thread.isMainThread)
+        if let owner, sessionOwner != owner { return }
         intent.requestStop()
         setCurrentGeneration(nil)
         isSessionDesired = false
+        sessionOwner = nil
         isSessionRunning = false
         previewLayer = nil
         finishPendingStarts(with: .cancelled)
@@ -306,6 +316,7 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         intent.requestStop()
         setCurrentGeneration(nil)
         isSessionDesired = false
+        sessionOwner = nil
         isSessionRunning = false
         previewLayer = nil
         finishPendingStarts(with: result)
@@ -319,7 +330,7 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
     }
 
     private func configureAndStartOnSessionQueue(generation: UInt, preferredID: String?) {
-        guard intent.isCurrent(generation) else { return }
+        guard intent.isCurrent(generation), dependencies.authorizationStatus() == .authorized else { return }
         cleanupExistingSession()
 
         do {
@@ -327,7 +338,7 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
             let devices = dependencies.discoverDevices()
             let activeDeviceID = try dependencies.configureSession(session, devices, preferredID)
 
-            guard intent.isCurrent(generation) else { return }
+            guard intent.isCurrent(generation), dependencies.authorizationStatus() == .authorized else { return }
             captureSession = session
             self.activeDeviceID = activeDeviceID
             session.startRunning()
@@ -376,6 +387,7 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
             self.intent.requestStop()
             self.setCurrentGeneration(nil)
             self.isSessionDesired = false
+            self.sessionOwner = nil
             self.isSessionRunning = false
             self.previewLayer = nil
             self.cameraAvailable = false
@@ -410,7 +422,8 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
 
     private func restartSession(generation: UInt, preferredID: String?) {
         sessionQueue.async { [weak self] in
-            guard let self, self.intent.isCurrent(generation) else { return }
+            guard let self, self.intent.isCurrent(generation),
+                  self.dependencies.authorizationStatus() == .authorized else { return }
             self.cleanupExistingSession()
             self.publishStoppedSession(generation: generation)
             self.configureAndStartOnSessionQueue(
@@ -422,7 +435,8 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
 
     private func resumeSession(generation: UInt) {
         sessionQueue.async { [weak self] in
-            guard let self, self.intent.isCurrent(generation) else { return }
+            guard let self, self.intent.isCurrent(generation),
+                  self.dependencies.authorizationStatus() == .authorized else { return }
 
             if let session = self.captureSession {
                 if !session.isRunning {
@@ -582,6 +596,7 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         sessionQueue.async { [weak self] in
             guard let self,
                   resumedSession === self.captureSession,
+                  self.dependencies.authorizationStatus() == .authorized,
                   let generation = self.currentGeneration(),
                   self.intent.isCurrent(generation) else { return }
             if !resumedSession.isRunning {
