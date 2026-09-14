@@ -43,8 +43,11 @@ extension NSImage {
     }
 
     nonisolated private static func averageColorComponents(for cgImage: CGImage) -> AverageColorComponents? {
-        let width = cgImage.width
-        let height = cgImage.height
+        // Color analysis does not need an artwork-sized scratch buffer. Keep
+        // aspect ratio and cap both allocation and the pixel loop at 64 x 64.
+        let scale = min(1.0, 64.0 / Double(max(cgImage.width, cgImage.height)))
+        let width = max(1, Int((Double(cgImage.width) * scale).rounded()))
+        let height = max(1, Int((Double(cgImage.height) * scale).rounded()))
         let totalPixels = width * height
 
         guard totalPixels > 0,
@@ -60,6 +63,7 @@ extension NSImage {
             return nil
         }
 
+        context.interpolationQuality = .high
         context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
 
         guard let data = context.data else {
