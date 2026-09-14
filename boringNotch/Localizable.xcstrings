@@ -604,6 +604,9 @@
         }
       }
     },
+    "Activities are hidden while the Mac is locked, unless you turn on “Show on lock screen”." : {
+      "comment" : "Lock Screen settings footer, explaining when activities are hidden."
+    },
     "Add" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3205,6 +3208,9 @@
           }
         }
       }
+    },
+    "Bounce at maximum" : {
+      "comment" : "OSD appearance toggle: play a recoil animation when the slider reaches 100%."
     },
     "Brightness" : {
       "localizations" : {
@@ -5861,6 +5867,9 @@
         }
       }
     },
+    "Connected" : {
+      "comment" : "Connectivity activity: an accessory or network just connected."
+    },
     "Continue" : {
       "localizations" : {
         "cs" : {
@@ -7189,6 +7198,9 @@
           }
         }
       }
+    },
+    "Disconnected" : {
+      "comment" : "Connectivity activity: an accessory or network just disconnected."
     },
     "Download" : {
       "localizations" : {
@@ -8931,6 +8943,9 @@
         }
       }
     },
+    "Excellent" : {
+      "comment" : "Wi-Fi signal strength."
+    },
     "Expanded drag detection area" : {
       "localizations" : {
         "de" : {
@@ -9267,6 +9282,9 @@
           }
         }
       }
+    },
+    "Fair" : {
+      "comment" : "Wi-Fi signal strength."
     },
     "Files dropped on the shelf will be shared via this service" : {
       "localizations" : {
@@ -10239,6 +10257,9 @@
           }
         }
       }
+    },
+    "Good" : {
+      "comment" : "Wi-Fi signal strength."
     },
     "Gradient" : {
       "extractionState" : "stale",
@@ -12434,6 +12455,12 @@
         }
       }
     },
+    "Location access is denied. Please enable it in System Settings." : {
+      "comment" : "Shown when Location access was refused, so the Wi-Fi network name cannot be read."
+    },
+    "Lock Screen" : {
+      "comment" : "Settings tab and pane title."
+    },
     "Low" : {
       "localizations" : {
         "cs" : {
@@ -12669,6 +12696,9 @@
           }
         }
       }
+    },
+    "macOS only reveals the Wi-Fi network name to apps that have Location access, so showing it requires granting that permission. Without it the activity still appears, labelled simply \"Wi-Fi\". Your location is never stored or sent anywhere." : {
+      "comment" : "Explains why the Wi-Fi network name needs Location access."
     },
     "Made with 🫶🏻 by not so boring not.people" : {
       "localizations" : {
@@ -16279,6 +16309,9 @@
           }
         }
       }
+    },
+    "Open Location Settings" : {
+      "comment" : "Button opening the Location Services pane in System Settings."
     },
     "Open Notch" : {
       "extractionState" : "stale",
@@ -21690,6 +21723,9 @@
         }
       }
     },
+    "Show connection activities" : {
+      "comment" : "Connectivity setting: announce connections in the notch."
+    },
     "Show cool face animation while inactive" : {
       "localizations" : {
         "de" : {
@@ -21801,6 +21837,9 @@
           }
         }
       }
+    },
+    "Show disconnection activities" : {
+      "comment" : "Connectivity setting: announce disconnections in the notch."
     },
     "Show lyrics below artist name" : {
       "localizations" : {
@@ -22132,6 +22171,9 @@
         }
       }
     },
+    "Show network name" : {
+      "comment" : "Wi-Fi setting: show the SSID, which requires Location access."
+    },
     "Show notch on lock screen" : {
       "localizations" : {
         "de" : {
@@ -22355,6 +22397,12 @@
           }
         }
       }
+    },
+    "Show on lock screen" : {
+      "comment" : "Lock Screen setting: keep the notch visible while locked."
+    },
+    "Show on screen saver" : {
+      "comment" : "Lock Screen setting: keep the notch visible under the screen saver."
     },
     "Show OSD in open notch" : {
       "localizations" : {
@@ -23072,6 +23120,9 @@
           }
         }
       }
+    },
+    "Show signal strength" : {
+      "comment" : "Wi-Fi setting: show a signal meter beside the network."
     },
     "Show sneak peek on playback changes" : {
       "localizations" : {
@@ -26799,6 +26850,9 @@
         }
       }
     },
+    "Weak" : {
+      "comment" : "Wi-Fi signal strength."
+    },
     "Week starts on" : {
       "comment" : "Calendar setting: which weekday the week strip starts on",
       "localizations" : {
@@ -26986,6 +27040,9 @@
           }
         }
       }
+    },
+    "Wi-Fi" : {
+      "comment" : "Wi-Fi settings section header, and the activity label when the network name is unavailable."
     },
     "Window Appearance" : {
       "localizations" : {

@@ -16,8 +16,27 @@ struct OSDSettings: View {
     @Default(.optionKeyAction) private var optionKeyActionDefault
     @Default(.osdBrightnessSource) private var osdBrightnessSourceDefault
     @Default(.osdVolumeSource) private var osdVolumeSourceDefault
+    @Default(.osdDisplayDuration) private var osdDisplayDuration
+    @Default(.osdSoundDuration) private var osdSoundDuration
     @State private var isAccessibilityAuthorized = true
     @State private var menuBarBrightnessSupported = true
+
+    /// How long an OSD stays on screen after the last change.
+    private static let durationChoices: [Double] = [1.0, 1.5, 2.0, 3.0, 5.0]
+
+    @ViewBuilder
+    private func durationPicker(selection: Binding<Double>) -> some View {
+        HStack {
+            Text("Duration")
+            Spacer()
+            Picker("", selection: selection) {
+                ForEach(Self.durationChoices, id: \.self) { value in
+                    Text(String(format: "%.1fs", value)).tag(value)
+                }
+            }
+            .pickerStyle(.menu)
+        }
+    }
 
     var body: some View {
         Form {
@@ -102,6 +121,37 @@ struct OSDSettings: View {
                     }
                 }
 
+                Section(header: Text("Display")) {
+                    Defaults.Toggle(key: .osdBrightnessEnabled) {
+                        Text("Show brightness OSD")
+                    }
+                    Defaults.Toggle(key: .osdKeyboardBrightnessEnabled) {
+                        Text("Show keyboard brightness OSD")
+                    }
+                    durationPicker(selection: $osdDisplayDuration)
+
+                    if osdBrightnessSourceDefault == .builtin {
+                        Defaults.Toggle(key: .osdObserveExternalBrightness) {
+                            Text("Detect brightness changes from elsewhere")
+                        }
+                        .onChange(of: Defaults[.osdObserveExternalBrightness]) {
+                            BrightnessManager.shared.observeExternalChangesIfEnabled()
+                        }
+                        HelpText("macOS sends no notification when brightness changes, so catching changes made in Control Centre or by auto-brightness requires checking once a second. Off by default. BetterDisplay and Lunar report changes properly, without polling.")
+                    }
+                }
+
+                Section(header: Text("Sound")) {
+                    Defaults.Toggle(key: .osdVolumeEnabled) {
+                        Text("Show volume OSD")
+                    }
+                    durationPicker(selection: $osdSoundDuration)
+                    Defaults.Toggle(key: .osdHideLabel) {
+                        Text("Hide label")
+                    }
+                    HelpText("Hides the \u{201C}Volume\u{201D} and \u{201C}Brightness\u{201D} labels in the inline OSD, leaving just the icon and level.")
+                }
+
                 Section(header: Text("Appearance")) {
                     Defaults.Toggle(key: .enableGradient) {
                         Text("Enable gradient")
@@ -111,6 +161,9 @@ struct OSDSettings: View {
                     }
                     Defaults.Toggle(key: .systemEventIndicatorUseAccent) {
                         Text("Use accent color")
+                    }
+                    Defaults.Toggle(key: .osdLimitBounce) {
+                        Text("Bounce at maximum")
                     }
                 }
 

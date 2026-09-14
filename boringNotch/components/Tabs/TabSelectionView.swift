@@ -5,6 +5,7 @@
 //  Created by Hugo Persson on 2024-08-25.
 //
 
+import Defaults
 import SwiftUI
 
 struct TabModel: Identifiable {
@@ -14,17 +15,49 @@ struct TabModel: Identifiable {
     let view: NotchViews
 }
 
-let tabs = [
-    TabModel(label: "Home", icon: "house.fill", view: .home),
-    TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)
-]
+/// Which tabs the opened notch currently offers.
+///
+/// Contextual rather than fixed: Home is always there, and the others appear only when they
+/// have something to show, so an idle notch stays as bare as it has always been.
+enum NotchTabs {
+    @MainActor
+    static var available: [TabModel] {
+        var result = [TabModel(label: "Home", icon: "house.fill", view: .home)]
+
+        if Defaults[.boringShelf],
+           !ShelfStateViewModel.shared.isEmpty || BoringViewCoordinator.shared.alwaysShowTabs
+        {
+            result.append(TabModel(label: "Shelf", icon: "tray.fill", view: .shelf))
+        }
+
+        if DownloadActivityManager.shared.hasVisibleActivity {
+            result.append(
+                TabModel(label: "Downloads", icon: "arrow.down.circle.fill", view: .downloads))
+        }
+
+        if PrivacyActivityManager.shared.hasVisibleActivity {
+            result.append(TabModel(label: "Privacy", icon: "hand.raised.fill", view: .privacy))
+        }
+
+        // Settings-gated rather than contextual: it is reference material the user asks
+        // for, not something an event brings into being.
+        if Defaults[.showNetworkInformation] {
+            result.append(TabModel(label: "System", icon: "cpu", view: .system))
+        }
+
+        return result
+    }
+}
 
 struct TabSelectionView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var shelf = ShelfStateViewModel.shared
+    @ObservedObject var downloadManager = DownloadActivityManager.shared
+    @ObservedObject var privacyManager = PrivacyActivityManager.shared
     @Namespace var animation
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(tabs) { tab in
+            ForEach(NotchTabs.available) { tab in
                     TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view) {
                         withAnimation(.smooth) {
                             coordinator.currentView = tab.view

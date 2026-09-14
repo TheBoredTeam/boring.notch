@@ -10,29 +10,10 @@ import SkyLightWindow
 import Defaults
 import Combine
 
-extension SkyLightOperator {
-    func undelegateWindow(_ window: NSWindow) {
-        typealias F_SLSRemoveWindowsFromSpaces = @convention(c) (Int32, CFArray, CFArray) -> Int32
-        
-        let handler = dlopen("/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/SkyLight", RTLD_NOW)
-        guard let SLSRemoveWindowsFromSpaces = unsafeBitCast(
-            dlsym(handler, "SLSRemoveWindowsFromSpaces"),
-            to: F_SLSRemoveWindowsFromSpaces?.self
-        ) else {
-            return
-        }
-        
-        // Remove the window from the SkyLight space
-        _ = SLSRemoveWindowsFromSpaces(
-            connection,
-            [window.windowNumber] as CFArray,
-            [space] as CFArray
-        )
-    }
-}
-
 class BoringNotchSkyLightWindow: NSPanel {
-    private var isSkyLightEnabled: Bool = false
+    /// `nil` until the window has been placed in a space for the first time, so the initial
+    /// assignment is never mistaken for a no-op transition.
+    private var isSkyLightEnabled: Bool?
     
     override init(
         contentRect: NSRect,
@@ -61,6 +42,11 @@ class BoringNotchSkyLightWindow: NSPanel {
         level = .mainMenu + 3
         hasShadow = false
         isReleasedWhenClosed = false
+
+        // Permits the window to exist at all during the secure session. Space membership
+        // alone is not sufficient, and this was never set — which is one of the reasons
+        // "show on lock screen" never worked.
+        canBecomeVisibleWithoutLogin = true
         
         // Force dark appearance regardless of system setting
         appearance = NSAppearance(named: .darkAqua)
@@ -123,18 +109,28 @@ class BoringNotchSkyLightWindow: NSPanel {
         }
     }
     
+    /// Hand the window to the lock-screen space.
+    @MainActor
     func enableSkyLight() {
-        if !isSkyLightEnabled {
-            SkyLightOperator.shared.delegateWindow(self)
-            isSkyLightEnabled = true
-        }
+        guard isSkyLightEnabled != true else { return }
+        setWindowSpace(self, to: .skyLight)
+        isSkyLightEnabled = true
     }
-    
+
+    /// Return the window to the normal-session notch space.
+    @MainActor
     func disableSkyLight() {
-        if isSkyLightEnabled {
-            SkyLightOperator.shared.undelegateWindow(self)
-            isSkyLightEnabled = false
-        }
+        guard isSkyLightEnabled != false else { return }
+        setWindowSpace(self, to: .notch)
+        isSkyLightEnabled = false
+    }
+
+    /// Drop out of both spaces. Must run before `close()`, or the window number is recycled
+    /// while a space still references it.
+    @MainActor
+    func prepareForClose() {
+        setWindowSpace(self, to: .none)
+        isSkyLightEnabled = false
     }
     
     private var observers: Set<AnyCancellable> = []

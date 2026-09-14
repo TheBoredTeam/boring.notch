@@ -7,6 +7,32 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BD291292DEC4A9665233D87A /* LockScreenSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01C0685F58EEE19A5A077311 /* LockScreenSettingsView.swift */; };
+		6F0EEF209486F7E7BD294862 /* LockScreenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88BDE1BAF47E0EB079338127 /* LockScreenManager.swift */; };
+		AA01D0C4000000000000F004 /* SystemSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F0C4000000000000F004 /* SystemSettingsView.swift */; };
+		AA01D0B5000000000000E005 /* PrivacySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F0B5000000000000E005 /* PrivacySettingsView.swift */; };
+		AA01D0A5000000000000D005 /* DownloadSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F0A5000000000000D005 /* DownloadSettingsView.swift */; };
+		67704F77133B9080BDF34744 /* ConnectivitySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38C0EF73A6541DD9A32E448F /* ConnectivitySettingsView.swift */; };
+		AA01D0B3000000000000E003 /* PrivacyActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F0B3000000000000E003 /* PrivacyActivity.swift */; };
+		AA01D0A3000000000000D003 /* DownloadActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F0A3000000000000D003 /* DownloadActivity.swift */; };
+		0C1448D010DC3CCF4342209E /* BluetoothActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5878DDDF0533DD98C756E4DE /* BluetoothActivity.swift */; };
+		6C36A8AA404D69C2C72DC635 /* WiFiActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = E60C42795C401D74E16412A1 /* WiFiActivity.swift */; };
+		1725843C9BFA0BC3CD008B54 /* BluetoothBatteryProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E00E2246EA9FCF30E488CAB /* BluetoothBatteryProvider.swift */; };
+		6E0BF3553D700F18EC313A64 /* BluetoothConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52D67D0AB040F2E6F5D8E38E /* BluetoothConnectivityManager.swift */; };
+		20E4D6FC73ABF46711C72CD1 /* WiFiLocationAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 822D1858144E605274FCFFDA /* WiFiLocationAuthorization.swift */; };
+		533EE53059EDEE19712DD7BE /* WiFiInfoProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03A27CDCA82D319CA74A75BB /* WiFiInfoProvider.swift */; };
+		C0C575D926BA9BE3E1C2F4B3 /* WiFiConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C179CFF02511295FD3879F5B /* WiFiConnectivityManager.swift */; };
+		A32D21E721B9E5301796D682 /* LowBatteryActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 215B7597CBE263927B0213C8 /* LowBatteryActivity.swift */; };
+		AA01D0C1000000000000F001 /* NetworkActivityState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F0C1000000000000F001 /* NetworkActivityState.swift */; };
+		AA01D0B1000000000000E001 /* PrivacyActivityState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F0B1000000000000E001 /* PrivacyActivityState.swift */; };
+		AA01D0A1000000000000D001 /* DownloadActivityState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F0A1000000000000D001 /* DownloadActivityState.swift */; };
+		9401D081498D1D78A7122FF2 /* LowBatteryState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 523CCB8C87EEFEBE6829F9CF /* LowBatteryState.swift */; };
+		F7955BB6EB16F929B206D2DA /* PlaybackTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AFED6FA7D8744A5ADCAC94 /* PlaybackTime.swift */; };
+		E058FFFB8AC8C13B18C45946 /* WiFiActivityState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1962BBCA74062F47BABFD867 /* WiFiActivityState.swift */; };
+		AA01D0C2000000000000F002 /* NetworkActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F0C2000000000000F002 /* NetworkActivityManager.swift */; };
+		AA01D0B2000000000000E002 /* PrivacyActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F0B2000000000000E002 /* PrivacyActivityManager.swift */; };
+		AA01D0A2000000000000D002 /* DownloadActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F0A2000000000000D002 /* DownloadActivityManager.swift */; };
+		A63234D850EF5A9EDE93F337 /* LowBatteryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B3440EFD6B8CA0D7C81D5FD /* LowBatteryMonitor.swift */; };
 		07FE456E7AEA085D9FCA6D97 /* MeetingLinkDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B2A5E5F4D28F1DD9CD0B09 /* MeetingLinkDetector.swift */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
@@ -122,7 +148,6 @@
 		14D570CB2C5F4B2C0011E668 /* BatteryStatusViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */; };
 		14D570CD2C5F4BB70011E668 /* BoringBattery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570CC2C5F4BB70011E668 /* BoringBattery.swift */; };
 		14D570D22C5F6C6A0011E668 /* BoringExtrasMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */; };
-		14E9FEAA2C70BF610062E83F /* DownloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9FEA92C70BF610062E83F /* DownloadView.swift */; };
 		14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */; };
 		14FC6E502C7DED5600C7BEA5 /* DataTypes+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */; };
 		201C3E071A104384B8629328 /* AudioOutputRouteResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFAD1670A870402D88BFFE47 /* AudioOutputRouteResolver.swift */; };
@@ -136,6 +161,9 @@
 		9A0887352C7AFF8E00C160EA /* TabSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */; };
 		9A987A0D2C73CA66005CA465 /* ShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A987A032C73CA66005CA465 /* ShelfView.swift */; };
 		9A987A102C73CA8D005CA465 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 9A987A0F2C73CA8D005CA465 /* Collections */; };
+		AA01D0C3000000000000F003 /* NotchSystemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F0C3000000000000F003 /* NotchSystemView.swift */; };
+		AA01D0B4000000000000E004 /* NotchPrivacyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F0B4000000000000E004 /* NotchPrivacyView.swift */; };
+		AA01D0A4000000000000D004 /* NotchDownloadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01F0A4000000000000D004 /* NotchDownloadsView.swift */; };
 		9AB0C6BD2C73C9CB00F7CD30 /* NotchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */; };
 		B10348D92C74E56000475897 /* ConditionalModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10348D82C74E56000475897 /* ConditionalModifier.swift */; };
 		B10F84A32C6C9596009F3026 /* TestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10F84A22C6C9596009F3026 /* TestView.swift */; };
@@ -207,6 +235,32 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		01C0685F58EEE19A5A077311 /* LockScreenSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenSettingsView.swift; sourceTree = "<group>"; };
+		88BDE1BAF47E0EB079338127 /* LockScreenManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenManager.swift; sourceTree = "<group>"; };
+		AA01F0C4000000000000F004 /* SystemSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemSettingsView.swift; sourceTree = "<group>"; };
+		AA01F0B5000000000000E005 /* PrivacySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacySettingsView.swift; sourceTree = "<group>"; };
+		AA01F0A5000000000000D005 /* DownloadSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadSettingsView.swift; sourceTree = "<group>"; };
+		38C0EF73A6541DD9A32E448F /* ConnectivitySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectivitySettingsView.swift; sourceTree = "<group>"; };
+		AA01F0B3000000000000E003 /* PrivacyActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyActivity.swift; sourceTree = "<group>"; };
+		AA01F0A3000000000000D003 /* DownloadActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadActivity.swift; sourceTree = "<group>"; };
+		5878DDDF0533DD98C756E4DE /* BluetoothActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothActivity.swift; sourceTree = "<group>"; };
+		E60C42795C401D74E16412A1 /* WiFiActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiActivity.swift; sourceTree = "<group>"; };
+		2E00E2246EA9FCF30E488CAB /* BluetoothBatteryProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothBatteryProvider.swift; sourceTree = "<group>"; };
+		52D67D0AB040F2E6F5D8E38E /* BluetoothConnectivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothConnectivityManager.swift; sourceTree = "<group>"; };
+		822D1858144E605274FCFFDA /* WiFiLocationAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiLocationAuthorization.swift; sourceTree = "<group>"; };
+		03A27CDCA82D319CA74A75BB /* WiFiInfoProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiInfoProvider.swift; sourceTree = "<group>"; };
+		C179CFF02511295FD3879F5B /* WiFiConnectivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiConnectivityManager.swift; sourceTree = "<group>"; };
+		215B7597CBE263927B0213C8 /* LowBatteryActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LowBatteryActivity.swift; sourceTree = "<group>"; };
+		AA01F0C1000000000000F001 /* NetworkActivityState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkActivityState.swift; sourceTree = "<group>"; };
+		AA01F0B1000000000000E001 /* PrivacyActivityState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyActivityState.swift; sourceTree = "<group>"; };
+		AA01F0A1000000000000D001 /* DownloadActivityState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadActivityState.swift; sourceTree = "<group>"; };
+		523CCB8C87EEFEBE6829F9CF /* LowBatteryState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LowBatteryState.swift; sourceTree = "<group>"; };
+		24AFED6FA7D8744A5ADCAC94 /* PlaybackTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackTime.swift; sourceTree = "<group>"; };
+		1962BBCA74062F47BABFD867 /* WiFiActivityState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiActivityState.swift; sourceTree = "<group>"; };
+		AA01F0C2000000000000F002 /* NetworkActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkActivityManager.swift; sourceTree = "<group>"; };
+		AA01F0B2000000000000E002 /* PrivacyActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyActivityManager.swift; sourceTree = "<group>"; };
+		AA01F0A2000000000000D002 /* DownloadActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadActivityManager.swift; sourceTree = "<group>"; };
+		7B3440EFD6B8CA0D7C81D5FD /* LowBatteryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LowBatteryMonitor.swift; sourceTree = "<group>"; };
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
 		110029292E8691B400035A57 /* FileShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShareView.swift; sourceTree = "<group>"; };
@@ -317,7 +371,6 @@
 		14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryStatusViewModel.swift; sourceTree = "<group>"; };
 		14D570CC2C5F4BB70011E668 /* BoringBattery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringBattery.swift; sourceTree = "<group>"; };
 		14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringExtrasMenu.swift; sourceTree = "<group>"; };
-		14E9FEA92C70BF610062E83F /* DownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadView.swift; sourceTree = "<group>"; };
 		14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Button+Bouncing.swift"; sourceTree = "<group>"; };
 		14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataTypes+Extensions.swift"; sourceTree = "<group>"; };
 		3CA22021D89A9E4FF88A618D /* MeetingLink.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MeetingLink.swift; sourceTree = "<group>"; };
@@ -329,6 +382,9 @@
 		9A0887312C7A693000C160EA /* TabButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabButton.swift; sourceTree = "<group>"; };
 		9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelectionView.swift; sourceTree = "<group>"; };
 		9A987A032C73CA66005CA465 /* ShelfView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShelfView.swift; sourceTree = "<group>"; };
+		AA01F0C3000000000000F003 /* NotchSystemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchSystemView.swift; sourceTree = "<group>"; };
+		AA01F0B4000000000000E004 /* NotchPrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchPrivacyView.swift; sourceTree = "<group>"; };
+		AA01F0A4000000000000D004 /* NotchDownloadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchDownloadsView.swift; sourceTree = "<group>"; };
 		9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotchHomeView.swift; sourceTree = "<group>"; };
 		A5167212301F85B40018095A /* boringNotchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = boringNotchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFAD1670A870402D88BFFE47 /* AudioOutputRouteResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioOutputRouteResolver.swift; sourceTree = "<group>"; };
@@ -551,6 +607,11 @@
 		11DB26722EDD0CDF001EA0CF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				01C0685F58EEE19A5A077311 /* LockScreenSettingsView.swift */,
+				AA01F0C4000000000000F004 /* SystemSettingsView.swift */,
+				AA01F0B5000000000000E005 /* PrivacySettingsView.swift */,
+				AA01F0A5000000000000D005 /* DownloadSettingsView.swift */,
+				38C0EF73A6541DD9A32E448F /* ConnectivitySettingsView.swift */,
 				11DB26672EDD0CDF001EA0CF /* AboutView.swift */,
 				11DB26682EDD0CDF001EA0CF /* AdvancedSettingsView.swift */,
 				11DB26692EDD0CDF001EA0CF /* AppearanceSettingsView.swift */,
@@ -632,6 +693,16 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				88BDE1BAF47E0EB079338127 /* LockScreenManager.swift */,
+				2E00E2246EA9FCF30E488CAB /* BluetoothBatteryProvider.swift */,
+				52D67D0AB040F2E6F5D8E38E /* BluetoothConnectivityManager.swift */,
+				822D1858144E605274FCFFDA /* WiFiLocationAuthorization.swift */,
+				03A27CDCA82D319CA74A75BB /* WiFiInfoProvider.swift */,
+				C179CFF02511295FD3879F5B /* WiFiConnectivityManager.swift */,
+				AA01F0C2000000000000F002 /* NetworkActivityManager.swift */,
+				AA01F0B2000000000000E002 /* PrivacyActivityManager.swift */,
+				AA01F0A2000000000000D002 /* DownloadActivityManager.swift */,
+				7B3440EFD6B8CA0D7C81D5FD /* LowBatteryMonitor.swift */,
 				11DB26652EDD0BE1001EA0CF /* LyricsService.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
@@ -750,6 +821,12 @@
 		14D570C72C5F38760011E668 /* models */ = {
 			isa = PBXGroup;
 			children = (
+				AA01F0C1000000000000F001 /* NetworkActivityState.swift */,
+				AA01F0B1000000000000E001 /* PrivacyActivityState.swift */,
+				AA01F0A1000000000000D001 /* DownloadActivityState.swift */,
+				523CCB8C87EEFEBE6829F9CF /* LowBatteryState.swift */,
+				24AFED6FA7D8744A5ADCAC94 /* PlaybackTime.swift */,
+				1962BBCA74062F47BABFD867 /* WiFiActivityState.swift */,
 				11F748812ECB07A400F841DB /* MusicControlButton.swift */,
 				118D1FD02E98FF5F00A2FF63 /* SharingStateManager.swift */,
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
@@ -831,6 +908,9 @@
 			children = (
 				1194E8862EA6DDA7009C82D6 /* BoringNotchSkyLightWindow.swift */,
 				1160F8D72DD98230006FBB94 /* NotchShape.swift */,
+				AA01F0C3000000000000F003 /* NotchSystemView.swift */,
+				AA01F0B4000000000000E004 /* NotchPrivacyView.swift */,
+				AA01F0A4000000000000D004 /* NotchDownloadsView.swift */,
 				9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */,
 				14D570C52C5F38210011E668 /* BoringHeader.swift */,
 				14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */,
@@ -856,10 +936,14 @@
 		B18654312C6F45AE000B926A /* Live activities */ = {
 			isa = PBXGroup;
 			children = (
+				AA01F0B3000000000000E003 /* PrivacyActivity.swift */,
+				AA01F0A3000000000000D003 /* DownloadActivity.swift */,
+				5878DDDF0533DD98C756E4DE /* BluetoothActivity.swift */,
+				E60C42795C401D74E16412A1 /* WiFiActivity.swift */,
+				215B7597CBE263927B0213C8 /* LowBatteryActivity.swift */,
 				14D570CC2C5F4BB70011E668 /* BoringBattery.swift */,
 				B1C974332C642B6D0000E707 /* MarqueeTextView.swift */,
 				B1D365CD2C6A979C0047BDBC /* LiveActivityModifier.swift */,
-				14E9FEA92C70BF610062E83F /* DownloadView.swift */,
 			);
 			path = "Live activities";
 			sourceTree = "<group>";
@@ -1053,6 +1137,32 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BD291292DEC4A9665233D87A /* LockScreenSettingsView.swift in Sources */,
+				6F0EEF209486F7E7BD294862 /* LockScreenManager.swift in Sources */,
+				AA01D0C4000000000000F004 /* SystemSettingsView.swift in Sources */,
+				AA01D0B5000000000000E005 /* PrivacySettingsView.swift in Sources */,
+				AA01D0A5000000000000D005 /* DownloadSettingsView.swift in Sources */,
+				67704F77133B9080BDF34744 /* ConnectivitySettingsView.swift in Sources */,
+				AA01D0B3000000000000E003 /* PrivacyActivity.swift in Sources */,
+				AA01D0A3000000000000D003 /* DownloadActivity.swift in Sources */,
+				0C1448D010DC3CCF4342209E /* BluetoothActivity.swift in Sources */,
+				6C36A8AA404D69C2C72DC635 /* WiFiActivity.swift in Sources */,
+				1725843C9BFA0BC3CD008B54 /* BluetoothBatteryProvider.swift in Sources */,
+				6E0BF3553D700F18EC313A64 /* BluetoothConnectivityManager.swift in Sources */,
+				20E4D6FC73ABF46711C72CD1 /* WiFiLocationAuthorization.swift in Sources */,
+				533EE53059EDEE19712DD7BE /* WiFiInfoProvider.swift in Sources */,
+				C0C575D926BA9BE3E1C2F4B3 /* WiFiConnectivityManager.swift in Sources */,
+				A32D21E721B9E5301796D682 /* LowBatteryActivity.swift in Sources */,
+				AA01D0C1000000000000F001 /* NetworkActivityState.swift in Sources */,
+				AA01D0B1000000000000E001 /* PrivacyActivityState.swift in Sources */,
+				AA01D0A1000000000000D001 /* DownloadActivityState.swift in Sources */,
+				9401D081498D1D78A7122FF2 /* LowBatteryState.swift in Sources */,
+				F7955BB6EB16F929B206D2DA /* PlaybackTime.swift in Sources */,
+				E058FFFB8AC8C13B18C45946 /* WiFiActivityState.swift in Sources */,
+				AA01D0C2000000000000F002 /* NetworkActivityManager.swift in Sources */,
+				AA01D0B2000000000000E002 /* PrivacyActivityManager.swift in Sources */,
+				AA01D0A2000000000000D002 /* DownloadActivityManager.swift in Sources */,
+				A63234D850EF5A9EDE93F337 /* LowBatteryMonitor.swift in Sources */,
 				115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,
@@ -1111,9 +1221,11 @@
 				111BEA612ED09B1B0079DD4E /* NSScreen+UUID.swift in Sources */,
 				1153BD8F2D986B1F00979FB0 /* MediaControllerProtocol.swift in Sources */,
 				11985BF42F38520A00F81585 /* DraggableProgressBar.swift in Sources */,
+				AA01D0C3000000000000F003 /* NotchSystemView.swift in Sources */,
+				AA01D0B4000000000000E004 /* NotchPrivacyView.swift in Sources */,
+				AA01D0A4000000000000D004 /* NotchDownloadsView.swift in Sources */,
 				9AB0C6BD2C73C9CB00F7CD30 /* NotchHomeView.swift in Sources */,
 				B172AAC02C95DA0B001623F1 /* InlineOSD.swift in Sources */,
-				14E9FEAA2C70BF610062E83F /* DownloadView.swift in Sources */,
 				B1B112912C6A572100093D8F /* EditPanelView.swift in Sources */,
 				1153BD912D986DB300979FB0 /* PlaybackState.swift in Sources */,
 				B1A78C822C8BA08100BD51B0 /* FullscreenMediaDetection.swift in Sources */,
@@ -1426,6 +1538,9 @@
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "This app detects when your Bluetooth accessories connect so it can show them in the notch";
+				INFOPLIST_KEY_NSLocationUsageDescription = "boring.notch uses your location only to read the name of the Wi-Fi network you are connected to, so it can show it in the notch. Your location is never stored or sent anywhere.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "boring.notch uses your location only to read the name of the Wi-Fi network you are connected to, so it can show it in the notch. Your location is never stored or sent anywhere.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSRemindersUsageDescription = "This app uses Reminders to display your scheduled reminder in the calendar";
@@ -1492,6 +1607,9 @@
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "This app detects when your Bluetooth accessories connect so it can show them in the notch";
+				INFOPLIST_KEY_NSLocationUsageDescription = "boring.notch uses your location only to read the name of the Wi-Fi network you are connected to, so it can show it in the notch. Your location is never stored or sent anywhere.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "boring.notch uses your location only to read the name of the Wi-Fi network you are connected to, so it can show it in the notch. Your location is never stored or sent anywhere.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSRemindersUsageDescription = "This app uses Reminders to display your scheduled reminder in the calendar";

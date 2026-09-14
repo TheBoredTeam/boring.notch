@@ -23,6 +23,8 @@ class BatteryStatusViewModel: ObservableObject {
     @Published private(set) var timeToDischarge: Int = 0
     @Published private(set) var maxAdapterWatts: Int = 0
     @Published private(set) var lastStatus: LastStatus = .plugged(false)
+    /// False on Macs with no internal battery, where the readings above are placeholders.
+    @Published private(set) var hasBattery: Bool = false
 
     enum LastStatus: Equatable {
         case plugged(Bool)
@@ -153,6 +155,7 @@ class BatteryStatusViewModel: ObservableObject {
             self.timeToDischarge = batteryInfo.timeToDischarge
             self.maxCapacity = batteryInfo.maxCapacity
             self.maxAdapterWatts = batteryInfo.maxAdapterWatts
+            self.hasBattery = batteryInfo.hasBattery
             self.lastStatus = .plugged(batteryInfo.isPluggedIn)
         }
     }

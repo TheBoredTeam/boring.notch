@@ -16,17 +16,20 @@ struct InlineOSD: View {
     @Binding var accent: Color?
     @Binding var hoverAnimation: Bool
     @Binding var gestureProgress: CGFloat
+    var eventCount: Int = 0
     var body: some View {
         HStack {
             HStack(spacing: 5) {
                 OSDIconView(eventType: type, icon: icon, value: value, accent: accent)
                 
-                Text(Type2Name(type))
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .lineLimit(1)
-                    .allowsTightening(true)
-                    .contentTransition(.numericText())
+                if !Defaults[.osdHideLabel] {
+                    Text(Type2Name(type))
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .lineLimit(1)
+                        .allowsTightening(true)
+                        .contentTransition(.numericText())
+                }
             }
             .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.notchSize.height - (hoverAnimation ? 0 : 12), alignment: .leading)
             
@@ -51,7 +54,7 @@ struct InlineOSD: View {
                             } else if type == .brightness {
                                 BrightnessManager.shared.setAbsolute(value: Float32(v))
                             }
-                        }, accentColor: accent, compact: true)
+                        }, accentColor: accent, compact: true, eventCount: eventCount)
                         .frame(maxWidth: .infinity)
                         if (type == .volume && value.isZero) {
                             Text("muted")

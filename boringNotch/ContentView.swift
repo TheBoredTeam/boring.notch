@@ -21,6 +21,11 @@ struct ContentView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
+    @ObservedObject var lowBatteryMonitor = LowBatteryMonitor.shared
+    @ObservedObject var bluetoothManager = BluetoothConnectivityManager.shared
+    @ObservedObject var wifiManager = WiFiConnectivityManager.shared
+    @ObservedObject var downloadManager = DownloadActivityManager.shared
+    @ObservedObject var privacyManager = PrivacyActivityManager.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
     @State private var hoverTask: Task<Void, Never>?
@@ -31,6 +36,9 @@ struct ContentView: View {
     @State private var horizontalMediaGestureTriggered = false
     @State private var horizontalMediaGestureFeedback: CGFloat = .zero
     @State private var isHoveringMusicArea = false
+    @State private var showVolumeSlider = false
+    @State private var volumeGestureStartValue: Double? = nil
+    @State private var lastVolumeGestureUpdate: Date = .distantPast
 
     @State private var haptics: Bool = false
 
@@ -85,26 +93,132 @@ struct ContentView: View {
         )
     }
 
-    private var computedChinWidth: CGFloat {
-        var chinWidth: CGFloat = vm.closedNotchSize.width
+    // MARK: - Closed Notch Content Priority
 
+    /// Everything the notch can show in the top row, in priority order.
+    ///
+    /// The first group are *transient overlays*: short-lived items that temporarily take
+    /// over the row and then disappear. The second group is the *base content*, which is
+    /// derived live from the current state (music playback, notch open/closed) rather than
+    /// being stored anywhere — which is why an overlay can never destroy it. When an
+    /// overlay expires the row simply falls back to whatever the base content is now.
+    private enum ClosedNotchContent: Equatable {
+        // Transient overlays, highest priority first.
+        case hello
+        case lowBattery
+        case privacy
+        case bluetooth
+        case wifi
+        case powerStatus
+        case osd
+        case download
+        // Persistent base content.
+        case music
+        case face
+        case openHeader
+        case compactIdle
+        case idle
+    }
+
+    /// The transient overlay currently taking over the row, if any.
+    private var closedNotchOverlay: ClosedNotchContent? {
+        if coordinator.helloAnimationRunning {
+            return .hello
+        }
+        if coordinator.expandingView.type == .lowBattery && coordinator.expandingView.show
+            && vm.notchState == .closed
+        {
+            return .lowBattery
+        }
+        if coordinator.expandingView.type == .privacy && coordinator.expandingView.show
+            && vm.notchState == .closed && privacyManager.announcement != nil
+        {
+            return .privacy
+        }
+        if coordinator.expandingView.type == .bluetooth && coordinator.expandingView.show
+            && vm.notchState == .closed && !bluetoothManager.activeDevices.isEmpty
+        {
+            return .bluetooth
+        }
+        if coordinator.expandingView.type == .wifi && coordinator.expandingView.show
+            && vm.notchState == .closed && wifiManager.activeNetwork != nil
+        {
+            return .wifi
+        }
         if coordinator.expandingView.type == .battery && coordinator.expandingView.show
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
-            chinWidth = 640
-        } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
+            return .powerStatus
+        }
+        if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD]
+            && coordinator.sneakPeekState(for: vm.screenUUID).type != .music
+            && coordinator.sneakPeekState(for: vm.screenUUID).type != .battery
+            && vm.notchState == .closed
+        {
+            return .osd
+        }
+        // Last of the overlays deliberately. A download can be sticky for many minutes, and
+        // it must not swallow the volume and brightness HUDs, which are direct responses to
+        // a keypress and last barely a second. Those live in the sneak-peek channel, so they
+        // never contend with this one through `toggleExpandingView`'s priority check.
+        if coordinator.expandingView.type == .download && coordinator.expandingView.show
+            && vm.notchState == .closed && downloadManager.hasVisibleActivity
+        {
+            return .download
+        }
+        return nil
+    }
+
+    /// What the row shows when no overlay is active. Also drives the chin width, so the
+    /// chin does not resize for a brief overlay.
+    private var baseClosedNotchContent: ClosedNotchContent {
+        if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
         {
-            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
-        } else if !coordinator.expandingView.show && vm.notchState == .closed
+            return .music
+        }
+        if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
             && !vm.hideOnClosed
         {
-            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
+            return .face
+        }
+        if vm.notchState == .open {
+            return .openHeader
+        }
+        // Compact notch on external displays.
+        return vm.hasNotch ? .idle : .compactIdle
+    }
+
+    /// What `NotchLayout()` renders in the top row.
+    private var closedNotchContent: ClosedNotchContent {
+        closedNotchOverlay ?? baseClosedNotchContent
+    }
+
+    private var computedChinWidth: CGFloat {
+        let chinWidth: CGFloat = vm.closedNotchSize.width
+
+        // These overlays are wider than the bare notch, so the chin has to follow them.
+        // Width is two equal content slots either side of the notch-shaped spacer.
+        let spacer = vm.hasNotch ? vm.closedNotchSize.width + activityNotchClearance : 16
+        switch closedNotchOverlay {
+        case .powerStatus:
+            return 2 * powerStatusSlotWidth + spacer
+        case .lowBattery, .privacy, .bluetooth, .wifi, .download:
+            return 2 * activitySlotWidth + spacer
+        default:
+            break
         }
 
-        return chinWidth
+        switch baseClosedNotchContent {
+        case .music:
+            return chinWidth + (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
+        case .face:
+            return chinWidth + (2 * max(0, displayClosedNotchHeight - 12) + 20)
+        default:
+            return chinWidth
+        }
     }
 
     // If the closed notch height is 0 (any display/setting), display a 10pt nearly-invisible notch
@@ -289,7 +403,7 @@ struct ContentView: View {
 
         VStack(alignment: .leading) {
             VStack(alignment: .leading) {
-                if coordinator.helloAnimationRunning {
+                if closedNotchContent == .hello {
                     Spacer()
                     HelloAnimation(onFinish: {
                         vm.closeHello()
@@ -300,21 +414,56 @@ struct ContentView: View {
                     .padding(.top, 40)
                     Spacer()
                 } else {
-                    if coordinator.expandingView.type == .battery && coordinator.expandingView.show
-                        && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
-                    {
+                    switch closedNotchContent {
+                    case .lowBattery:
+                        LowBatteryActivity(
+                            level: lowBatteryMonitor.level,
+                            isPluggedIn: batteryModel.isPluggedIn,
+                            isInLowPowerMode: batteryModel.isInLowPowerMode,
+                            notchHeight: displayClosedNotchHeight
+                        )
+                        .transition(.opacity)
+                    case .privacy:
+                        if let announcement = privacyManager.announcement {
+                            PrivacyActivity(
+                                announcement: announcement,
+                                notchHeight: displayClosedNotchHeight
+                            )
+                            .transition(.opacity)
+                        }
+                    case .bluetooth:
+                        BluetoothActivity(
+                            devices: bluetoothManager.activeDevices,
+                            isDisconnection: bluetoothManager.isDisconnection,
+                            notchHeight: displayClosedNotchHeight
+                        )
+                        .transition(.opacity)
+                    case .wifi:
+                        WiFiActivity(
+                            network: wifiManager.activeNetwork ?? WiFiNetworkInfo(),
+                            isDisconnection: wifiManager.isDisconnection,
+                            notchHeight: displayClosedNotchHeight
+                        )
+                        .transition(.opacity)
+                    case .powerStatus:
                         HStack(spacing: 0) {
                             HStack {
                                 Text(batteryModel.statusText)
                                     .font(.subheadline)
                                     .foregroundStyle(.white)
+                                    .lineLimit(1)
                             }
+                            .frame(width: powerStatusSlotWidth, alignment: .trailing)
 
+                            // Only a physical notch needs clearing; on other displays this
+                            // spacer is dead space that pushes the labels to the edges.
                             Rectangle()
                                 .fill(.black)
-                                .frame(width: vm.closedNotchSize.width + 10)
+                                .frame(width: vm.hasNotch ? vm.closedNotchSize.width + activityNotchClearance : 16)
 
-                            HStack {
+                            HStack(spacing: 5) {
+                                // BoringBatteryView already shows the percentage when
+                                // Defaults[.showBatteryPercentage] is on; do not add another.
                                 BoringBatteryView(
                                     batteryWidth: 30,
                                     isCharging: batteryModel.isCharging,
@@ -325,35 +474,44 @@ struct ContentView: View {
                                     isForNotification: true
                                 )
                             }
-                            .frame(width: 76, alignment: .trailing)
+                            .frame(width: powerStatusSlotWidth, alignment: .leading)
                         }
                         .frame(height: displayClosedNotchHeight, alignment: .center)
-                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
-                          InlineOSD(
-                              type: coordinator.binding(for: vm.screenUUID).type,
-                              value: coordinator.binding(for: vm.screenUUID).value,
-                              icon: coordinator.binding(for: vm.screenUUID).icon,
-                              accent: coordinator.binding(for: vm.screenUUID).accent,
-                              hoverAnimation: $isHovering,
-                              gestureProgress: $gestureProgress
-                          )
-                              .transition(.opacity)
-                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
-                          MusicLiveActivity()
-                              .frame(alignment: .center)
-                      } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
-                          BoringFaceAnimation()
-                       } else if vm.notchState == .open {
-                           BoringHeader()
-                               .frame(height: max(24, displayClosedNotchHeight))
-                               .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
-                       }
-                        // New case to enable compact notch on external displays
-                        else if !vm.hasNotch {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: 11) // idle notch height is halved on non notch display
-                       } else {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
-                       }
+                    case .osd:
+                        InlineOSD(
+                            type: coordinator.binding(for: vm.screenUUID).type,
+                            value: coordinator.binding(for: vm.screenUUID).value,
+                            icon: coordinator.binding(for: vm.screenUUID).icon,
+                            accent: coordinator.binding(for: vm.screenUUID).accent,
+                            hoverAnimation: $isHovering,
+                            gestureProgress: $gestureProgress,
+                            eventCount: coordinator.sneakPeekState(for: vm.screenUUID).eventCount
+                        )
+                        .transition(.opacity)
+                    case .download:
+                        DownloadActivity(
+                            completed: downloadManager.completionBanner,
+                            summary: downloadManager.summary,
+                            notchHeight: displayClosedNotchHeight
+                        )
+                        .transition(.opacity)
+                    case .music:
+                        MusicLiveActivity()
+                            .frame(alignment: .center)
+                    case .face:
+                        BoringFaceAnimation()
+                    case .openHeader:
+                        BoringHeader()
+                            .frame(height: max(24, displayClosedNotchHeight))
+                            .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
+                    case .compactIdle:
+                        // Idle notch height is halved on a non-notched display.
+                        Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: 11)
+                    case .idle:
+                        Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
+                    case .hello:
+                        EmptyView() // Handled above.
+                    }
 
                       if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
                           if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
@@ -371,7 +529,8 @@ struct ContentView: View {
                                       default:
                                           break
                                       }
-                                  }
+                                  },
+                                  eventCount: coordinator.sneakPeekState(for: vm.screenUUID).eventCount
                               )
                               .padding(.bottom, 10)
                               .padding(.leading, 4)
@@ -405,13 +564,20 @@ struct ContentView: View {
                         NotchHomeView(
                             albumArtNamespace: albumArtNamespace,
                             horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
-                            isHoveringMusicArea: $isHoveringMusicArea
+                            isHoveringMusicArea: $isHoveringMusicArea,
+                            showVolumeSlider: $showVolumeSlider
                         )
                     case .shelf:
                         ShelfView(
                             dropInteraction: vm.dropInteraction,
                             animation: vm.animation
                         )
+                    case .downloads:
+                        NotchDownloadsView()
+                    case .privacy:
+                        NotchPrivacyView()
+                    case .system:
+                        NotchSystemView()
                     }
                 }
                 .transition(
@@ -678,15 +844,51 @@ struct ContentView: View {
     }
 
     private func handleNextTrackGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        handleHorizontalMediaGesture(translation: translation, phase: phase, feedback: -1) {
-            musicManager.nextTrack()
+        if isVolumeGestureContext {
+            handleVolumeGesture(direction: .left, translation: translation, phase: phase)
+        } else {
+            handleHorizontalMediaGesture(translation: translation, phase: phase, feedback: -1) {
+                musicManager.nextTrack()
+            }
         }
     }
 
     private func handlePreviousTrackGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        handleHorizontalMediaGesture(translation: translation, phase: phase, feedback: 1) {
-            musicManager.previousTrack()
+        if isVolumeGestureContext {
+            handleVolumeGesture(direction: .right, translation: translation, phase: phase)
+        } else {
+            handleHorizontalMediaGesture(translation: translation, phase: phase, feedback: 1) {
+                musicManager.previousTrack()
+            }
         }
+    }
+
+    private func handleVolumeGesture(direction: PanDirection, translation: CGFloat, phase: NSEvent.Phase) {
+        guard phase != .ended else {
+            volumeGestureStartValue = nil
+            return
+        }
+        guard isVolumeGestureContext else {
+            volumeGestureStartValue = nil
+            return
+        }
+
+        // Snapshot the volume once, at the start of the swipe, and compute every subsequent
+        // update from that fixed baseline plus the swipe's cumulative travel. Recomputing from
+        // `musicManager.volume` on every callback would race against its async round-trip
+        // through the AppleScript command + playback-info refresh, since that published value
+        // only catches up after the fact.
+        let startValue = volumeGestureStartValue ?? musicManager.volume
+        volumeGestureStartValue = startValue
+
+        let volumeSwipeScale: CGFloat = 400 // points of swipe travel to cover the full 0...1 range
+        let sign: Double = direction == .left ? -1 : 1
+        let newVolume = min(1.0, max(0.0, startValue + sign * Double(translation / volumeSwipeScale)))
+
+        let now = Date()
+        guard now.timeIntervalSince(lastVolumeGestureUpdate) > 0.05 else { return }
+        lastVolumeGestureUpdate = now
+        musicManager.setVolume(to: newVolume)
     }
 
     private func handleHorizontalMediaGesture(
@@ -756,6 +958,13 @@ struct ContentView: View {
         case .open:
             return coordinator.currentView == .home && !musicManager.isPlayerIdle && isHoveringMusicArea
         }
+    }
+
+    private var isVolumeGestureContext: Bool {
+        vm.notchState == .open
+            && coordinator.currentView == .home
+            && showVolumeSlider
+            && musicManager.volumeControlSupported
     }
 }
 

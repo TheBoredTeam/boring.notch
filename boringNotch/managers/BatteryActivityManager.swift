@@ -19,6 +19,10 @@ class BatteryActivityManager {
     private var batterySource: CFRunLoopSource?
     private var observers: [(BatteryEvent) -> Void] = []
     private var previousBatteryInfo: BatteryInfo?
+
+    /// Whether this Mac has an internal battery. Valid once any battery info has been
+    /// read; consumers that must not act on a desktop Mac should check this first.
+    private(set) var hasBattery: Bool = false
     // actor-based queue to serialize notification delivery
     private let notificationQueueActor = NotificationQueue()
 
@@ -63,6 +67,8 @@ class BatteryActivityManager {
         case powerSourceUnavailable
         case batteryInfoUnavailable(String)
         case batteryParameterMissing(String)
+        /// Not an error: this Mac simply has no internal battery.
+        case noInternalBattery
     }
 
     private let defaultBatteryInfo = BatteryInfo(
@@ -240,6 +246,12 @@ class BatteryActivityManager {
     /// Get the current battery information
     /// - Returns: The current battery information
     private func getBatteryInfo() -> BatteryInfo {
+        let info = readBatteryInfo()
+        hasBattery = info.hasBattery
+        return info
+    }
+
+    private func readBatteryInfo() -> BatteryInfo {
         do {
             // Get power source information
             guard let snapshot = IOPSCopyPowerSourcesInfo()?.takeRetainedValue() else {
@@ -250,13 +262,20 @@ class BatteryActivityManager {
                 !sources.isEmpty else {
                 throw BatteryError.batteryInfoUnavailable("No power sources available")
             }
-            
-            let source = sources.first!
-            
-            guard let description = IOPSGetPowerSourceDescription(snapshot, source)?.takeUnretainedValue() as? [String: Any] else {
-                throw BatteryError.batteryInfoUnavailable("Could not get power source description")
+
+            // Pick the internal battery specifically. Desktop Macs report no internal
+            // battery at all, and a machine on a UPS reports that UPS as a power source —
+            // taking the first source blindly would describe the wrong thing.
+            let descriptions = sources.compactMap {
+                IOPSGetPowerSourceDescription(snapshot, $0)?.takeUnretainedValue() as? [String: Any]
             }
-            
+
+            guard let description = descriptions.first(where: {
+                $0[kIOPSTypeKey] as? String == kIOPSInternalBatteryType
+            }) else {
+                throw BatteryError.noInternalBattery
+            }
+
             // Extract required battery parameters with error handling
             guard let currentCapacity = description[kIOPSCurrentCapacityKey] as? Float else {
                 throw BatteryError.batteryParameterMissing("Current capacity")
@@ -278,7 +297,8 @@ class BatteryActivityManager {
                 maxCapacity: getBatteryHealthCapacity(),
                 isInLowPowerMode: ProcessInfo.processInfo.isLowPowerModeEnabled,
                 timeToFullCharge: 0,
-                timeToDischarge: 0
+                timeToDischarge: 0,
+                hasBattery: true
             )
 
             // Optional parameters
@@ -298,6 +318,9 @@ class BatteryActivityManager {
 
             return batteryInfo
             
+        } catch BatteryError.noInternalBattery {
+            // Expected on desktop Macs — stay quiet.
+            return defaultBatteryInfo
         } catch BatteryError.powerSourceUnavailable {
             print("⚠️ Error: Power source information unavailable")
             return defaultBatteryInfo
@@ -392,5 +415,8 @@ struct BatteryInfo {
     var isInLowPowerMode: Bool
     var timeToFullCharge: Int
     var timeToDischarge: Int
+    /// False on Macs with no internal battery (Mac mini, Studio, Pro), where the other
+    /// fields are placeholders rather than real readings.
+    var hasBattery: Bool = false
     var maxAdapterWatts: Int = 0
 }

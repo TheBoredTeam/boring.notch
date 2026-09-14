@@ -17,11 +17,15 @@ struct MusicPlayerView: View {
     let albumArtNamespace: Namespace.ID
     let horizontalMediaGestureFeedback: CGFloat
     @Binding var isHoveringMusicArea: Bool
+    @Binding var showVolumeSlider: Bool
 
     var body: some View {
         HStack {
             AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).frame(width: 120).padding(.all, 5 * (vm.notchSize.height / 190))
-            MusicControlsView(horizontalMediaGestureFeedback: horizontalMediaGestureFeedback)
+            MusicControlsView(
+                horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+                showVolumeSlider: $showVolumeSlider
+            )
                 .drawingGroup()
                 .compositingGroup()
         }
@@ -120,6 +124,7 @@ struct MusicControlsView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var webcamManager = WebcamManager.shared
     let horizontalMediaGestureFeedback: CGFloat
+    @Binding var showVolumeSlider: Bool
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
@@ -277,7 +282,7 @@ struct MusicControlsView: View {
                 MusicManager.shared.toggleRepeat()
             }
         case .volume:
-            VolumeControlView()
+            VolumeControlView(showVolumeSlider: $showVolumeSlider)
         case .favorite:
             FavoriteControlButton()
         case .goBackward:
@@ -345,9 +350,9 @@ private extension Array where Element == MusicControlButton {
 
 struct VolumeControlView: View {
     @ObservedObject var musicManager = MusicManager.shared
+    @Binding var showVolumeSlider: Bool
     @State private var volumeSliderValue: Double = 0.5
     @State private var dragging: Bool = false
-    @State private var showVolumeSlider: Bool = false
     @State private var lastVolumeUpdateTime: Date = Date.distantPast
     private let volumeUpdateThrottle: TimeInterval = 0.1
     
@@ -427,6 +432,7 @@ struct NotchHomeView: View {
     let albumArtNamespace: Namespace.ID
     let horizontalMediaGestureFeedback: CGFloat
     @Binding var isHoveringMusicArea: Bool
+    @Binding var showVolumeSlider: Bool
 
     var body: some View {
         mainContent
@@ -442,7 +448,8 @@ struct NotchHomeView: View {
             MusicPlayerView(
                 albumArtNamespace: albumArtNamespace,
                 horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
-                isHoveringMusicArea: $isHoveringMusicArea
+                isHoveringMusicArea: $isHoveringMusicArea,
+                showVolumeSlider: $showVolumeSlider
             )
 
             if Defaults[.showCalendar] {
@@ -515,17 +522,7 @@ struct MusicSliderView: View {
     }
 
     func timeString(from seconds: Double) -> String {
-        guard seconds.isFinite else { return "--:--" }
-        let totalMinutes = Int(seconds) / 60
-        let remainingSeconds = Int(seconds) % 60
-        let hours = totalMinutes / 60
-        let minutes = totalMinutes % 60
-
-        if hours > 0 {
-            return String(format: "%d:%02d:%02d", hours, minutes, remainingSeconds)
-        } else {
-            return String(format: "%d:%02d", minutes, remainingSeconds)
-        }
+        PlaybackTime.string(from: seconds)
     }
 }
 

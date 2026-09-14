@@ -14,6 +14,7 @@ struct OpenNotchOSD: View {
     @Binding var value: CGFloat
     @Binding var icon: String
     @Binding var accent: Color?
+    var eventCount: Int = 0
     @Default(.showOpenNotchOSDPercentage) var showPercentage
     
     var body: some View {
@@ -28,7 +29,7 @@ struct OpenNotchOSD: View {
             if type != .mic {
                  DraggableProgressBar(value: $value, onChange: { newVal in
                      updateSystemValue(newVal)
-                 }, accentColor: accent, compact: true)
+                 }, accentColor: accent, compact: true, eventCount: eventCount)
                     .frame(maxWidth: .infinity)
             } else {
                 Text(value > 0 ? "Unmuted" : "Muted")

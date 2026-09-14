@@ -9,6 +9,7 @@ import AVFoundation
 import Combine
 import Defaults
 import KeyboardShortcuts
+import SkyLightWindow
 import Sparkle
 import SwiftUI
 
@@ -78,9 +79,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var closeNotchTask: Task<Void, Never>?
     private var previousScreens: [NSScreen]?
     private var onboardingWindowController: NSWindowController?
-    private var screenLockedObserver: Any?
-    private var screenUnlockedObserver: Any?
-    private var isScreenLocked: Bool = false
+    private var lockStateCancellables = Set<AnyCancellable>()
     private var windowScreenDidChangeObserver: Any?
     private var dragDetectors: [String: DragDetector] = [:] // UUID -> DragDetector
     private var observers: [Any] = []
@@ -94,15 +93,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         ShelfStateViewModel.shared.flushSync()
 
         NotificationCenter.default.removeObserver(self)
-        if let observer = screenLockedObserver {
-            DistributedNotificationCenter.default().removeObserver(observer)
-            screenLockedObserver = nil
-        }
-        if let observer = screenUnlockedObserver {
-            DistributedNotificationCenter.default().removeObserver(observer)
-            screenUnlockedObserver = nil
-        }
+        lockStateCancellables.removeAll()
         MusicManager.shared.destroy()
+        LockScreenManager.shared.stop()
+        BluetoothConnectivityManager.shared.stop()
+        WiFiConnectivityManager.shared.stop()
+        LowBatteryMonitor.shared.stop()
+        DownloadActivityManager.shared.stop()
+        PrivacyActivityManager.shared.stop()
         cleanupDragDetectors()
         cleanupWindows()
         BetterDisplayManager.shared.stopObserving()
@@ -115,8 +113,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @MainActor
-    func onScreenLocked(_ notification: Notification) {
-        isScreenLocked = true
+    func onScreenObscured() {
         if !Defaults[.showOnLockScreen] {
             cleanupWindows()
         } else {
@@ -125,8 +122,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @MainActor
-    func onScreenUnlocked(_ notification: Notification) {
-        isScreenLocked = false
+    func onScreenRevealed() {
         if !Defaults[.showOnLockScreen] {
             adjustWindowPosition(changeAlpha: true)
         } else {
@@ -175,14 +171,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         if shouldCleanupMulti {
             windows.values.forEach { window in
+                // Leave both spaces before closing, so neither keeps a reference to a
+                // window number that is about to be recycled.
+                (window as? BoringNotchSkyLightWindow)?.prepareForClose()
                 window.close()
-                NotchSpaceManager.shared.notchSpace.windows.remove(window)
             }
             windows.removeAll()
             viewModels.removeAll()
         } else if let window = window {
+            (window as? BoringNotchSkyLightWindow)?.prepareForClose()
             window.close()
-            NotchSpaceManager.shared.notchSpace.windows.remove(window)
             if let obs = windowScreenDidChangeObserver {
                 NotificationCenter.default.removeObserver(obs)
                 windowScreenDidChangeObserver = nil
@@ -268,21 +266,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let styleMask: NSWindow.StyleMask = [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow]
         
         let window = BoringNotchSkyLightWindow(contentRect: rect, styleMask: styleMask, backing: .buffered, defer: false)
-        
-        // Enable SkyLight only when screen is locked
-        if isScreenLocked {
-            window.enableSkyLight()
-        } else {
-            window.disableSkyLight()
-        }
 
         window.contentView = NSHostingView(
             rootView: ContentView()
                 .environmentObject(viewModel)
         )
 
+        // Order in BEFORE assigning a space: ordering a window in re-associates it with the
+        // active space, so doing it afterwards would undo the assignment.
         window.orderFrontRegardless()
-        NotchSpaceManager.shared.notchSpace.windows.insert(window)
+
+        // Space membership is decided here and nowhere else. The old code delegated to
+        // SkyLight and then unconditionally inserted into notchSpace, which overrode it.
+        if LockScreenManager.shared.isObscured {
+            window.enableSkyLight()
+        } else {
+            window.disableSkyLight()
+        }
 
         // Observe when the window's screen changes so we can update drag detectors
         windowScreenDidChangeObserver = NotificationCenter.default.addObserver(
@@ -312,6 +312,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+
+        // SkyLightOperator is lazy, so SLSSpaceCreate would otherwise first run at lock time,
+        // i.e. during the secure-session transition. Build the space now, while the session
+        // is ordinary.
+        _ = SkyLightOperator.shared
 
         NotificationCenter.default.addObserver(
             self,
@@ -366,22 +371,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         })
 
-        // Use closure-based observers for DistributedNotificationCenter and keep tokens for removal
-        screenLockedObserver = DistributedNotificationCenter.default().addObserver(
-            forName: NSNotification.Name(rawValue: "com.apple.screenIsLocked"),
-            object: nil, queue: .main) { [weak self] notification in
+        // Lock/unlock comes from LockScreenManager rather than a second set of distributed
+        // observers here. Two independent registrations on com.apple.screenIsLocked fired in
+        // non-deterministic order, and window placement needs the state already committed.
+        LockScreenManager.shared.obscuredStateChanged
+            .sink { [weak self] obscured in
                 Task { @MainActor in
-                    self?.onScreenLocked(notification)
+                    obscured == true ? self?.onScreenObscured() : self?.onScreenRevealed()
                 }
-        }
-
-        screenUnlockedObserver = DistributedNotificationCenter.default().addObserver(
-            forName: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"),
-            object: nil, queue: .main) { [weak self] notification in
-                Task { @MainActor in
-                    self?.onScreenUnlocked(notification)
-                }
-        }
+            }
+            .store(in: &lockStateCancellables)
 
         KeyboardShortcuts.onKeyDown(for: .toggleSneakPeek) { [weak self] in
             guard let self = self else { return }
@@ -449,6 +448,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+
+        LowBatteryMonitor.shared.start()
+        BluetoothConnectivityManager.shared.start()
+        WiFiConnectivityManager.shared.start()
+        LockScreenManager.shared.start()
+        DownloadActivityManager.shared.start()
+        PrivacyActivityManager.shared.start()
 
         // Sync notch height with real value on app launch if mode is matchRealNotchSize
         syncNotchHeightIfNeeded()
@@ -531,8 +537,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Remove windows for screens that no longer exist
             for uuid in windows.keys where !currentScreenUUIDs.contains(uuid) {
                 if let window = windows[uuid] {
+                    (window as? BoringNotchSkyLightWindow)?.prepareForClose()
                     window.close()
-                    NotchSpaceManager.shared.notchSpace.windows.remove(window)
                     windows.removeValue(forKey: uuid)
                     viewModels.removeValue(forKey: uuid)
                 }

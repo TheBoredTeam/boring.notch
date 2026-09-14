@@ -22,6 +22,24 @@ let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: 
 // adjacent content since the spacer rect used to be narrower than the physical notch.
 let liveActivityEdgeMargin: CGFloat = 8
 
+/// Extra width added to the notch-shaped spacer in closed-notch activities.
+///
+/// `getClosedNotchSize` reports the notch only ~4pt wider than the real cutout, which is
+/// not enough clearance: content butted right up against the spacer ends up physically
+/// hidden under it.
+let activityNotchClearance: CGFloat = 12
+
+/// Width of the content slot on each side of the notch in a closed-notch activity.
+///
+/// Both sides must be the SAME width. The activity is centred as a whole in the notch
+/// window, so unequal sides shift the notch-shaped spacer off the real cutout and the
+/// inner edge of the wider side ends up hidden underneath it.
+let activitySlotWidth: CGFloat = 92
+
+/// The power-status row needs a little more room than the compact activities, because
+/// its longest status ("Charging battery") is wider than "Disconnected".
+let powerStatusSlotWidth: CGFloat = 108
+
 enum MusicPlayerImageSizes {
     static let cornerRadiusInset: (opened: CGFloat, closed: CGFloat) = (opened: 13.0, closed: 4.0)
     static let size = (opened: CGSize(width: 90, height: 90), closed: CGSize(width: 20, height: 20))

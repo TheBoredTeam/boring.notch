@@ -236,6 +236,23 @@ final class XPCHelperClient: NSObject {
         }
     }
 
+    /// Battery levels for a paired Bluetooth accessory. Returns nil when the device
+    /// reports none, which is normal for most non-Apple accessories.
+    func bluetoothDeviceBattery(forAddress address: String) async -> [String: Int]? {
+        do {
+            let service = ensureRemoteService()
+            let result: [String: NSNumber]? = try await service.withContinuation { service, continuation in
+                service.bluetoothDeviceBattery(forAddress: address) { value in
+                    continuation.resume(returning: value)
+                }
+            }
+            guard let result, !result.isEmpty else { return nil }
+            return result.mapValues { $0.intValue }
+        } catch {
+            return nil
+        }
+    }
+
     func displayIDForBrightness() async -> CGDirectDisplayID? {
         do {
             let service = ensureRemoteService()

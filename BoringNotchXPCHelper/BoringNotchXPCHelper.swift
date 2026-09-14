@@ -362,6 +362,12 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         reply(ok)
     }
 
+    // MARK: - Bluetooth accessory battery
+
+    @objc func bluetoothDeviceBattery(forAddress address: String, with reply: @escaping ([String: NSNumber]?) -> Void) {
+        reply(BluetoothBatteryReader.battery(forAddress: address))
+    }
+
     // MARK: - Private helpers for DisplayServices / IOKit access
     private func displayServicesGetBrightness(displayID: CGDirectDisplayID, out: inout Float) -> Bool {
         guard let sym = dlsym(DisplayServicesHandle.handle, "DisplayServicesGetBrightness") else { return false }

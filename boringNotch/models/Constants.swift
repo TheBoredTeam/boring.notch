@@ -124,6 +124,25 @@ extension Notification.Name {
     static let accentColorChanged = Notification.Name("AccentColorChanged")
 }
 
+/// Looks up a localized string, falling back to the English catalog when the active
+/// locale is missing the key.
+///
+/// Some keys are only translated in a subset of locales. A regional English locale such
+/// as en-IN resolves to `en-GB.lproj`, and where that catalog lacks a key
+/// `NSLocalizedString` hands back the key itself — surfacing raw identifiers like
+/// "osd_sources_built_in" in the UI. Falling back to `en` keeps those readable without
+/// hand-editing translations, which are owned by Crowdin.
+func localizedOrEnglish(_ key: String, comment: String = "") -> String {
+    let value = NSLocalizedString(key, comment: comment)
+    guard value == key else { return value }
+
+    guard let path = Bundle.main.path(forResource: "en", ofType: "lproj"),
+          let englishBundle = Bundle(path: path)
+    else { return value }
+
+    return englishBundle.localizedString(forKey: key, value: key, table: nil)
+}
+
 // Media controller types for selection in settings
 enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializable {
     case nowPlaying
@@ -157,9 +176,9 @@ enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     var localizedString: String {
         switch self {
         case .standard:
-            return NSLocalizedString("sneak_peek_standard", comment: "Sneak Peek style: Default")
+            return localizedOrEnglish("sneak_peek_standard", comment: "Sneak Peek style: Default")
         case .inline:
-            return NSLocalizedString("sneak_peek_inline", comment: "Sneak Peek style: Inline")
+            return localizedOrEnglish("sneak_peek_inline", comment: "Sneak Peek style: Inline")
         }
     }
 }
@@ -175,11 +194,11 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
     var localizedString: String {
         switch self {
         case .openSettings:
-            return NSLocalizedString("option_key_open_system_settings", comment: "Option (⌥) key behavior: Open System Settings")
+            return localizedOrEnglish("option_key_open_system_settings", comment: "Option (⌥) key behavior: Open System Settings")
         case .showOSD:
-            return NSLocalizedString("option_key_show_osd", comment: "Option (⌥) key behavior: Show OSD")
+            return localizedOrEnglish("option_key_show_osd", comment: "Option (⌥) key behavior: Show OSD")
         case .none:
-            return NSLocalizedString("option_key_no_action", comment: "Option (⌥) key behavior: No action")
+            return localizedOrEnglish("option_key_no_action", comment: "Option (⌥) key behavior: No action")
         }
     }
 }
@@ -195,7 +214,7 @@ enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable
     var localizedString: String {
         switch self {
         case .builtin:
-            return NSLocalizedString("osd_sources_built_in", comment: "OSD Sources: Built-in")
+            return localizedOrEnglish("osd_sources_built_in", comment: "OSD Sources: Built-in")
         case .betterDisplay:
             return "BetterDisplay"
         case .lunar:
@@ -276,16 +295,50 @@ extension Defaults.Keys {
         "musicControlSlotLimit",
         default: MusicControlButton.defaultLayout.count
     )
-    
+
     // MARK: Battery
     static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)
     static let showBatteryIndicator = Key<Bool>("showBatteryIndicator", default: true)
     static let showBatteryPercentage = Key<Bool>("showBatteryPercentage", default: true)
     static let showPowerStatusIcons = Key<Bool>("showPowerStatusIcons", default: true)
     static let showChargingWattage = Key<Bool>("showChargingWattage", default: true)
+    static let lowBatteryWarning = Key<Bool>("lowBatteryWarning", default: true)
+    static let lowBatteryThreshold = Key<Int>("lowBatteryThreshold", default: 20)
+
+    // MARK: Connectivity
+    static let bluetoothConnectActivity = Key<Bool>("bluetoothConnectActivity", default: true)
+    static let bluetoothDisconnectActivity = Key<Bool>("bluetoothDisconnectActivity", default: true)
+    static let bluetoothDeviceBattery = Key<Bool>("bluetoothDeviceBattery", default: true)
+    static let wifiConnectActivity = Key<Bool>("wifiConnectActivity", default: true)
+    static let wifiDisconnectActivity = Key<Bool>("wifiDisconnectActivity", default: true)
+    /// Off by default: reading the network name requires Location authorization, so this is
+    /// the user's explicit opt-in to being asked for it.
+    static let wifiShowNetworkName = Key<Bool>("wifiShowNetworkName", default: false)
+    static let wifiSignalStrength = Key<Bool>("wifiSignalStrength", default: true)
+
+    // MARK: Lock Screen
+    // showOnLockScreen already exists under Behavior; it is surfaced in the Lock Screen pane.
+    static let showOnScreenSaver = Key<Bool>("showOnScreenSaver", default: false)
+    static let keepAwakeMode = Key<KeepAwakeMode>("keepAwakeMode", default: .off)
+    static let playSoundOnLock = Key<Bool>("playSoundOnLock", default: false)
+    static let playSoundOnUnlock = Key<Bool>("playSoundOnUnlock", default: false)
+    static let lockSoundName = Key<String>("lockSoundName", default: "Bottle")
+    static let unlockSoundName = Key<String>("unlockSoundName", default: "Blow")
     
+    // MARK: System (expanded-only sections)
+    static let showNetworkInformation = Key<Bool>("showNetworkInformation", default: true)
+    /// Off by default: unlike everything else here, this one needs an external request.
+    static let showPublicIPAddress = Key<Bool>("showPublicIPAddress", default: false)
+
+    // MARK: Privacy
+    static let microphoneActivity = Key<Bool>("microphoneActivity", default: true)
+    static let cameraActivity = Key<Bool>("cameraActivity", default: true)
+
     // MARK: Downloads
     static let enableDownloadListener = Key<Bool>("enableDownloadListener", default: true)
+    /// Keep the activity up for the whole download rather than blipping at each end. Off is
+    /// for people who want the closed notch to stay as quiet as possible.
+    static let downloadStickyActivity = Key<Bool>("downloadStickyActivity", default: true)
     static let enableSafariDownloads = Key<Bool>("enableSafariDownloads", default: true)
     static let selectedDownloadIndicatorStyle = Key<DownloadIndicatorStyle>("selectedDownloadIndicatorStyle", default: DownloadIndicatorStyle.progress)
     static let selectedDownloadIconStyle = Key<DownloadIconStyle>("selectedDownloadIconStyle", default: DownloadIconStyle.onlyAppIcon)
@@ -296,12 +349,20 @@ extension Defaults.Keys {
     static let enableGradient = Key<Bool>("enableGradient", default: false)
     static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
     static let systemEventIndicatorUseAccent = Key<Bool>("systemEventIndicatorUseAccent", default: false)
+    static let osdLimitBounce = Key<Bool>("osdLimitBounce", default: true)
     static let showOpenNotchOSD = Key<Bool>("showOpenNotchOSD", default: true)
     static let showOpenNotchOSDPercentage = Key<Bool>("showOpenNotchOSDPercentage", default: true)
     static let showClosedNotchOSDPercentage = Key<Bool>("showClosedNotchOSDPercentage", default: false)
     // Option key modifier behaviour for media keys
     static let optionKeyAction = Key<OptionKeyAction>("optionKeyAction", default: OptionKeyAction.openSettings)
     // Brightness/volume/keyboard source selection
+    static let osdVolumeEnabled = Key<Bool>("osdVolumeEnabled", default: true)
+    static let osdBrightnessEnabled = Key<Bool>("osdBrightnessEnabled", default: true)
+    static let osdKeyboardBrightnessEnabled = Key<Bool>("osdKeyboardBrightnessEnabled", default: true)
+    static let osdSoundDuration = Key<Double>("osdSoundDuration", default: 1.5)
+    static let osdDisplayDuration = Key<Double>("osdDisplayDuration", default: 1.5)
+    static let osdHideLabel = Key<Bool>("osdHideLabel", default: false)
+    static let osdObserveExternalBrightness = Key<Bool>("osdObserveExternalBrightness", default: false)
     static let osdBrightnessSource = Key<OSDControlSource>("osdBrightnessSource", default: .builtin)
     static let osdVolumeSource = Key<OSDControlSource>("osdVolumeSource", default: .builtin)
     

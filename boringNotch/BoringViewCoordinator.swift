@@ -11,6 +11,9 @@ import Defaults
 import SwiftUI
 
 enum SneakContentType {
+    case lowBattery
+    case bluetooth
+    case wifi
     case brightness
     case volume
     case backlight
@@ -18,6 +21,7 @@ enum SneakContentType {
     case mic
     case battery
     case download
+    case privacy
 }
 
 struct sneakPeek {
@@ -27,6 +31,11 @@ struct sneakPeek {
     var icon: String = ""
     var accent: Color? = nil
     var targetScreenUUID: String? = nil
+
+    /// Bumped on every show event. Views need it because the value alone cannot tell them
+    /// a key was pressed: holding volume-up at 100% produces events that leave `value`
+    /// untouched, and that is exactly when the "already at the limit" feedback belongs.
+    var eventCount: Int = 0
 }
 
 struct SharedSneakPeek: Codable {
@@ -46,6 +55,12 @@ struct ExpandedItem {
     var type: SneakContentType = .battery
     var value: CGFloat = 0
     var browser: BrowserType = .chromium
+
+    /// Opt out of the auto-dismiss timer, for activities that last as long as the thing
+    /// they describe rather than for a fixed few seconds — a download in progress, say.
+    /// A sticky item can still be preempted by a higher-priority one; it is up to whoever
+    /// set it to put it back afterwards.
+    var isSticky: Bool = false
 }
 
 @MainActor
@@ -100,6 +115,7 @@ class BoringViewCoordinator: ObservableObject {
     private var accessibilityObserver: Any?
     private var osdReplacementCancellable: AnyCancellable?
     private var boringShelfCancellable: AnyCancellable?
+    private var systemSectionCancellable: AnyCancellable?
     private var osdSourceCancellables: [AnyCancellable] = []
 
     private init() {
@@ -173,6 +189,18 @@ class BoringViewCoordinator: ObservableObject {
                 }
             }
 
+        // Same rule for the System tab: switching its content off underneath someone who is
+        // looking at it has to move them somewhere that still exists.
+        systemSectionCancellable = Defaults.publisher(.showNetworkInformation)
+            .sink { [weak self] change in
+                Task { @MainActor in
+                    guard let self = self else { return }
+                    if !change.newValue && self.currentView == .system {
+                        self.currentView = .home
+                    }
+                }
+            }
+
         Task { @MainActor in
             helloAnimationRunning = firstLaunch
 
@@ -224,17 +252,43 @@ class BoringViewCoordinator: ObservableObject {
     // Default duration
     private var defaultSneakPeekDuration: TimeInterval = 1.5
 
+    /// Whether the user has this particular OSD switched on. The global OSD replacement
+    /// switch still gates everything; these are per-kind opt-outs beneath it.
+    private func isOSDEnabled(for type: SneakContentType) -> Bool {
+        guard Defaults[.osdReplacement] else { return false }
+        switch type {
+        case .volume: return Defaults[.osdVolumeEnabled]
+        case .brightness: return Defaults[.osdBrightnessEnabled]
+        case .backlight: return Defaults[.osdKeyboardBrightnessEnabled]
+        default: return true
+        }
+    }
+
+    /// How long an OSD stays up when the caller does not specify. Keeping this in one
+    /// place means a burst of volume presses all agree on the dismissal deadline.
+    private func defaultDuration(for type: SneakContentType) -> TimeInterval {
+        switch type {
+        case .volume: return Defaults[.osdSoundDuration]
+        case .brightness, .backlight: return Defaults[.osdDisplayDuration]
+        default: return 1.5
+        }
+    }
+
     func toggleSneakPeek(
-        status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0,
+        status: Bool, type: SneakContentType, duration: TimeInterval? = nil, value: CGFloat = 0,
         icon: String = "", accent: Color? = nil, targetScreenUUID: String? = nil
     ) {
         if type != .music {
             // close()
-            if !Defaults[.osdReplacement] {
+            // Dismissing must always get through, otherwise switching an OSD off while it
+            // is on screen would strand it there until something else replaced it.
+            if status, !isOSDEnabled(for: type) {
                 return
             }
         }
-        
+
+        let duration = duration ?? defaultDuration(for: type)
+
         Task { @MainActor in
             // Helper to update state for a specific UUID
             @MainActor
@@ -249,6 +303,8 @@ class BoringViewCoordinator: ObservableObject {
                     state.icon = icon
                     state.accent = accent
                     state.targetScreenUUID = uuid // Ensure UUID is set
+                    // Only show events count: a hide must not read as another key press.
+                    if status { state.eventCount &+= 1 }
                     self.sneakPeekStates[uuid] = state
                 }
                 
@@ -376,18 +432,51 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
 
+    /// Relative importance of the transient item occupying the expanding view slot.
+    ///
+    /// There is only one slot, so a lower-priority item must not interrupt a
+    /// higher-priority one that is already on screen. No save/restore is needed: the
+    /// notch's persistent content (Now Playing, the idle face) is derived live from
+    /// `MusicManager` rather than stored, so it reappears on its own once the transient
+    /// item expires.
+    private func priority(of type: SneakContentType) -> Int {
+        switch type {
+        case .lowBattery: return 30
+        // Knowing the microphone just went live matters, and the activity is a brief
+        // transition blip rather than something that occupies the notch for a whole call.
+        case .privacy: return 25
+        case .battery: return 20
+        // Wi-Fi ties with Bluetooth deliberately: they are peers, and the preemption guard
+        // is a strict `<`, so the newer of two connectivity events wins — which is the one
+        // worth seeing.
+        case .bluetooth, .wifi: return 15
+        case .download: return 10
+        case .brightness, .volume, .backlight, .mic, .music: return 0
+        }
+    }
+
     func toggleExpandingView(
         status: Bool,
         type: SneakContentType,
         value: CGFloat = 0,
-        browser: BrowserType = .chromium
+        browser: BrowserType = .chromium,
+        sticky: Bool = false
     ) {
         Task { @MainActor in
+            // Dismissing is always allowed; showing must not preempt something more
+            // important that is already visible.
+            if status, self.expandingView.show, self.expandingView.type != type,
+               self.priority(of: type) < self.priority(of: self.expandingView.type)
+            {
+                return
+            }
+
             withAnimation(.smooth) {
                 self.expandingView.show = status
                 self.expandingView.type = type
                 self.expandingView.value = value
                 self.expandingView.browser = browser
+                self.expandingView.isSticky = status && sticky
             }
         }
     }
@@ -396,9 +485,16 @@ class BoringViewCoordinator: ObservableObject {
 
     @Published var expandingView: ExpandedItem = .init() {
         didSet {
-            if expandingView.show {
+            // A sticky item stays until its owner takes it down, so it gets no timer.
+            if expandingView.show, !expandingView.isSticky {
                 expandingViewTask?.cancel()
-                let duration: TimeInterval = (expandingView.type == .download ? 2 : 3)
+                let duration: TimeInterval
+                switch expandingView.type {
+                case .download: duration = 2
+                // A low-battery warning is worth reading, so it lingers a little longer.
+                case .lowBattery: duration = 5
+                default: duration = 3
+                }
                 let currentType = expandingView.type
                 expandingViewTask = Task { [weak self] in
                     try? await Task.sleep(for: .seconds(duration))
@@ -411,6 +507,15 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
     
+    /// Take every screen's sneak peek down at once, e.g. when the screen locks.
+    func hideAllSneakPeeks() {
+        for uuid in sneakPeekStates.keys {
+            sneakPeekTasks[uuid]?.cancel()
+            sneakPeekTasks[uuid] = nil
+            sneakPeekStates[uuid]?.show = false
+        }
+    }
+
     func showEmpty() {
         currentView = .home
     }

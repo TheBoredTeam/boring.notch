@@ -64,6 +64,12 @@ final class MediaKeyInterceptor {
                     let granted = await ensureAccessibilityAuthorization(promptIfNeeded: true)
                     guard granted else { return }
                 } else {
+                    // Bailing out silently here looks exactly like a broken feature: the
+                    // media keys fall through to macOS and it shows its own HUD. Worth a
+                    // line in the log, because the usual cause is not obvious — the grant
+                    // is tied to the binary's code signature, so a locally rebuilt
+                    // (ad-hoc signed) app needs Accessibility granted again.
+                    NSLog("⚠️ OSD replacement is on but Accessibility is not granted; system HUD will be used. Grant access in Settings → OSD.")
                     return
                 }
             }

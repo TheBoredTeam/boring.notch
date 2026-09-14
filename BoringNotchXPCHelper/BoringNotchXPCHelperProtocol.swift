@@ -59,6 +59,10 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     func stopLunarEventStream()
     /// Write Lunar's hideOSD preference (disable/enable Lunar's OSD when we replace it).
     func setLunarOSDHidden(_ hide: Bool, with reply: @escaping (Bool) -> Void)
+    // Bluetooth accessory battery (read from the IORegistry by the helper)
+    /// Battery levels for a paired accessory, keyed by "single"/"left"/"right"/"case".
+    /// Replies nil when the device reports nothing, which is the common case.
+    func bluetoothDeviceBattery(forAddress address: String, with reply: @escaping ([String: NSNumber]?) -> Void)
 }
 
 /*

@@ -13,10 +13,16 @@ struct BoringHeader: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = ShelfStateViewModel.shared
+    // Observed so the Downloads tab appears and disappears with the downloads themselves.
+    @ObservedObject var downloadManager = DownloadActivityManager.shared
+    @ObservedObject var privacyManager = PrivacyActivityManager.shared
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
+                // More than one tab means there is a choice worth showing. With no downloads
+                // in flight this is exactly the old condition — the Shelf tab is the only
+                // thing that can join Home — so idle behaviour is unchanged.
+                if NotchTabs.available.count > 1 {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()
@@ -43,7 +49,8 @@ struct BoringHeader: View {
                              type: coordinator.binding(for: vm.screenUUID).type,
                              value: coordinator.binding(for: vm.screenUUID).value,
                              icon: coordinator.binding(for: vm.screenUUID).icon,
-                             accent: coordinator.binding(for: vm.screenUUID).accent
+                             accent: coordinator.binding(for: vm.screenUUID).accent,
+                             eventCount: coordinator.sneakPeekState(for: vm.screenUUID).eventCount
                         )
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
                     } else {

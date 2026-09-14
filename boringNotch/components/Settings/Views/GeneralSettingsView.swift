@@ -203,9 +203,6 @@ struct GeneralSettings: View {
             }
                 .disabled(!openNotchOnHover)
             if enableGestures {
-                Defaults.Toggle(key: .enableHorizontalMediaGestures) {
-                    Text("Change media with horizontal gestures")
-                }
                 Defaults.Toggle(key: .closeGestureEnabled) {
                     Text("Close gesture")
                 }

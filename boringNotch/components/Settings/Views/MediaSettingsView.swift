@@ -121,6 +121,21 @@ struct Media: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+
+            Section {
+                Defaults.Toggle(key: .enableHorizontalMediaGestures) {
+                    Text("Control media with trackpad gestures")
+                }
+            } header: {
+                HStack {
+                    Text("Gesture control")
+                    customBadge(text: "Beta")
+                }
+            } footer: {
+                Text("Two-finger swipe left/right over the album art to change tracks. Two-finger swipe left/right over the volume icon to change volume.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Media")
