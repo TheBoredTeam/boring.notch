@@ -74,22 +74,34 @@ final class QuickLookService: ObservableObject {
 
     private func present(urls: [URL], selectFirst: Bool, generation: UInt) {
         guard requestGeneration.isCurrent(generation) else { return }
-        stopAccessingCurrentURLs()
-        accessingURLs = urls.filter { url in
+        let replacementURLs = urls.filter { url in
             if url.isFileURL {
                 return url.startAccessingSecurityScopedResource()
             }
             return true
         }
-        self.urls = accessingURLs
+        guard !replacementURLs.isEmpty else {
+            hide()
+            return
+        }
+
+        let isReplacingVisiblePreview = selectedURL != nil
+        stopAccessingCurrentURLs()
+        accessingURLs = replacementURLs
+        self.urls = replacementURLs
         self.isQuickLookOpen = true
+
+        if selectFirst, isReplacingVisiblePreview {
+            selectedURL = replacementURLs.first
+        }
 
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(50))
             if selectFirst,
+               !isReplacingVisiblePreview,
                self.requestGeneration.isCurrent(generation),
                self.isQuickLookOpen {
-                self.selectedURL = accessingURLs.first
+                self.selectedURL = replacementURLs.first
             }
         }
 
@@ -141,9 +153,6 @@ final class QuickLookService: ObservableObject {
         }
 
         let generation = requestGeneration.begin()
-        stopAccessingCurrentURLs()
-        selectedURL = nil
-        urls.removeAll()
 
         var resolvedURLs: [URL] = []
         for item in shelfState.items where selectedIDs.contains(item.id) {
@@ -177,15 +186,17 @@ final class QuickLookService: ObservableObject {
 extension QuickLookService {
     @objc private func previewPanelWillClose(_ notification: Notification) {
         guard let panel = notification.object as? QLPreviewPanel, panel === previewPanel else { return }
-        // Ensure cleanup happens on main actor
-        Task { @MainActor in
-            selectionTask?.cancel()
-            requestGeneration.invalidate()
-            stopAccessingCurrentURLs()
-            selectedURL = nil
-            urls.removeAll()
-            isQuickLookOpen = false
-            // Remove observer and clear reference
+        handleNativePreviewClose()
+    }
+
+    func handleNativePreviewClose() {
+        selectionTask?.cancel()
+        requestGeneration.invalidate()
+        stopAccessingCurrentURLs()
+        selectedURL = nil
+        urls.removeAll()
+        isQuickLookOpen = false
+        if let panel = previewPanel {
             NotificationCenter.default.removeObserver(self, name: NSWindow.willCloseNotification, object: panel)
             previewPanel = nil
         }
