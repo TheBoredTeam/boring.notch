@@ -6,7 +6,7 @@
 //
 //  AppKit context-menu construction and action dispatch for shelf items.
 //  Extracted from ShelfItemViewModel: the VM keeps item state and routes
-//  clicks here. Behavior preserved verbatim.
+//  clicks here.
 //
 
 import Foundation
@@ -59,7 +59,60 @@ static func present(
 ) {
     let selection = ShelfSelectionModel.shared
     if !selection.isSelected(item.id) { selection.selectSingle(item) }
+    let menu = makeMenu(item: item, in: view,
+                        selectedItems: selection.selectedItems(in: ShelfStateViewModel.shared.items),
+                        onShare: onShare, onQuickLook: onQuickLook)
+    NSMenu.popUpContextMenu(menu, with: event, for: view)
+}
+
+struct OpenWithApplication: Sendable {
+    let url: URL
+    let title: String
+    let isDefault: Bool
+    let iconData: Data?
+}
+
+static func openWithApplications(for item: ShelfItem) async -> [OpenWithApplication] {
+    let url: URL
+    switch item.kind {
+    case .file:
+        guard let file = await ShelfStateViewModel.shared.resolveFile(
+            for: item, intent: .userInitiated, refresh: true
+        ), !file.isDirectory else { return [] }
+        url = file.url
+    case .link(let link): url = link
+    case .text: return []
+    }
+    return await ShelfBookmarkResolutionExecutor.shared.execute {
+        let accessing = url.startAccessingSecurityScopedResource()
+        defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+        let workspace = NSWorkspace.shared
+        var applications = workspace.urlsForApplications(toOpen: url)
+        if applications.isEmpty, url.isFileURL,
+           let type = try? url.resourceValues(forKeys: [.contentTypeKey]).contentType {
+            applications = workspace.urlsForApplications(toOpen: type)
+        }
+        let defaultURL = workspace.urlForApplication(toOpen: url)
+        if let defaultURL { applications.insert(defaultURL, at: 0) }
+        var seen: Set<URL> = []
+        return applications.filter { seen.insert($0).inserted }.map { app in
+            let title = (try? app.resourceValues(forKeys: [.localizedNameKey]).localizedName)
+                ?? app.deletingPathExtension().lastPathComponent
+            let icon = workspace.icon(forFile: app.path)
+            icon.size = NSSize(width: 16, height: 16)
+            return OpenWithApplication(url: app, title: title,
+                                       isDefault: app == defaultURL, iconData: icon.tiffRepresentation)
+        }
+    }
+}
+
+static func makeMenu(
+    item: ShelfItem, in view: NSView, selectedItems: [ShelfItem],
+    onShare: @escaping (NSView?) -> Void, onQuickLook: @escaping ([URL]) -> Void,
+    discoverApplications: ((ShelfItem) async -> [OpenWithApplication])? = nil
+) -> NSMenu {
     let menu = NSMenu()
+    var openWithSubmenu: NSMenu?
 
     func addMenuItem(title: String, contextAction: ContextMenuAction? = nil) {
         let mi = NSMenuItem(title: title, action: nil, keyEquivalent: "")
@@ -69,7 +122,6 @@ static func present(
         menu.addItem(mi)
     }
 
-    let selectedItems = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
     let resolvedFiles = selectedItems.compactMap {
         ShelfStateViewModel.shared.resolvedFile(for: $0)
     }
@@ -97,8 +149,11 @@ static func present(
         let openWith = NSMenuItem(title: Strings.openWith, action: nil, keyEquivalent: "")
         let submenu = NSMenu()
 
-        // Application discovery can touch Launch Services and mounted volumes. Keep
-        // context-menu construction cache-only; “Other…” discovers apps after a click.
+        let loading = NSMenuItem(title: String(localized: "Loading…"), action: nil, keyEquivalent: "")
+        loading.isEnabled = false
+        submenu.addItem(loading)
+        submenu.addItem(.separator())
+        openWithSubmenu = submenu
         let other = NSMenuItem(title: Strings.other, action: nil, keyEquivalent: "")
         other.representedObject = "__OTHER__"
         submenu.addItem(other)
@@ -192,7 +247,7 @@ static func present(
 
         if let submenu = menuItem.submenu {
             for subItem in submenu.items {
-                if !subItem.isSeparatorItem {
+                if !subItem.isSeparatorItem && subItem.isEnabled {
                     subItem.target = actionTarget
                     subItem.action = #selector(MenuActionTarget.handle(_:))
                 }
@@ -201,13 +256,42 @@ static func present(
     }
 
     menu.retainActionTarget(actionTarget)
+    menu.delegate = actionTarget
+    if let submenu = openWithSubmenu {
+        actionTarget.discoveryTask = Task { [weak actionTarget, weak submenu] in
+            let applications = await (discoverApplications ?? openWithApplications)(item)
+            guard !Task.isCancelled, let actionTarget, let submenu else { return }
+            submenu.removeItem(at: 0)
+            if applications.isEmpty {
+                let unavailable = NSMenuItem(title: Strings.noCompatibleApps, action: nil, keyEquivalent: "")
+                unavailable.isEnabled = false
+                submenu.insertItem(unavailable, at: 0)
+            }
+            for (index, application) in applications.enumerated() {
+                let entry = NSMenuItem(title: application.title,
+                                       action: #selector(MenuActionTarget.handle(_:)), keyEquivalent: "")
+                entry.state = application.isDefault ? .on : .off
+                entry.representedObject = application.url
+                entry.image = application.iconData.flatMap(NSImage.init(data:))
+                entry.target = actionTarget
+                submenu.insertItem(entry, at: index)
+            }
+        }
+    }
 
-    NSMenu.popUpContextMenu(menu, with: event, for: view)
+    return menu
     }
 }
 
 @MainActor
-private final class MenuActionTarget: NSObject {
+private final class MenuActionTarget: NSObject, NSMenuDelegate {
+    var discoveryTask: Task<Void, Never>?
+
+    func menuDidClose(_ menu: NSMenu) {
+        discoveryTask?.cancel()
+        discoveryTask = nil
+    }
+
     private static var copiedURLs: [URL] = []
     let item: ShelfItem
     weak var view: NSView?

@@ -309,6 +309,22 @@ final class ShelfTransferTests: XCTestCase {
         XCTAssertEqual(cancelledEndCount, 1)
     }
 
+    @MainActor
+    func testDynamicThirdPartySharingDiscoveryUsesActualItems() async throws {
+        var receivedItems: [[Any]] = []
+        let extensionService = NSSharingService(title: "Third Party Destination", image: NSImage(),
+                                               alternateImage: nil, handler: {})
+        let finder = ShareServiceFinder { items in
+            receivedItems.append(items)
+            return [extensionService]
+        }
+        let fileURL = URL(fileURLWithPath: "/tmp/actual-share-file")
+        let services = await finder.findApplicableServices(for: [fileURL])
+        XCTAssertTrue(services.contains { $0.name.rawValue == extensionService.title && $0.service === extensionService })
+        XCTAssertEqual(receivedItems.count, 1)
+        XCTAssertEqual(receivedItems.first?.first as? URL, fileURL)
+    }
+
     func testStableSharingIdentityIgnoresLocalizedTitleAndPreservesUnknownChoice() {
         let localizedAirDrop = QuickShareProvider(
             id: NSSharingService.Name.sendViaAirDrop.rawValue,
