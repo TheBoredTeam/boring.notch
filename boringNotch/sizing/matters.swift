@@ -162,14 +162,14 @@ enum MusicPlayerImageSizes {
     return NotchGeometry(closedSize: .init(width: notchWidth, height: notchHeight), availableWidth: selectedScreen?.frame.width ?? windowSize.width).closedSize
 }
 
-/// Hiding a closed notch removes both drawing and layout height. The separate
+/// Hiding a closed notch removes both drawing and layout size. The separate
 /// activation strip owns reveal hit testing; this content never uses near-zero alpha.
 struct NotchContentVisibility: ViewModifier {
     let hidden: Bool
     func body(content: Content) -> some View {
         content
             .opacity(hidden ? 0 : 1)
-            .frame(height: hidden ? 0 : nil, alignment: .top)
+            .frame(width: hidden ? 0 : nil, height: hidden ? 0 : nil, alignment: .top)
     }
 }
 
