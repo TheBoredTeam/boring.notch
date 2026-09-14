@@ -36,10 +36,11 @@ final class BoringViewModel: NSObject, ObservableObject {
     @Published var isCameraExpanded: Bool = false
     
     deinit {
-        destroy()
+        webcamManager.releaseSession(owner: cameraSessionOwnerID)
     }
 
     func destroy() {
+        webcamManager.releaseSession(owner: cameraSessionOwnerID)
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
     }

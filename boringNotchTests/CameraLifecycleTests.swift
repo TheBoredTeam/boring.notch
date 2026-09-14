@@ -76,8 +76,18 @@ private final class PermissionStub: @unchecked Sendable {
 
 private final class SessionFactory: @unchecked Sendable {
     private let lock = NSLock()
+    private let configurationStarted: DispatchSemaphore?
+    private let configurationGate: DispatchSemaphore?
     private var storedSessions: [FakeCaptureSession] = []
     private var storedPreferredIDs: [String?] = []
+
+    init(
+        configurationStarted: DispatchSemaphore? = nil,
+        configurationGate: DispatchSemaphore? = nil
+    ) {
+        self.configurationStarted = configurationStarted
+        self.configurationGate = configurationGate
+    }
 
     var sessions: [FakeCaptureSession] {
         lock.withTestLock { storedSessions }
@@ -100,6 +110,8 @@ private final class SessionFactory: @unchecked Sendable {
         devices: [AVCaptureDevice],
         preferredID: String?
     ) -> String? {
+        configurationStarted?.signal()
+        configurationGate?.wait()
         lock.withTestLock {
             storedPreferredIDs.append(preferredID)
         }
@@ -355,6 +367,74 @@ final class CameraLifecycleTests: XCTestCase {
         manager.stopSession(owner: secondOwner)
         waitUntil { manager.isSessionRunning && factory.sessions.count == 2 }
         XCTAssertTrue(manager.ownsSession(firstOwner))
+        XCTAssertFalse(factory.sessions[0].isRunning)
+    }
+
+    func testOwnerTeardownFromBackgroundCancelsPendingStart() {
+        let permission = PermissionStub(status: .notDetermined)
+        let factory = SessionFactory()
+        let manager = makeManager(permission: permission, factory: factory)
+        let owner = UUID()
+        var result: WebcamManager.SessionStartResult?
+
+        manager.startSession(owner: owner) { result = $0 }
+        DispatchQueue.global().async {
+            manager.releaseSession(owner: owner)
+        }
+
+        waitUntil { result == .cancelled }
+        permission.resolve(granted: true)
+        sessionQueue.sync {}
+
+        XCTAssertFalse(manager.isSessionDesired)
+        XCTAssertFalse(manager.isSessionRunning)
+        XCTAssertTrue(factory.sessions.isEmpty)
+    }
+
+    func testOwnerTeardownStopsOnlyItsActiveSession() {
+        let permission = PermissionStub(status: .authorized)
+        let factory = SessionFactory()
+        let manager = makeManager(permission: permission, factory: factory)
+        let owner = UUID()
+        let unrelatedOwner = UUID()
+
+        manager.startSession(owner: owner)
+        waitUntil { manager.isSessionRunning && factory.sessions.count == 1 }
+
+        manager.releaseSession(owner: unrelatedOwner)
+        XCTAssertTrue(manager.ownsSession(owner))
+        XCTAssertTrue(manager.isSessionRunning)
+
+        manager.releaseSession(owner: owner)
+        sessionQueue.sync {}
+        XCTAssertFalse(manager.isSessionDesired)
+        XCTAssertFalse(manager.isSessionRunning)
+        XCTAssertFalse(factory.sessions[0].isRunning)
+    }
+
+    func testOwnerTeardownDuringSetupPreventsLateStart() {
+        let permission = PermissionStub(status: .authorized)
+        let configurationStarted = DispatchSemaphore(value: 0)
+        let configurationGate = DispatchSemaphore(value: 0)
+        let factory = SessionFactory(
+            configurationStarted: configurationStarted,
+            configurationGate: configurationGate
+        )
+        let manager = makeManager(permission: permission, factory: factory)
+        let owner = UUID()
+        var result: WebcamManager.SessionStartResult?
+
+        manager.startSession(owner: owner) { result = $0 }
+        XCTAssertEqual(configurationStarted.wait(timeout: .now() + 1), .success)
+
+        manager.releaseSession(owner: owner)
+        configurationGate.signal()
+        sessionQueue.sync {}
+
+        XCTAssertEqual(result, .cancelled)
+        XCTAssertFalse(manager.isSessionDesired)
+        XCTAssertFalse(manager.isSessionRunning)
+        XCTAssertEqual(factory.sessions.count, 1)
         XCTAssertFalse(factory.sessions[0].isRunning)
     }
 

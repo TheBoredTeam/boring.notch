@@ -241,6 +241,16 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         isSessionDesired && sessionOwner == owner
     }
 
+    nonisolated func releaseSession(owner: UUID) {
+        if Thread.isMainThread {
+            stopSession(owner: owner)
+        } else {
+            DispatchQueue.main.async { [self] in
+                stopSession(owner: owner)
+            }
+        }
+    }
+
     func stopSession(owner: UUID? = nil) {
         precondition(Thread.isMainThread)
         if let owner, sessionOwner != owner { return }
