@@ -25,9 +25,9 @@ final class AppleMusicController: MediaControllerProtocol {
         return true
     }
 
-    var supportsFavorite: Bool {
-        return true
-    }
+    var supportsFavorite: Bool { capabilities.favorite }
+    var capabilities: MediaCapabilities { playbackState.capabilities ?? .unsupported }
+    private var updateGeneration = 0
 
     private var notificationTask: Task<Void, Never>?
     
@@ -75,17 +75,20 @@ final class AppleMusicController: MediaControllerProtocol {
     }
     
     func seek(to time: Double) async {
+        guard PlaybackTime.valid(time), let range = PlaybackTime.seekRange(duration: playbackState.duration), range.contains(time) else { return }
         await executeCommand("set player position to \(time)")
         await updatePlaybackInfo()
     }
     
     func toggleShuffle() async {
+        guard capabilities.shuffle else { return }
         await executeCommand("set shuffle enabled to not shuffle enabled")
         try? await Task.sleep(for: .milliseconds(150))
         await updatePlaybackInfo()
     }
     
     func toggleRepeat() async {
+        guard capabilities.repeatModes.count > 1 else { return }
         await executeCommand("""
             if song repeat is off then
                 set song repeat to all
@@ -100,6 +103,7 @@ final class AppleMusicController: MediaControllerProtocol {
     }
     
     func setVolume(_ level: Double) async {
+        guard level.isFinite else { return }
         let clampedLevel = max(0.0, min(1.0, level))
         let volumePercentage = Int(clampedLevel * 100)
         await executeCommand("set sound volume to \(volumePercentage)")
@@ -113,6 +117,7 @@ final class AppleMusicController: MediaControllerProtocol {
     }
 
     func setFavorite(_ favorite: Bool) async {
+        guard supportsFavorite else { return }
         let script = """
         tell application "Music"
             try
@@ -126,22 +131,28 @@ final class AppleMusicController: MediaControllerProtocol {
     }
     
     func updatePlaybackInfo() async {
-        guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
+        updateGeneration += 1
+        let generation = updateGeneration
+        guard let descriptor = try? await fetchPlaybackInfoAsync(), generation == updateGeneration else { return }
         guard descriptor.numberOfItems >= 11 else { return }
-        var updatedState = self.playbackState
+        var updatedState = PlaybackState(bundleIdentifier: MediaAppBundleID.appleMusic)
+        updatedState.capabilities = descriptor.numberOfItems >= 13
+            ? MediaCapabilities(favorite: descriptor.atIndex(12)?.booleanValue ?? false, shuffle: true, repeatModes: [.off, .all, .one])
+            : .unsupported
+        updatedState.trackIdentifier = descriptor.atIndex(13)?.stringValue.flatMap { $0.isEmpty ? nil : $0 }
         
         updatedState.isPlaying = descriptor.atIndex(1)?.booleanValue ?? false
         updatedState.title = descriptor.atIndex(2)?.stringValue ?? "Unknown"
         updatedState.artist = descriptor.atIndex(3)?.stringValue ?? "Unknown"
         updatedState.album = descriptor.atIndex(4)?.stringValue ?? "Unknown"
-        updatedState.currentTime = descriptor.atIndex(5)?.doubleValue ?? 0
-        updatedState.duration = descriptor.atIndex(6)?.doubleValue ?? 0
+        updatedState.currentTime = PlaybackTime.sanitized(descriptor.atIndex(5)?.doubleValue ?? 0)
+        updatedState.duration = PlaybackTime.sanitized(descriptor.atIndex(6)?.doubleValue ?? 0)
         updatedState.isShuffled = descriptor.atIndex(7)?.booleanValue ?? false
         let repeatModeValue = descriptor.atIndex(8)?.int32Value ?? 0
         updatedState.repeatMode = RepeatMode(rawValue: Int(repeatModeValue)) ?? .off
         let volumePercentage = descriptor.atIndex(9)?.int32Value ?? 50
         updatedState.volume = Double(volumePercentage) / 100.0
-        updatedState.artwork = descriptor.atIndex(10)?.data as Data?
+        updatedState.artwork = descriptor.atIndex(10).flatMap { $0.stringValue == "" ? nil : $0.data }
         let lovedState = descriptor.atIndex(11)?.booleanValue ?? false
         updatedState.isFavorite = lovedState
         updatedState.lastUpdated = Date()
@@ -164,7 +175,10 @@ final class AppleMusicController: MediaControllerProtocol {
                 set currentTrackArtist to artist of current track
                 set currentTrackAlbum to album of current track
                 set trackPosition to player position
-                set trackDuration to duration of current track
+                set trackDuration to 0
+                try
+                    set trackDuration to duration of current track
+                end try
                 set shuffleState to shuffle enabled
                 set repeatState to song repeat
                 if repeatState is off then
@@ -182,8 +196,17 @@ final class AppleMusicController: MediaControllerProtocol {
                 end try
                 
                 set currentVolume to sound volume
-                set favoriteState to favorited of current track
-                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatValue, currentVolume, artData, favoriteState}
+                set favoriteState to false
+                set favoriteAvailable to false
+                try
+                    set favoriteState to favorited of current track
+                    set favoriteAvailable to true
+                end try
+                set trackID to ""
+                try
+                    set trackID to persistent ID of current track
+                end try
+                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatValue, currentVolume, artData, favoriteState, favoriteAvailable, trackID}
             on error
                 return {false, "Not Playing", "Unknown", "Unknown", 0, 0, false, 0, 50, "", false}
             end try

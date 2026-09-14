@@ -215,6 +215,7 @@ struct CompactHomeView: View {
                 glyph: 16,
                 tint: musicManager.isShuffled ? .red : .white
             ) { MusicManager.shared.toggleShuffle() }
+            .disabled(!musicManager.capabilities.shuffle || musicManager.mediaCommandStatus == .pending)
         case .previous:
             compactControl(icon: "backward.fill", size: controlSize, glyph: 16) {
                 MusicManager.shared.previousTrack()
@@ -233,6 +234,7 @@ struct CompactHomeView: View {
             compactControl(icon: repeatIcon, size: controlSize, glyph: 16, tint: repeatIconColor) {
                 MusicManager.shared.toggleRepeat()
             }
+            .disabled(musicManager.capabilities.repeatModes.count < 2 || musicManager.mediaCommandStatus == .pending)
         case .mediaOutput:
             mediaOutputButton
         case .none:
