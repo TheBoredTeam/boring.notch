@@ -28,6 +28,10 @@ struct PlaybackState {
     var isShuffled: Bool = false
     var repeatMode: RepeatMode = .off
     var lastUpdated: Date = Date.distantPast
+    // Raw adapter fields survive pause/resume extrapolation. A timestamp-only
+    // diff resamples this elapsed value, not the locally estimated position.
+    var sourceElapsedTime: Double?
+    var sourceTimestamp: Date?
     var artwork: Data?
     var volume: Double = 0.5
     var isFavorite: Bool = false
@@ -246,22 +250,34 @@ extension NowPlayingUpdate {
         } else if !keep || p.presentFields.contains("artworkData") {
             state.artwork = nil
         }
-        // Receipt time anchors accepted position samples even when the numeric
-        // elapsed value repeats (restart-to-zero or two tracks at position zero).
-        let timingChanged = !keep || p.presentFields.contains("elapsedTime") || p.elapsedTime != nil
-            || p.presentFields.contains("timestamp") || state.duration != previous.duration
-            || state.isPlaying != previous.isPlaying || state.playbackRate != previous.playbackRate
+        let hasElapsedField = p.elapsedTime != nil || p.presentFields.contains("elapsedTime")
+        let hasTimestampField = p.timestamp != nil || p.presentFields.contains("timestamp")
+        if hasElapsedField {
+            state.sourceElapsedTime = PlaybackTime.sanitized(p.elapsedTime ?? 0)
+        } else {
+            state.sourceElapsedTime = keep ? previous.sourceElapsedTime ?? previous.currentTime : 0
+        }
+        if hasTimestampField {
+            state.sourceTimestamp = p.timestamp.flatMap { ISO8601DateFormatter().date(from: $0) }
+        }
+        // The adapter diffs elapsedTime and timestamp independently. Merge the
+        // raw pair before projecting it into the display clock. Receipt-time
+        // estimation is only for play/rate/duration changes without a sample.
+        let timingChanged = !keep || hasElapsedField || hasTimestampField
+            || state.duration != previous.duration || state.isPlaying != previous.isPlaying
+            || state.playbackRate != previous.playbackRate
         if timingChanged {
-            if let elapsed = p.elapsedTime {
-                state.currentTime = PlaybackTime.sanitized(elapsed)
-            } else if keep && !p.presentFields.contains("elapsedTime") {
+            if hasElapsedField || hasTimestampField {
+                state.currentTime = state.sourceElapsedTime ?? 0
+                state.lastUpdated = state.sourceTimestamp ?? now
+            } else if keep {
                 state.currentTime = PlaybackTime.position(elapsed: previous.currentTime, duration: previous.duration,
                     rate: previous.playbackRate, playing: previous.isPlaying, sampledAt: previous.lastUpdated, now: now)
+                state.lastUpdated = now
             } else {
                 state.currentTime = 0
+                state.lastUpdated = now
             }
-            state.lastUpdated = p.elapsedTime != nil
-                ? p.timestamp.flatMap { ISO8601DateFormatter().date(from: $0) } ?? now : now
         }
         if let range = PlaybackTime.seekRange(duration: state.duration) {
             state.currentTime = min(state.currentTime, range.upperBound)

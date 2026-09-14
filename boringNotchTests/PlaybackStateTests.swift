@@ -72,6 +72,51 @@ final class PlaybackStateMergeTests: XCTestCase {
         XCTAssertEqual(result.lastUpdated, now)
     }
 
+    func testTimestampOnlyRestartRetainsRawElapsedAtSourceTimestamp() throws {
+        let initial = try apply(#"{"payload":{"bundleIdentifier":"com.apple.Music","title":"A","playing":true,"elapsedTime":0,"duration":300,"timestamp":"1970-01-01T00:01:40Z"}}"#, to: track)
+        let update = try JSONDecoder().decode(NowPlayingUpdate.self,
+            from: Data(#"{"diff":true,"payload":{"timestamp":"1970-01-01T00:02:10Z"}}"#.utf8))
+        let result = update.applying(to: initial, receivedAt: now.addingTimeInterval(30))
+        XCTAssertEqual(result.currentTime, 0)
+        XCTAssertEqual(result.lastUpdated, now.addingTimeInterval(30))
+    }
+
+    func testDelayedTimestampOnlyDiffRetainsSourceTime() throws {
+        let initial = try apply(#"{"payload":{"bundleIdentifier":"com.apple.Music","title":"A","playing":true,"elapsedTime":0,"duration":300,"timestamp":"1970-01-01T00:01:40Z"}}"#, to: track)
+        let update = try JSONDecoder().decode(NowPlayingUpdate.self,
+            from: Data(#"{"diff":true,"payload":{"timestamp":"1970-01-01T00:02:10Z"}}"#.utf8))
+        let result = update.applying(to: initial, receivedAt: now.addingTimeInterval(35))
+        XCTAssertEqual(result.currentTime, 0)
+        XCTAssertEqual(result.lastUpdated, now.addingTimeInterval(30))
+        XCTAssertEqual(PlaybackTime.position(elapsed: result.currentTime, duration: result.duration,
+            rate: result.playbackRate, playing: result.isPlaying, sampledAt: result.lastUpdated,
+            now: now.addingTimeInterval(35)), 5)
+    }
+
+    func testElapsedOnlyDiffRetainsRawSourceTimestamp() throws {
+        let initial = try apply(#"{"payload":{"bundleIdentifier":"com.apple.Music","title":"A","playing":true,"elapsedTime":0,"duration":300,"timestamp":"1970-01-01T00:01:40Z"}}"#, to: track)
+        let update = try JSONDecoder().decode(NowPlayingUpdate.self,
+            from: Data(#"{"diff":true,"payload":{"elapsedTime":10}}"#.utf8))
+        let result = update.applying(to: initial, receivedAt: now.addingTimeInterval(5))
+        XCTAssertEqual(result.currentTime, 10)
+        XCTAssertEqual(result.lastUpdated, now)
+    }
+
+    func testPauseResumeDoesNotReplaceRetainedRawSourceElapsed() throws {
+        let initial = try apply(#"{"payload":{"bundleIdentifier":"com.apple.Music","title":"A","playing":true,"elapsedTime":0,"duration":300,"timestamp":"1970-01-01T00:01:40Z"}}"#, to: track)
+        func update(_ json: String, _ state: PlaybackState, _ seconds: Double) throws -> PlaybackState {
+            try JSONDecoder().decode(NowPlayingUpdate.self, from: Data(json.utf8))
+                .applying(to: state, receivedAt: now.addingTimeInterval(seconds))
+        }
+        let paused = try update(#"{"diff":true,"payload":{"playing":false}}"#, initial, 10)
+        XCTAssertEqual(paused.currentTime, 10)
+        let resumed = try update(#"{"diff":true,"payload":{"playing":true}}"#, paused, 20)
+        XCTAssertEqual(resumed.currentTime, 10)
+        let restarted = try update(#"{"diff":true,"payload":{"timestamp":"1970-01-01T00:02:10Z"}}"#, resumed, 30)
+        XCTAssertEqual(restarted.currentTime, 0)
+        XCTAssertEqual(restarted.lastUpdated, now.addingTimeInterval(30))
+    }
+
     func testPauseRebasesEstimatedElapsedWithoutAdvancingPausedClock() throws {
         let paused = try apply(#"{"diff":true,"payload":{"playing":false}}"#, to: track)
         XCTAssertEqual(paused.currentTime, 10)
