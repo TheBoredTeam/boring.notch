@@ -1,0 +1,290 @@
+import AppKit
+import UniformTypeIdentifiers
+import XCTest
+@testable import boringNotch
+
+private enum ShelfTransferTestError: Error {
+    case promisedFileFailed
+}
+
+final class ShelfTransferTests: XCTestCase {
+    func testPromiseBeatsInaccessibleFileURLAndFallbackTextWithoutDeletingSource() async throws {
+        let fixture = try makeFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.root) }
+        let source = fixture.sources.appendingPathComponent("message.pdf")
+        try Data("attachment".utf8).write(to: source)
+        let missingURL = fixture.sources.appendingPathComponent("missing.pdf")
+        let provider = promisedProvider(
+            source: source,
+            type: .pdf,
+            suggestedName: "../../safe-message.pdf",
+            fallbackText: "fallback",
+            fileURL: missingURL
+        )
+
+        let batch = await ShelfTransferDecoder(storage: fixture.storage).decode([provider])
+        defer { batch.resources.release() }
+        guard case .file(let file) = batch.values.first else {
+            return XCTFail("Expected the promised file")
+        }
+
+        XCTAssertTrue(file.isOwnedTemporary)
+        XCTAssertEqual(file.url.lastPathComponent, "safe-message.pdf")
+        XCTAssertNotEqual(file.url.standardizedFileURL, source.standardizedFileURL)
+        XCTAssertEqual(try Data(contentsOf: file.url), Data("attachment".utf8))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: source.path))
+    }
+
+    func testMixedProvidersRemainIndependentAndDuplicateNamesHaveUniqueURLs() async throws {
+        let fixture = try makeFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.root) }
+        let firstSource = fixture.sources.appendingPathComponent("first.pdf")
+        let secondSource = fixture.sources.appendingPathComponent("second.pdf")
+        try Data("first".utf8).write(to: firstSource)
+        try Data("second".utf8).write(to: secondSource)
+        let first = promisedProvider(source: firstSource, type: .pdf, suggestedName: "same.pdf")
+        let text = NSItemProvider(object: "middle" as NSString)
+        let second = promisedProvider(source: secondSource, type: .pdf, suggestedName: "same.pdf")
+
+        let batch = await ShelfTransferDecoder(storage: fixture.storage).decode([first, text, second])
+        defer { batch.resources.release() }
+
+        XCTAssertEqual(batch.values.count, 3)
+        guard case .file(let firstFile) = batch.values[0],
+              case .text(let decodedText) = batch.values[1],
+              case .file(let secondFile) = batch.values[2] else {
+            return XCTFail("Expected file, text, file in provider order")
+        }
+        XCTAssertEqual(decodedText, "middle")
+        XCTAssertEqual(firstFile.url.lastPathComponent, "same.pdf")
+        XCTAssertEqual(secondFile.url.lastPathComponent, "same.pdf")
+        XCTAssertNotEqual(firstFile.url, secondFile.url)
+        XCTAssertEqual(try Data(contentsOf: firstFile.url), Data("first".utf8))
+        XCTAssertEqual(try Data(contentsOf: secondFile.url), Data("second".utf8))
+    }
+
+    func testFailedPromiseFallsBackToText() async throws {
+        let fixture = try makeFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.root) }
+        let provider = NSItemProvider()
+        provider.registerFileRepresentation(
+            forTypeIdentifier: UTType.pdf.identifier,
+            fileOptions: [],
+            visibility: .all
+        ) { completion in
+            completion(nil, false, ShelfTransferTestError.promisedFileFailed)
+            return nil
+        }
+        provider.registerObject("fallback text" as NSString, visibility: .all)
+
+        let batch = await ShelfTransferDecoder(storage: fixture.storage).decode([provider])
+        defer { batch.resources.release() }
+        XCTAssertEqual(batch.values, [.text("fallback text")])
+    }
+
+    func testPromisedPackageCopiesDirectoryContents() async throws {
+        let fixture = try makeFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.root) }
+        let package = fixture.sources.appendingPathComponent("Document.bundle", isDirectory: true)
+        try FileManager.default.createDirectory(at: package, withIntermediateDirectories: true)
+        try Data("inside".utf8).write(to: package.appendingPathComponent("contents.txt"))
+        let provider = promisedProvider(
+            source: package,
+            type: .package,
+            suggestedName: "Document.bundle"
+        )
+
+        let batch = await ShelfTransferDecoder(storage: fixture.storage).decode([provider])
+        defer { batch.resources.release() }
+        guard case .file(let file) = batch.values.first else {
+            return XCTFail("Expected copied package")
+        }
+        XCTAssertEqual(
+            try Data(contentsOf: file.url.appendingPathComponent("contents.txt")),
+            Data("inside".utf8)
+        )
+        XCTAssertTrue(FileManager.default.fileExists(atPath: package.path))
+    }
+
+    @MainActor
+    func testShelfImportClaimsOwnedPromiseUntilTemporaryItemRemoval() async throws {
+        let fixture = try makeFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.root) }
+        let source = fixture.sources.appendingPathComponent("shelf.pdf")
+        try Data("shelf".utf8).write(to: source)
+        let provider = promisedProvider(source: source, type: .pdf, suggestedName: "shelf.pdf")
+
+        let items = await ShelfDropService.items(
+            from: [provider],
+            decoder: ShelfTransferDecoder(storage: fixture.storage)
+        )
+
+        let item = try XCTUnwrap(items.first)
+        XCTAssertTrue(item.isTemporary)
+        guard case .file = item.kind else { return XCTFail("Expected shelf file") }
+        XCTAssertTrue(FileManager.default.fileExists(atPath: source.path))
+        XCTAssertEqual(try ownedEntries(in: fixture.owned).count, 1)
+    }
+
+    @MainActor
+    func testQuickShareCancellationReleasesDecodedOwnedFile() async throws {
+        let fixture = try makeFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.root) }
+        let source = fixture.sources.appendingPathComponent("share.pdf")
+        try Data("share".utf8).write(to: source)
+        let provider = promisedProvider(source: source, type: .pdf, suggestedName: "share.pdf")
+        let service = QuickShareService(
+            storage: fixture.storage,
+            automaticallyDiscoversProviders: false
+        )
+
+        await service.shareDroppedFiles(
+            [provider],
+            using: .systemShareMenu,
+            from: nil
+        )
+
+        XCTAssertEqual(service.lastShareError, "The System Share Menu could not be shown.")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: source.path))
+        XCTAssertTrue(try ownedEntries(in: fixture.owned).isEmpty)
+    }
+
+    @MainActor
+    func testSharingResourcesSurviveDelayAndReleaseOnSuccessOrFailure() async throws {
+        let fixture = try makeFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.root) }
+        let createdSuccessURL = await fixture.storage.createTempFile(
+            for: .data(Data("success".utf8), suggestedName: "success.txt")
+        )
+        let successURL = try XCTUnwrap(createdSuccessURL)
+        let resources = ShelfTransferResources(storage: fixture.storage)
+        resources.registerOwnedTemporaryFile(successURL)
+        let successDelegate = SharingLifecycleDelegate(
+            id: UUID(),
+            onEnd: resources.release,
+            onBegin: {},
+            onFinish: {}
+        )
+        successDelegate.markServiceBegan()
+
+        try? await Task.sleep(for: .seconds(2.1))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: successURL.path))
+        let sharingService = NSSharingService(
+            title: "Test",
+            image: NSImage(),
+            alternateImage: nil,
+            handler: {}
+        )
+        successDelegate.sharingService(sharingService, didShareItems: [successURL])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: successURL.path))
+
+        let createdFailureURL = await fixture.storage.createTempFile(
+            for: .data(Data("failure".utf8), suggestedName: "failure.txt")
+        )
+        let failureURL = try XCTUnwrap(createdFailureURL)
+        let failureResources = ShelfTransferResources(storage: fixture.storage)
+        failureResources.registerOwnedTemporaryFile(failureURL)
+        let failureDelegate = SharingLifecycleDelegate(
+            id: UUID(),
+            onEnd: failureResources.release,
+            onBegin: {},
+            onFinish: {}
+        )
+        failureDelegate.markServiceBegan()
+        failureDelegate.sharingService(
+            sharingService,
+            didFailToShareItems: [failureURL],
+            error: ShelfTransferTestError.promisedFileFailed
+        )
+        XCTAssertFalse(FileManager.default.fileExists(atPath: failureURL.path))
+    }
+
+    func testStableSharingIdentityIgnoresLocalizedTitleAndPreservesUnknownChoice() {
+        let localizedAirDrop = QuickShareProvider(
+            id: NSSharingService.Name.sendViaAirDrop.rawValue,
+            displayName: "Envoyer par AirDrop",
+            supportsRawText: false,
+            isAvailable: true
+        )
+
+        XCTAssertEqual(
+            QuickShareProvider.migratedSelection(
+                "Envoyer par AirDrop",
+                availableProviders: [localizedAirDrop, .systemShareMenu]
+            ),
+            NSSharingService.Name.sendViaAirDrop.rawValue
+        )
+        XCTAssertEqual(
+            QuickShareProvider.migratedSelection(
+                "unavailable.third-party.destination",
+                availableProviders: [localizedAirDrop, .systemShareMenu]
+            ),
+            "unavailable.third-party.destination"
+        )
+    }
+
+    func testTransferTypeAcceptanceIsExistential() {
+        XCTAssertTrue(
+            ShelfTransferTypes.supports(
+                typeIdentifiers: ["com.example.private", UTType.pdf.identifier]
+            )
+        )
+        XCTAssertFalse(
+            ShelfTransferTypes.supports(typeIdentifiers: ["com.example.private"])
+        )
+    }
+
+    private func makeFixture() throws -> (
+        root: URL,
+        sources: URL,
+        owned: URL,
+        storage: TemporaryFileStorageService
+    ) {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ShelfTransferTests-\(UUID().uuidString)", isDirectory: true)
+        let sources = root.appendingPathComponent("Sources", isDirectory: true)
+        let owned = root.appendingPathComponent("Owned", isDirectory: true)
+        try FileManager.default.createDirectory(at: sources, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: owned, withIntermediateDirectories: true)
+        return (root, sources, owned, TemporaryFileStorageService(baseDirectory: owned))
+    }
+
+    private func promisedProvider(
+        source: URL,
+        type: UTType,
+        suggestedName: String,
+        fallbackText: String? = nil,
+        fileURL: URL? = nil
+    ) -> NSItemProvider {
+        let provider = NSItemProvider()
+        provider.suggestedName = suggestedName
+        if let fileURL {
+            provider.registerDataRepresentation(
+                forTypeIdentifier: UTType.fileURL.identifier,
+                visibility: .all
+            ) { completion in
+                completion(Data(fileURL.absoluteString.utf8), nil)
+                return nil
+            }
+        }
+        provider.registerFileRepresentation(
+            forTypeIdentifier: type.identifier,
+            fileOptions: [],
+            visibility: .all
+        ) { completion in
+            completion(source, false, nil)
+            return nil
+        }
+        if let fallbackText {
+            provider.registerObject(fallbackText as NSString, visibility: .all)
+        }
+        return provider
+    }
+
+    private func ownedEntries(in directory: URL) throws -> [URL] {
+        try FileManager.default.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: nil
+        )
+    }
+}
