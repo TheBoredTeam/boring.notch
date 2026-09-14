@@ -232,7 +232,9 @@ struct ShelfTransferDecoder: @unchecked Sendable {
                   !type.conforms(to: .plainText),
                   type.conforms(to: .data)
                     || type.conforms(to: .content)
-                    || type.conforms(to: .item) else {
+                    || type.conforms(to: .item)
+                    || type.conforms(to: .directory)
+                    || type.conforms(to: .package) else {
                 continue
             }
             if genericTypes.contains(identifier) {

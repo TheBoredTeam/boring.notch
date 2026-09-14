@@ -12,7 +12,15 @@ import UniformTypeIdentifiers
 /// Advertised representations the shelf transfer decoder can attempt to load.
 /// Acceptance is existential: private companion types do not reject a usable item.
 enum ShelfTransferTypes {
-    static let acceptedTypes: [UTType] = [.fileURL, .url, .utf8PlainText, .plainText, .data]
+    static let acceptedTypes: [UTType] = [
+        .fileURL,
+        .url,
+        .utf8PlainText,
+        .plainText,
+        .data,
+        .directory,
+        .package
+    ]
 
     static func supports(typeIdentifiers: [String]) -> Bool {
         typeIdentifiers.contains { identifier in
