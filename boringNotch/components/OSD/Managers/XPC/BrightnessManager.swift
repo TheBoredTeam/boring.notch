@@ -25,6 +25,8 @@ final class BrightnessManager: ObservableObject {
 	/// (adjust + read + display lookup), and they would queue behind each other.
 	private var pendingDelta: Float = 0
 	private var flushTask: Task<Void, Never>?
+	private var flushTaskToken: UInt64?
+	private var nextFlushTaskToken: UInt64 = 0
 	private struct Target: Equatable {
 		let generation: UInt64
 		let displayID: CGDirectDisplayID
@@ -97,6 +99,7 @@ final class BrightnessManager: ObservableObject {
 	func invalidateTopology() {
 		flushTask?.cancel()
 		flushTask = nil
+		flushTaskToken = nil
 		pendingDelta = 0
 		refresh()
 	}
@@ -105,8 +108,16 @@ final class BrightnessManager: ObservableObject {
 		guard target != nil else { return }
 		pendingDelta += delta
 		guard flushTask == nil else { return }
+		nextFlushTaskToken &+= 1
+		let taskToken = nextFlushTaskToken
+		flushTaskToken = taskToken
 		flushTask = Task { @MainActor in
-			defer { flushTask = nil }
+			defer {
+				if flushTaskToken == taskToken {
+					flushTask = nil
+					flushTaskToken = nil
+				}
+			}
 			while pendingDelta != 0, let operationTarget = target {
 				let delta = pendingDelta
 				pendingDelta = 0

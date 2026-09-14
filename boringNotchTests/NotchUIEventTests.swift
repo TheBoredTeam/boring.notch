@@ -59,6 +59,28 @@ final class NotchUIEventTests: XCTestCase {
         NotchUIEventBus.events.send(.expandingView(type: .battery))
         waitForExpectations(timeout: 1.0)
     }
+
+    @MainActor
+    func testCoordinatorGatePreservesMusicEventWhenOSDReplacementIsDisabled() {
+        let expectation = expectation(description: "music event accepted")
+        NotchUIEventBus.events
+            .sink { event in
+                guard case .sneakPeek(let type, _, _, _, _, _, let provider) = event,
+                      BoringViewCoordinator.shouldPresentSneakPeek(
+                        type: type, provider: provider, osdReplacement: false,
+                        volumeSource: .builtin, brightnessSource: .builtin)
+                else { return }
+                XCTAssertEqual(type, .music)
+                expectation.fulfill()
+            }
+            .store(in: &cancellables)
+
+        NotchUIEventBus.events.send(.sneakPeek(type: .music, value: 0))
+        waitForExpectations(timeout: 1.0)
+        XCTAssertFalse(BoringViewCoordinator.shouldPresentSneakPeek(
+            type: .volume, provider: .builtin, osdReplacement: false,
+            volumeSource: .builtin, brightnessSource: .builtin))
+    }
 }
 
 final class MediaAppBundleIDTests: XCTestCase {

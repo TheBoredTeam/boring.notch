@@ -9,8 +9,10 @@ private final class FakeBrightnessClient: BrightnessHardwareControlling {
     var authoritativeAdjustment: Float?
     var adjustments: [(Float, CGDirectDisplayID)] = []
     var sets: [(Float, CGDirectDisplayID)] = []
-    var suspendAdjustment = false
-    private var adjustmentContinuation: CheckedContinuation<BrightnessHardwareResult?, Never>?
+    var suspendedAdjustments: Set<CGDirectDisplayID> = []
+    private var adjustmentContinuations: [
+        CGDirectDisplayID: CheckedContinuation<BrightnessHardwareResult?, Never>
+    ] = [:]
 
     func displayIDForBrightness() async -> CGDirectDisplayID? { targetID }
 
@@ -31,8 +33,8 @@ private final class FakeBrightnessClient: BrightnessHardwareControlling {
         by value: Float, displayID: CGDirectDisplayID
     ) async -> BrightnessHardwareResult? {
         adjustments.append((value, displayID))
-        if suspendAdjustment {
-            return await withCheckedContinuation { adjustmentContinuation = $0 }
+        if suspendedAdjustments.contains(displayID) {
+            return await withCheckedContinuation { adjustmentContinuations[displayID] = $0 }
         }
         guard let current = values[displayID] else { return nil }
         let resulting = authoritativeAdjustment ?? max(0, min(1, current + value))
@@ -41,11 +43,10 @@ private final class FakeBrightnessClient: BrightnessHardwareControlling {
     }
 
     func resumeAdjustment(displayID: CGDirectDisplayID, brightness: Float) {
-        suspendAdjustment = false
+        suspendedAdjustments.remove(displayID)
         values[displayID] = brightness
-        adjustmentContinuation?.resume(
+        adjustmentContinuations.removeValue(forKey: displayID)?.resume(
             returning: .init(displayID: displayID, brightness: brightness))
-        adjustmentContinuation = nil
     }
 }
 
@@ -86,7 +87,7 @@ final class BrightnessRoutingTests: XCTestCase {
         let client = FakeBrightnessClient()
         client.targetID = 9
         client.values[9] = 0.4
-        client.suspendAdjustment = true
+        client.suspendedAdjustments.insert(9)
         var events: [(Float, String?)] = []
         let manager = makeManager(client: client) { events.append(($0, $1)) }
         await settle()
@@ -108,7 +109,7 @@ final class BrightnessRoutingTests: XCTestCase {
         let client = FakeBrightnessClient()
         client.targetID = 11
         client.values[11] = 0.5
-        client.suspendAdjustment = true
+        client.suspendedAdjustments.insert(11)
         let manager = makeManager(client: client) { _, _ in }
         await settle()
 
@@ -135,6 +136,37 @@ final class BrightnessRoutingTests: XCTestCase {
         manager.setRelative(delta: 0.01)
         await settle()
         XCTAssertEqual(manager.rawBrightness, 1, accuracy: 0.0001)
+    }
+
+    func testCanceledOldTaskCannotClearNewSuspendedTaskOwnership() async {
+        let client = FakeBrightnessClient()
+        client.targetID = 21
+        client.values[21] = 0.4
+        client.values[22] = 0.2
+        client.suspendedAdjustments = [21, 22]
+        let manager = makeManager(client: client) { _, _ in }
+        await settle()
+
+        manager.setRelative(delta: 0.1)
+        await settle()
+        XCTAssertEqual(client.adjustments.map(\.1), [21])
+
+        client.targetID = 22
+        manager.invalidateTopology()
+        await settle()
+        manager.setRelative(delta: 0.1)
+        await settle()
+        XCTAssertEqual(client.adjustments.map(\.1), [21, 22])
+
+        client.resumeAdjustment(displayID: 21, brightness: 0.5)
+        await settle()
+        manager.setRelative(delta: 0.1)
+        await settle()
+        XCTAssertEqual(client.adjustments.map(\.1), [21, 22])
+
+        client.resumeAdjustment(displayID: 22, brightness: 0.3)
+        await settle(12)
+        XCTAssertEqual(client.adjustments.map(\.1), [21, 22, 22])
     }
 
     private func makeManager(

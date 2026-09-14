@@ -18,6 +18,13 @@ enum SneakContentType {
     case mic
     case battery
     case download
+
+    var isSystemOSD: Bool {
+        switch self {
+        case .brightness, .volume, .backlight: true
+        case .music, .mic, .battery, .download: false
+        }
+    }
 }
 
 struct SneakPeekState {
@@ -143,17 +150,12 @@ final class BoringViewCoordinator: ObservableObject {
                         let type, let value, let icon, let accent, let uuid, let duration,
                         let provider
                     ):
-                        guard Defaults[.osdReplacement] else { return }
-                        if let provider {
-                            switch type {
-                            case .volume:
-                                guard Defaults[.osdVolumeSource] == provider else { return }
-                            case .brightness:
-                                guard Defaults[.osdBrightnessSource] == provider else { return }
-                            default:
-                                break
-                            }
-                        }
+                        guard Self.shouldPresentSneakPeek(
+                            type: type, provider: provider,
+                            osdReplacement: Defaults[.osdReplacement],
+                            volumeSource: Defaults[.osdVolumeSource],
+                            brightnessSource: Defaults[.osdBrightnessSource])
+                        else { return }
                         self.toggleSneakPeek(
                             status: true, type: type, duration: duration, value: value,
                             icon: icon, accent: accent, targetScreenUUID: uuid)
@@ -230,6 +232,19 @@ final class BoringViewCoordinator: ObservableObject {
     
     // MARK: - Per-Screen Sneak Peek Management
 
+    static func shouldPresentSneakPeek(
+        type: SneakContentType, provider: OSDControlSource?, osdReplacement: Bool,
+        volumeSource: OSDControlSource, brightnessSource: OSDControlSource
+    ) -> Bool {
+        if type.isSystemOSD && !osdReplacement { return false }
+        guard let provider else { return true }
+        switch type {
+        case .volume: return volumeSource == provider
+        case .brightness: return brightnessSource == provider
+        default: return true
+        }
+    }
+
     // Dictionary to hold sneak peek state for each screen UUID
     @Published var sneakPeekStates: [String: SneakPeekState] = [:]
 
@@ -240,7 +255,7 @@ final class BoringViewCoordinator: ObservableObject {
         status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0,
         icon: String = "", accent: Color? = nil, targetScreenUUID: String? = nil
     ) {
-        if type != .music {
+        if type.isSystemOSD {
             // close()
             if !Defaults[.osdReplacement] {
                 return
