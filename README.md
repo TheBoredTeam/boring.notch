@@ -51,7 +51,13 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 
 <a href="https://github.com/TheBoredTeam/boring.notch/releases/latest/download/boringNotch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
 
-Once downloaded, open the `.dmg` and move **Boring Notch** to your `/Applications` folder.
+1. Open the downloaded `boringNotch.dmg` file.
+2. Drag **Boring Notch** onto the **Applications** folder in the installer window.
+3. Wait for the copy to finish.
+4. Eject the Boring Notch disk image in Finder.
+5. Open **Boring Notch** from your **Applications** folder.
+
+The installed app stays available after you eject the disk image. Opening the app inside the installer does not install it.
 
 > [!IMPORTANT]
 > Release builds are not notarized with Apple (macOS will warn you that Boring Notch is from an unidentified developer on first launch). This is expected behavior.
@@ -193,5 +199,4 @@ For a full list of licenses and attributions, please see the [Third-Party Licens
 
 - **SwiftUI**: For making us look like coding wizards.
 - **You**: For being awesome and checking out **boring.notch**!
-
 
