@@ -27,7 +27,7 @@ final class NotchUIEventTests: XCTestCase {
         let expectation = expectation(description: "event delivered")
         NotchUIEventBus.events
             .sink { event in
-                guard case .sneakPeek(let type, let value, let icon, _, let uuid, _) = event else {
+                guard case .sneakPeek(let type, let value, let icon, _, let uuid, _, _) = event else {
                     XCTFail("unexpected event")
                     return
                 }

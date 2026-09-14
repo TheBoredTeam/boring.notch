@@ -139,7 +139,21 @@ final class BoringViewCoordinator: ObservableObject {
                 Task { @MainActor in
                     guard let self else { return }
                     switch event {
-                    case .sneakPeek(let type, let value, let icon, let accent, let uuid, let duration):
+                    case .sneakPeek(
+                        let type, let value, let icon, let accent, let uuid, let duration,
+                        let provider
+                    ):
+                        guard Defaults[.osdReplacement] else { return }
+                        if let provider {
+                            switch type {
+                            case .volume:
+                                guard Defaults[.osdVolumeSource] == provider else { return }
+                            case .brightness:
+                                guard Defaults[.osdBrightnessSource] == provider else { return }
+                            default:
+                                break
+                            }
+                        }
                         self.toggleSneakPeek(
                             status: true, type: type, duration: duration, value: value,
                             icon: icon, accent: accent, targetScreenUUID: uuid)
