@@ -111,6 +111,7 @@ private final class SessionFactory: @unchecked Sendable {
 final class CameraLifecycleTests: XCTestCase {
     private let notificationCenter = NotificationCenter()
     private let workspaceNotificationCenter = NotificationCenter()
+    private let sessionQueue = DispatchQueue(label: "CameraLifecycleTests.session")
 
     func testFirstAuthorizationGrantFinishesOriginalStartRequest() {
         let permission = PermissionStub(status: .notDetermined)
@@ -288,6 +289,75 @@ final class CameraLifecycleTests: XCTestCase {
         XCTAssertEqual(factory.preferredIDs[0], "selected-device")
     }
 
+    func testRecoveryAndSelectionWaitForPendingAuthorization() {
+        let permission = PermissionStub(status: .notDetermined)
+        let factory = SessionFactory()
+        let manager = makeManager(permission: permission, factory: factory)
+        var result: WebcamManager.SessionStartResult?
+        manager.startSession { result = $0 }
+
+        workspaceNotificationCenter.post(name: NSWorkspace.didWakeNotification, object: nil)
+        notificationCenter.post(name: AVCaptureDevice.wasConnectedNotification, object: nil)
+        manager.setSelectedCamera(id: "new-selection")
+        sessionQueue.sync {}
+
+        XCTAssertTrue(factory.sessions.isEmpty)
+        XCTAssertNil(result)
+        XCTAssertTrue(manager.isRequestingAuthorization)
+        XCTAssertTrue(manager.isSessionDesired)
+        permission.resolve(granted: true)
+        waitUntil { result == .started }
+        XCTAssertEqual(factory.sessions.count, 1)
+        XCTAssertEqual(factory.preferredIDs, ["new-selection"])
+    }
+
+    func testUnrelatedOwnerCannotCancelPendingOrRunningCamera() {
+        let permission = PermissionStub(status: .notDetermined)
+        let factory = SessionFactory()
+        let manager = makeManager(permission: permission, factory: factory)
+        let firstOwner = UUID()
+        let otherOwner = UUID()
+        var result: WebcamManager.SessionStartResult?
+        manager.startSession(owner: firstOwner) { result = $0 }
+        manager.stopSession(owner: otherOwner)
+        XCTAssertTrue(manager.ownsSession(firstOwner))
+        XCTAssertNil(result)
+
+        permission.resolve(granted: true)
+        waitUntil { result == .started }
+        manager.stopSession(owner: otherOwner)
+        XCTAssertTrue(manager.isSessionRunning)
+        manager.stopSession(owner: firstOwner)
+        sessionQueue.sync {}
+        XCTAssertFalse(manager.isSessionDesired)
+        XCTAssertFalse(manager.isSessionRunning)
+        XCTAssertFalse(factory.sessions[0].isRunning)
+    }
+
+    func testOwnerCanCancelPendingPermissionAndTransferCannotBeStoppedByOldOwner() {
+        let permission = PermissionStub(status: .notDetermined)
+        let factory = SessionFactory()
+        let manager = makeManager(permission: permission, factory: factory)
+        let firstOwner = UUID()
+        let secondOwner = UUID()
+        var result: WebcamManager.SessionStartResult?
+        manager.startSession(owner: firstOwner) { result = $0 }
+        manager.stopSession(owner: firstOwner)
+        XCTAssertEqual(result, .cancelled)
+        manager.startSession(owner: secondOwner)
+        manager.stopSession(owner: firstOwner)
+        permission.resolve(granted: true)
+        waitUntil { manager.isSessionRunning }
+        XCTAssertTrue(manager.ownsSession(secondOwner))
+        XCTAssertEqual(factory.sessions.count, 1)
+
+        manager.startSession(owner: firstOwner)
+        manager.stopSession(owner: secondOwner)
+        waitUntil { manager.isSessionRunning && factory.sessions.count == 2 }
+        XCTAssertTrue(manager.ownsSession(firstOwner))
+        XCTAssertFalse(factory.sessions[0].isRunning)
+    }
+
     func testPreviewRepresentableReplacesAndDetachesLayers() {
         let firstLayer = AVCaptureVideoPreviewLayer(session: FakeCaptureSession())
         let secondLayer = AVCaptureVideoPreviewLayer(session: FakeCaptureSession())
@@ -321,10 +391,11 @@ final class CameraLifecycleTests: XCTestCase {
                 makeSession: factory.makeSession,
                 makePreviewLayer: { AVCaptureVideoPreviewLayer(session: $0) },
                 notificationCenter: notificationCenter,
-                workspaceNotificationCenter: workspaceNotificationCenter
+                workspaceNotificationCenter: workspaceNotificationCenter,
+                persistSelectedCamera: { _ in }
             ),
             selectedCameraID: selectedCameraID,
-            sessionQueue: DispatchQueue(label: "CameraLifecycleTests.session")
+            sessionQueue: sessionQueue
         )
     }
 

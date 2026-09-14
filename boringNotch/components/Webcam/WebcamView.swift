@@ -17,7 +17,7 @@ struct WebcamView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                if let previewLayer = webcamManager.previewLayer {
+                if webcamManager.ownsSession(vm.cameraSessionOwnerID), let previewLayer = webcamManager.previewLayer {
                     WebcamPreviewLayer(previewLayer: previewLayer)
                         .scaleEffect(x: isMirrored ? -1 : 1, y: 1)
                         .clipShape(RoundedRectangle(cornerRadius: Defaults[.mirrorShape] == .rectangle ? MusicPlayerImageSizes.cornerRadiusInset.opened : 100))
@@ -25,7 +25,7 @@ struct WebcamView: View {
                         .opacity(webcamManager.isSessionRunning ? 1 : 0)
                 }
 
-                if !webcamManager.isSessionRunning {
+                if !webcamManager.ownsSession(vm.cameraSessionOwnerID) || !webcamManager.isSessionRunning {
                     ZStack {
                         RoundedRectangle(cornerRadius: Defaults[.mirrorShape] == .rectangle ? MusicPlayerImageSizes.cornerRadiusInset.opened : 100)
                             .fill(Color(red: 20/255, green: 20/255, blue: 20/255))
@@ -46,21 +46,21 @@ struct WebcamView: View {
                 handleCameraTap()
             }
             .onDisappear {
-                webcamManager.stopSession()
+                webcamManager.stopSession(owner: vm.cameraSessionOwnerID)
             }
         }
         .aspectRatio(1, contentMode: .fit)
     }
     
     private func handleCameraTap() {
-        if webcamManager.isSessionDesired {
-            webcamManager.stopSession()
+        if webcamManager.ownsSession(vm.cameraSessionOwnerID) {
+            webcamManager.stopSession(owner: vm.cameraSessionOwnerID)
             return
         }
 
         switch webcamManager.refreshAuthorizationStatus() {
         case .authorized:
-            webcamManager.startSession()
+            webcamManager.startSession(owner: vm.cameraSessionOwnerID)
         case .denied, .restricted:
             DispatchQueue.main.async {
                 let alert = NSAlert()
@@ -76,7 +76,7 @@ struct WebcamView: View {
                 }
             }
         case .notDetermined:
-            webcamManager.startSession()
+            webcamManager.startSession(owner: vm.cameraSessionOwnerID)
         @unknown default:
             break
         }
