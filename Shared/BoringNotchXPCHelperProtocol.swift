@@ -46,13 +46,17 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     func currentKeyboardBrightness(with reply: @escaping (NSNumber?) -> Void)
     func setKeyboardBrightness(_ value: Float, with reply: @escaping (Bool) -> Void)
     // Screen brightness access (performed by the helper)
-    // returns the displayID that will be used for built-in brightness operations (main or internal fallback)
+    // Returns one display whose brightness can be both read and written.
     func displayIDForBrightness(with reply: @escaping (NSNumber?) -> Void)
-    func currentScreenBrightness(with reply: @escaping (NSNumber?) -> Void)
-    func setScreenBrightness(_ value: Float, with reply: @escaping (Bool) -> Void)
-    /// Replies the resulting brightness in 0...1, or nil on failure.
-    /// Returning the value collapses the old adjust→read two-RPC dance into one call.
-    func adjustScreenBrightness(by value: Float, with reply: @escaping (NSNumber?) -> Void)
+    func currentScreenBrightness(
+        forDisplayID displayID: NSNumber, with reply: @escaping (NSNumber?, NSNumber?) -> Void)
+    func setScreenBrightness(
+        _ value: Float, forDisplayID displayID: NSNumber,
+        with reply: @escaping (NSNumber?, NSNumber?) -> Void)
+    /// Replies the display ID and authoritative resulting brightness.
+    func adjustScreenBrightness(
+        by value: Float, forDisplayID displayID: NSNumber,
+        with reply: @escaping (NSNumber?, NSNumber?) -> Void)
     // Lunar brightness events (performed by the helper)
     func isLunarAvailable(with reply: @escaping (Bool) -> Void)
     func startLunarEventStream(with reply: @escaping (Bool) -> Void)
@@ -89,4 +93,3 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
 /// both Lunar events and notification banners — so the app vends a single
 /// object conforming to both.
 @objc protocol BoringNotchXPCAppDelegate: BoringNotchXPCHelperLunarListener, BoringNotchXPCHelperDelegate {}
-

@@ -227,11 +227,9 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     }
     // MARK: - Screen Brightness (moved from client app into helper)
 
-    private func brightnessDisplayID() -> CGDirectDisplayID {
+    private func brightnessDisplayID() -> CGDirectDisplayID? {
         let mainDisplayID = CGMainDisplayID()
-        var tmp: Float = 0
-
-        if displayServicesGetBrightness(displayID: mainDisplayID, out: &tmp) || ioServiceFor(displayID: mainDisplayID) != nil {
+        if controllableBrightness(displayID: mainDisplayID) != nil {
             return mainDisplayID
         }
 
@@ -240,61 +238,49 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         let allocated = Int(count)
         var ids = [CGDirectDisplayID](repeating: 0, count: allocated)
         CGGetOnlineDisplayList(count, &ids, &count)
-        for id in ids {
-            if CGDisplayIsBuiltin(id) != 0 {
+        for id in ids where CGDisplayIsBuiltin(id) != 0 {
+            if controllableBrightness(displayID: id) != nil {
                 return id
             }
         }
-
-        return mainDisplayID
+        return nil
     }
 
-    @objc func currentScreenBrightness(with reply: @escaping (NSNumber?) -> Void) {
-        let displayID = brightnessDisplayID()
-        var b: Float = 0
-        if displayServicesGetBrightness(displayID: displayID, out: &b) {
-            reply(NSNumber(value: b))
+    @objc func currentScreenBrightness(
+        forDisplayID displayNumber: NSNumber,
+        with reply: @escaping (NSNumber?, NSNumber?) -> Void
+    ) {
+        let displayID = CGDirectDisplayID(displayNumber.uint32Value)
+        guard let value = readBrightness(displayID: displayID) else {
+            reply(nil, nil)
             return
         }
-        if let io = ioServiceFor(displayID: displayID) {
-            var level: Float = 0
-            if IODisplayGetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, &level) == kIOReturnSuccess {
-                IOObjectRelease(io)
-                reply(NSNumber(value: level))
-                return
-            }
-            IOObjectRelease(io)
-        }
-        reply(nil)
+        reply(NSNumber(value: displayID), NSNumber(value: value))
     }
 
-    @objc func setScreenBrightness(_ value: Float, with reply: @escaping (Bool) -> Void) {
+    @objc func setScreenBrightness(
+        _ value: Float, forDisplayID displayNumber: NSNumber,
+        with reply: @escaping (NSNumber?, NSNumber?) -> Void
+    ) {
         let clamped = max(0, min(1, value))
-        let displayID = brightnessDisplayID()
-        if displayServicesSetBrightness(displayID: displayID, value: clamped) {
-            reply(true)
-            return
-        }
-        if let io = ioServiceFor(displayID: displayID) {
-            let ok = IODisplaySetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, clamped) == kIOReturnSuccess
-            IOObjectRelease(io)
-            reply(ok)
-            return
-        }
-        reply(false)
+        let displayID = CGDirectDisplayID(displayNumber.uint32Value)
+        guard writeBrightness(displayID: displayID, value: clamped),
+              let result = readBrightness(displayID: displayID)
+        else { reply(nil, nil); return }
+        reply(NSNumber(value: displayID), NSNumber(value: result))
     }
     
-    @objc func adjustScreenBrightness(by value: Float, with reply: @escaping (NSNumber?) -> Void) {
-        let displayID = brightnessDisplayID()
+    @objc func adjustScreenBrightness(
+        by value: Float, forDisplayID displayNumber: NSNumber,
+        with reply: @escaping (NSNumber?, NSNumber?) -> Void
+    ) {
+        let displayID = CGDirectDisplayID(displayNumber.uint32Value)
         if displayServicesSetBrightnessSmooth(displayID: displayID, value: value) {
-            // Read back inside the helper so the client pays for one RPC
-            // instead of two (adjust + currentScreenBrightness).
-            var b: Float = 0
-            if displayServicesGetBrightness(displayID: displayID, out: &b) {
-                reply(NSNumber(value: b))
+            guard let result = readBrightness(displayID: displayID) else {
+                reply(nil, nil)
                 return
             }
-            reply(nil)
+            reply(NSNumber(value: displayID), NSNumber(value: result))
             return
         }
         if let io = ioServiceFor(displayID: displayID) {
@@ -303,19 +289,22 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
                 let target = max(0, min(1, ioCurrent + value))
                 let ok = IODisplaySetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, target) == kIOReturnSuccess
                 IOObjectRelease(io)
-                reply(ok ? NSNumber(value: target) : nil)
+                guard ok, let result = readBrightness(displayID: displayID) else {
+                    reply(nil, nil)
+                    return
+                }
+                reply(NSNumber(value: displayID), NSNumber(value: result))
                 return
             }
             IOObjectRelease(io)
         }
-        reply(nil)
+        reply(nil, nil)
     }
 
     // MARK: - Lunar Events
 
     @objc func displayIDForBrightness(with reply: @escaping (NSNumber?) -> Void) {
-        let id = brightnessDisplayID()
-        reply(NSNumber(value: id))
+        reply(brightnessDisplayID().map { NSNumber(value: $0) })
     }
 
     @objc func isLunarAvailable(with reply: @escaping (Bool) -> Void) {
@@ -448,6 +437,34 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     }
 
     // MARK: - Private helpers for DisplayServices / IOKit access
+    private func controllableBrightness(displayID: CGDirectDisplayID) -> Float? {
+        guard let current = readBrightness(displayID: displayID),
+              writeBrightness(displayID: displayID, value: current)
+        else { return nil }
+        return current
+    }
+
+    private func readBrightness(displayID: CGDirectDisplayID) -> Float? {
+        var value: Float = 0
+        if displayServicesGetBrightness(displayID: displayID, out: &value) {
+            return value
+        }
+        guard let service = ioServiceFor(displayID: displayID) else { return nil }
+        defer { IOObjectRelease(service) }
+        guard IODisplayGetFloatParameter(
+            service, 0, kIODisplayBrightnessKey as CFString, &value) == kIOReturnSuccess
+        else { return nil }
+        return value
+    }
+
+    private func writeBrightness(displayID: CGDirectDisplayID, value: Float) -> Bool {
+        if displayServicesSetBrightness(displayID: displayID, value: value) { return true }
+        guard let service = ioServiceFor(displayID: displayID) else { return false }
+        defer { IOObjectRelease(service) }
+        return IODisplaySetFloatParameter(
+            service, 0, kIODisplayBrightnessKey as CFString, value) == kIOReturnSuccess
+    }
+
     private func displayServicesGetBrightness(displayID: CGDirectDisplayID, out: inout Float) -> Bool {
         guard let sym = dlsym(DisplayServicesHandle.handle, "DisplayServicesGetBrightness") else { return false }
         typealias Fn = @convention(c) (CGDirectDisplayID, UnsafeMutablePointer<Float>) -> Int32
