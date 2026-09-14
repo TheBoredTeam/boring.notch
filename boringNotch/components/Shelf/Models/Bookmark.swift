@@ -138,7 +138,7 @@ struct Bookmark: Sendable, Equatable, Codable {
         )
     }
 
-    func resolve(intent: ShelfBookmarkResolutionIntent) -> (url: URL?, refreshedData: Data?) {
+    fileprivate func resolve(intent: ShelfBookmarkResolutionIntent) -> (url: URL?, refreshedData: Data?) {
         guard !data.isEmpty else { return (nil, nil) }
         var isStale = false
         var options: URL.BookmarkResolutionOptions = [.withSecurityScope]
@@ -158,29 +158,10 @@ struct Bookmark: Sendable, Equatable, Codable {
         }
     }
 
-    /// Compatibility for explicit import/action paths. Passive shelf presentation uses
-    /// `ShelfBookmarkResolver` so this synchronous operation never runs from a view body.
-    var resolvedURL: URL? {
+    /// Compatibility for item-provider import. Shelf display and user actions resolve
+    /// through `ShelfBookmarkResolver` so OS bookmark work stays off the main actor.
+    var importedItemURL: URL? {
         resolve(intent: .userInitiated).url
-    }
-
-    func validate() async -> Bool {
-        guard let url = resolvedURL else { return false }
-        return url.accessSecurityScopedResource {
-            FileManager.default.fileExists(atPath: $0.path)
-        }
-    }
-
-    func withAccess<Value>(_ accessor: (URL) throws -> Value) rethrows -> Value? {
-        guard let url = resolvedURL else { return nil }
-        return try url.accessSecurityScopedResource(accessor: accessor)
-    }
-
-    func withAccess<Value: Sendable>(
-        _ accessor: @Sendable (URL) async throws -> Value
-    ) async rethrows -> Value? {
-        guard let url = resolvedURL else { return nil }
-        return try await url.accessSecurityScopedResource(accessor: accessor)
     }
 }
 

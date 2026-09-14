@@ -40,6 +40,23 @@ private final class BlockingShelfResolution: @unchecked Sendable {
     }
 }
 
+private final class SequencedShelfResolution: @unchecked Sendable {
+    private let lock = NSLock()
+    private var results: [ResolvedShelfFile?]
+    private(set) var intents: [ShelfBookmarkResolutionIntent] = []
+
+    init(_ results: [ResolvedShelfFile?]) {
+        self.results = results
+    }
+
+    func resolve(_: Data, _ intent: ShelfBookmarkResolutionIntent) -> ResolvedShelfFile? {
+        lock.lock()
+        defer { lock.unlock() }
+        intents.append(intent)
+        return results.isEmpty ? nil : results.removeFirst()
+    }
+}
+
 final class ShelfFileResolutionTests: XCTestCase {
     @MainActor
     func testPersistenceRoundTripKeepsIDAndBookmarkData() throws {
@@ -149,6 +166,74 @@ final class ShelfFileResolutionTests: XCTestCase {
             return XCTFail("Expected refreshed file item")
         }
         XCTAssertEqual(storedData, refreshedData)
+    }
+
+    @MainActor
+    func testFailedExplicitRefreshClearsPreviouslyCachedResolution() async {
+        let data = Data("refresh-failure".utf8)
+        let item = ShelfItem(kind: .file(bookmark: data))
+        let cachedFile = ResolvedShelfFile(
+            url: URL(fileURLWithPath: "/tmp/previously-available"),
+            refreshedBookmarkData: nil,
+            displayName: "previously-available",
+            isDirectory: false,
+            contentTypeIdentifier: nil
+        )
+        let sequence = SequencedShelfResolution([cachedFile, nil])
+        let state = ShelfStateViewModel(
+            items: [item],
+            resolver: ShelfBookmarkResolver(resolution: sequence.resolve)
+        )
+
+        let initialResult = await state.resolveFile(for: item)
+        let refreshResult = await state.resolveFile(for: item, intent: .userInitiated, refresh: true)
+        XCTAssertEqual(initialResult, cachedFile)
+        XCTAssertNil(refreshResult)
+        XCTAssertNil(state.resolvedFile(for: item))
+        XCTAssertNil(state.resolvedFileURL(for: item))
+        XCTAssertTrue(state.isFileUnavailable(item))
+        XCTAssertEqual(sequence.intents, [.presentation, .userInitiated])
+        XCTAssertEqual(state.items.first?.id, item.id)
+        XCTAssertEqual(state.items.first?.kind, item.kind)
+    }
+
+    @MainActor
+    func testExplicitRetryRecoversUnavailableFile() async {
+        let item = ShelfItem(kind: .file(bookmark: Data("retry".utf8)))
+        let recoveredFile = ResolvedShelfFile(
+            url: URL(fileURLWithPath: "/tmp/recovered"),
+            refreshedBookmarkData: nil,
+            displayName: "recovered",
+            isDirectory: false,
+            contentTypeIdentifier: nil
+        )
+        let sequence = SequencedShelfResolution([nil, recoveredFile])
+        let state = ShelfStateViewModel(
+            items: [item],
+            resolver: ShelfBookmarkResolver(resolution: sequence.resolve)
+        )
+
+        let initialResult = await state.resolveFile(for: item)
+        XCTAssertNil(initialResult)
+        XCTAssertTrue(state.isFileUnavailable(item))
+        let retryResult = await state.resolveFile(for: item, intent: .userInitiated, refresh: true)
+        XCTAssertEqual(retryResult, recoveredFile)
+        XCTAssertEqual(state.resolvedFile(for: item), recoveredFile)
+        XCTAssertFalse(state.isFileUnavailable(item))
+    }
+
+    @MainActor
+    func testMixedDragTracksOnlyItemsThatProducedExports() {
+        let available = ShelfItem(kind: .file(bookmark: Data("available".utf8)))
+        let unavailable = ShelfItem(kind: .file(bookmark: Data("unavailable".utf8)))
+        let text = ShelfItem(kind: .text(string: "text"))
+
+        let exports = compactShelfExports([available, unavailable, text]) { item -> String? in
+            item.id == unavailable.id ? nil : item.id.uuidString
+        }
+
+        XCTAssertEqual(exports.map(\.item.id), [available.id, text.id])
+        XCTAssertEqual(exports.map(\.payload), [available.id.uuidString, text.id.uuidString])
     }
 
     @MainActor

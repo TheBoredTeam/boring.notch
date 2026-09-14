@@ -47,17 +47,21 @@ final class ShelfItemViewModel: ObservableObject {
 
     var fileResolutionPhase: ShelfFileResolutionPhase? {
         guard case .file = item.kind else { return nil }
+        if let file = ShelfStateViewModel.shared.resolvedFile(for: item) { return .available(file) }
+        if ShelfStateViewModel.shared.isFileUnavailable(item) { return .unavailable }
         return fileResolutionState.phase
     }
 
     var resolvedFileURL: URL? {
+        if let url = ShelfStateViewModel.shared.resolvedFileURL(for: item) { return url }
+        guard !ShelfStateViewModel.shared.isFileUnavailable(item) else { return nil }
         guard case .available(let file) = fileResolutionState.phase else { return nil }
         return file.url
     }
 
     var isUnavailableFile: Bool {
         guard case .file = item.kind else { return false }
-        return fileResolutionState.phase == .unavailable
+        return fileResolutionPhase == .unavailable
     }
 
     var canDrag: Bool {
@@ -67,10 +71,11 @@ final class ShelfItemViewModel: ObservableObject {
 
     var displayName: String {
         if let name = Self.nonFileDisplayName(for: item.kind) { return name }
-        switch fileResolutionState.phase {
-        case .loading: return "Loading…"
+        switch fileResolutionPhase {
+        case nil: return ""
+        case .loading: return String(localized: "Loading…")
         case .available(let file): return file.displayName
-        case .unavailable: return "File unavailable"
+        case .unavailable: return String(localized: "File unavailable")
         }
     }
 
@@ -106,8 +111,9 @@ final class ShelfItemViewModel: ObservableObject {
             }
         }
 
+        let timeout = resolutionTimeout
         timeoutTask = Task { [weak self] in
-            try? await Task.sleep(for: resolutionTimeout)
+            try? await Task.sleep(for: timeout)
             guard !Task.isCancelled, let self,
                   self.fileResolutionState.timeOut(generation: generation) else { return }
             if let pendingToken {
@@ -145,7 +151,7 @@ final class ShelfItemViewModel: ObservableObject {
         switch item.kind {
         case .file:
             let provider = NSItemProvider()
-            if let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) {
+            if let url = ShelfStateViewModel.shared.resolvedFileURL(for: item) {
                 provider.registerObject(url as NSURL, visibility: .all)
             } else {
                 provider.registerObject(item.displayName as NSString, visibility: .all)
@@ -165,7 +171,7 @@ final class ShelfItemViewModel: ObservableObject {
         for item in items {
             switch item.kind {
             case .file:
-                if let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) {
+                if let url = ShelfStateViewModel.shared.resolvedFileURL(for: item) {
                     urls.append(url)
                 } else {
                     textItems.append(item.displayName)
@@ -227,9 +233,13 @@ final class ShelfItemViewModel: ObservableObject {
                     switch item.kind {
                     case .file:
                         // Use immediate update for user-initiated share action
-                        if let url = ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item) {
-                            itemsToShare.append(url)
-                            fileURLs.append(url)
+                        if let file = await ShelfStateViewModel.shared.resolveFile(
+                            for: item,
+                            intent: .userInitiated,
+                            refresh: true
+                        ) {
+                            itemsToShare.append(file.url)
+                            fileURLs.append(file.url)
                         }
                     case .text(let string):
                         itemsToShare.append(string)

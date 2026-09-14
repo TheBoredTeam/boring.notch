@@ -12,6 +12,7 @@ final class ShelfStateViewModel: ObservableObject {
         }
     }
     @Published var isLoading = false
+    @Published private(set) var unavailableFileIDs: Set<UUID> = []
 
     var isEmpty: Bool { items.isEmpty }
 
@@ -65,6 +66,7 @@ final class ShelfStateViewModel: ObservableObject {
         let pendingTask = pendingResolutions[item.id]?.task
         cachedResolutions[item.id] = nil
         pendingResolutions[item.id] = nil
+        unavailableFileIDs.remove(item.id)
         items.removeAll { $0.id == item.id }
 
         guard item.isTemporary else { return }
@@ -80,16 +82,17 @@ final class ShelfStateViewModel: ObservableObject {
     }
 
     func resolvedFileURL(for item: ShelfItem) -> URL? {
-        resolvedFile(for: item)?.url
+        guard !unavailableFileIDs.contains(item.id) else { return nil }
+        return resolvedFile(for: item)?.url
     }
 
-    /// Compatibility bridge for synchronous AppKit callbacks. It never resolves a bookmark.
-    func resolveAndUpdateBookmark(for item: ShelfItem) -> URL? {
-        resolvedFileURL(for: item)
+    func isFileUnavailable(_ item: ShelfItem) -> Bool {
+        unavailableFileIDs.contains(item.id)
     }
 
     func resolvedFile(for item: ShelfItem) -> ResolvedShelfFile? {
-        guard case .file(let bookmarkData) = currentItem(for: item)?.kind,
+        guard !unavailableFileIDs.contains(item.id),
+              case .file(let bookmarkData) = currentItem(for: item)?.kind,
               let cached = cachedResolutions[item.id],
               cached.bookmarkData == bookmarkData else {
             return nil
@@ -110,7 +113,8 @@ final class ShelfStateViewModel: ObservableObject {
         let pending = pendingResolution(for: item.id, bookmarkData: bookmarkData, intent: intent)
         let file = await pending.task.value
         applyResolution(file, for: item.id, bookmarkData: bookmarkData, token: pending.token)
-        return cachedFile(for: item.id, matching: file?.refreshedBookmarkData ?? bookmarkData)
+        guard let file else { return nil }
+        return cachedFile(for: item.id, matching: file.refreshedBookmarkData ?? bookmarkData)
     }
 
     @discardableResult
@@ -152,6 +156,7 @@ final class ShelfStateViewModel: ObservableObject {
         )
         cachedResolutions[item.id] = nil
         pendingResolutions[item.id] = nil
+        unavailableFileIDs.remove(item.id)
     }
 
     func load(_ providers: [NSItemProvider]) {
@@ -182,6 +187,10 @@ final class ShelfStateViewModel: ObservableObject {
         return urls
     }
 
+    func resolveAndUpdateBookmark(for item: ShelfItem) async -> URL? {
+        await resolveFile(for: item, intent: .userInitiated, refresh: true)?.url
+    }
+
     func flushSync() {
         persistenceTask?.cancel()
         persistenceTask = nil
@@ -204,6 +213,7 @@ final class ShelfStateViewModel: ObservableObject {
             intent: intent,
             task: Task { [resolver] in await resolver.resolve(bookmarkData, intent: intent) }
         )
+        unavailableFileIDs.remove(itemID)
         pendingResolutions[itemID] = pending
         return pending
     }
@@ -216,12 +226,18 @@ final class ShelfStateViewModel: ObservableObject {
     ) {
         guard pendingResolutions[itemID]?.token == token else { return }
         pendingResolutions[itemID] = nil
-        guard let file,
-              let index = items.firstIndex(where: { $0.id == itemID }),
+        guard let index = items.firstIndex(where: { $0.id == itemID }),
               case .file(let currentData) = items[index].kind,
               currentData == bookmarkData else {
             return
         }
+
+        guard let file else {
+            cachedResolutions[itemID] = nil
+            unavailableFileIDs.insert(itemID)
+            return
+        }
+        unavailableFileIDs.remove(itemID)
 
         let effectiveData = file.refreshedBookmarkData ?? bookmarkData
         if effectiveData != bookmarkData {
