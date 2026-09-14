@@ -63,7 +63,8 @@ struct ShelfItemView: View {
             guard !Task.isCancelled else { return }
             debouncedDropTarget = targeted
         }
-        .task(id: item.id) {
+        .task(id: item) {
+            await viewModel.synchronize(with: item)
             await viewModel.loadThumbnail()
         }
         .onAppear {

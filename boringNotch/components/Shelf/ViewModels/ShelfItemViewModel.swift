@@ -27,14 +27,23 @@ final class ShelfItemViewModel: ObservableObject {
     private let resolutionTimeout: Duration
     private var resolutionTask: Task<Void, Never>?
     private var timeoutTask: Task<Void, Never>?
+    private let shelfState: ShelfStateViewModel
+    private let loadsThumbnails: Bool
 
     private let selection = ShelfSelectionModel.shared
 
-    init(item: ShelfItem, resolutionTimeout: Duration = .seconds(2)) {
+    init(
+        item: ShelfItem,
+        resolutionTimeout: Duration = .seconds(2),
+        shelfState: ShelfStateViewModel = .shared,
+        loadsThumbnails: Bool = true
+    ) {
         self.item = item
         self.resolutionTimeout = resolutionTimeout
+        self.shelfState = shelfState
+        self.loadsThumbnails = loadsThumbnails
         self.draftTitle = Self.nonFileDisplayName(for: item.kind) ?? ""
-        if case .file = item.kind { startFileResolution() }
+        if case .file = item.kind { startFileResolution(preservingAvailableFile: false) }
     }
 
     func loadThumbnail() async {
@@ -47,14 +56,16 @@ final class ShelfItemViewModel: ObservableObject {
 
     var fileResolutionPhase: ShelfFileResolutionPhase? {
         guard case .file = item.kind else { return nil }
-        if let file = ShelfStateViewModel.shared.resolvedFile(for: item) { return .available(file) }
-        if ShelfStateViewModel.shared.isFileUnavailable(item) { return .unavailable }
+        guard shelfState.containsCurrentVersion(of: item) else { return .loading }
+        if let file = shelfState.resolvedFile(for: item) { return .available(file) }
+        if shelfState.isFileUnavailable(item) { return .unavailable }
         return fileResolutionState.phase
     }
 
     var resolvedFileURL: URL? {
-        if let url = ShelfStateViewModel.shared.resolvedFileURL(for: item) { return url }
-        guard !ShelfStateViewModel.shared.isFileUnavailable(item) else { return nil }
+        guard shelfState.containsCurrentVersion(of: item) else { return nil }
+        if let url = shelfState.resolvedFileURL(for: item) { return url }
+        guard !shelfState.isFileUnavailable(item) else { return nil }
         guard case .available(let file) = fileResolutionState.phase else { return nil }
         return file.url
     }
@@ -87,27 +98,41 @@ final class ShelfItemViewModel: ObservableObject {
 
     func retryResolution() {
         guard isUnavailableFile else { return }
-        startFileResolution()
+        startFileResolution(preservingAvailableFile: false)
     }
 
-    private func startFileResolution() {
+    func synchronize(with updatedItem: ShelfItem) async {
+        if item != updatedItem {
+            resolutionTask?.cancel()
+            timeoutTask?.cancel()
+            item = updatedItem
+            draftTitle = Self.nonFileDisplayName(for: updatedItem.kind) ?? ""
+            thumbnail = nil
+            if case .file = updatedItem.kind {
+                startFileResolution(preservingAvailableFile: false)
+            }
+        }
+        await resolutionTask?.value
+    }
+
+    private func startFileResolution(preservingAvailableFile: Bool) {
         guard case .file(let bookmarkData) = item.kind else { return }
         resolutionTask?.cancel()
         timeoutTask?.cancel()
         thumbnail = nil
-        let generation = fileResolutionState.begin(preservingAvailableFile: true)
+        let generation = fileResolutionState.begin(preservingAvailableFile: preservingAvailableFile)
         let resolutionItem = item
-        let pendingToken = ShelfStateViewModel.shared.prefetchFileResolution(for: resolutionItem)
+        let pendingToken = shelfState.prefetchFileResolution(for: resolutionItem)
 
-        resolutionTask = Task { [weak self] in
-            let file = await ShelfStateViewModel.shared.resolveFile(for: resolutionItem)
+        resolutionTask = Task { [weak self, shelfState] in
+            let file = await shelfState.resolveFile(for: resolutionItem)
             guard !Task.isCancelled, let self,
                   self.fileResolutionState.finish(file, generation: generation) else { return }
             if let file {
                 let data = file.refreshedBookmarkData ?? bookmarkData
                 self.item = ShelfItem(id: self.item.id, kind: .file(bookmark: data), isTemporary: self.item.isTemporary)
                 self.draftTitle = file.displayName
-                await self.loadThumbnail()
+                if self.loadsThumbnails { await self.loadThumbnail() }
             }
         }
 
@@ -117,7 +142,7 @@ final class ShelfItemViewModel: ObservableObject {
             guard !Task.isCancelled, let self,
                   self.fileResolutionState.timeOut(generation: generation) else { return }
             if let pendingToken {
-                ShelfStateViewModel.shared.invalidatePendingResolution(
+                shelfState.invalidatePendingResolution(
                     for: resolutionItem.id,
                     bookmarkData: bookmarkData,
                     token: pendingToken
@@ -140,7 +165,7 @@ final class ShelfItemViewModel: ObservableObject {
 
     // MARK: - Drag & Drop helpers
     func dragItemProvider() -> NSItemProvider {
-    let selectedItems = selection.selectedItems(in: ShelfStateViewModel.shared.items)
+    let selectedItems = selection.selectedItems(in: shelfState.items)
         if selectedItems.count > 1 && selectedItems.contains(where: { $0.id == item.id }) {
             return createMultiItemProvider(for: selectedItems)
         }
@@ -151,7 +176,7 @@ final class ShelfItemViewModel: ObservableObject {
         switch item.kind {
         case .file:
             let provider = NSItemProvider()
-            if let url = ShelfStateViewModel.shared.resolvedFileURL(for: item) {
+            if let url = shelfState.resolvedFileURL(for: item) {
                 provider.registerObject(url as NSURL, visibility: .all)
             } else {
                 provider.registerObject(item.displayName as NSString, visibility: .all)
@@ -171,7 +196,7 @@ final class ShelfItemViewModel: ObservableObject {
         for item in items {
             switch item.kind {
             case .file:
-                if let url = ShelfStateViewModel.shared.resolvedFileURL(for: item) {
+                if let url = shelfState.resolvedFileURL(for: item) {
                     urls.append(url)
                 } else {
                     textItems.append(item.displayName)
@@ -197,7 +222,7 @@ final class ShelfItemViewModel: ObservableObject {
     func handleClick(event: NSEvent, view: NSView) {
         let flags = event.modifierFlags
         if flags.contains(.shift) {
-            selection.shiftSelect(to: item, in: ShelfStateViewModel.shared.items)
+            selection.shiftSelect(to: item, in: shelfState.items)
         } else if flags.contains(.command) {
             selection.toggle(item)
         } else if flags.contains(.control) {
@@ -218,7 +243,7 @@ final class ShelfItemViewModel: ObservableObject {
     }
 
     func handleDoubleClick() {
-    let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+    let selected = ShelfSelectionModel.shared.selectedItems(in: shelfState.items)
         for it in selected { ShelfActionService.open(it) }
     }
 
@@ -229,11 +254,11 @@ final class ShelfItemViewModel: ObservableObject {
             if case .text(let text) = item.kind {
                 itemsToShare.append(text)
             } else {
-                for item in ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items) {
+                for item in ShelfSelectionModel.shared.selectedItems(in: shelfState.items) {
                     switch item.kind {
                     case .file:
                         // Use immediate update for user-initiated share action
-                        if let file = await ShelfStateViewModel.shared.resolveFile(
+                        if let file = await shelfState.resolveFile(
                             for: item,
                             intent: .userInitiated,
                             refresh: true
