@@ -20,6 +20,7 @@ struct ContentView: View {
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
+    @ObservedObject private var codexActivity = CodexActivityManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
@@ -40,6 +41,8 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.codexAvatarStyle) private var codexAvatarStyle
+    @Default(.codexActivityEnabled) private var codexActivityEnabled
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -639,20 +642,6 @@ struct ContentView: View {
         )
     }
 
-    @ViewBuilder
-    func BoringFaceAnimation() -> some View {
-        HStack {
-            Rectangle()
-                .fill(.black)
-                .frame(width: vm.closedNotchSize.width + 20)
-            let faceScale = min(1.0, displayClosedNotchHeight / 30.0)
-            AnimatedFace(height: 24.0 * faceScale, width: 30.0 * faceScale)
-        }.frame(
-            height: displayClosedNotchHeight,
-            alignment: .center
-        )
-    }
-
     /// True while the song-change peek is expanding the closed pill inline.
     private var showingInlineMusicPeek: Bool {
         coordinator.expandingView.show
@@ -758,13 +747,17 @@ struct ContentView: View {
                 .frame(width: musicActivityCenterWidth)
 
             HStack {
-                MusicVisualizer(
-                    isPlaying: musicManager.isPlaying,
-                    tintColor: Defaults[.coloredSpectrogram]
-                    ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
-                    : Color.gray
-                )
-                .frame(width: 18, height: 12)
+                if !musicManager.isPlaying && showNotHumanFace {
+                    codexAvatar.scaleEffect(0.8).frame(width: 18, height: 14)
+                } else {
+                    MusicVisualizer(
+                        isPlaying: musicManager.isPlaying,
+                        tintColor: Defaults[.coloredSpectrogram]
+                        ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
+                        : Color.gray
+                    )
+                    .frame(width: 18, height: 12)
+                }
             }
             .frame(
                 width: max(
@@ -1007,6 +1000,33 @@ struct ContentView: View {
         case .open:
             return coordinator.currentView == .home && !musicManager.isPlayerIdle && isHoveringMusicArea
         }
+    }
+}
+
+extension ContentView {
+    @ViewBuilder
+    func BoringFaceAnimation() -> some View {
+        HStack {
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.closedNotchSize.width + 20)
+            let faceScale = min(1.0, displayClosedNotchHeight / 30.0)
+            codexAvatar.scaleEffect(faceScale)
+                .frame(width: 30 * faceScale, height: 24 * faceScale)
+        }.frame(
+            height: displayClosedNotchHeight,
+            alignment: .center
+        )
+    }
+
+    private var effectiveCodexAvatarStyle: CodexAvatarStyle {
+        .selected(manual: codexAvatarStyle, level: codexActivity.level, followsActivity: codexActivityEnabled)
+    }
+
+    private var codexAvatar: some View {
+        CodexStatusAvatarView(style: effectiveCodexAvatarStyle, isActive: codexActivityEnabled && codexActivity.isActive,
+                              speedMultiplier: codexActivityEnabled ? codexActivity.level.speedMultiplier : 1,
+                              phase: codexActivity.phase, statusText: codexActivity.statusText)
     }
 }
 
