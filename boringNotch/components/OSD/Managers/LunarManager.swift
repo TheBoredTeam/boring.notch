@@ -111,7 +111,8 @@ final class LunarManager {
                 value: CGFloat(normalizedBrightness),
                 icon: iconString,
                 accent: accentColor,
-                targetScreenUUID: targetScreenUUID
+                targetScreenUUID: targetScreenUUID,
+                provider: .lunar
             ))
         }
     }

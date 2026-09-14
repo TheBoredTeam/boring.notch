@@ -148,7 +148,16 @@ final class BoringViewCoordinator: ObservableObject {
                 Task { @MainActor in
                     guard let self else { return }
                     switch event {
-                    case .sneakPeek(let type, let value, let icon, let accent, let uuid, let duration):
+                    case .sneakPeek(
+                        let type, let value, let icon, let accent, let uuid, let duration,
+                        let provider
+                    ):
+                        guard Self.shouldPresentSneakPeek(
+                            type: type, provider: provider,
+                            osdReplacement: Defaults[.osdReplacement],
+                            volumeSource: Defaults[.osdVolumeSource],
+                            brightnessSource: Defaults[.osdBrightnessSource])
+                        else { return }
                         self.toggleSneakPeek(
                             status: true, type: type, duration: duration, value: value,
                             icon: icon, accent: accent, targetScreenUUID: uuid)
@@ -222,6 +231,19 @@ final class BoringViewCoordinator: ObservableObject {
 
     // MARK: - Per-Screen Sneak Peek Management
 
+    static func shouldPresentSneakPeek(
+        type: SneakContentType, provider: OSDControlSource?, osdReplacement: Bool,
+        volumeSource: OSDControlSource, brightnessSource: OSDControlSource
+    ) -> Bool {
+        if type != .music && !osdReplacement { return false }
+        guard let provider else { return true }
+        switch type {
+        case .volume: return volumeSource == provider
+        case .brightness: return brightnessSource == provider
+        default: return true
+        }
+    }
+
     // Dictionary to hold sneak peek state for each screen UUID
     @Published var sneakPeekStates: [String: SneakPeekState] = [:]
 
@@ -290,6 +312,9 @@ final class BoringViewCoordinator: ObservableObject {
     }
 
      func applyOSDSources() {
+        // Capability discovery performs a same-value brightness write. Refresh
+        // only through the enabled built-in lifecycle; disabling invalidates it.
+        BrightnessManager.shared.invalidateTopology()
         if NotchSpaceManager.shared.notchSpace.windows.isEmpty {
             BetterDisplayManager.shared.stopObserving()
             LunarManager.shared.stopListening()
