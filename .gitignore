@@ -53,3 +53,6 @@ build/
 *.xcarchive
 *.dSYM
 
+
+# Share the app scheme so Debug tests use an idle host.
+!boringNotch.xcodeproj/xcshareddata/xcschemes/*.xcscheme

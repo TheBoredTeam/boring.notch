@@ -22,20 +22,30 @@ struct DynamicNotchApp: App {
 
     init() {
         #if DEBUG
-        OTPDetector.runSelfCheck()
+        if !ApplicationRuntime.isTestHost {
+            OTPDetector.runSelfCheck()
+        }
         #endif
         let sparkleUpdaterDelegate = BoringSparkleUpdaterDelegate()
         self.sparkleUpdaterDelegate = sparkleUpdaterDelegate
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: sparkleUpdaterDelegate, userDriverDelegate: nil)
+            startingUpdater: !ApplicationRuntime.isTestHost,
+            updaterDelegate: sparkleUpdaterDelegate, userDriverDelegate: nil)
         SoftwareUpdateStore.updater = updaterController.updater
 
         // Initialize the settings window controller with the updater controller
-        SettingsWindowController.shared.setUpdaterController(updaterController)
+        if !ApplicationRuntime.isTestHost {
+            SettingsWindowController.shared.setUpdaterController(updaterController)
+        }
     }
 
     var body: some Scene {
-        MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
+        MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: Binding(
+            get: { !ApplicationRuntime.isTestHost && showMenuBarIcon },
+            set: { value in
+                if !ApplicationRuntime.isTestHost { showMenuBarIcon = value }
+            }
+        )) {
             Button("Settings") {
                 DispatchQueue.main.async {
                     SettingsWindowController.shared.showWindow()
@@ -58,9 +68,23 @@ struct DynamicNotchApp: App {
         }
 
         Window("Notification Debug", id: "notification-debug") {
-            NotificationDebugView()
+            if !ApplicationRuntime.isTestHost {
+                NotificationDebugView()
+            }
         }
     }
+}
+
+/// The shared scheme sets this only for its Debug Test action. Tests can
+/// load app types without starting the user's device and window services.
+enum ApplicationRuntime {
+    static let isTestHost: Bool = {
+        #if DEBUG
+        ProcessInfo.processInfo.environment["BORING_NOTCH_TEST_HOST"] == "1"
+        #else
+        false
+        #endif
+    }()
 }
 
 @MainActor
@@ -78,12 +102,13 @@ final class BoringSparkleUpdaterDelegate: NSObject, SPUUpdaterDelegate {
 /// App-lifecycle glue: shortcuts, onboarding, termination, observer wiring.
 /// All notch-window / per-screen view-model / drag-detector lifecycle lives
 /// in `NotchWindowManager` (see managers/NotchWindowManager.swift).
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
-    var quickShareService = QuickShareService.shared
+    lazy var coordinator = BoringViewCoordinator.shared
+    lazy var quickShareService = QuickShareService.shared
     var closeNotchTask: Task<Void, Never>?
-    private let windowManager = NotchWindowManager.shared
+    private lazy var windowManager = NotchWindowManager.shared
     private var onboardingWindowController: NSWindowController?
     private var screenLockedObserver: Any?
     private var screenUnlockedObserver: Any?
@@ -100,6 +125,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        guard !ApplicationRuntime.isTestHost else { return }
         // Flush debounced shelf persistence to avoid losing recent changes
         ShelfStateViewModel.shared.flushSync()
 
@@ -136,6 +162,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        guard !ApplicationRuntime.isTestHost else { return }
 
         NotificationCenter.default.addObserver(
             self,
