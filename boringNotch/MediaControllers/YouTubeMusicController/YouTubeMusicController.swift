@@ -9,7 +9,6 @@
 import Foundation
 import Combine
 import SwiftUI
-import Defaults
 
 @MainActor
 final class YouTubeMusicController: MediaControllerProtocol {
@@ -35,8 +34,8 @@ final class YouTubeMusicController: MediaControllerProtocol {
         await sendCommand(endpoint: "/like")
     }
 
-    // Each reset replaces the endpoint-bound clients and invalidates every old callback.
-    private var configuration: YouTubeMusicConfiguration
+    // The endpoint is immutable for this controller. Resets retire work from its previous connection.
+    private let configuration: YouTubeMusicConfiguration
     private var httpClient: YouTubeMusicHTTPClient
     private var authManager: YouTubeMusicAuthManager
     private var webSocketClient: (any YouTubeMusicWebSocketConnecting)?
@@ -45,7 +44,6 @@ final class YouTubeMusicController: MediaControllerProtocol {
                                @escaping @Sendable (PearDisconnectReason) async -> Void) -> any YouTubeMusicWebSocketConnecting
     private let appIsRunning: () -> Bool
     private let fetchArtwork: (URL) async throws -> Data
-    private var portObserver: AnyCancellable?
     private var enabled = true
     private var generation: UInt64 = 0
     private var socketID: UUID?
@@ -63,7 +61,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
     private var artworkID: UUID?
 
     init(
-        configuration: YouTubeMusicConfiguration? = nil,
+        configuration: YouTubeMusicConfiguration = .default,
         observeEnvironment: Bool = true,
         startAutomatically: Bool = true,
         makeHTTPClient: @escaping (String) -> YouTubeMusicHTTPClient = { YouTubeMusicHTTPClient(baseURL: $0) },
@@ -74,7 +72,6 @@ final class YouTubeMusicController: MediaControllerProtocol {
         appIsRunning: (() -> Bool)? = nil,
         fetchArtwork: @escaping (URL) async throws -> Data = { try await ImageService.shared.fetchImageData(from: $0) }
     ) {
-        let configuration = configuration ?? YouTubeMusicConfiguration.default.withLoopbackPort(Defaults[.pearAPIPort]) ?? .default
         self.configuration = configuration
         self.makeHTTPClient = makeHTTPClient
         self.makeWebSocket = makeWebSocket
@@ -87,9 +84,6 @@ final class YouTubeMusicController: MediaControllerProtocol {
         }
         if observeEnvironment {
             setupAppStateObserver()
-            portObserver = Defaults.publisher(.pearAPIPort, options: []).sink { [weak self] change in
-                Task { @MainActor [weak self] in self?.configure(port: change.newValue) }
-            }
         }
         if startAutomatically { startConnection() }
     }
@@ -107,20 +101,8 @@ final class YouTubeMusicController: MediaControllerProtocol {
         Task { await auth.invalidateToken(); await socket?.disconnect() }
     }
 
-    @discardableResult
-    func configure(port: Int) -> Bool {
-        guard enabled, let next = configuration.withLoopbackPort(port) else { return false }
-        guard next.baseURL != configuration.baseURL else { return true }
-        configuration = next
-        resetConnection(resetDelay: true)
-        resetPlaybackState()
-        startConnection()
-        return true
-    }
-
     func stopConnection() {
         enabled = false
-        portObserver = nil
         appStateObserver?.cancel()
         appStateObserver = nil
         resetConnection(resetDelay: true)
@@ -193,7 +175,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
     func isActive() -> Bool { enabled && appIsRunning() }
 
     func updatePlaybackInfo() async {
-        guard isActive(), reconnectTask == nil, pollID == nil else { return }
+        guard isActive(), pollID == nil else { return }
         let expected = generation
         let id = UUID()
         pollID = id
@@ -201,6 +183,9 @@ final class YouTubeMusicController: MediaControllerProtocol {
         let auth = authManager
         let http = httpClient
         do {
+            // Socket retry delays must not suspend authenticated HTTP fallback.
+            // Without a credential, let the bounded reconnect own authentication.
+            if reconnectTask != nil, await auth.currentToken == nil { return }
             let token = try await auth.authenticate()
             guard isCurrent(expected) else { return }
             let revision = metadataRevision
@@ -477,11 +462,14 @@ final class YouTubeMusicController: MediaControllerProtocol {
         body: (any Codable & Sendable)? = nil,
         refresh: Bool = true
     ) async {
-        guard isActive(), reconnectTask == nil else { return }
+        guard isActive() else { return }
         let expected = generation
         let auth = authManager
         let http = httpClient
         do {
+            // Socket retry delays must not suspend authenticated HTTP fallback.
+            // Without a credential, let the bounded reconnect own authentication.
+            if reconnectTask != nil, await auth.currentToken == nil { return }
             let token = try await auth.authenticate()
             guard isCurrent(expected) else { return }
             let data = try await http.sendCommand(
@@ -590,7 +578,14 @@ final class YouTubeMusicController: MediaControllerProtocol {
                     guard let self, self.isCurrent(expected), self.artworkID == id else { return }
                     self.playbackState.artwork = data
                     self.artworkFetchTask = nil
-                } catch { /* Artwork is optional. */ }
+                } catch {
+                    guard let self, self.generation == expected, self.artworkID == id else { return }
+                    // A later snapshot can retry this URL. An obsolete failure
+                    // must not retire a newer in-flight or successful image.
+                    self.artworkID = nil
+                    self.artworkURL = nil
+                    self.artworkFetchTask = nil
+                }
             }
         }
     }

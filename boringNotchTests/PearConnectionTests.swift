@@ -11,8 +11,8 @@ private actor PearHTTPProbe {
     var pending: CheckedContinuation<(Int, Data), Never>?
     var hasPendingRequest: Bool { pending != nil }
     func holdNext(_ path: String) { heldPath = path }
-    func releaseHeld(_ json: String) {
-        pending?.resume(returning: (200, Data(json.utf8)))
+    func releaseHeld(_ json: String, status: Int = 200) {
+        pending?.resume(returning: (status, Data(json.utf8)))
         pending = nil
     }
 
@@ -91,15 +91,16 @@ private actor PearArtworkProbe {
     func fetch() async throws -> Data { try await withCheckedThrowingContinuation { pending.append($0) } }
     var count: Int { pending.count }
     func finish(_ index: Int, data: Data) { pending[index].resume(returning: data) }
+    func fail(_ index: Int) { pending[index].resume(throwing: URLError(.timedOut)) }
 }
 
 @MainActor
 final class PearConnectionTests: XCTestCase {
     private var sockets: [PearSocketProbe] = []
 
-    private func makeController(_ http: PearHTTPProbe, fetchArtwork: @escaping (URL) async throws -> Data = { _ in Data() }) -> YouTubeMusicController {
+    private func makeController(_ http: PearHTTPProbe, reconnectDelay: ClosedRange<TimeInterval> = 0.02...0.08, fetchArtwork: @escaping (URL) async throws -> Data = { _ in Data() }) -> YouTubeMusicController {
         PearURLProtocol.handler = { await http.respond($0) }
-        let configuration = YouTubeMusicConfiguration(baseURL: "http://localhost:26538", bundleIdentifier: "fixture.pear", reconnectDelay: 0.02...0.08, updateInterval: 0.01)
+        let configuration = YouTubeMusicConfiguration(baseURL: "http://localhost:26538", bundleIdentifier: "fixture.pear", reconnectDelay: reconnectDelay, updateInterval: 0.01)
         return YouTubeMusicController(
             configuration: configuration, observeEnvironment: false, startAutomatically: false,
             makeHTTPClient: { baseURL in
@@ -125,43 +126,13 @@ final class PearConnectionTests: XCTestCase {
         throw CancellationError()
     }
 
-    func testLoopbackPortValidationAndSharedHTTPWebSocketEndpoint() async throws {
-        XCTAssertNil(YouTubeMusicConfiguration.default.withLoopbackPort(0))
-        XCTAssertNil(YouTubeMusicConfiguration.default.withLoopbackPort(65536))
-        let http = PearHTTPProbe()
-        let controller = makeController(http)
-        defer { controller.stopConnection() }
-        controller.startConnection()
-        try await eventually { controller.playbackState.title == "Fixture" }
-        XCTAssertEqual(sockets.count, 1)
-        let old = sockets[0]
-        XCTAssertFalse(controller.configure(port: 0))
-        XCTAssertTrue(controller.configure(port: 26539))
-        try await eventually { self.sockets.count == 2 && controller.playbackState.title == "Fixture" }
-        let url = await sockets[1].url
-        let token = await sockets[1].token
-        XCTAssertEqual(url?.port, 26539)
-        XCTAssertEqual(url?.host, "localhost")
-        XCTAssertEqual(token, "token-2")
-        await controller.play()
-        let requests = await http.requests
-        let command = try XCTUnwrap(requests.last { $0.url?.path == "/api/v1/play" })
-        XCTAssertEqual(command.url?.port, 26539)
-        XCTAssertEqual(command.value(forHTTPHeaderField: "Authorization"), "Bearer token-2")
-        await old.emit("{\"isPaused\":false,\"title\":\"Obsolete\"}")
-        await old.close(.unauthorized)
-        XCTAssertEqual(controller.playbackState.title, "Fixture")
-        let authCount = await http.authenticationCount
-        XCTAssertEqual(authCount, 2)
-    }
-
     private func flushSubscriberQueue() async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             DispatchQueue.main.async { continuation.resume() }
         }
     }
 
-    func testEndpointResetReachesSubscriberWhileReplacementAuthenticationIsPending() async throws {
+    func testStopReachesSubscriberAndRejectsRetiredSocket() async throws {
         let http = PearHTTPProbe()
         let controller = makeController(http)
         defer { controller.stopConnection() }
@@ -180,9 +151,7 @@ final class PearConnectionTests: XCTestCase {
         let old = try XCTUnwrap(sockets.first)
         await old.emit("{\"isPaused\":false,\"title\":\"Fixture\",\"elapsedSeconds\":42,\"imageSrc\":\"https://fixture.invalid/art.png\"}")
         try await eventually { accepted.last?.artwork != nil && accepted.last?.currentTime == 42 }
-        await http.holdNext("/auth/boringNotch")
-        controller.configure(port: 26539)
-        try await eventually { await http.hasPendingRequest }
+        controller.stopConnection()
         await flushSubscriberQueue()
         let cleared = try XCTUnwrap(accepted.last)
         XCTAssertEqual(cleared.title, "")
@@ -193,8 +162,6 @@ final class PearConnectionTests: XCTestCase {
         await old.emit("{\"isPaused\":false,\"title\":\"Obsolete\"}")
         await flushSubscriberQueue()
         XCTAssertEqual(accepted.last?.title, "")
-        await http.releaseHeld("{\"accessToken\":\"replacement\"}")
-        try await eventually { controller.playbackState.title == "Fixture" }
     }
 
     func testFavoriteReconcilesWhileSocketPositionSupersedesSlowSongResponse() async throws {
@@ -260,6 +227,31 @@ final class PearConnectionTests: XCTestCase {
         }
     }
 
+    func testRejectedMutationIsNotReplayedAndBackoffDoesNotUseRetiredToken() async throws {
+        let http = PearHTTPProbe()
+        let controller = makeController(http, reconnectDelay: 0.15...0.15)
+        defer { controller.stopConnection() }
+        controller.startConnection()
+        try await eventually { controller.playbackState.isFavorite }
+        await http.holdNext("/api/v1/pause")
+        let command = Task { await controller.pause() }
+        try await eventually { await http.hasPendingRequest }
+        await http.releaseHeld("", status: 401)
+        await command.value
+        await controller.pause()
+        await controller.updatePlaybackInfo()
+        let duringBackoff = await http.requests
+        XCTAssertEqual(duringBackoff.filter { $0.url?.path == "/api/v1/pause" }.count, 1)
+        XCTAssertEqual(duringBackoff.filter { $0.url?.path.hasPrefix("/auth/") == true }.count, 1)
+        try await eventually { await http.authenticationCount == 2 && self.sockets.count == 2 }
+        let afterReconnect = await http.requests.filter { $0.url?.path == "/api/v1/pause" }.count
+        XCTAssertEqual(afterReconnect, 1)
+        await controller.pause()
+        let commands = await http.requests.filter { $0.url?.path == "/api/v1/pause" }
+        XCTAssertEqual(commands.count, 2)
+        XCTAssertEqual(commands.last?.value(forHTTPHeaderField: "Authorization"), "Bearer token-2")
+    }
+
     func testPolicyViolationReauthorizesAndStaleSocketCannotReconnect() async throws {
         let http = PearHTTPProbe()
         let controller = makeController(http)
@@ -274,6 +266,84 @@ final class PearConnectionTests: XCTestCase {
         XCTAssertEqual(sockets.count, 2)
         let count = await http.authenticationCount
         XCTAssertEqual(count, 2)
+    }
+
+    func testTransientBackoffPreservesHTTPCommandsManualRefreshAndSingleFlightPolling() async throws {
+        let http = PearHTTPProbe()
+        let controller = makeController(http, reconnectDelay: 30...30)
+        defer { controller.stopConnection() }
+        controller.startConnection()
+        try await eventually { controller.playbackState.isFavorite }
+        await sockets[0].close(.transient)
+        await controller.pause()
+        let commands = await http.requests.filter { $0.url?.path == "/api/v1/pause" }
+        XCTAssertEqual(commands.count, 1)
+        XCTAssertEqual(commands.first?.value(forHTTPHeaderField: "Authorization"), "Bearer token-1")
+        XCTAssertEqual(commands.first?.url?.port, 26538)
+
+        await http.holdNext("/api/v1/song")
+        let manualRefresh = Task { await controller.updatePlaybackInfo() }
+        try await eventually { await http.hasPendingRequest }
+        let before = await http.requests.filter { $0.url?.path == "/api/v1/song" }.count
+        for _ in 0..<10 { await controller.updatePlaybackInfo() }
+        try await Task.sleep(for: .milliseconds(40))
+        let during = await http.requests.filter { $0.url?.path == "/api/v1/song" }.count
+        XCTAssertEqual(during, before)
+        await http.releaseHeld("{\"isPaused\":false,\"title\":\"Fixture\",\"artist\":\"Pear\"}")
+        await manualRefresh.value
+        try await eventually { await http.requests.filter { $0.url?.path == "/api/v1/song" }.count > before }
+        XCTAssertEqual(sockets.count, 1, "The 30-second socket retry must still be pending")
+        let authCount = await http.authenticationCount
+        XCTAssertEqual(authCount, 1)
+    }
+
+    func testFailedArtworkRetriesSameURLOnLaterSnapshot() async throws {
+        let http = PearHTTPProbe()
+        let artwork = PearArtworkProbe()
+        let controller = makeController(http, fetchArtwork: { _ in try await artwork.fetch() })
+        defer { controller.stopConnection() }
+        controller.startConnection()
+        try await eventually { controller.playbackState.isFavorite }
+        let socket = try XCTUnwrap(sockets.first)
+        let snapshot = "{\"isPaused\":false,\"title\":\"Fixture\",\"imageSrc\":\"https://fixture.invalid/art.png\"}"
+        await socket.emit(snapshot)
+        try await eventually { await artwork.count == 1 }
+        await artwork.fail(0)
+        try await eventually {
+            await socket.emit(snapshot)
+            return await artwork.count == 2
+        }
+        await artwork.finish(1, data: Data([2]))
+        try await eventually { controller.playbackState.artwork == Data([2]) }
+        await socket.emit(snapshot)
+        await socket.emit("{\"type\":\"POSITION_CHANGED\",\"position\":5}")
+        let count = await artwork.count
+        XCTAssertEqual(count, 2)
+    }
+
+    func testStaleArtworkFailureCannotClearNewerRequest() async throws {
+        let http = PearHTTPProbe()
+        let artwork = PearArtworkProbe()
+        let controller = makeController(http, fetchArtwork: { _ in try await artwork.fetch() })
+        defer { controller.stopConnection() }
+        controller.startConnection()
+        try await eventually { controller.playbackState.isFavorite }
+        let socket = try XCTUnwrap(sockets.first)
+        await socket.emit("{\"isPaused\":false,\"title\":\"First\",\"imageSrc\":\"https://fixture.invalid/first.png\"}")
+        try await eventually { await artwork.count == 1 }
+        let snapshot = "{\"isPaused\":false,\"title\":\"Second\",\"imageSrc\":\"https://fixture.invalid/second.png\"}"
+        await socket.emit(snapshot)
+        try await eventually { await artwork.count == 2 }
+        await artwork.fail(0)
+        try await Task.sleep(for: .milliseconds(20))
+        await socket.emit(snapshot)
+        let pendingCount = await artwork.count
+        XCTAssertEqual(pendingCount, 2)
+        await artwork.finish(1, data: Data([2]))
+        try await eventually { controller.playbackState.artwork == Data([2]) }
+        await socket.emit(snapshot)
+        let finalCount = await artwork.count
+        XCTAssertEqual(finalCount, 2)
     }
 
     func testTransientDisconnectRetainsCredentialAndStopCancelsReconnect() async throws {
@@ -330,7 +400,7 @@ final class PearConnectionTests: XCTestCase {
         XCTAssertEqual(controller.playbackState.title, "")
     }
 
-    func testSlowPollIsSingleFlightAndCannotPublishAfterEndpointSwitch() async throws {
+    func testSlowPollIsSingleFlightAndCannotPublishAfterStop() async throws {
         let http = PearHTTPProbe()
         await http.holdNext("/api/v1/song")
         let controller = makeController(http)
@@ -340,11 +410,10 @@ final class PearConnectionTests: XCTestCase {
         for _ in 0..<10 { await controller.updatePlaybackInfo() }
         let before = await http.requests.filter { $0.url?.path == "/api/v1/song" }.count
         XCTAssertEqual(before, 1)
-        controller.configure(port: 26539)
-        try await eventually { controller.playbackState.title == "Fixture" }
+        controller.stopConnection()
         await http.releaseHeld("{\"isPaused\":false,\"title\":\"Obsolete\"}")
         try await Task.sleep(for: .milliseconds(20))
-        XCTAssertEqual(controller.playbackState.title, "Fixture")
+        XCTAssertEqual(controller.playbackState.title, "")
     }
 
     func testCommandCompletionAfterStopCannotChangePlayback() async throws {
