@@ -141,7 +141,6 @@ struct VolumeRouteObservation: Equatable {
     let canToggleMute: Bool
     let usesHardwareMute: Bool
     let isInitialSync: Bool
-    let isExternalChange: Bool
 }
 
 /// Synchronous route state machine. The manager serializes calls on its audio
@@ -174,7 +173,7 @@ final class VolumeRouteEngine {
     private(set) var generation: UInt64 = 0
     private var route: Route?
     private var pendingVolume: Intent?
-    private var pendingMute: (generation: UInt64, sequence: UInt64, muted: Bool)?
+    private var outstandingVolumeTarget: Float32?
     private var didSynchronize = false
     private var latestSequence: UInt64 = 0
 
@@ -192,7 +191,7 @@ final class VolumeRouteEngine {
     func switchToDefaultRoute() -> VolumeRouteObservation {
         generation &+= 1
         pendingVolume = nil
-        pendingMute = nil
+        outstandingVolumeTarget = nil
         didSynchronize = false
         latestSequence = 0
         let deviceID = io.defaultOutputDeviceID()
@@ -234,7 +233,7 @@ final class VolumeRouteEngine {
             generation: generation, deviceID: deviceID, readableElements: readable,
             writableElements: writable, muteAuthority: muteAuthority)
         return observation(
-            expectedGeneration: generation, sequence: 0, external: false, initial: true)
+            expectedGeneration: generation, sequence: 0, initial: true)
     }
 
     func queueVolume(
@@ -254,62 +253,72 @@ final class VolumeRouteEngine {
               let intent = pendingVolume, intent.generation == expectedGeneration
         else { return nil }
         pendingVolume = nil
-        writeVolume(intent.target, route: &route)
+        // Keep the latest accepted intent, but permit newer writes even when
+        // a device rounds a no-op and emits no property notification.
+        outstandingVolumeTarget = writeVolume(intent.target, route: &route) ? intent.target : nil
         self.route = route
-        return observation(
-            expectedGeneration: expectedGeneration, sequence: intent.sequence, external: false)
+        // A matching value already visible in HAL acknowledges synchronous and
+        // no-op setters. An old immediate read is not acknowledgement.
+        if let outstandingVolumeTarget,
+           observedVolume(route: route) == outstandingVolumeTarget {
+            self.outstandingVolumeTarget = nil
+        }
+        return observation(expectedGeneration: expectedGeneration, sequence: intent.sequence)
     }
 
     func setMute(
         _ muted: Bool, expectedGeneration: UInt64, sequence: UInt64
     ) -> VolumeRouteObservation? {
-        guard var route, route.generation == expectedGeneration else { return nil }
+        guard let route, route.generation == expectedGeneration else { return nil }
         latestSequence = max(latestSequence, sequence)
         if let pendingVolume, pendingVolume.sequence < sequence {
             self.pendingVolume = nil
         }
-        pendingMute = (expectedGeneration, sequence, muted)
         switch route.muteAuthority {
         case .hardware:
             _ = io.writeMute(deviceID: route.deviceID, muted: muted)
         case .software:
             let target = muted ? Float32(0) : route.restoreVolume
-            writeVolume(target, route: &route)
-            self.route = route
+            _ = queueVolume(target, expectedGeneration: expectedGeneration, sequence: sequence)
+            return flushVolume(expectedGeneration: expectedGeneration)
         case .observedHardware, .unavailable:
-            pendingMute = nil
             return nil
         }
-        pendingMute = nil
         return observation(
-            expectedGeneration: expectedGeneration, sequence: sequence, external: false)
+            expectedGeneration: expectedGeneration, sequence: sequence)
     }
 
     func handlePropertyEvent(
-        deviceID: AudioObjectID, expectedGeneration: UInt64
+        deviceID: AudioObjectID, expectedGeneration: UInt64, volumeChanged: Bool = true
     ) -> VolumeRouteObservation? {
         guard let route, route.deviceID == deviceID, route.generation == expectedGeneration else {
             return nil
         }
-        return observation(
-            expectedGeneration: expectedGeneration, sequence: latestSequence, external: true)
+        if volumeChanged, outstandingVolumeTarget != nil {
+            outstandingVolumeTarget = nil
+            // Do not publish over a newer command still waiting for its flush.
+            if pendingVolume != nil {
+                return flushVolume(expectedGeneration: expectedGeneration)
+            }
+        }
+        return observation(expectedGeneration: expectedGeneration, sequence: latestSequence)
     }
 
     private func observation(
-        expectedGeneration: UInt64, sequence: UInt64, external: Bool, initial: Bool = false
+        expectedGeneration: UInt64, sequence: UInt64, initial: Bool = false
     ) -> VolumeRouteObservation {
         guard let route, route.generation == expectedGeneration else {
             return VolumeRouteObservation(
                 generation: expectedGeneration, sequence: sequence,
                 deviceID: kAudioObjectUnknown, volume: nil, muted: nil, restoreVolume: 0.2,
                 canAdjustVolume: false, canToggleMute: false, usesHardwareMute: false,
-                isInitialSync: initial, isExternalChange: false)
+                isInitialSync: initial)
         }
         let samples = route.readableElements.compactMap { element in
             io.readVolume(deviceID: route.deviceID, element: element).map { (element, $0) }
         }
         let volume = samples.map(\.1).max()
-        let suppressVolume = pendingVolume?.generation == expectedGeneration
+        let suppressVolume = pendingVolume != nil || outstandingVolumeTarget != nil
         var mutableRoute = route
         let muted: Bool?
         switch route.muteAuthority {
@@ -333,12 +342,11 @@ final class VolumeRouteEngine {
             muted = nil
         }
         self.route = mutableRoute
-        let suppressMute = pendingMute?.generation == expectedGeneration
         let wasInitial = initial || !didSynchronize
         didSynchronize = true
         return VolumeRouteObservation(
             generation: expectedGeneration, sequence: sequence, deviceID: route.deviceID,
-            volume: suppressVolume ? nil : volume, muted: suppressMute ? nil : muted,
+            volume: suppressVolume ? nil : volume, muted: muted,
             restoreVolume: mutableRoute.restoreVolume,
             canAdjustVolume: !route.writableElements.isEmpty,
             canToggleMute: {
@@ -351,25 +359,30 @@ final class VolumeRouteEngine {
                 if case .hardware = route.muteAuthority { return true }
                 return false
             }(),
-            isInitialSync: wasInitial,
-            isExternalChange: external && !wasInitial)
+            isInitialSync: wasInitial)
     }
 
-    private func writeVolume(_ target: Float32, route: inout Route) {
+    private func observedVolume(route: Route) -> Float32? {
+        route.readableElements.compactMap {
+            io.readVolume(deviceID: route.deviceID, element: $0)
+        }.max()
+    }
+
+    private func writeVolume(_ target: Float32, route: inout Route) -> Bool {
         let samples = route.writableElements.compactMap { element in
             io.readVolume(deviceID: route.deviceID, element: element).map { (element, $0) }
         }
-        guard samples.count == route.writableElements.count else { return }
+        guard samples.count == route.writableElements.count else { return false }
         let clamped = max(0, min(1, target))
         if route.writableElements == [kAudioObjectPropertyElementMain] {
             if samples[0].1 > 0.0005 {
                 route.restoreVolume = samples[0].1
                 route.restoreChannels = [samples[0].0: samples[0].1]
             }
-            _ = io.writeVolume(
+            guard samples[0].1 != clamped else { return false }
+            return io.writeVolume(
                 deviceID: route.deviceID, element: kAudioObjectPropertyElementMain,
                 value: clamped)
-            return
         }
 
         let currentPeak = samples.map(\.1).max() ?? 0
@@ -382,6 +395,7 @@ final class VolumeRouteEngine {
             ? Dictionary(uniqueKeysWithValues: samples.map { ($0.0, $0.1) })
             : route.restoreChannels
         let profilePeak = profile?.values.max() ?? 0
+        var accepted = false
         for element in route.writableElements {
             let value: Float32
             if clamped == 0 {
@@ -391,8 +405,12 @@ final class VolumeRouteEngine {
             } else {
                 value = clamped
             }
-            _ = io.writeVolume(deviceID: route.deviceID, element: element, value: value)
+            guard samples.first(where: { $0.0 == element })?.1 != value else { continue }
+            if io.writeVolume(deviceID: route.deviceID, element: element, value: value) {
+                accepted = true
+            }
         }
+        return accepted
     }
 }
 
@@ -415,7 +433,8 @@ final class VolumeManager: NSObject, ObservableObject {
     private let audioQueue: DispatchQueue
     private let engine: VolumeRouteEngine
     private let mainDelivery: (@escaping () -> Void) -> Void
-    private var pendingWrite: (generation: UInt64, sequence: UInt64)?
+    private var pendingWriteGeneration: UInt64?
+    private let observesHardware: Bool
     private var writeFlushScheduled = false
     private let writeFlushInterval: TimeInterval
 
@@ -443,6 +462,7 @@ final class VolumeManager: NSObject, ObservableObject {
         mainDelivery: @escaping (@escaping () -> Void) -> Void,
         startAutomatically: Bool = false
     ) {
+        self.observesHardware = startAutomatically
         self.audioQueue = audioQueue
         self.engine = VolumeRouteEngine(io: io)
         self.writeFlushInterval = writeFlushInterval
@@ -522,15 +542,15 @@ final class VolumeManager: NSObject, ObservableObject {
             guard engine.queueVolume(
                 value, expectedGeneration: generation, sequence: sequence)
             else { return }
-            pendingWrite = (generation, sequence)
+            pendingWriteGeneration = generation
             guard !writeFlushScheduled else { return }
             writeFlushScheduled = true
             audioQueue.asyncAfter(deadline: .now() + writeFlushInterval) { [self] in
                 writeFlushScheduled = false
-                guard let pendingWrite else { return }
-                self.pendingWrite = nil
+                guard let pendingWriteGeneration else { return }
+                self.pendingWriteGeneration = nil
                 if let observation = engine.flushVolume(
-                    expectedGeneration: pendingWrite.generation)
+                    expectedGeneration: pendingWriteGeneration)
                 {
                     deliver(observation)
                 }
@@ -563,9 +583,9 @@ final class VolumeManager: NSObject, ObservableObject {
 
     private func rebuildRouteLocked() {
         removeDeviceListenersLocked()
-        pendingWrite = nil
+        pendingWriteGeneration = nil
         let observation = engine.switchToDefaultRoute()
-        attachDeviceListenersLocked(generation: observation.generation)
+        if observesHardware { attachDeviceListenersLocked(generation: observation.generation) }
         deliver(observation)
     }
 
@@ -593,7 +613,8 @@ final class VolumeManager: NSObject, ObservableObject {
         let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
             guard let self,
                   let observation = self.engine.handlePropertyEvent(
-                    deviceID: deviceID, expectedGeneration: generation)
+                    deviceID: deviceID, expectedGeneration: generation,
+                    volumeChanged: selector == kAudioDevicePropertyVolumeScalar)
             else { return }
             self.deliver(observation)
         }

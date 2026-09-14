@@ -80,6 +80,11 @@ final class NotchUIEventTests: XCTestCase {
         XCTAssertFalse(BoringViewCoordinator.shouldPresentSneakPeek(
             type: .volume, provider: .builtin, osdReplacement: false,
             volumeSource: .builtin, brightnessSource: .builtin))
+        for type: SneakContentType in [.mic, .battery, .download] {
+            XCTAssertFalse(BoringViewCoordinator.shouldPresentSneakPeek(
+                type: type, provider: nil, osdReplacement: false,
+                volumeSource: .builtin, brightnessSource: .builtin))
+        }
     }
 }
 

@@ -18,23 +18,8 @@ enum XPCHelperError: Error {
     case transport(underlying: Error)
 }
 
-struct BrightnessHardwareResult: Equatable {
-    let displayID: CGDirectDisplayID
-    let brightness: Float
-}
-
 @MainActor
-protocol BrightnessHardwareControlling: AnyObject {
-    func displayIDForBrightness() async -> CGDirectDisplayID?
-    func currentScreenBrightness(displayID: CGDirectDisplayID) async -> BrightnessHardwareResult?
-    func setScreenBrightness(
-        _ value: Float, displayID: CGDirectDisplayID) async -> BrightnessHardwareResult?
-    func adjustScreenBrightness(
-        by value: Float, displayID: CGDirectDisplayID) async -> BrightnessHardwareResult?
-}
-
-@MainActor
-final class XPCHelperClient: NSObject, ObservableObject, BrightnessHardwareControlling {
+final class XPCHelperClient: NSObject, ObservableObject {
     nonisolated static let shared = XPCHelperClient()
 
     nonisolated private override init() {
@@ -267,17 +252,15 @@ final class XPCHelperClient: NSObject, ObservableObject, BrightnessHardwareContr
     
     // MARK: - Screen Brightness
     
-    func currentScreenBrightness(displayID: CGDirectDisplayID) async -> BrightnessHardwareResult? {
+    func currentScreenBrightness() async -> Float? {
         do {
             let service = ensureRemoteService()
-            let result: (NSNumber?, NSNumber?) = try await service.withContinuation { service, continuation in
-                service.currentScreenBrightness(forDisplayID: NSNumber(value: displayID)) { id, value in
-                    continuation.resume(returning: (id, value))
+            let result: NSNumber? = try await service.withContinuation { service, continuation in
+                service.currentScreenBrightness { value in
+                    continuation.resume(returning: value)
                 }
             }
-            guard let id = result.0, let value = result.1 else { return nil }
-            return BrightnessHardwareResult(
-                displayID: CGDirectDisplayID(id.uint32Value), brightness: value.floatValue)
+            return result?.floatValue
         } catch {
             lastError = .transport(underlying: error)
             return nil
@@ -300,38 +283,28 @@ final class XPCHelperClient: NSObject, ObservableObject, BrightnessHardwareContr
         }
     }
     
-    func setScreenBrightness(
-        _ value: Float, displayID: CGDirectDisplayID
-    ) async -> BrightnessHardwareResult? {
+    func setScreenBrightness(_ value: Float) async -> Bool {
         do {
             let service = ensureRemoteService()
-            let result: (NSNumber?, NSNumber?) = try await service.withContinuation { service, continuation in
-                service.setScreenBrightness(value, forDisplayID: NSNumber(value: displayID)) { id, value in
-                    continuation.resume(returning: (id, value))
+            return try await service.withContinuation { service, continuation in
+                service.setScreenBrightness(value) { success in
+                    continuation.resume(returning: success)
                 }
             }
-            guard let id = result.0, let value = result.1 else { return nil }
-            return BrightnessHardwareResult(
-                displayID: CGDirectDisplayID(id.uint32Value), brightness: value.floatValue)
         } catch {
             lastError = .transport(underlying: error)
-            return nil
+            return false
         }
     }
-
-    func adjustScreenBrightness(
-        by value: Float, displayID: CGDirectDisplayID
-    ) async -> BrightnessHardwareResult? {
+    /// Returns the resulting brightness, or nil on failure.
+    func adjustScreenBrightness(by value: Float) async -> Float? {
         do {
             let service = ensureRemoteService()
-            let result: (NSNumber?, NSNumber?) = try await service.withContinuation { service, continuation in
-                service.adjustScreenBrightness(by: value, forDisplayID: NSNumber(value: displayID)) { id, value in
-                    continuation.resume(returning: (id, value))
+            return try await service.withContinuation { service, continuation in
+                service.adjustScreenBrightness(by: value) { result in
+                    continuation.resume(returning: result?.floatValue)
                 }
             }
-            guard let id = result.0, let value = result.1 else { return nil }
-            return BrightnessHardwareResult(
-                displayID: CGDirectDisplayID(id.uint32Value), brightness: value.floatValue)
         } catch {
             lastError = .transport(underlying: error)
             return nil
@@ -606,4 +579,5 @@ extension Notification.Name {
     static let systemNotificationDidAppear = Notification.Name("systemNotificationDidAppear")
     static let systemNotificationDidDisappear = Notification.Name("systemNotificationDidDisappear")
 }
+
 

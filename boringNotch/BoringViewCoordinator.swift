@@ -18,13 +18,6 @@ enum SneakContentType {
     case mic
     case battery
     case download
-
-    var isSystemOSD: Bool {
-        switch self {
-        case .brightness, .volume, .backlight: true
-        case .music, .mic, .battery, .download: false
-        }
-    }
 }
 
 struct SneakPeekState {
@@ -236,7 +229,7 @@ final class BoringViewCoordinator: ObservableObject {
         type: SneakContentType, provider: OSDControlSource?, osdReplacement: Bool,
         volumeSource: OSDControlSource, brightnessSource: OSDControlSource
     ) -> Bool {
-        if type.isSystemOSD && !osdReplacement { return false }
+        if type != .music && !osdReplacement { return false }
         guard let provider else { return true }
         switch type {
         case .volume: return volumeSource == provider
@@ -255,7 +248,7 @@ final class BoringViewCoordinator: ObservableObject {
         status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0,
         icon: String = "", accent: Color? = nil, targetScreenUUID: String? = nil
     ) {
-        if type.isSystemOSD {
+        if type != .music {
             // close()
             if !Defaults[.osdReplacement] {
                 return
