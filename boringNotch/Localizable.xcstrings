@@ -1,6 +1,93 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    " (default)" : {
+
+    },
+    "Actual Size" : {
+
+    },
+    "All Applications" : {
+
+    },
+    "Always Open With" : {
+
+    },
+    "Audio output" : {
+
+    },
+    "Backward 15s" : {
+
+    },
+    "Choose Application" : {
+
+    },
+    "Choose an application to open the document \"%@\"." : {
+
+    },
+    "Compression:" : {
+
+    },
+    "Convert" : {
+
+    },
+    "Convert Image" : {
+
+    },
+    "Custom..." : {
+
+    },
+    "Empty slot" : {
+
+    },
+    "Enable:" : {
+
+    },
+    "Favorite" : {
+
+    },
+    "Format:" : {
+
+    },
+    "Forward 15s" : {
+
+    },
+    "Image Size:" : {
+
+    },
+    "Large" : {
+
+    },
+    "Next" : {
+
+    },
+    "OK" : {
+
+    },
+    "Play/Pause" : {
+
+    },
+    "Preserve Metadata" : {
+
+    },
+    "Previous" : {
+
+    },
+    "Recommended Applications" : {
+
+    },
+    "Repeat" : {
+
+    },
+    "Shuffle" : {
+
+    },
+    "Small" : {
+
+    },
+    "e.g., 1920" : {
+
+    },
     "" : {
       "localizations" : {
         "en" : {

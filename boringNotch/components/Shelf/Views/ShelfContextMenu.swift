@@ -127,7 +127,7 @@ static func present(
                     .font: NSFont.menuFont(ofSize: 0),
                     .foregroundColor: NSColor.labelColor
                 ])
-                let defaultPart = NSAttributedString(string: " (default)", attributes: [
+                let defaultPart = NSAttributedString(string: String(localized: " (default)"), attributes: [
                     .font: NSFont.menuFont(ofSize: 0),
                     .foregroundColor: NSColor.secondaryLabelColor
                 ])
@@ -495,9 +495,9 @@ private final class MenuActionTarget: NSObject {
         guard let fileURL = targetURL else { return }
 
         let panel = NSOpenPanel()
-        panel.title = "Choose Application"
-        panel.message = "Choose an application to open the document \"\(item.displayName)\"."
-        panel.prompt = "Open"
+        panel.title = String(localized: "Choose Application")
+        panel.message = String(localized: "Choose an application to open the document \"\(item.displayName)\".")
+        panel.prompt = String(localized: "Open")
         panel.allowsMultipleSelection = false
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
@@ -550,20 +550,20 @@ private final class MenuActionTarget: NSObject {
         let chooserDelegate = AppChooserDelegate(recommended: recommendedApps)
         panel.delegate = chooserDelegate
 
-        let enableLabel = NSTextField(labelWithString: "Enable:")
+        let enableLabel = NSTextField(labelWithString: String(localized: "Enable:"))
         enableLabel.font = .systemFont(ofSize: NSFont.systemFontSize)
         enableLabel.alignment = .natural
         enableLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         
         let popup = NSPopUpButton(frame: .zero, pullsDown: false)
-        popup.addItems(withTitles: ["Recommended Applications", "All Applications"])
+        popup.addItems(withTitles: [String(localized: "Recommended Applications"), String(localized: "All Applications")])
         popup.font = .systemFont(ofSize: NSFont.systemFontSize)
         popup.selectItem(at: 0)
         
         popup.setContentHuggingPriority(.defaultLow, for: .horizontal)
         popup.widthAnchor.constraint(greaterThanOrEqualToConstant: 200).isActive = true
         
-        let alwaysCheckbox = NSButton(checkboxWithTitle: "Always Open With", target: nil, action: nil)
+        let alwaysCheckbox = NSButton(checkboxWithTitle: String(localized: "Always Open With"), target: nil, action: nil)
         alwaysCheckbox.font = .systemFont(ofSize: NSFont.systemFontSize)
         alwaysCheckbox.setContentHuggingPriority(.defaultLow, for: .horizontal)
 
@@ -750,17 +750,17 @@ private final class MenuActionTarget: NSObject {
         
         // Create and show conversion options dialog with better layout
         let alert = NSAlert()
-        alert.messageText = "Convert Image"
+        alert.messageText = String(localized: "Convert Image")
         alert.alertStyle = .informational
-        alert.addButton(withTitle: "Convert")
-        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: String(localized: "Convert"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
         
         // Create accessory view with better spacing and organization
         let accessoryView = NSView(frame: NSRect(x: 0, y: 0, width: 380, height: 180))
         accessoryView.wantsLayer = true
         
         // MARK: Format Row
-        let formatLabel = NSTextField(labelWithString: "Format:")
+        let formatLabel = NSTextField(labelWithString: String(localized: "Format:"))
         formatLabel.frame = NSRect(x: 0, y: 145, width: 100, height: 20)
         formatLabel.font = .systemFont(ofSize: 12, weight: .medium)
         accessoryView.addSubview(formatLabel)
@@ -772,26 +772,26 @@ private final class MenuActionTarget: NSObject {
         accessoryView.addSubview(formatPopup)
         
         // MARK: Image Size Row
-        let imageSizeLabel = NSTextField(labelWithString: "Image Size:")
+        let imageSizeLabel = NSTextField(labelWithString: String(localized: "Image Size:"))
         imageSizeLabel.frame = NSRect(x: 0, y: 105, width: 100, height: 20)
         imageSizeLabel.font = .systemFont(ofSize: 12, weight: .medium)
         accessoryView.addSubview(imageSizeLabel)
         
         let imageSizePopup = NSPopUpButton(frame: NSRect(x: 120, y: 100, width: 160, height: 28))
-        imageSizePopup.addItems(withTitles: ["Actual Size", "Large", "Medium", "Small", "Custom..."])
+        imageSizePopup.addItems(withTitles: [String(localized: "Actual Size"), String(localized: "Large"), String(localized: "Medium"), String(localized: "Small"), String(localized: "Custom...")])
         imageSizePopup.selectItem(at: 0)
         imageSizePopup.font = .systemFont(ofSize: 12)
         accessoryView.addSubview(imageSizePopup)
         
         // Custom size field (initially hidden)
         let customSizeField = NSTextField(frame: NSRect(x: 285, y: 103, width: 85, height: 22))
-        customSizeField.placeholderString = "e.g., 1920"
+        customSizeField.placeholderString = String(localized: "e.g., 1920")
         customSizeField.font = .systemFont(ofSize: 12)
         customSizeField.isHidden = true
         accessoryView.addSubview(customSizeField)
         
         // MARK: Preserve Metadata Checkbox
-        let metadataCheckbox = NSButton(checkboxWithTitle: "Preserve Metadata", target: nil, action: nil)
+        let metadataCheckbox = NSButton(checkboxWithTitle: String(localized: "Preserve Metadata"), target: nil, action: nil)
         metadataCheckbox.frame = NSRect(x: 120, y: 65, width: 200, height: 20)
         metadataCheckbox.font = .systemFont(ofSize: 12)
         metadataCheckbox.state = .on
@@ -807,7 +807,7 @@ private final class MenuActionTarget: NSObject {
         let qualityRow = NSView(frame: NSRect(x: 0, y: 15, width: 380, height: 30))
         qualityRow.wantsLayer = true
         
-        let qualityLabel = NSTextField(labelWithString: "Compression:")
+        let qualityLabel = NSTextField(labelWithString: String(localized: "Compression:"))
         qualityLabel.frame = NSRect(x: 0, y: 7, width: 100, height: 20)
         qualityLabel.font = .systemFont(ofSize: 12, weight: .medium)
         qualityRow.addSubview(qualityLabel)
@@ -818,16 +818,15 @@ private final class MenuActionTarget: NSObject {
         qualitySlider.doubleValue = 0.85
         accessoryView.addSubview(qualitySlider)
         
-        let qualityValueLabel = NSTextField(labelWithString: "85%")
+        let qualityValueLabel = NSTextField(labelWithString: 0.85.formatted(.percent.precision(.fractionLength(0))))
         qualityValueLabel.frame = NSRect(x: 325, y: 7, width: 55, height: 20)
         qualityValueLabel.font = .systemFont(ofSize: 12)
-        qualityValueLabel.alignment = .left
+        qualityValueLabel.alignment = .natural
         accessoryView.addSubview(qualityValueLabel)
         
         // Update quality label and hide/show compression row based on format
         let updateQualityLabel = {
-            let value = Int(qualitySlider.doubleValue * 100)
-            qualityValueLabel.stringValue = "\(value)%"
+            qualityValueLabel.stringValue = qualitySlider.doubleValue.formatted(.percent.precision(.fractionLength(0)))
         }
         
         let updateCompressionVisibility = {
@@ -956,7 +955,7 @@ private final class MenuActionTarget: NSObject {
         alert.messageText = title
         alert.informativeText = message
         alert.alertStyle = .warning
-        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: String(localized: "OK"))
         alert.runModal()
     }
 }
