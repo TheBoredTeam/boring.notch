@@ -105,8 +105,14 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
     private let dependencies: Dependencies
     private let sessionQueue: DispatchQueue
     private let intent = CameraSessionIntent()
-    private var captureSession: AVCaptureSession?
-    private var activeDeviceID: String?
+    private struct ConfiguredSession {
+        let session: AVCaptureSession
+        let preferredCameraID: String?
+        let deviceID: String?
+    }
+
+    // Installed capture metadata stays with the session it describes, on sessionQueue.
+    private var configuredSession: ConfiguredSession?
     private var pendingStartCompletions: [(SessionStartResult) -> Void] = []
     private var notificationTokens: [(NotificationCenter, NSObjectProtocol)] = []
 
@@ -153,8 +159,8 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
             center.removeObserver(token)
         }
         intent.requestStop()
-        if captureSession?.isRunning == true {
-            captureSession?.stopRunning()
+        if configuredSession?.session.isRunning == true {
+            configuredSession?.session.stopRunning()
         }
     }
 
@@ -352,7 +358,10 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         reuseExistingSession: Bool
     ) {
         guard intent.isCurrent(operation), dependencies.authorizationStatus() == .authorized else { return }
-        if reuseExistingSession, let session = captureSession {
+        if reuseExistingSession,
+           let configuredSession,
+           configuredSession.preferredCameraID == operation.preferredCameraID {
+            let session = configuredSession.session
             if !session.isRunning { session.startRunning() }
             guard intent.isCurrent(operation) else {
                 cleanupExistingSession()
@@ -372,8 +381,11 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
             let activeDeviceID = try dependencies.configureSession(session, devices, operation.preferredCameraID)
 
             guard intent.isCurrent(operation), dependencies.authorizationStatus() == .authorized else { return }
-            captureSession = session
-            self.activeDeviceID = activeDeviceID
+            configuredSession = ConfiguredSession(
+                session: session,
+                preferredCameraID: operation.preferredCameraID,
+                deviceID: activeDeviceID
+            )
             session.startRunning()
 
             guard intent.isCurrent(operation), session.isRunning else {
@@ -434,10 +446,7 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
     }
 
     private func cleanupExistingSession() {
-        guard let existingSession = captureSession else {
-            activeDeviceID = nil
-            return
-        }
+        guard let existingSession = configuredSession?.session else { return }
 
         if existingSession.isRunning {
             existingSession.stopRunning()
@@ -447,8 +456,7 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         existingSession.inputs.forEach(existingSession.removeInput)
         existingSession.outputs.forEach(existingSession.removeOutput)
         existingSession.commitConfiguration()
-        captureSession = nil
-        activeDeviceID = nil
+        configuredSession = nil
     }
 
     private func resumeSession(_ current: CameraSessionIntent.Operation) {
@@ -509,7 +517,7 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         guard let disconnectedDevice = notification.object as? AVCaptureDevice else { return }
         sessionQueue.async { [weak self] in
             guard let self,
-                  self.activeDeviceID == disconnectedDevice.uniqueID,
+                  self.configuredSession?.deviceID == disconnectedDevice.uniqueID,
                   let operation = self.intent.current,
                   self.intent.isCurrent(operation) else { return }
             self.cleanupExistingSession()
@@ -528,7 +536,7 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
             guard let self,
                   let operation = self.intent.current,
                   self.intent.isCurrent(operation),
-                  let session = self.captureSession else { return }
+                  let session = self.configuredSession?.session else { return }
             if session.isRunning {
                 session.stopRunning()
             }
@@ -540,7 +548,7 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         guard let failedSession = notification.object as? AVCaptureSession else { return }
         sessionQueue.async { [weak self] in
             guard let self,
-                  failedSession === self.captureSession,
+                  failedSession === self.configuredSession?.session,
                   let operation = self.intent.current,
                   self.intent.isCurrent(operation) else { return }
             guard let replacement = self.intent.replace(operation, preferredCameraID: operation.preferredCameraID) else { return }
@@ -552,7 +560,7 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         guard let interruptedSession = notification.object as? AVCaptureSession else { return }
         sessionQueue.async { [weak self] in
             guard let self,
-                  interruptedSession === self.captureSession,
+                  interruptedSession === self.configuredSession?.session,
                   let operation = self.intent.current else { return }
             self.publishStoppedSession(operation: operation)
         }
@@ -562,7 +570,7 @@ final class WebcamManager: NSObject, ObservableObject, @unchecked Sendable {
         guard let resumedSession = notification.object as? AVCaptureSession else { return }
         sessionQueue.async { [weak self] in
             guard let self,
-                  resumedSession === self.captureSession,
+                  resumedSession === self.configuredSession?.session,
                   let operation = self.intent.current else { return }
             self.resumeSession(operation)
         }
