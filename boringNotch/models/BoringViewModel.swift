@@ -32,14 +32,15 @@ final class BoringViewModel: NSObject, ObservableObject {
     @Published var closedNotchSize: CGSize = getClosedNotchSize()
     
     let webcamManager = WebcamManager.shared
+    let cameraSessionOwnerID = UUID()
     @Published var isCameraExpanded: Bool = false
-    @Published var isRequestingAuthorization: Bool = false
     
     deinit {
-        destroy()
+        webcamManager.releaseSession(owner: cameraSessionOwnerID)
     }
 
     func destroy() {
+        webcamManager.releaseSession(owner: cameraSessionOwnerID)
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
     }
@@ -54,6 +55,12 @@ final class BoringViewModel: NSObject, ObservableObject {
         closedNotchSize = notchSize
 
         setupDetectorObserver()
+        webcamManager.$sessionOwner
+            .sink { [weak self] owner in
+                guard let self, owner != self.cameraSessionOwnerID else { return }
+                self.isCameraExpanded = false
+            }
+            .store(in: &cancellables)
     }
     
     private func setupDetectorObserver() {
@@ -122,18 +129,21 @@ final class BoringViewModel: NSObject, ObservableObject {
     }
 
     func toggleCameraPreview() {
-        if isRequestingAuthorization {
+        if webcamManager.ownsSession(cameraSessionOwnerID) {
+            webcamManager.stopSession(owner: cameraSessionOwnerID)
+            isCameraExpanded = false
             return
         }
 
         switch webcamManager.refreshAuthorizationStatus() {
-        case .authorized:
-            if webcamManager.isSessionRunning {
-                webcamManager.stopSession()
-                isCameraExpanded = false
-            } else if webcamManager.cameraAvailable {
-                webcamManager.startSession()
-                isCameraExpanded = true
+        case .authorized, .notDetermined:
+            webcamManager.startSession(owner: cameraSessionOwnerID) { [weak self] result in
+                guard let self else { return }
+                if result == .started && self.webcamManager.ownsSession(self.cameraSessionOwnerID) {
+                    self.isCameraExpanded = true
+                } else if result != .cancelled {
+                    self.isCameraExpanded = false
+                }
             }
 
         case .denied, .restricted:
@@ -156,15 +166,7 @@ final class BoringViewModel: NSObject, ObservableObject {
                 NSApp.setActivationPolicy(.accessory)
                 NSApp.deactivate()
             }
-
-        case .notDetermined:
-            isRequestingAuthorization = true
-            webcamManager.checkAndRequestVideoAuthorization()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                self.isRequestingAuthorization = false
-            }
-
-        default:
+        @unknown default:
             break
         }
     }
@@ -203,6 +205,8 @@ final class BoringViewModel: NSObject, ObservableObject {
         self.notchSize = getClosedNotchSize(screenUUID: self.screenUUID)
         self.closedNotchSize = self.notchSize
         self.notchState = .closed
+        self.webcamManager.stopSession(owner: cameraSessionOwnerID)
+        self.isCameraExpanded = false
         self.isBatteryPopoverActive = false
         if self.coordinator.shouldShowSneakPeek(on: self.screenUUID) {
             self.coordinator.toggleSneakPeek(status: false, type: .music, targetScreenUUID: self.screenUUID)
