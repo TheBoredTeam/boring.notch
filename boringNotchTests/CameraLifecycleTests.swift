@@ -318,6 +318,87 @@ final class CameraLifecycleTests: XCTestCase {
         XCTAssertEqual(factory.preferredIDs[0], "selected-device")
     }
 
+    func testQueuedSelectionReplacesConfiguredCamera() {
+        assertQueuedSelectionSurvivesRecovery {}
+    }
+
+    func testQueuedSelectionSurvivesWake() {
+        assertQueuedSelectionSurvivesRecovery {
+            workspaceNotificationCenter.post(name: NSWorkspace.didWakeNotification, object: nil)
+        }
+    }
+
+    func testQueuedSelectionSurvivesDeviceConnection() {
+        assertQueuedSelectionSurvivesRecovery {
+            notificationCenter.post(name: AVCaptureDevice.wasConnectedNotification, object: nil)
+        }
+    }
+
+    private func assertQueuedSelectionSurvivesRecovery(_ recover: () -> Void) {
+        let factory = SessionFactory()
+        let manager = makeManager(
+            permission: PermissionStub(status: .authorized),
+            factory: factory,
+            selectedCameraID: "camera-A"
+        )
+        let owner = UUID()
+        manager.startSession(owner: owner)
+        waitUntil { manager.isSessionRunning }
+        let firstSession = factory.sessions[0]
+
+        // Submit selection and recovery while unrelated serial work holds the queue.
+        // Recovery must not publish camera A under camera B's requested preference.
+        let queueBlocked = DispatchSemaphore(value: 0)
+        let releaseQueue = DispatchSemaphore(value: 0)
+        sessionQueue.async {
+            queueBlocked.signal()
+            releaseQueue.wait()
+        }
+        XCTAssertEqual(queueBlocked.wait(timeout: .now() + 1), .success)
+        manager.setSelectedCamera(id: "camera-B")
+        recover()
+        releaseQueue.signal()
+        sessionQueue.sync {}
+        waitUntil { manager.previewLayer?.session !== firstSession }
+
+        XCTAssertEqual(manager.selectedCameraID, "camera-B")
+        XCTAssertEqual(factory.preferredIDs, ["camera-A", "camera-B"])
+        XCTAssertEqual(factory.sessions.count, 2)
+        XCTAssertFalse(firstSession.isRunning)
+        XCTAssertTrue(manager.ownsSession(owner))
+        XCTAssertTrue(manager.isSessionRunning)
+        XCTAssertTrue(manager.previewLayer?.session === factory.sessions.last)
+        XCTAssertEqual(factory.sessions.last?.isRunning, true)
+
+        manager.stopSession(owner: owner)
+        sessionQueue.sync {}
+        XCTAssertTrue(factory.sessions.allSatisfy { !$0.isRunning })
+    }
+
+    func testDeviceConnectionReusesMatchingConfiguredCamera() {
+        let factory = SessionFactory()
+        let manager = makeManager(
+            permission: PermissionStub(status: .authorized),
+            factory: factory,
+            selectedCameraID: "camera-A"
+        )
+        manager.startSession()
+        waitUntil { manager.isSessionRunning }
+        let firstSession = factory.sessions[0]
+
+        notificationCenter.post(name: AVCaptureDevice.wasConnectedNotification, object: nil)
+        sessionQueue.sync {}
+
+        XCTAssertEqual(factory.preferredIDs, ["camera-A"])
+        XCTAssertEqual(factory.sessions.count, 1)
+        XCTAssertTrue(firstSession.isRunning)
+        XCTAssertEqual(firstSession.startCount, 1)
+        XCTAssertTrue(manager.previewLayer?.session === firstSession)
+        manager.stopSession()
+        sessionQueue.sync {}
+        XCTAssertFalse(firstSession.isRunning)
+    }
+
     func testRecoveryAndSelectionWaitForPendingAuthorization() {
         let permission = PermissionStub(status: .notDetermined)
         let factory = SessionFactory()
