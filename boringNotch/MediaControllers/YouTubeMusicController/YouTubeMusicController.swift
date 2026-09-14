@@ -528,7 +528,8 @@ final class YouTubeMusicController: MediaControllerProtocol {
     private func resetPlaybackState() {
         playbackState = PlaybackState(
             bundleIdentifier: configuration.bundleIdentifier,
-            isPlaying: false
+            isPlaying: false,
+            lastUpdated: Date()
         )
     }
     

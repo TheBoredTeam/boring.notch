@@ -420,6 +420,10 @@ final class SystemNotificationManager: ObservableObject {
     // MARK: - Acting
 
     enum ReplyOutcome {
+        /// Copy for the indeterminate delivery state. The UI must not present
+        /// this as a retryable send failure.
+        static let deliveryUnconfirmedMessage = "Delivery unconfirmed"
+
         /// Delivered through the live banner's reply field.
         case sent
         /// The banner was gone, so the draft went to the clipboard and the
@@ -429,19 +433,19 @@ final class SystemNotificationManager: ObservableObject {
         /// box. Better than the clipboard, but still not sent — the user
         /// presses send themselves.
         case draftedInApp
-        /// The reply couldn't be delivered in time. The draft is preserved
-        /// and surfaced as an error so the user can retry or handle it
-        /// themselves — never silently stuck on "sending".
+        /// The banner reply deadline elapsed before its result was known.
+        /// The draft remains intact and must not be retried automatically,
+        /// because the helper may still deliver the original reply late.
+        case unknown
+        /// The reply definitively could not be delivered. The draft is
+        /// preserved and surfaced as an error so the user can retry or
+        /// handle it themselves.
         case failed
     }
 
-    /// iMessage/AX delivery attempts can stall on an unresponsive Messages
-    /// process or a wedged XPC reply; race them so the UI always resolves.
-    /// Notifications-banner replies are nearly free; iMessage scripting is
-    /// expensive (Messages.app cold-launch can take seconds), so each stage
-    /// gets its own budget instead of one shared race.
+    /// A banner reply can stall on a wedged XPC callback; race it so the UI
+    /// resolves without attempting a second send after an uncertain result.
     private let bannerReplyTimeout: TimeInterval = 2.0
-    private let imessageScriptTimeout: TimeInterval = 4.0
 
     /// Sends an inline reply.
     ///
@@ -450,35 +454,71 @@ final class SystemNotificationManager: ObservableObject {
     /// The helper retains elements after their banner fades (the
     /// notification lives on in Notification Center), which is what makes
     /// replying work beyond the ~5s banner. If it genuinely can't be
-    /// reached, hand off rather than dropping a typed message: the draft
-    /// goes to the clipboard and the app opens so it's one paste away.
+    /// reached, Messages keeps the draft and reports failure. Other apps
+    /// can open a draft or hand off through the clipboard.
     @discardableResult
     func reply(to notification: SystemNotification, text: String) async -> ReplyOutcome {
         await performReply(to: notification, text: text)
     }
 
-    /// Races an operation against a timeout; whichever resolves first wins.
-    private func raceTimeout<T: Sendable>(
-        seconds: TimeInterval, fallback: T,
-        operation: @escaping @Sendable () async -> T
-    ) async -> T {
-        await withTaskGroup(of: T.self) { group in
-            group.addTask { await operation() }
-            group.addTask {
-                try? await Task.sleep(for: .seconds(seconds))
-                return fallback
-            }
-            let result = await group.next() ?? fallback
-            group.cancelAll()
-            return result
+    /// Coordinates an operation and deadline without making either task a
+    /// structured child of this function. A cancelled XPC continuation may
+    /// never resume, so a task group would still wait for it while exiting.
+    private actor TimeoutRace<Result: Sendable> {
+        private var result: Result?
+        private var resolved = false
+        private var continuation: CheckedContinuation<Result?, Never>?
+
+        func resolve(_ result: Result?) {
+            guard !resolved else { return }
+            resolved = true
+            self.result = result
+            continuation?.resume(returning: result)
+            continuation = nil
         }
+
+        func wait() async -> Result? {
+            if resolved { return result }
+            return await withCheckedContinuation { continuation in
+                if resolved {
+                    continuation.resume(returning: result)
+                } else {
+                    self.continuation = continuation
+                }
+            }
+        }
+    }
+
+    /// Races an operation against a timeout; whichever resolves first wins.
+    /// The losing task is cancelled but never awaited, so a non-cooperative
+    /// XPC callback cannot postpone the deadline result.
+    private func raceTimeout<T: Sendable>(
+        seconds: TimeInterval,
+        operation: @escaping @Sendable () async -> T
+    ) async -> T? {
+        let race = TimeoutRace<T>()
+        let operationTask = Task {
+            await race.resolve(await operation())
+        }
+        let timeoutTask = Task {
+            do {
+                try? await Task.sleep(for: .seconds(seconds))
+                guard !Task.isCancelled else { return }
+                await race.resolve(nil)
+            }
+        }
+        defer {
+            operationTask.cancel()
+            timeoutTask.cancel()
+        }
+        return await race.wait()
     }
 
     private func performReply(to notification: SystemNotification, text: String) async -> ReplyOutcome {
         // Stage 1 — the banner's own reply field (native, cheap). nil means
         // the attempt stalled: do NOT cross-deliver through another channel
         // — the message may already have gone through.
-        let bannerDelivered: Bool? = await raceTimeout(seconds: bannerReplyTimeout, fallback: nil) {
+        let bannerDelivered = await raceTimeout(seconds: bannerReplyTimeout) {
             await XPCHelperClient.shared.replyToNotification(token: notification.id, text: text)
         }
         if bannerDelivered == true {
@@ -489,28 +529,12 @@ final class SystemNotificationManager: ObservableObject {
         }
         if bannerDelivered == nil {
             NSLog("[boringNotch] reply attempt timed out at the banner for \(notification.appName ?? "-")")
-            return .failed
+            return .unknown
         }
 
-        // The banner is gone, so AX can't deliver. Messages is the one
-        // supported app that can still be sent to properly — it has a real
-        // scripting dictionary, so the reply goes out for real instead of
-        // becoming a clipboard hand-off. Nothing equivalent exists for
-        // WhatsApp/Telegram/Discord.
-        if notification.bundleID == "com.apple.MobileSMS",
-           let chatName = notification.sender,
-           await raceTimeout(seconds: imessageScriptTimeout, fallback: false, operation: {
-               await XPCHelperClient.shared.sendIMessage(text, toChatNamed: chatName)
-           }) {
-            NSLog("[boringNotch] reply sent via Messages scripting for \(chatName)")
-            playSentSound()
-            dismissActive(token: notification.id)
-            return .sent
-        }
-
-        // iMessage delivery definitively failed — surface the error, keep
-        // the user's draft, and let them handle it directly in Messages
-        // (no silent clipboard gymnastics).
+        // A display name does not identify the originating Messages chat.
+        // Preserve the draft and report failure instead of guessing a
+        // recipient or handing the text to the clipboard.
         if notification.bundleID == "com.apple.MobileSMS" {
             return .failed
         }
@@ -523,13 +547,9 @@ final class SystemNotificationManager: ObservableObject {
         if notification.bundleID == "net.whatsapp.WhatsApp",
            let sender = notification.sender,
            let phone = await ContactAvatarManager.shared.phoneNumber(forContactNamed: sender),
-           let encoded = text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-           // whatsapp:// rather than wa.me — the scheme is registered to
-           // WhatsApp.app directly, so it opens the app instead of bouncing
-           // the message text through a browser.
-           let url = URL(string: "whatsapp://send?phone=\(phone)&text=\(encoded)") {
+           let url = Self.whatsAppDraftURL(phone: phone, text: text) {
+            guard NSWorkspace.shared.open(url) else { return .failed }
             NSLog("[boringNotch] reply drafted in WhatsApp conversation for \(sender)")
-            NSWorkspace.shared.open(url)
             playHandOffSound()
             dismissActive(token: notification.id)
             return .draftedInApp
@@ -542,6 +562,21 @@ final class SystemNotificationManager: ObservableObject {
         await open(notification)
         dismissActive(token: notification.id)
         return .handedOffToApp
+    }
+
+    /// Use the app's scheme and keep arbitrary reply text in one query value.
+    nonisolated static func whatsAppDraftURL(phone: String, text: String) -> URL? {
+        var components = URLComponents()
+        components.scheme = "whatsapp"
+        components.host = "send"
+        components.queryItems = [
+            URLQueryItem(name: "phone", value: phone),
+            URLQueryItem(name: "text", value: text)
+        ]
+        // Some URL handlers interpret '+' as a form-encoded space.
+        components.percentEncodedQuery = components.percentEncodedQuery?
+            .replacingOccurrences(of: "+", with: "%2B")
+        return components.url
     }
 
     /// Only on a real send. A "sent" sound when nothing was sent is a lie

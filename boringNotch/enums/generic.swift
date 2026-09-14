@@ -49,6 +49,15 @@ enum SliderColorEnum: String, CaseIterable, Defaults.Serializable {
     case white
     case albumArt
     case accent
+
+    init?(rawValue: String) {
+        switch rawValue {
+        case "white", "White": self = .white
+        case "albumArt", "Match album art": self = .albumArt
+        case "accent", "Accent color": self = .accent
+        default: return nil
+        }
+    }
     
     var localizedString: String {
         switch self {

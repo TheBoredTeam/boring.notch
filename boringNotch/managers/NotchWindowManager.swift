@@ -28,6 +28,7 @@ final class NotchWindowManager {
     private(set) var contexts: [String: ScreenContext] = [:] // UUID -> ScreenContext
     private(set) var primaryWindow: NSWindow?
     let primaryViewModel = BoringViewModel()
+    private var primaryDragDetector: DragDetector?
 
     private(set) var isScreenLocked: Bool = false
     private var windowScreenDidChangeObserver: Any?
@@ -60,6 +61,7 @@ final class NotchWindowManager {
         isScreenLocked = false
         if !Defaults[.showOnLockScreen] {
             adjustWindowPosition(changeAlpha: true)
+            setupDragDetectors()
         } else {
             disableSkyLightOnAllWindows()
         }
@@ -105,9 +107,13 @@ final class NotchWindowManager {
                 context.dragDetector?.stopMonitoring()
                 contexts.removeValue(forKey: uuid)
             }
-        } else if let window = primaryWindow {
-            window.close()
-            NotchSpaceManager.shared.notchSpace.windows.remove(window)
+        } else {
+            primaryDragDetector?.stopMonitoring()
+            primaryDragDetector = nil
+            if let window = primaryWindow {
+                window.close()
+                NotchSpaceManager.shared.notchSpace.windows.remove(window)
+            }
             if let obs = windowScreenDidChangeObserver {
                 NotificationCenter.default.removeObserver(obs)
                 windowScreenDidChangeObserver = nil
@@ -281,9 +287,11 @@ final class NotchWindowManager {
     // MARK: - Drag detection
 
     func cleanupDragDetectors() {
-        for (_, var context) in contexts {
-            context.dragDetector?.stopMonitoring()
-            context.dragDetector = nil
+        primaryDragDetector?.stopMonitoring()
+        primaryDragDetector = nil
+        for uuid in contexts.keys {
+            contexts[uuid]?.dragDetector?.stopMonitoring()
+            contexts[uuid]?.dragDetector = nil
         }
     }
 
@@ -309,6 +317,8 @@ final class NotchWindowManager {
 
     private func setupDragDetectorForScreen(_ screen: NSScreen) {
         guard let uuid = screen.displayUUID else { return }
+        // Per-display detectors belong to windows created by adjustWindowPosition.
+        guard !Defaults[.showOnAllDisplays] || contexts[uuid]?.window != nil else { return }
 
         let screenFrame = screen.frame
         let notchHeight = openNotchSize.height
@@ -330,12 +340,10 @@ final class NotchWindowManager {
             }
         }
 
-        // In single-screen mode there may be no context entry yet — only
-        // multi-display mode registers per-screen contexts.
-        if contexts[uuid] != nil {
+        if Defaults[.showOnAllDisplays] {
             contexts[uuid]?.dragDetector = detector
         } else {
-            contexts[uuid] = ScreenContext(viewModel: primaryViewModel, window: nil, dragDetector: detector)
+            primaryDragDetector = detector
         }
         detector.startMonitoring()
     }
