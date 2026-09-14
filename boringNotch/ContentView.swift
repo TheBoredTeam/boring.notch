@@ -377,7 +377,11 @@ struct ContentView: View {
             }
         }
         .padding(.bottom, 8)
-        .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
+        .frame(
+            width: max(windowSize.width, vm.notchSize.width),
+            height: max(windowSize.height, vm.notchSize.height + shadowPadding),
+            alignment: .top
+        )
         .ignoresSafeArea(.all)
         .compositingGroup()
         .scaleEffect(
@@ -578,6 +582,8 @@ struct ContentView: View {
                                 dropInteraction: vm.dropInteraction,
                                 animation: vm.animation
                             )
+                        case .notes:
+                            NotchNotesView()
                         }
                     }
                 }
@@ -816,6 +822,11 @@ struct ContentView: View {
 
     private func handleHover(_ hovering: Bool) {
         if coordinator.firstLaunch { return }
+
+        if !hovering, shouldRetainHoverAtScreenTopEdge() {
+            return
+        }
+
         hoverTask?.cancel()
         
         if hovering {
@@ -860,6 +871,10 @@ struct ContentView: View {
                 guard !Task.isCancelled else { return }
                 
                 await MainActor.run {
+                    if self.shouldRetainHoverAtScreenTopEdge() || self.vm.isMouseHovering() {
+                        return
+                    }
+
                     withAnimation(animationSpring) {
                         self.isHovering = false
                     }
@@ -873,6 +888,19 @@ struct ContentView: View {
                 }
             }
         }
+    }
+
+    private func shouldRetainHoverAtScreenTopEdge(
+        _ location: NSPoint = NSEvent.mouseLocation
+    ) -> Bool {
+        guard let screenFrame = getScreenFrame(vm.screenUUID),
+              isHovering || vm.notchState == .open,
+              location.y >= screenFrame.maxY - 1.5
+        else {
+            return false
+        }
+
+        return vm.isMouseHovering(position: location)
     }
 
     // MARK: - Gesture Handling
@@ -901,7 +929,12 @@ struct ContentView: View {
     }
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
+        guard vm.notchState == .open,
+              !vm.isHoveringCalendar,
+              !vm.isScrollGestureActive
+        else {
+            return
+        }
 
         withAnimation(animationSpring) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
