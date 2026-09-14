@@ -17,6 +17,11 @@ final class LyricsService: ObservableObject {
     @Published var currentLyrics: String = ""
     @Published var isFetchingLyrics: Bool = false
     @Published var syncedLyrics: [(time: Double, text: String)] = []
+
+    var showsLoadingPlaceholder: Bool {
+        isFetchingLyrics && syncedLyrics.isEmpty
+            && currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     
     // Cache to avoid redundant fetches; NSCache evicts under memory pressure
     // instead of growing for the whole session.

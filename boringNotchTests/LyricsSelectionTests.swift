@@ -57,6 +57,7 @@ final class LyricsSelectionTests: XCTestCase {
         await fulfillment(of: [started], timeout: 1)
         XCTAssertEqual(service.currentLyrics, "Native plain")
         XCTAssertTrue(service.isFetchingLyrics)
+        XCTAssertFalse(service.showsLoadingPlaceholder)
         finish?.resume(returning: ("", []))
         await fetch.value
         XCTAssertFalse(service.isFetchingLyrics)
@@ -76,6 +77,7 @@ final class LyricsSelectionTests: XCTestCase {
         })
         let old = Task { await service.fetchLyrics(bundleIdentifier: "player", title: "Old", artist: "Artist") }
         await fulfillment(of: [started], timeout: 1)
+        XCTAssertTrue(service.showsLoadingPlaceholder)
         await service.fetchLyrics(bundleIdentifier: "player", title: "New", artist: "Artist")
         finishOld?.resume(returning: ("Old lyrics", [(0, "Old lyrics")]))
         await old.value
