@@ -7,61 +7,50 @@
 
 import Foundation
 
-final class MediaChecker: Sendable {
+struct MediaChecker: Sendable {
+    func checkAvailability(maxAttempts: Int = 3) async throws -> NowPlayingAvailability {
+        let attempts = max(1, maxAttempts)
+        let resources: NowPlayingResources
 
-    enum MediaCheckerError: Error {
-        case missingResources
-        case processExecutionFailed
-        case timeout
+        do {
+            resources = try NowPlayingResources.load()
+        } catch {
+            return .unavailable(.setup)
+        }
+
+        for attempt in 1...attempts {
+            try Task.checkCancellation()
+            do {
+                if try await runAvailabilityCheck(resources: resources) {
+                    return .available
+                }
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                // A failed launch can be as transient as a failed probe, so retry it too.
+            }
+
+            if attempt < attempts {
+                try await Task.sleep(for: .milliseconds(350 * attempt))
+            }
+        }
+
+        return .unavailable(.probe)
     }
 
-    func checkDeprecationStatus() async throws -> Bool {
-        try await Task.detached(priority: .userInitiated) {
-            guard let scriptURL = Bundle.main.url(forResource: "mediaremote-adapter", withExtension: "pl"),
-                  let nowPlayingTestClientPath = Bundle.main.url(forResource: "MediaRemoteAdapterTestClient", withExtension: nil)?.path,
-                  let frameworkPath = Bundle.main.privateFrameworksPath?.appending("/MediaRemoteAdapter.framework")
-            else {
-                throw MediaCheckerError.missingResources
-            }
+    private func runAvailabilityCheck(resources: NowPlayingResources) async throws -> Bool {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
+        process.arguments = [
+            resources.adapterScriptURL.path,
+            resources.adapterFrameworkPath,
+            resources.testClientURL.path,
+            "test",
+        ]
 
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
-            process.arguments = [scriptURL.path, frameworkPath, nowPlayingTestClientPath, "test"]
-
-            do {
-                try process.run()
-            } catch {
-                throw MediaCheckerError.processExecutionFailed
-            }
-
-            // Timeout after 10 seconds
-            let didExit: Bool = try await withThrowingTaskGroup(of: Bool.self) { group in
-                group.addTask {
-                    process.waitUntilExit()
-                    return true
-                }
-                group.addTask {
-                    try await Task.sleep(for: .seconds(10))
-                    if process.isRunning {
-                        process.terminate()
-                    }
-                    return false // Timed out
-                }
-                for try await exited in group {
-                    if exited {
-                        group.cancelAll()
-                        return true
-                    }
-                }
-                throw MediaCheckerError.timeout
-            }
-
-            if !didExit {
-                throw MediaCheckerError.timeout
-            }
-
-            let isDeprecated = process.terminationStatus == 1
-            return isDeprecated
-        }.value
+        return try await TimedProcessRunner.exitsSuccessfully(
+            process,
+            timeout: .seconds(10)
+        )
     }
 }

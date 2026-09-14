@@ -24,6 +24,9 @@ struct EventModel: Equatable, Identifiable {
     let timeZone: TimeZone?
     let hasRecurrenceRules: Bool
     let priority: Priority?
+    /// Video-meeting join link recovered from the event's own fields, if any.
+    /// Resolved once at fetch time — never on the view path.
+    let meetingLink: MeetingLink?
 }
 
 enum AttendanceStatus: Comparable {
