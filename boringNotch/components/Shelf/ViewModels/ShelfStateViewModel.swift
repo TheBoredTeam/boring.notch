@@ -90,6 +90,10 @@ final class ShelfStateViewModel: ObservableObject {
         unavailableFileIDs.contains(item.id)
     }
 
+    func containsCurrentVersion(of item: ShelfItem) -> Bool {
+        currentItem(for: item) == item
+    }
+
     func resolvedFile(for item: ShelfItem) -> ResolvedShelfFile? {
         guard !unavailableFileIDs.contains(item.id),
               case .file(let bookmarkData) = currentItem(for: item)?.kind,

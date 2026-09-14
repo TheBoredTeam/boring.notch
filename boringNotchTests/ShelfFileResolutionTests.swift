@@ -1,4 +1,5 @@
 import XCTest
+import UniformTypeIdentifiers
 @testable import boringNotch
 
 private final class BlockingShelfResolution: @unchecked Sendable {
@@ -234,6 +235,167 @@ final class ShelfFileResolutionTests: XCTestCase {
 
         XCTAssertEqual(exports.map(\.item.id), [available.id, text.id])
         XCTAssertEqual(exports.map(\.payload), [available.id.uuidString, text.id.uuidString])
+    }
+
+    @MainActor
+    func testSameIDBookmarkReplacementRefreshesRetainedItemModelAndDragURL() async throws {
+        let oldData = Data("old-bookmark".utf8)
+        let newData = Data("renamed-bookmark".utf8)
+        let id = UUID()
+        let oldItem = ShelfItem(id: id, kind: .file(bookmark: oldData))
+        let oldFile = ResolvedShelfFile(
+            url: URL(fileURLWithPath: "/tmp/old-name"),
+            refreshedBookmarkData: nil,
+            displayName: "old-name",
+            isDirectory: false,
+            contentTypeIdentifier: UTType.data.identifier
+        )
+        let renamedFile = ResolvedShelfFile(
+            url: URL(fileURLWithPath: "/tmp/new-name"),
+            refreshedBookmarkData: nil,
+            displayName: "new-name",
+            isDirectory: false,
+            contentTypeIdentifier: UTType.data.identifier
+        )
+        let state = ShelfStateViewModel(
+            items: [oldItem],
+            resolver: ShelfBookmarkResolver { data, _ in
+                data == oldData ? oldFile : renamedFile
+            }
+        )
+        let viewModel = ShelfItemViewModel(
+            item: oldItem,
+            shelfState: state,
+            loadsThumbnails: false
+        )
+
+        await viewModel.synchronize(with: oldItem)
+        XCTAssertEqual(viewModel.displayName, "old-name")
+        XCTAssertEqual(viewModel.resolvedFileURL, oldFile.url)
+
+        state.updateBookmark(for: oldItem, bookmark: newData)
+        let renamedItem = try XCTUnwrap(state.items.first)
+        XCTAssertEqual(renamedItem.id, id)
+        XCTAssertNil(viewModel.resolvedFileURL)
+        XCTAssertFalse(viewModel.canDrag)
+
+        await viewModel.synchronize(with: renamedItem)
+        XCTAssertEqual(viewModel.displayName, "new-name")
+        XCTAssertEqual(viewModel.resolvedFileURL, renamedFile.url)
+        XCTAssertTrue(viewModel.canDrag)
+        XCTAssertTrue(
+            viewModel.dragItemProvider().hasItemConformingToTypeIdentifier(UTType.fileURL.identifier)
+        )
+    }
+
+    @MainActor
+    func testQuickLookSelectionRetriesUnavailableFileAndRecovers() async throws {
+        let item = ShelfItem(kind: .file(bookmark: Data("quick-look-retry".utf8)))
+        let recoveredURL = try XCTUnwrap(URL(string: "https://example.com/recovered"))
+        let recoveredFile = ResolvedShelfFile(
+            url: recoveredURL,
+            refreshedBookmarkData: nil,
+            displayName: "recovered",
+            isDirectory: false,
+            contentTypeIdentifier: nil
+        )
+        let sequence = SequencedShelfResolution([nil, recoveredFile])
+        let state = ShelfStateViewModel(
+            items: [item],
+            resolver: ShelfBookmarkResolver(resolution: sequence.resolve)
+        )
+        let service = QuickLookService(
+            shelfState: state,
+            observeShelfSelection: false,
+            presentsPanel: false
+        )
+
+        service.isQuickLookOpen = true
+        await service.applyShelfSelection(selectedIDs: [item.id])
+        XCTAssertFalse(service.isQuickLookOpen)
+        XCTAssertTrue(service.urls.isEmpty)
+
+        service.isQuickLookOpen = true
+        await service.applyShelfSelection(selectedIDs: [item.id])
+        try? await Task.sleep(for: .milliseconds(75))
+        XCTAssertTrue(service.isQuickLookOpen)
+        XCTAssertEqual(service.urls, [recoveredURL])
+        XCTAssertEqual(service.selectedURL, recoveredURL)
+    }
+
+    @MainActor
+    func testLateQuickLookResolutionCannotReplaceNewerSelection() async throws {
+        let blockedItem = ShelfItem(kind: .file(bookmark: Data("blocked-preview".utf8)))
+        let linkURL = try XCTUnwrap(URL(string: "https://example.com/newer"))
+        let linkItem = ShelfItem(kind: .link(url: linkURL))
+        let blockedFile = ResolvedShelfFile(
+            url: try XCTUnwrap(URL(string: "https://example.com/late")),
+            refreshedBookmarkData: nil,
+            displayName: "late",
+            isDirectory: false,
+            contentTypeIdentifier: nil
+        )
+        let blocking = BlockingShelfResolution(result: blockedFile)
+        let state = ShelfStateViewModel(
+            items: [blockedItem, linkItem],
+            resolver: ShelfBookmarkResolver(resolution: blocking.resolve)
+        )
+        let service = QuickLookService(
+            shelfState: state,
+            observeShelfSelection: false,
+            presentsPanel: false
+        )
+        service.isQuickLookOpen = true
+
+        let lateUpdate = Task {
+            await service.applyShelfSelection(selectedIDs: [blockedItem.id])
+        }
+        let didStart = await blocking.waitUntilStarted()
+        XCTAssertTrue(didStart)
+        await service.applyShelfSelection(selectedIDs: [linkItem.id])
+        blocking.unblock()
+        await lateUpdate.value
+        try? await Task.sleep(for: .milliseconds(75))
+
+        XCTAssertTrue(service.isQuickLookOpen)
+        XCTAssertEqual(service.urls, [linkURL])
+        XCTAssertEqual(service.selectedURL, linkURL)
+    }
+
+    @MainActor
+    func testHideInvalidatesPendingQuickLookResolution() async throws {
+        let item = ShelfItem(kind: .file(bookmark: Data("dismissed-preview".utf8)))
+        let lateFile = ResolvedShelfFile(
+            url: try XCTUnwrap(URL(string: "https://example.com/late")),
+            refreshedBookmarkData: nil,
+            displayName: "late",
+            isDirectory: false,
+            contentTypeIdentifier: nil
+        )
+        let blocking = BlockingShelfResolution(result: lateFile)
+        let state = ShelfStateViewModel(
+            items: [item],
+            resolver: ShelfBookmarkResolver(resolution: blocking.resolve)
+        )
+        let service = QuickLookService(
+            shelfState: state,
+            observeShelfSelection: false,
+            presentsPanel: false
+        )
+        service.isQuickLookOpen = true
+
+        let lateUpdate = Task {
+            await service.applyShelfSelection(selectedIDs: [item.id])
+        }
+        let didStart = await blocking.waitUntilStarted()
+        XCTAssertTrue(didStart)
+        service.hide()
+        blocking.unblock()
+        await lateUpdate.value
+
+        XCTAssertFalse(service.isQuickLookOpen)
+        XCTAssertTrue(service.urls.isEmpty)
+        XCTAssertNil(service.selectedURL)
     }
 
     @MainActor
