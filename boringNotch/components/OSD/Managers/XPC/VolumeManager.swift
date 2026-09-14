@@ -309,6 +309,7 @@ final class VolumeRouteEngine {
             io.readVolume(deviceID: route.deviceID, element: element).map { (element, $0) }
         }
         let volume = samples.map(\.1).max()
+        let suppressVolume = pendingVolume?.generation == expectedGeneration
         var mutableRoute = route
         let muted: Bool?
         switch route.muteAuthority {
@@ -325,14 +326,13 @@ final class VolumeRouteEngine {
             } else {
                 mutableRoute.softwareMuted = false
             }
-            muted = mutableRoute.softwareMuted
+            muted = suppressVolume ? nil : mutableRoute.softwareMuted
         case .observedHardware:
             muted = io.readMute(deviceID: route.deviceID)
         case .unavailable:
             muted = nil
         }
         self.route = mutableRoute
-        let suppressVolume = pendingVolume?.generation == expectedGeneration
         let suppressMute = pendingMute?.generation == expectedGeneration
         let wasInitial = initial || !didSynchronize
         didSynchronize = true
@@ -644,7 +644,7 @@ final class VolumeManager: NSObject, ObservableObject {
         canToggleMute = observation.canToggleMute
         usesHardwareMute = observation.usesHardwareMute
         previousVolumeBeforeMute = observation.restoreVolume
-        let effectiveMuted = observation.muted ?? false
+        let effectiveMuted = observation.muted ?? isMuted
         let changed = observation.volume.map { abs($0 - rawVolume) > 0.0005 } == true
             || effectiveMuted != isMuted
         if let volume = observation.volume { rawVolume = volume }

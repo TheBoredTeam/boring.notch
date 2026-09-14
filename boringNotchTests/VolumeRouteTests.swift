@@ -320,6 +320,33 @@ final class VolumeManagerDeliveryTests: XCTestCase {
         XCTAssertEqual(manager.rawVolume, 0.55, accuracy: 0.0001)
     }
 
+    func testPropertyCallbackCannotOverridePendingSoftwareMuteIntent() async {
+        let io = FakeVolumeHardware()
+        io.configureMaster(device: 1, volume: 0, muteValue: nil)
+        let (manager, delivery) = makeManager(io: io, writeFlushInterval: 0.05)
+        await applyNext(delivery)
+
+        manager.increase()
+        manager.processRoutePropertyChange(deviceID: 1, generation: 1)
+        await applyNext(delivery)
+        XCTAssertEqual(manager.rawVolume, 0.0625, accuracy: 0.0001)
+        XCTAssertFalse(manager.isMuted)
+
+        await applyNext(delivery)
+        XCTAssertEqual(manager.rawVolume, 0.0625, accuracy: 0.0001)
+        XCTAssertFalse(manager.isMuted)
+
+        manager.decrease()
+        manager.processRoutePropertyChange(deviceID: 1, generation: 1)
+        await applyNext(delivery)
+        XCTAssertEqual(manager.rawVolume, 0, accuracy: 0.0001)
+        XCTAssertTrue(manager.isMuted)
+
+        await applyNext(delivery)
+        XCTAssertEqual(manager.rawVolume, 0, accuracy: 0.0001)
+        XCTAssertTrue(manager.isMuted)
+    }
+
     func testReadOnlyHardwareMuteUsesSoftwareMuteAuthority() async {
         let io = FakeVolumeHardware()
         io.configureMaster(
@@ -363,12 +390,12 @@ final class VolumeManagerDeliveryTests: XCTestCase {
     }
 
     private func makeManager(
-        io: FakeVolumeHardware
+        io: FakeVolumeHardware, writeFlushInterval: TimeInterval = 0
     ) -> (VolumeManager, DeferredVolumeDelivery) {
         let delivery = DeferredVolumeDelivery()
         let manager = VolumeManager(
             io: io, audioQueue: DispatchQueue(label: "VolumeManagerDeliveryTests"),
-            writeFlushInterval: 0,
+            writeFlushInterval: writeFlushInterval,
             mainDelivery: { delivery.enqueue($0) })
         manager.refreshRoute()
         return (manager, delivery)
