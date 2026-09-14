@@ -9,6 +9,15 @@ import SwiftUI
 
 protocol ShelfItemInteractionSurface: AnyObject {}
 
+func compactShelfExports<Payload>(
+    _ items: [ShelfItem],
+    transform: (ShelfItem) -> Payload?
+) -> [(item: ShelfItem, payload: Payload)] {
+    items.compactMap { item in
+        transform(item).map { (item, $0) }
+    }
+}
+
 /// A narrow AppKit bridge for Shelf pointer and native drag interactions.
 struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
     let item: ShelfItem
@@ -92,8 +101,9 @@ struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
                 ? selectedItems
                 : [item]
 
-            draggedItems = itemsToDrag
-            let draggingItems = itemsToDrag.compactMap(makeDraggingItem)
+            let exports = compactShelfExports(itemsToDrag, transform: makeDraggingItem)
+            draggedItems = exports.map { $0.item }
+            let draggingItems = exports.map { $0.payload }
 
             guard !draggingItems.isEmpty else { return }
             beginDraggingSession(with: draggingItems, event: event, source: self)

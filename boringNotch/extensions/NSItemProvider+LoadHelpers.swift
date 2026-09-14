@@ -121,7 +121,7 @@ extension NSItemProvider {
                     if resolvedURL == nil {
                         // Fallback: try treating the data as a bookmark
                         let bookmark = Bookmark(data: data)
-                        resolvedURL = bookmark.resolvedURL
+                        resolvedURL = bookmark.importedItemURL
                     }
                 } else if let string = item as? String {
                     if let url = URL(string: string) {
