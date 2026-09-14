@@ -6,6 +6,9 @@ private actor PearHTTPProbe {
     var requests: [URLRequest] = []
     var songRejection: Int?
     var authenticationFailures = 0
+    var authenticationDelay: Duration = .zero
+    var activeAuthenticationCount = 0
+    var maximumConcurrentAuthenticationCount = 0
     var liked = true
     var heldPath: String?
     var pending: CheckedContinuation<(Int, Data), Never>?
@@ -18,6 +21,7 @@ private actor PearHTTPProbe {
 
     func rejectSongOnce(_ status: Int) { songRejection = status }
     func failAuthentication(_ count: Int) { authenticationFailures = count }
+    func delayAuthentication(by delay: Duration) { authenticationDelay = delay }
 
     func respond(_ request: URLRequest) async -> (Int, Data) {
         requests.append(request)
@@ -27,6 +31,12 @@ private actor PearHTTPProbe {
             return await withCheckedContinuation { pending = $0 }
         }
         if path.hasPrefix("/auth/") {
+            activeAuthenticationCount += 1
+            maximumConcurrentAuthenticationCount = max(maximumConcurrentAuthenticationCount, activeAuthenticationCount)
+            defer { activeAuthenticationCount -= 1 }
+            if authenticationDelay > .zero {
+                try? await Task.sleep(for: authenticationDelay)
+            }
             if authenticationFailures > 0 {
                 authenticationFailures -= 1
                 return (503, Data())
@@ -426,13 +436,18 @@ final class PearConnectionTests: XCTestCase {
     func testAPIStartingLateRecoversWithoutOverlappingInitialization() async throws {
         let http = PearHTTPProbe()
         await http.failAuthentication(2)
+        await http.delayAuthentication(by: .milliseconds(10))
         let controller = makeController(http)
         defer { controller.stopConnection() }
         controller.startConnection()
-        try await eventually { controller.playbackState.title == "Fixture" }
+        try await eventually {
+            controller.playbackState.title == "Fixture" && self.sockets.count == 1
+        }
         let count = await http.authenticationCount
         XCTAssertEqual(count, 3)
         XCTAssertEqual(sockets.count, 1)
+        let maximumConcurrentCount = await http.maximumConcurrentAuthenticationCount
+        XCTAssertEqual(maximumConcurrentCount, 1)
     }
 
     func testStaleArtworkCannotPublishAndPositionTicksDoNotRefetchArtwork() async throws {
