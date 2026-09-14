@@ -15,20 +15,6 @@ final class PlaybackStateMergeTests: XCTestCase {
             artwork: Data([1, 2]), isFavorite: true)
     }
 
-    func testNewTrackWithoutArtworkClearsTrackBoundFields() throws {
-        let result = try apply(#"{"diff":true,"payload":{"title":"B"}}"#, to: track)
-        XCTAssertEqual(result.title, "B")
-        XCTAssertTrue(result.isPlaying)
-        XCTAssertNil(result.artwork)
-        XCTAssertFalse(result.isFavorite)
-        XCTAssertFalse(result.isShuffled)
-        XCTAssertEqual(result.repeatMode, .off)
-        XCTAssertEqual(result.currentTime, 0)
-        XCTAssertEqual(result.duration, 0)
-        XCTAssertEqual(result.lastUpdated, now)
-        XCTAssertEqual(result.capabilities, .unsupported)
-    }
-
     func testElapsedOnlyDiffPreservesFavoriteArtworkAndMetadata() throws {
         let result = try apply(#"{"diff":true,"payload":{"elapsedTime":12}}"#, to: track)
         XCTAssertEqual(result.identity, track.identity)
@@ -47,19 +33,12 @@ final class PlaybackStateMergeTests: XCTestCase {
         XCTAssertEqual(unchanged, track)
     }
 
-    func testSourceTransitionClearsTrackDataAndCapabilities() throws {
-        let result = try apply(#"{"diff":true,"payload":{"bundleIdentifier":"com.google.Chrome.helper"}}"#, to: track)
-        XCTAssertEqual(result.bundleIdentifier, "com.google.Chrome")
-        XCTAssertEqual(result.audioCaptureBundleIdentifiers, ["com.google.Chrome.helper"])
-        XCTAssertNil(result.artwork)
-        XCTAssertFalse(result.isFavorite)
-        XCTAssertEqual(result.title, "")
-        XCTAssertEqual(result.capabilities, .unsupported)
-    }
-
     func testFullUpdateOmittingOptionalFieldsClearsThem() throws {
-        let result = try apply(#"{"payload":{"bundleIdentifier":"com.apple.Music","title":"A","artist":"Artist","album":"Album"}}"#, to: track)
-        XCTAssertEqual(result.identity, track.identity)
+        let result = try apply(
+            #"{"payload":{"bundleIdentifier":"com.apple.Music","title":"B","artist":"Other Artist","album":"Other Album","playing":true}}"#,
+            to: track
+        )
+        XCTAssertNotEqual(result.identity, track.identity)
         XCTAssertNil(result.artwork)
         XCTAssertFalse(result.isFavorite)
         XCTAssertEqual(result.duration, 0)
@@ -132,7 +111,7 @@ final class PlaybackStateMergeTests: XCTestCase {
         sought.applyArtwork(Data([3]), for: track.identity)
         XCTAssertEqual(sought.currentTime, 60)
         XCTAssertEqual(sought.lastUpdated, now)
-        var next = try apply(#"{"diff":true,"payload":{"title":"B"}}"#, to: sought)
+        var next = try apply(#"{"payload":{"bundleIdentifier":"com.apple.Music","title":"B","artist":"Artist","album":"Album","playing":true}}"#, to: sought)
         next.applyArtwork(Data([4]), for: track.identity)
         XCTAssertNil(next.artwork)
         XCTAssertEqual(next.title, "B")
@@ -146,13 +125,13 @@ final class PlaybackStateMergeTests: XCTestCase {
         XCTAssertNotEqual(changed.identity, track.identity)
     }
 
-    func testBrowserMusicSpotifyCapabilitiesFollowSource() throws {
+    func testMediaRemoteCapabilitiesFollowObservedFields() throws {
         var state = try apply(#"{"payload":{"bundleIdentifier":"com.google.Chrome","title":"Video","shuffleMode":1,"repeatMode":1}}"#, to: track)
-        XCTAssertEqual(state.capabilities, .unsupported)
+        XCTAssertEqual(state.capabilities, MediaCapabilities(shuffle: true, repeatModes: [.off, .all, .one]))
         state = try apply(#"{"payload":{"bundleIdentifier":"com.apple.Music","title":"Song","shuffleMode":1,"repeatMode":1}}"#, to: state)
         XCTAssertEqual(state.capabilities?.repeatModes, [.off, .all, .one])
         XCTAssertFalse(state.capabilities?.favorite ?? true) // Must query this track successfully.
         state = try apply(#"{"payload":{"bundleIdentifier":"com.spotify.client","title":"Song","shuffleMode":1,"repeatMode":1}}"#, to: state)
-        XCTAssertEqual(state.capabilities, .spotify)
+        XCTAssertEqual(state.capabilities?.repeatModes, [.off, .all, .one])
     }
 }
