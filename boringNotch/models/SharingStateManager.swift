@@ -72,6 +72,7 @@ final class SharingLifecycleDelegate: NSObject, NSSharingServiceDelegate, NSShar
 
 	private var pickerActive = false
 	private var serviceInProgress = false
+	private var interactionBegan = false
 	private var finished = false
 
 	init(id: UUID, onEnd: @escaping () -> Void, onBegin: @escaping () -> Void, onFinish: @escaping () -> Void) {
@@ -82,21 +83,29 @@ final class SharingLifecycleDelegate: NSObject, NSSharingServiceDelegate, NSShar
 	}
 	
 	func markPickerBegan() {
-		guard !pickerActive else { return }
+		guard !finished, !pickerActive else { return }
 		pickerActive = true
-		onBegin()
+		beginInteractionIfNeeded()
 	}
 
 	func markServiceBegan() {
-		guard !serviceInProgress else { return }
+		guard !finished, !serviceInProgress else { return }
 		serviceInProgress = true
+		beginInteractionIfNeeded()
+	}
+
+	private func beginInteractionIfNeeded() {
+		guard !finished, !interactionBegan else { return }
+		interactionBegan = true
 		onBegin()
 	}
 
 	private func finishIfNeeded() {
 		guard !finished else { return }
 		finished = true
-		onFinish()
+		if interactionBegan {
+			onFinish()
+		}
 		onEnd()
 	}
 
@@ -107,6 +116,7 @@ final class SharingLifecycleDelegate: NSObject, NSSharingServiceDelegate, NSShar
 	// MARK: - NSSharingServicePickerDelegate
 
 	func sharingServicePicker(_ sharingServicePicker: NSSharingServicePicker, didChoose service: NSSharingService?) {
+		guard !finished else { return }
 		if service == nil {
 			if pickerActive && !serviceInProgress {
 				finishIfNeeded()
@@ -116,15 +126,15 @@ final class SharingLifecycleDelegate: NSObject, NSSharingServiceDelegate, NSShar
 
 		service?.delegate = self
 		serviceInProgress = true
+		beginInteractionIfNeeded()
 	}
 
 	// MARK: - NSSharingServiceDelegate
 
 	func sharingService(_ sharingService: NSSharingService, willShareItems items: [Any]) {
-		if !pickerActive && !serviceInProgress {
-			onBegin()
-		}
+		guard !finished else { return }
 		serviceInProgress = true
+		beginInteractionIfNeeded()
 	}
 
 	func sharingService(_ sharingService: NSSharingService, didShareItems items: [Any]) {

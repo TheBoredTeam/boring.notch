@@ -238,6 +238,77 @@ final class ShelfTransferTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: failureURL.path))
     }
 
+    @MainActor
+    func testCancellingUnstartedDelegateDoesNotEndAnotherActiveShare() {
+        let manager = SharingStateManager.shared
+        XCTAssertFalse(manager.preventNotchClose)
+
+        let activeDelegate = manager.makeDelegate()
+        defer { activeDelegate.cancel() }
+        activeDelegate.markServiceBegan()
+        XCTAssertTrue(manager.preventNotchClose)
+
+        let unstartedDelegate = manager.makeDelegate()
+        unstartedDelegate.cancel()
+
+        XCTAssertTrue(manager.preventNotchClose)
+
+        let service = makeSharingService()
+        activeDelegate.sharingService(service, didShareItems: ["shared"])
+        XCTAssertFalse(manager.preventNotchClose)
+    }
+
+    @MainActor
+    func testPickerServiceLifecycleBalancesOnceAndIgnoresLateCallbacks() {
+        var beginCount = 0
+        var finishCount = 0
+        var endCount = 0
+        let delegate = SharingLifecycleDelegate(
+            id: UUID(),
+            onEnd: { endCount += 1 },
+            onBegin: { beginCount += 1 },
+            onFinish: { finishCount += 1 }
+        )
+        let service = makeSharingService()
+        let picker = NSSharingServicePicker(items: ["shared"])
+
+        delegate.markPickerBegan()
+        delegate.sharingServicePicker(picker, didChoose: service)
+        delegate.sharingService(service, willShareItems: ["shared"])
+        delegate.sharingService(service, didShareItems: ["shared"])
+        delegate.sharingService(service, didShareItems: ["duplicate"])
+        delegate.sharingService(
+            service,
+            didFailToShareItems: ["late failure"],
+            error: ShelfTransferTestError.promisedFileFailed
+        )
+        delegate.cancel()
+        delegate.markPickerBegan()
+        delegate.markServiceBegan()
+        delegate.sharingService(service, willShareItems: ["late begin"])
+
+        XCTAssertEqual(beginCount, 1)
+        XCTAssertEqual(finishCount, 1)
+        XCTAssertEqual(endCount, 1)
+
+        var cancelledBeginCount = 0
+        var cancelledFinishCount = 0
+        var cancelledEndCount = 0
+        let cancelledDelegate = SharingLifecycleDelegate(
+            id: UUID(),
+            onEnd: { cancelledEndCount += 1 },
+            onBegin: { cancelledBeginCount += 1 },
+            onFinish: { cancelledFinishCount += 1 }
+        )
+        cancelledDelegate.cancel()
+        cancelledDelegate.sharingService(service, willShareItems: ["late begin"])
+        cancelledDelegate.sharingService(service, didShareItems: ["late completion"])
+
+        XCTAssertEqual(cancelledBeginCount, 0)
+        XCTAssertEqual(cancelledFinishCount, 0)
+        XCTAssertEqual(cancelledEndCount, 1)
+    }
+
     func testStableSharingIdentityIgnoresLocalizedTitleAndPreservesUnknownChoice() {
         let localizedAirDrop = QuickShareProvider(
             id: NSSharingService.Name.sendViaAirDrop.rawValue,
@@ -324,6 +395,15 @@ final class ShelfTransferTests: XCTestCase {
             provider.registerObject(fallbackText as NSString, visibility: .all)
         }
         return provider
+    }
+
+    private func makeSharingService() -> NSSharingService {
+        NSSharingService(
+            title: "Test",
+            image: NSImage(),
+            alternateImage: nil,
+            handler: {}
+        )
     }
 
     private func ownedEntries(in directory: URL) throws -> [URL] {
