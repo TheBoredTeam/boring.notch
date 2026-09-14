@@ -10,6 +10,31 @@ import AppKit
 import Foundation
 import UniformTypeIdentifiers
 
+/// Advertised representations the shelf transfer decoder can attempt to load.
+/// Acceptance is existential: private companion types do not reject a usable item.
+enum ShelfTransferTypes {
+    static let acceptedTypes: [UTType] = [
+        .fileURL,
+        .url,
+        .utf8PlainText,
+        .plainText,
+        .data,
+        .directory,
+        .package
+    ]
+
+    static func supports(typeIdentifiers: [String]) -> Bool {
+        typeIdentifiers.contains { identifier in
+            guard let type = UTType(identifier) else { return false }
+            return acceptedTypes.contains { type.conforms(to: $0) }
+        }
+    }
+
+    static func supports(_ providers: [NSItemProvider]) -> Bool {
+        providers.contains { supports(typeIdentifiers: $0.registeredTypeIdentifiers) }
+    }
+}
+
 extension NSItemProvider {
     
     func extractItem() async -> URL? {
@@ -27,49 +52,41 @@ extension NSItemProvider {
     
     /// Loads raw data for the given type identifier
     func loadData() async -> Data? {
-        NSLog(String(describing: self.registeredTypeIdentifiers))
         guard hasItemConformingToTypeIdentifier(UTType.data.identifier) else { return nil }
         return await withCheckedContinuation { (cont: CheckedContinuation<Data?, Never>) in
-            loadItem(forTypeIdentifier: UTType.data.identifier, options: nil) { item, error in
+            loadDataRepresentation(forTypeIdentifier: UTType.data.identifier) { data, error in
                 if let error = error {
                     Log.general.error("Error loading data for type \(UTType.data.identifier): \(error.localizedDescription)")
                     cont.resume(returning: nil)
                     return
                 }
-                if let url = item as? URL, let data = try? Data(contentsOf: url) {
-                    if !url.absoluteString.contains("com.apple.SwiftUI.filePromises") {
-                        cont.resume(returning: nil)
-                        return
-                    }
-                    self.suggestedName = self.suggestedName ?? url.lastPathComponent
-                    
-                    let fileManager = FileManager.default
-                    let folderURL = url.deletingLastPathComponent()
+                cont.resume(returning: data)
+            }
+        }
+    }
 
-                    do {
-                        // Delete the file first
-                        try fileManager.removeItem(at: url)
-                        Log.general.debug("Deleted file: \(url.path)")
-
-                        // Check folder contents
-                        let contents = try fileManager.contentsOfDirectory(atPath: folderURL.path)
-                        if contents.isEmpty {
-                            try fileManager.removeItem(at: folderURL)
-                            Log.general.debug("Folder was empty, deleted folder: \(folderURL.path)")
-                        } else {
-                            Log.general.debug("Folder not deleted — it still contains \(contents.count) item(s).")
-                        }
-
-                    } catch {
-                        Log.general.error("Error: \(error.localizedDescription)")
-                    }
-                    
-                    cont.resume(returning: data)
-                } else if let data = item as? Data {
-                    cont.resume(returning: data)
-                } else {
-                    cont.resume(returning: nil)
+    /// Copies the representation before the provider's callback-scoped URL expires.
+    func loadOwnedFileRepresentation(
+        forTypeIdentifier typeIdentifier: String,
+        storage: TemporaryFileStorageService
+    ) async -> URL? {
+        await withCheckedContinuation { continuation in
+            loadFileRepresentation(forTypeIdentifier: typeIdentifier) { [suggestedName] url, error in
+                if let error {
+                    Log.general.error("Error loading file representation for \(typeIdentifier): \(error.localizedDescription)")
+                    continuation.resume(returning: nil)
+                    return
                 }
+                guard let url else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                continuation.resume(
+                    returning: storage.copyProviderFile(
+                        at: url,
+                        suggestedName: suggestedName ?? url.lastPathComponent
+                    )
+                )
             }
         }
     }
@@ -125,7 +142,7 @@ extension NSItemProvider {
                     if resolvedURL == nil {
                         // Fallback: try treating the data as a bookmark
                         let bookmark = Bookmark(data: data)
-                        resolvedURL = bookmark.resolvedURL
+                        resolvedURL = bookmark.importedItemURL
                     }
                 } else if let string = item as? String {
                     if let url = URL(string: string) {

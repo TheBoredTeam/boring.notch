@@ -73,8 +73,8 @@ final class SharingLifecycleDelegate: NSObject, NSSharingServiceDelegate, NSShar
 
 	private var pickerActive = false
 	private var serviceInProgress = false
+	private var interactionBegan = false
 	private var finished = false
-	private var timeoutTask: Task<Void, Never>?
 
 	init(id: UUID, onEnd: @escaping () -> Void, onBegin: @escaping () -> Void, onFinish: @escaping () -> Void) {
 		self.id = id
@@ -83,45 +83,41 @@ final class SharingLifecycleDelegate: NSObject, NSSharingServiceDelegate, NSShar
 		self.onFinish = onFinish
 	}
 	
-	deinit {
-		timeoutTask?.cancel()
-	}
-
 	func markPickerBegan() {
-		guard !pickerActive else { return }
+		guard !finished, !pickerActive else { return }
 		pickerActive = true
-		onBegin()
+		beginInteractionIfNeeded()
 	}
 
 	func markServiceBegan() {
-		guard !serviceInProgress else { return }
+		guard !finished, !serviceInProgress else { return }
 		serviceInProgress = true
-		onBegin()
-		startTimeoutFallback()
+		beginInteractionIfNeeded()
 	}
-	
-	private func startTimeoutFallback() {
-		timeoutTask?.cancel()
-		timeoutTask = Task { @MainActor [weak self] in
-			try? await Task.sleep(for: .seconds(2))
-			guard let self = self, !Task.isCancelled else { return }
-			if !self.finished {
-				self.finishIfNeeded()
-			}
-		}
+
+	private func beginInteractionIfNeeded() {
+		guard !finished, !interactionBegan else { return }
+		interactionBegan = true
+		onBegin()
 	}
 
 	private func finishIfNeeded() {
 		guard !finished else { return }
 		finished = true
-		timeoutTask?.cancel()
-		onFinish()
+		if interactionBegan {
+			onFinish()
+		}
 		onEnd()
+	}
+
+	func cancel() {
+		finishIfNeeded()
 	}
 
 	// MARK: - NSSharingServicePickerDelegate
 
 	func sharingServicePicker(_ sharingServicePicker: NSSharingServicePicker, didChoose service: NSSharingService?) {
+		guard !finished else { return }
 		if service == nil {
 			if pickerActive && !serviceInProgress {
 				finishIfNeeded()
@@ -131,16 +127,15 @@ final class SharingLifecycleDelegate: NSObject, NSSharingServiceDelegate, NSShar
 
 		service?.delegate = self
 		serviceInProgress = true
-		startTimeoutFallback()
+		beginInteractionIfNeeded()
 	}
 
 	// MARK: - NSSharingServiceDelegate
 
 	func sharingService(_ sharingService: NSSharingService, willShareItems items: [Any]) {
-		if !pickerActive && !serviceInProgress {
-			onBegin()
-		}
+		guard !finished else { return }
 		serviceInProgress = true
+		beginInteractionIfNeeded()
 	}
 
 	func sharingService(_ sharingService: NSSharingService, didShareItems items: [Any]) {
@@ -151,4 +146,3 @@ final class SharingLifecycleDelegate: NSObject, NSSharingServiceDelegate, NSShar
 		finishIfNeeded()
 	}
 }
-
