@@ -78,13 +78,17 @@ private final class SessionFactory: @unchecked Sendable {
     private let lock = NSLock()
     private let configurationStarted: DispatchSemaphore?
     private let configurationGate: DispatchSemaphore?
+    private let failFirstConfiguration: Bool
+    private var storedDiscoveryCount = 0
     private var storedSessions: [FakeCaptureSession] = []
     private var storedPreferredIDs: [String?] = []
 
     init(
         configurationStarted: DispatchSemaphore? = nil,
-        configurationGate: DispatchSemaphore? = nil
+        configurationGate: DispatchSemaphore? = nil,
+        failFirstConfiguration: Bool = false
     ) {
+        self.failFirstConfiguration = failFirstConfiguration
         self.configurationStarted = configurationStarted
         self.configurationGate = configurationGate
     }
@@ -95,6 +99,15 @@ private final class SessionFactory: @unchecked Sendable {
 
     var preferredIDs: [String?] {
         lock.withTestLock { storedPreferredIDs }
+    }
+
+    var discoveryCount: Int {
+        lock.withTestLock { storedDiscoveryCount }
+    }
+
+    func discoverDevices() -> [AVCaptureDevice] {
+        lock.withTestLock { storedDiscoveryCount += 1 }
+        return []
     }
 
     func makeSession() -> AVCaptureSession {
@@ -109,11 +122,15 @@ private final class SessionFactory: @unchecked Sendable {
         session: AVCaptureSession,
         devices: [AVCaptureDevice],
         preferredID: String?
-    ) -> String? {
-        configurationStarted?.signal()
-        configurationGate?.wait()
-        lock.withTestLock {
+    ) throws -> String? {
+        let attempt = lock.withTestLock {
             storedPreferredIDs.append(preferredID)
+            return storedPreferredIDs.count
+        }
+        if attempt == 1 {
+            configurationStarted?.signal()
+            configurationGate?.wait()
+            if failFirstConfiguration { throw WebcamManager.WebcamError.deviceUnavailable }
         }
         return preferredID ?? "automatic-camera"
     }
@@ -438,6 +455,144 @@ final class CameraLifecycleTests: XCTestCase {
         XCTAssertFalse(factory.sessions[0].isRunning)
     }
 
+    func testPermissionPublicationStartsANewAttemptAfterSelectionFailure() {
+        let permission = PermissionStub(status: .notDetermined)
+        let factory = SessionFactory(failFirstConfiguration: true)
+        let manager = makeManager(permission: permission, factory: factory)
+        let owner = UUID()
+        var results: [WebcamManager.SessionStartResult] = []
+        manager.startSession(owner: owner) { results.append($0) }
+
+        // Authorization is granted on the system callback queue, but its main
+        // continuation is delayed while the settings picker starts a failed setup.
+        let permissionResolved = DispatchSemaphore(value: 0)
+        DispatchQueue.global().async {
+            permission.resolve(granted: true)
+            permissionResolved.signal()
+        }
+        XCTAssertEqual(permissionResolved.wait(timeout: .now() + 1), .success)
+        manager.setSelectedCamera(id: "selected-after-grant")
+        sessionQueue.sync {}
+        XCTAssertEqual(factory.sessions.count, 1)
+        XCTAssertTrue(results.isEmpty)
+
+        waitUntil { !results.isEmpty }
+        XCTAssertEqual(results, [.started])
+        XCTAssertTrue(manager.ownsSession(owner))
+        XCTAssertTrue(manager.isSessionRunning)
+        XCTAssertEqual(factory.sessions.count, 2)
+        XCTAssertTrue(manager.previewLayer?.session === factory.sessions.last)
+        manager.stopSession(owner: owner)
+        sessionQueue.sync {}
+        XCTAssertTrue(factory.sessions.allSatisfy { !$0.isRunning })
+    }
+
+    func testCurrentConfigurationFailureReleasesOwnerAndAllowsRetry() {
+        let factory = SessionFactory(failFirstConfiguration: true)
+        let manager = makeManager(permission: PermissionStub(status: .authorized), factory: factory)
+        let owner = UUID()
+        var result: WebcamManager.SessionStartResult?
+        manager.startSession(owner: owner) { result = $0 }
+        waitUntil { result != nil }
+        XCTAssertEqual(result, .unavailable)
+        XCTAssertFalse(manager.ownsSession(owner))
+        XCTAssertFalse(manager.isSessionDesired)
+        XCTAssertFalse(manager.isSessionRunning)
+        XCTAssertNil(manager.previewLayer)
+        XCTAssertFalse(factory.sessions[0].isRunning)
+
+        manager.startSession(owner: owner)
+        waitUntil { manager.isSessionRunning }
+        XCTAssertTrue(manager.ownsSession(owner))
+        XCTAssertEqual(factory.sessions.count, 2)
+        manager.stopSession(owner: owner)
+        sessionQueue.sync {}
+        XCTAssertTrue(factory.sessions.allSatisfy { !$0.isRunning })
+    }
+
+    func testStaleConfigurationFailureCannotCancelSuccessfulReplacement() {
+        assertReplacementSurvivesDelayedPublication(failFirstConfiguration: true)
+    }
+
+    func testStaleConfigurationSuccessCannotReplaceNewPreview() {
+        assertReplacementSurvivesDelayedPublication(failFirstConfiguration: false)
+    }
+
+    private func assertReplacementSurvivesDelayedPublication(failFirstConfiguration: Bool) {
+        let configurationStarted = DispatchSemaphore(value: 0)
+        let configurationGate = DispatchSemaphore(value: 0)
+        let factory = SessionFactory(
+            configurationStarted: configurationStarted,
+            configurationGate: configurationGate,
+            failFirstConfiguration: failFirstConfiguration
+        )
+        let manager = makeManager(permission: PermissionStub(status: .authorized), factory: factory)
+        let owner = UUID()
+        var results: [WebcamManager.SessionStartResult] = []
+        manager.startSession(owner: owner) { results.append($0) }
+        XCTAssertEqual(configurationStarted.wait(timeout: .now() + 1), .success)
+
+        // A is already inside configuration. Keep main occupied until both A and B
+        // have finished, so A's publication cannot run before B starts capturing.
+        manager.setSelectedCamera(id: "replacement-camera")
+        configurationGate.signal()
+        sessionQueue.sync {}
+        XCTAssertEqual(factory.sessions.count, 2)
+        guard factory.sessions.count == 2 else { return }
+        let replacement = factory.sessions[1]
+        XCTAssertTrue(replacement.isRunning)
+        XCTAssertTrue(results.isEmpty)
+
+        waitUntil { !results.isEmpty }
+        XCTAssertEqual(results, [.started])
+        XCTAssertTrue(manager.ownsSession(owner))
+        XCTAssertTrue(manager.isSessionRunning)
+        XCTAssertTrue(manager.previewLayer?.session === replacement)
+        XCTAssertFalse(factory.sessions[0].isRunning)
+        XCTAssertTrue(replacement.isRunning)
+        XCTAssertEqual(replacement.stopCount, 0)
+
+        manager.stopSession(owner: owner)
+        sessionQueue.sync {}
+        XCTAssertFalse(replacement.isRunning)
+        XCTAssertEqual(replacement.stopCount, 1)
+    }
+
+    func testIdleDisconnectRefreshesDiscovery() {
+        let factory = SessionFactory()
+        let manager = makeManager(permission: PermissionStub(status: .authorized), factory: factory)
+        sessionQueue.sync {}
+        let initialDiscoveryCount = factory.discoveryCount
+
+        notificationCenter.post(name: AVCaptureDevice.wasDisconnectedNotification, object: nil)
+        sessionQueue.sync {}
+
+        XCTAssertEqual(factory.discoveryCount, initialDiscoveryCount + 1)
+        XCTAssertFalse(manager.isSessionDesired)
+        XCTAssertTrue(factory.sessions.isEmpty)
+    }
+
+    func testUnownedDisconnectRefreshesDiscoveryWithoutStoppingCapture() {
+        let factory = SessionFactory()
+        let manager = makeManager(permission: PermissionStub(status: .authorized), factory: factory)
+        let owner = UUID()
+        manager.startSession(owner: owner)
+        waitUntil { manager.isSessionRunning }
+        let initialDiscoveryCount = factory.discoveryCount
+        XCTAssertTrue(manager.cameraAvailable)
+
+        notificationCenter.post(name: AVCaptureDevice.wasDisconnectedNotification, object: nil)
+        sessionQueue.sync {}
+        waitUntil { !manager.cameraAvailable }
+
+        XCTAssertEqual(factory.discoveryCount, initialDiscoveryCount + 1)
+        XCTAssertTrue(manager.availableCameras.isEmpty)
+        XCTAssertTrue(manager.ownsSession(owner))
+        XCTAssertTrue(factory.sessions[0].isRunning)
+        manager.stopSession(owner: owner)
+        sessionQueue.sync {}
+    }
+
     func testPreviewRepresentableReplacesAndDetachesLayers() {
         let firstLayer = AVCaptureVideoPreviewLayer(session: FakeCaptureSession())
         let secondLayer = AVCaptureVideoPreviewLayer(session: FakeCaptureSession())
@@ -466,7 +621,7 @@ final class CameraLifecycleTests: XCTestCase {
             dependencies: WebcamManager.Dependencies(
                 authorizationStatus: { permission.status },
                 requestAccess: permission.requestAccess,
-                discoverDevices: { [] },
+                discoverDevices: factory.discoverDevices,
                 configureSession: factory.configure,
                 makeSession: factory.makeSession,
                 makePreviewLayer: { AVCaptureVideoPreviewLayer(session: $0) },
