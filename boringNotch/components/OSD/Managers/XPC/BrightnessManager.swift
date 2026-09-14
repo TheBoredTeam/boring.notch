@@ -11,6 +11,7 @@ final class BrightnessManager: ObservableObject {
 	@Published private(set) var rawBrightness: Float = 0
 	@Published private(set) var animatedBrightness: Float = 0
 	@Published private(set) var lastChangeAt: Date = .distantPast
+	@Published private(set) var canAdjustBrightness = false
 
 	private let visibleDuration: TimeInterval = 1.2
 	private let client = XPCHelperClient.shared
@@ -57,7 +58,10 @@ final class BrightnessManager: ObservableObject {
 	func refresh() {
 		Task { @MainActor in
 			if let current = await client.currentScreenBrightness() {
+				canAdjustBrightness = true
 				publish(brightness: current, touchDate: false)
+			} else {
+				canAdjustBrightness = false
 			}
 		}
 	}
@@ -72,6 +76,7 @@ final class BrightnessManager: ObservableObject {
 				pendingDelta = 0
 				// One RPC delivers both the adjustment and the resulting value.
 				guard let current = await client.adjustScreenBrightness(by: delta) else {
+					canAdjustBrightness = false
 					refresh()
 					return
 				}
@@ -88,11 +93,13 @@ final class BrightnessManager: ObservableObject {
 		Task { @MainActor in
 			let ok = await client.setScreenBrightness(clamped)
 			if ok {
+				canAdjustBrightness = true
 				publish(brightness: clamped, touchDate: true)
                 // optionally show peek when user uses slider/controls
                 let targetUUID = await brightnessTargetUUID()
                 NotchUIEventBus.events.send(.sneakPeek(type: .brightness, value: CGFloat(clamped), targetScreenUUID: targetUUID))
 			} else {
+				canAdjustBrightness = false
 				refresh()
 			}
 		}
@@ -117,6 +124,7 @@ final class KeyboardBacklightManager: ObservableObject {
 
 	@Published private(set) var rawBrightness: Float = 0
 	@Published private(set) var lastChangeAt: Date = .distantPast
+	@Published private(set) var canAdjustBrightness = false
 
 	private let visibleDuration: TimeInterval = 1.2
 	private let client = XPCHelperClient.shared
@@ -133,7 +141,10 @@ final class KeyboardBacklightManager: ObservableObject {
 	func refresh() {
 		Task { @MainActor in
 			if let current = await client.currentKeyboardBrightness() {
+				canAdjustBrightness = true
 				publish(brightness: current, touchDate: false)
+			} else {
+				canAdjustBrightness = false
 			}
 		}
 	}
@@ -154,8 +165,10 @@ final class KeyboardBacklightManager: ObservableObject {
 				let target = max(0, min(1, current + delta))
 				let ok = await client.setKeyboardBrightness(target)
 				if ok {
+					canAdjustBrightness = true
 					publish(brightness: target, touchDate: true)
 				} else {
+					canAdjustBrightness = false
 					refresh()
 					return
 				}
@@ -169,8 +182,10 @@ final class KeyboardBacklightManager: ObservableObject {
 		Task { @MainActor in
 			let ok = await client.setKeyboardBrightness(clamped)
 			if ok {
+				canAdjustBrightness = true
 				publish(brightness: clamped, touchDate: true)
 			} else {
+				canAdjustBrightness = false
 				refresh()
 			}
 		}

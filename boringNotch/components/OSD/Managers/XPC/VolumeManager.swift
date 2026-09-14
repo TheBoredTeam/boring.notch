@@ -1,373 +1,745 @@
-//
-//  VolumeManager.swift
-//  boringNotch
-//
-//  Created by JeanLouis on 22/08/2025.
-//
-
 import AppKit
 import Combine
 import CoreAudio
 import Foundation
 
+struct VolumePropertyAccess: Equatable {
+    let readable: Bool
+    let settable: Bool
+}
+
+protocol VolumeHardwareIO {
+    func defaultOutputDeviceID() -> AudioObjectID
+    func outputVolumeElements(deviceID: AudioObjectID) -> [UInt32]
+    func volumeAccess(deviceID: AudioObjectID, element: UInt32) -> VolumePropertyAccess
+    func muteAccess(deviceID: AudioObjectID) -> VolumePropertyAccess
+    func readVolume(deviceID: AudioObjectID, element: UInt32) -> Float32?
+    func writeVolume(deviceID: AudioObjectID, element: UInt32, value: Float32) -> Bool
+    func readMute(deviceID: AudioObjectID) -> Bool?
+    func writeMute(deviceID: AudioObjectID, muted: Bool) -> Bool
+}
+
+private struct CoreAudioVolumeIO: VolumeHardwareIO {
+    func defaultOutputDeviceID() -> AudioObjectID {
+        var deviceID = kAudioObjectUnknown
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDefaultOutputDevice,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain)
+        var size = UInt32(MemoryLayout<AudioObjectID>.size)
+        guard AudioObjectGetPropertyData(
+            AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &deviceID) == noErr
+        else { return kAudioObjectUnknown }
+        return deviceID
+    }
+
+    func outputVolumeElements(deviceID: AudioObjectID) -> [UInt32] {
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioDevicePropertyStreamConfiguration,
+            mScope: kAudioDevicePropertyScopeOutput,
+            mElement: kAudioObjectPropertyElementMain)
+        var size: UInt32 = 0
+        var channelCount = 0
+        if AudioObjectGetPropertyDataSize(deviceID, &address, 0, nil, &size) == noErr,
+           size >= UInt32(MemoryLayout<AudioBufferList>.size)
+        {
+            let storage = UnsafeMutableRawPointer.allocate(
+                byteCount: Int(size), alignment: MemoryLayout<AudioBufferList>.alignment)
+            defer { storage.deallocate() }
+            if AudioObjectGetPropertyData(deviceID, &address, 0, nil, &size, storage) == noErr {
+                let buffers = UnsafeMutableAudioBufferListPointer(
+                    storage.assumingMemoryBound(to: AudioBufferList.self))
+                channelCount = buffers.reduce(0) { $0 + Int($1.mNumberChannels) }
+            }
+        }
+        return [kAudioObjectPropertyElementMain]
+            + (channelCount > 0 ? Array(1...UInt32(channelCount)) : [])
+    }
+
+    func volumeAccess(deviceID: AudioObjectID, element: UInt32) -> VolumePropertyAccess {
+        propertyAccess(
+            deviceID: deviceID, selector: kAudioDevicePropertyVolumeScalar, element: element,
+            expectedSize: UInt32(MemoryLayout<Float32>.size))
+    }
+
+    func muteAccess(deviceID: AudioObjectID) -> VolumePropertyAccess {
+        propertyAccess(
+            deviceID: deviceID, selector: kAudioDevicePropertyMute,
+            element: kAudioObjectPropertyElementMain,
+            expectedSize: UInt32(MemoryLayout<UInt32>.size))
+    }
+
+    func readVolume(deviceID: AudioObjectID, element: UInt32) -> Float32? {
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioDevicePropertyVolumeScalar,
+            mScope: kAudioDevicePropertyScopeOutput, mElement: element)
+        var value = Float32(0)
+        var size = UInt32(MemoryLayout<Float32>.size)
+        guard AudioObjectGetPropertyData(deviceID, &address, 0, nil, &size, &value) == noErr
+        else { return nil }
+        return value
+    }
+
+    func writeVolume(deviceID: AudioObjectID, element: UInt32, value: Float32) -> Bool {
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioDevicePropertyVolumeScalar,
+            mScope: kAudioDevicePropertyScopeOutput, mElement: element)
+        var value = value
+        return AudioObjectSetPropertyData(
+            deviceID, &address, 0, nil, UInt32(MemoryLayout<Float32>.size), &value) == noErr
+    }
+
+    func readMute(deviceID: AudioObjectID) -> Bool? {
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioDevicePropertyMute,
+            mScope: kAudioDevicePropertyScopeOutput,
+            mElement: kAudioObjectPropertyElementMain)
+        var value: UInt32 = 0
+        var size = UInt32(MemoryLayout<UInt32>.size)
+        guard AudioObjectGetPropertyData(deviceID, &address, 0, nil, &size, &value) == noErr
+        else { return nil }
+        return value != 0
+    }
+
+    func writeMute(deviceID: AudioObjectID, muted: Bool) -> Bool {
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioDevicePropertyMute,
+            mScope: kAudioDevicePropertyScopeOutput,
+            mElement: kAudioObjectPropertyElementMain)
+        var value: UInt32 = muted ? 1 : 0
+        return AudioObjectSetPropertyData(
+            deviceID, &address, 0, nil, UInt32(MemoryLayout<UInt32>.size), &value) == noErr
+    }
+
+    private func propertyAccess(
+        deviceID: AudioObjectID, selector: AudioObjectPropertySelector, element: UInt32,
+        expectedSize: UInt32
+    ) -> VolumePropertyAccess {
+        var address = AudioObjectPropertyAddress(
+            mSelector: selector, mScope: kAudioDevicePropertyScopeOutput, mElement: element)
+        guard AudioObjectHasProperty(deviceID, &address) else {
+            return VolumePropertyAccess(readable: false, settable: false)
+        }
+        var size: UInt32 = 0
+        let readable = AudioObjectGetPropertyDataSize(deviceID, &address, 0, nil, &size) == noErr
+            && size == expectedSize
+        var settable = DarwinBoolean(false)
+        let status = AudioObjectIsPropertySettable(deviceID, &address, &settable)
+        return VolumePropertyAccess(
+            readable: readable, settable: status == noErr && settable.boolValue)
+    }
+}
+
+struct VolumeRouteObservation: Equatable {
+    let generation: UInt64
+    let sequence: UInt64
+    let deviceID: AudioObjectID
+    let volume: Float32?
+    let muted: Bool?
+    let restoreVolume: Float32
+    let canAdjustVolume: Bool
+    let canToggleMute: Bool
+    let usesHardwareMute: Bool
+    let isInitialSync: Bool
+}
+
+/// Synchronous route state machine. The manager serializes calls on its audio
+/// queue; tests inject fake CoreAudio reads, writes and listener events.
+final class VolumeRouteEngine {
+    private enum MuteAuthority {
+        case hardware
+        case software
+        case observedHardware
+        case unavailable
+    }
+
+    private struct Route {
+        let generation: UInt64
+        let deviceID: AudioObjectID
+        let readableElements: [UInt32]
+        let writableElements: [UInt32]
+        let muteAuthority: MuteAuthority
+        var softwareMuted = false
+        var restoreVolume: Float32 = 0.2
+        var restoreChannels: [UInt32: Float32]?
+    }
+    private struct Intent {
+        let generation: UInt64
+        let sequence: UInt64
+        let target: Float32
+    }
+
+    private let io: any VolumeHardwareIO
+    private(set) var generation: UInt64 = 0
+    private var route: Route?
+    private var pendingVolume: Intent?
+    private struct AcceptedWrite {
+        let sequence: UInt64
+        let values: [UInt32: Float32]
+    }
+    private var outstandingVolume: AcceptedWrite?
+    var outstandingWriteSequence: UInt64? { outstandingVolume?.sequence }
+    private var didSynchronize = false
+    private var latestSequence: UInt64 = 0
+
+    init(io: any VolumeHardwareIO) { self.io = io }
+
+    var deviceID: AudioObjectID { route?.deviceID ?? kAudioObjectUnknown }
+    var listenedVolumeElements: [UInt32] { route?.readableElements ?? [] }
+    var listensForMute: Bool {
+        switch route?.muteAuthority {
+        case .hardware, .observedHardware: true
+        default: false
+        }
+    }
+
+    func switchToDefaultRoute() -> VolumeRouteObservation {
+        generation &+= 1
+        pendingVolume = nil
+        outstandingVolume = nil
+        didSynchronize = false
+        latestSequence = 0
+        let deviceID = io.defaultOutputDeviceID()
+        let elements = deviceID == kAudioObjectUnknown ? [] : io.outputVolumeElements(deviceID: deviceID)
+        let controls = elements.map { ($0, io.volumeAccess(deviceID: deviceID, element: $0)) }
+        let master = controls.first { $0.0 == kAudioObjectPropertyElementMain }
+        let writable: [UInt32]
+        if let master, master.1.readable && master.1.settable {
+            writable = [master.0]
+        } else {
+            writable = controls.filter {
+                $0.0 != kAudioObjectPropertyElementMain && $0.1.readable && $0.1.settable
+            }.map(\.0)
+        }
+        let readable: [UInt32]
+        if !writable.isEmpty {
+            readable = writable
+        } else if let master, master.1.readable {
+            readable = [master.0]
+        } else {
+            readable = controls.filter {
+                $0.0 != kAudioObjectPropertyElementMain && $0.1.readable
+            }.map(\.0)
+        }
+        let mute = deviceID == kAudioObjectUnknown
+            ? VolumePropertyAccess(readable: false, settable: false)
+            : io.muteAccess(deviceID: deviceID)
+        let muteAuthority: MuteAuthority
+        if mute.readable && mute.settable {
+            muteAuthority = .hardware
+        } else if !writable.isEmpty {
+            muteAuthority = .software
+        } else if mute.readable {
+            muteAuthority = .observedHardware
+        } else {
+            muteAuthority = .unavailable
+        }
+        route = Route(
+            generation: generation, deviceID: deviceID, readableElements: readable,
+            writableElements: writable, muteAuthority: muteAuthority)
+        return observation(
+            expectedGeneration: generation, sequence: 0, initial: true)
+    }
+
+    func queueVolume(
+        _ target: Float32, expectedGeneration: UInt64, sequence: UInt64
+    ) -> Bool {
+        guard let route, route.generation == expectedGeneration, !route.writableElements.isEmpty
+        else { return false }
+        latestSequence = max(latestSequence, sequence)
+        pendingVolume = Intent(
+            generation: expectedGeneration, sequence: sequence,
+            target: max(0, min(1, target)))
+        return true
+    }
+
+    func flushVolume(
+        expectedGeneration: UInt64, forceWrite: Bool = false
+    ) -> VolumeRouteObservation? {
+        guard var route, route.generation == expectedGeneration,
+              let intent = pendingVolume, intent.generation == expectedGeneration
+        else { return nil }
+        guard outstandingVolume == nil else {
+            return observation(expectedGeneration: expectedGeneration, sequence: intent.sequence)
+        }
+        pendingVolume = nil
+        let accepted = writeVolume(intent.target, route: &route, forceWrite: forceWrite)
+        self.route = route
+        if !accepted.isEmpty {
+            outstandingVolume = AcceptedWrite(sequence: intent.sequence, values: accepted)
+            if !forceWrite && hasAcknowledgedVolume() { outstandingVolume = nil }
+        }
+        return observation(expectedGeneration: expectedGeneration, sequence: intent.sequence)
+    }
+
+    /// A successful no-change/quantized setter may never notify. The manager
+    /// bounds the wait, then reconciles or sends the newer coalesced command.
+    func recoverVolume(expectedGeneration: UInt64, sequence: UInt64) -> VolumeRouteObservation? {
+        guard route?.generation == expectedGeneration,
+              outstandingVolume?.sequence == sequence else { return nil }
+        let forceWrite = !hasAcknowledgedVolume()
+        outstandingVolume = nil
+        if pendingVolume != nil {
+            // HAL may still equal a reverse target while the earlier accepted
+            // setter is unsettled. In that case the reverse is not a no-op.
+            return flushVolume(expectedGeneration: expectedGeneration, forceWrite: forceWrite)
+        }
+        return observation(expectedGeneration: expectedGeneration, sequence: latestSequence)
+    }
+
+    func setMute(
+        _ muted: Bool, expectedGeneration: UInt64, sequence: UInt64
+    ) -> VolumeRouteObservation? {
+        guard let route, route.generation == expectedGeneration else { return nil }
+        latestSequence = max(latestSequence, sequence)
+        if let pendingVolume, pendingVolume.sequence < sequence {
+            self.pendingVolume = nil
+        }
+        switch route.muteAuthority {
+        case .hardware:
+            _ = io.writeMute(deviceID: route.deviceID, muted: muted)
+        case .software:
+            let target = muted ? Float32(0) : route.restoreVolume
+            _ = queueVolume(target, expectedGeneration: expectedGeneration, sequence: sequence)
+            return flushVolume(expectedGeneration: expectedGeneration)
+        case .observedHardware, .unavailable:
+            return nil
+        }
+        return observation(
+            expectedGeneration: expectedGeneration, sequence: sequence)
+    }
+
+    func handlePropertyEvent(
+        deviceID: AudioObjectID, expectedGeneration: UInt64, volumeChanged: Bool = true
+    ) -> VolumeRouteObservation? {
+        guard let route, route.deviceID == deviceID, route.generation == expectedGeneration else {
+            return nil
+        }
+        if volumeChanged, outstandingVolume != nil, hasAcknowledgedVolume() {
+            outstandingVolume = nil
+            // Do not publish over a newer command still waiting for its flush.
+            if pendingVolume != nil {
+                return flushVolume(expectedGeneration: expectedGeneration)
+            }
+        }
+        return observation(expectedGeneration: expectedGeneration, sequence: latestSequence)
+    }
+
+    private func observation(
+        expectedGeneration: UInt64, sequence: UInt64, initial: Bool = false
+    ) -> VolumeRouteObservation {
+        guard let route, route.generation == expectedGeneration else {
+            return VolumeRouteObservation(
+                generation: expectedGeneration, sequence: sequence,
+                deviceID: kAudioObjectUnknown, volume: nil, muted: nil, restoreVolume: 0.2,
+                canAdjustVolume: false, canToggleMute: false, usesHardwareMute: false,
+                isInitialSync: initial)
+        }
+        let samples = route.readableElements.compactMap { element in
+            io.readVolume(deviceID: route.deviceID, element: element).map { (element, $0) }
+        }
+        let volume = samples.map(\.1).max()
+        let suppressVolume = pendingVolume != nil || outstandingVolume != nil
+        var mutableRoute = route
+        let muted: Bool?
+        switch route.muteAuthority {
+        case .hardware:
+            muted = io.readMute(deviceID: route.deviceID)
+        case .software:
+            if !suppressVolume, let volume {
+                mutableRoute.softwareMuted = volume <= 0.0005
+                if volume > 0.0005 {
+                    mutableRoute.restoreVolume = volume
+                    mutableRoute.restoreChannels = Dictionary(
+                        uniqueKeysWithValues: samples.map { ($0.0, $0.1) })
+                }
+            } else if !suppressVolume {
+                mutableRoute.softwareMuted = false
+            }
+            muted = suppressVolume ? nil : mutableRoute.softwareMuted
+        case .observedHardware:
+            muted = io.readMute(deviceID: route.deviceID)
+        case .unavailable:
+            muted = nil
+        }
+        self.route = mutableRoute
+        let wasInitial = initial || !didSynchronize
+        didSynchronize = true
+        return VolumeRouteObservation(
+            generation: expectedGeneration, sequence: sequence, deviceID: route.deviceID,
+            volume: suppressVolume ? nil : volume, muted: muted,
+            restoreVolume: mutableRoute.restoreVolume,
+            canAdjustVolume: !route.writableElements.isEmpty,
+            canToggleMute: {
+                switch route.muteAuthority {
+                case .hardware, .software: true
+                case .observedHardware, .unavailable: false
+                }
+            }(),
+            usesHardwareMute: {
+                if case .hardware = route.muteAuthority { return true }
+                return false
+            }(),
+            isInitialSync: wasInitial)
+    }
+
+    private func hasAcknowledgedVolume() -> Bool {
+        guard let route, let outstandingVolume else { return false }
+        return outstandingVolume.values.allSatisfy { element, target in
+            guard let value = io.readVolume(deviceID: route.deviceID, element: element) else {
+                return false
+            }
+            return abs(value - target) <= 0.0005
+        }
+    }
+
+    private func writeVolume(
+        _ target: Float32, route: inout Route, forceWrite: Bool
+    ) -> [UInt32: Float32] {
+        let samples = route.writableElements.compactMap { element in
+            io.readVolume(deviceID: route.deviceID, element: element).map { (element, $0) }
+        }
+        guard samples.count == route.writableElements.count else { return [:] }
+        let clamped = max(0, min(1, target))
+        if route.writableElements == [kAudioObjectPropertyElementMain] {
+            if !forceWrite, samples[0].1 > 0.0005 {
+                route.restoreVolume = samples[0].1
+                route.restoreChannels = [samples[0].0: samples[0].1]
+            }
+            guard forceWrite || samples[0].1 != clamped else { return [:] }
+            let accepted = io.writeVolume(
+                deviceID: route.deviceID, element: kAudioObjectPropertyElementMain,
+                value: clamped)
+            return accepted ? [kAudioObjectPropertyElementMain: clamped] : [:]
+        }
+
+        let currentPeak = samples.map(\.1).max() ?? 0
+        if !forceWrite, currentPeak > 0.0005 {
+            route.restoreVolume = currentPeak
+            route.restoreChannels = Dictionary(
+                uniqueKeysWithValues: samples.map { ($0.0, $0.1) })
+        }
+        let profile: [UInt32: Float32]?
+        if !forceWrite, currentPeak > 0.0005 {
+            profile = Dictionary(uniqueKeysWithValues: samples.map { ($0.0, $0.1) })
+        } else {
+            profile = route.restoreChannels
+        }
+        let profilePeak = profile?.values.max() ?? 0
+        var accepted: [UInt32: Float32] = [:]
+        for element in route.writableElements {
+            let value: Float32
+            if clamped == 0 {
+                value = 0
+            } else if let channel = profile?[element], profilePeak > 0.0005 {
+                value = clamped * channel / profilePeak
+            } else {
+                value = clamped
+            }
+            guard forceWrite || samples.first(where: { $0.0 == element })?.1 != value else { continue }
+            if io.writeVolume(deviceID: route.deviceID, element: element, value: value) {
+                accepted[element] = value
+            }
+        }
+        return accepted
+    }
+}
+
 final class VolumeManager: NSObject, ObservableObject {
     static let shared = VolumeManager()
 
     @Published private(set) var rawVolume: Float = 0
-    @Published private(set) var isMuted: Bool = false
+    @Published private(set) var isMuted = false
     @Published private(set) var lastChangeAt: Date = .distantPast
+    @Published private(set) var canAdjustVolume = false
+    @Published private(set) var canToggleMute = false
 
     let visibleDuration: TimeInterval = 1.2
-
     private let step: Float32 = 1.0 / 16.0
-    // Fallback software if hardware mute is not supported
     private var previousVolumeBeforeMute: Float32 = 0.2
-    private var softwareMuted: Bool = false
-    private var didInitialFetch = false
-    /// Main-side mirror of snapshot.supportsMute for mute-path decisions.
-    private var deviceSupportsMute = false
-
-    /// All CoreAudio IPC runs on this serial queue. Every property
-    /// read/write is a synchronous round-trip to coreaudiod, and slider
-    /// drags can fire change callbacks at 60–120 Hz — none of it belongs
-    /// on the main thread (the old implementation ran ~40 IPC calls on
-    /// main *per volume event*).
-    private let audioQueue = DispatchQueue(label: "com.boringnotch.osd.volume", qos: .userInitiated)
-
-    /// Cached output-device snapshot, rebuilt only when the default output
-    /// device changes. AudioObjectPropertyAddress values don't mutate
-    /// between calls, so probing Has/GetSize once per device replaces the
-    /// ~30 probe calls the old code made on every volume event.
-    private struct DeviceSnapshot {
-        var deviceID: AudioObjectID = kAudioObjectUnknown
-        var volumeElements: [UInt32] = []
-        var supportsMute = false
-    }
-    /// Only touched on audioQueue.
-    private var snapshot = DeviceSnapshot()
-
-    /// Writes are coalesced to 15 Hz: a drag gesture produces far more
-    /// callbacks than hardware (or the user) benefits from. audioQueue-only.
-    private var pendingWriteTarget: Float32?
+    private var activeGeneration: UInt64 = 0
+    private var usesHardwareMute = false
+    private var latestIntentSequence: UInt64 = 0
+    private var nextIntentSequence: UInt64 = 0
+    private let audioQueue: DispatchQueue
+    private let engine: VolumeRouteEngine
+    private let mainDelivery: (@escaping () -> Void) -> Void
+    private var pendingWriteGeneration: UInt64?
+    private let observesHardware: Bool
     private var writeFlushScheduled = false
-    private let writeFlushInterval: TimeInterval = 1.0 / 15.0
+    private let writeFlushInterval: TimeInterval
+    // Bounds missing acknowledgements; this is not a hardware latency guarantee.
+    private let acknowledgementRecoveryInterval: TimeInterval
+    private var scheduledRecovery: (generation: UInt64, sequence: UInt64)?
 
-    /// Volume/mute listeners must be re-registered whenever the output
-    /// device changes (the old code registered once at init — after a
-    /// device switch, live updates silently stopped).
     private struct ListenerRegistration {
-        var deviceID: AudioObjectID
-        var address: AudioObjectPropertyAddress
-        var block: AudioObjectPropertyListenerBlock
+        let deviceID: AudioObjectID
+        let address: AudioObjectPropertyAddress
+        let block: AudioObjectPropertyListenerBlock
     }
-    private var listenerRegistrations: [ListenerRegistration] = []
+    private var listeners: [ListenerRegistration] = []
 
-    private override init() {
+    private override convenience init() {
+        self.init(
+            io: CoreAudioVolumeIO(),
+            audioQueue: DispatchQueue(
+                label: "com.boringnotch.osd.volume", qos: .userInitiated),
+            writeFlushInterval: 1.0 / 15.0,
+            mainDelivery: { action in DispatchQueue.main.async(execute: action) },
+            startAutomatically: true)
+    }
+
+    init(
+        io: any VolumeHardwareIO,
+        audioQueue: DispatchQueue,
+        writeFlushInterval: TimeInterval,
+        acknowledgementRecoveryInterval: TimeInterval = 0.25,
+        mainDelivery: @escaping (@escaping () -> Void) -> Void,
+        startAutomatically: Bool = false
+    ) {
+        self.observesHardware = startAutomatically
+        self.audioQueue = audioQueue
+        self.engine = VolumeRouteEngine(io: io)
+        self.writeFlushInterval = writeFlushInterval
+        self.acknowledgementRecoveryInterval = acknowledgementRecoveryInterval
+        self.mainDelivery = mainDelivery
         super.init()
-        installDeviceChangeListener()
-        audioQueue.async { [self] in
-            rebuildSnapshotLocked()
-            syncFromDeviceLocked()
+        if startAutomatically {
+            installDeviceChangeListener()
+            refreshRoute()
         }
     }
 
     var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
 
-    // MARK: - Public Control API
-
-    @MainActor func increase(stepDivisor: Float = 1.0) {
-        adjustInSteps(1, stepDivisor: stepDivisor)
+    @MainActor func increase(stepDivisor: Float = 1) {
+        let divisor = Float32(max(stepDivisor, 0.25))
+        commit(target: max(0, min(1, rawVolume + step / divisor)))
     }
 
-    @MainActor func decrease(stepDivisor: Float = 1.0) {
-        adjustInSteps(-1, stepDivisor: stepDivisor)
-    }
-
-    @MainActor private func adjustInSteps(_ direction: Float32, stepDivisor: Float) {
-        let delta = step / Float32(max(stepDivisor, 0.25)) * direction
-        commit(target: max(0, min(1, rawVolume + delta)))
+    @MainActor func decrease(stepDivisor: Float = 1) {
+        let divisor = Float32(max(stepDivisor, 0.25))
+        commit(target: max(0, min(1, rawVolume - step / divisor)))
     }
 
     @MainActor func toggleMuteAction() {
-        let willBeMuted = !isMuted
-        let resultingVolume: Float32 = rawVolume > 0.001 ? rawVolume : previousVolumeBeforeMute
-
-        if willBeMuted {
-            if deviceSupportsMute {
-                enqueueHardwareMute(true)
-            } else {
-                if rawVolume > 0.001 { previousVolumeBeforeMute = rawVolume }
-                softwareMuted = true
-                requestVolumeWrite(0)
-            }
-            // Hardware mute preserves the underlying volume level.
-            publish(volume: deviceSupportsMute ? rawVolume : 0, muted: true, touchDate: true)
-            NotchUIEventBus.events.send(.sneakPeek(type: .volume, value: 0))
-        } else {
-            if deviceSupportsMute {
-                enqueueHardwareMute(false)
-            } else {
-                softwareMuted = false
-                requestVolumeWrite(previousVolumeBeforeMute)
-            }
-            publish(volume: deviceSupportsMute ? rawVolume : resultingVolume, muted: false, touchDate: true)
-            NotchUIEventBus.events.send(.sneakPeek(type: .volume, value: CGFloat(resultingVolume)))
-        }
+        guard canToggleMute || canAdjustVolume else { return }
+        let generation = activeGeneration
+        let sequence = beginIntent()
+        let willMute = !isMuted
+        let restored = rawVolume > 0.001 ? rawVolume : previousVolumeBeforeMute
+        enqueueMute(willMute, generation: generation, sequence: sequence)
+        publish(
+            volume: willMute ? rawVolume : restored,
+            muted: willMute, touchDate: true)
+        NotchUIEventBus.events.send(
+            .sneakPeek(
+                type: .volume, value: willMute ? 0 : CGFloat(restored),
+                provider: .builtin))
     }
 
     @MainActor func setAbsolute(_ value: Float32) {
         commit(target: max(0, min(1, value)))
     }
 
-    /// Shared by keys and slider: optimistically publishes the intent (the
-    /// OSD bar animates instantly) and defers hardware I/O to the coalesced
-    /// writer — listeners confirm the ground truth afterwards.
     @MainActor private func commit(target: Float32) {
+        guard canAdjustVolume else { return }
+        let generation = activeGeneration
+        let sequence = beginIntent()
+        var muteIntent: Bool?
         if isMuted && target > 0 {
-            // Unmute intent: hardware unmute for mute-capable devices, and
-            // the volume write below restores sound on the software path.
-            softwareMuted = false
-            enqueueHardwareMute(false)
+            if usesHardwareMute { muteIntent = false }
         }
-        publish(volume: target, muted: target > 0 ? false : isMuted, touchDate: true)
         if target == 0 && !isMuted {
-            // Historical behavior: driving volume to zero engages mute.
-            if deviceSupportsMute {
-                enqueueHardwareMute(true)
-            } else {
-                if rawVolume > 0.001 { previousVolumeBeforeMute = rawVolume }
-                softwareMuted = true
-            }
-            publish(volume: target, muted: true, touchDate: true)
+            if rawVolume > 0.001 { previousVolumeBeforeMute = rawVolume }
+            if usesHardwareMute { muteIntent = true }
         }
-        requestVolumeWrite(target)
-        NotchUIEventBus.events.send(.sneakPeek(type: .volume, value: CGFloat(target)))
+        publish(volume: target, muted: target == 0, touchDate: true)
+        requestVolumeWrite(target, generation: generation, sequence: sequence)
+        // Queue volume intent first so synchronous mute reconciliation sees
+        // it and cannot overwrite the optimistic key result with an old level.
+        if let muteIntent {
+            enqueueMute(muteIntent, generation: generation, sequence: sequence)
+        }
+        NotchUIEventBus.events.send(
+            .sneakPeek(type: .volume, value: CGFloat(target), provider: .builtin))
     }
 
-    // MARK: - Hardware I/O (audioQueue)
+    @MainActor private func beginIntent() -> UInt64 {
+        nextIntentSequence &+= 1
+        latestIntentSequence = nextIntentSequence
+        return nextIntentSequence
+    }
 
-    /// Coalesced writer: runs at most every writeFlushInterval and always
-    /// flushes the *latest* requested target.
-    private func requestVolumeWrite(_ value: Float32) {
+    private func requestVolumeWrite(
+        _ value: Float32, generation: UInt64, sequence: UInt64
+    ) {
         audioQueue.async { [self] in
-            pendingWriteTarget = value
+            guard engine.queueVolume(
+                value, expectedGeneration: generation, sequence: sequence)
+            else { return }
+            pendingWriteGeneration = generation
             guard !writeFlushScheduled else { return }
             writeFlushScheduled = true
             audioQueue.asyncAfter(deadline: .now() + writeFlushInterval) { [self] in
                 writeFlushScheduled = false
-                guard let target = pendingWriteTarget else { return }
-                pendingWriteTarget = nil
-                writeVolumeLocked(target)
-                syncFromDeviceLocked()
+                guard let pendingWriteGeneration else { return }
+                self.pendingWriteGeneration = nil
+                if let observation = engine.flushVolume(
+                    expectedGeneration: pendingWriteGeneration)
+                {
+                    deliverAudioObservation(observation)
+                }
             }
         }
     }
 
-    private func enqueueHardwareMute(_ muted: Bool) {
+    private func enqueueMute(_ muted: Bool, generation: UInt64, sequence: UInt64) {
         audioQueue.async { [self] in
-            guard snapshot.supportsMute else { return }
-            var value: UInt32 = muted ? 1 : 0
-            var addr = AudioObjectPropertyAddress(
-                mSelector: kAudioDevicePropertyMute,
-                mScope: kAudioDevicePropertyScopeOutput,
-                mElement: kAudioObjectPropertyElementMain
-            )
-            AudioObjectSetPropertyData(
-                snapshot.deviceID, &addr, 0, nil, UInt32(MemoryLayout<UInt32>.size), &value)
-            syncFromDeviceLocked()
+            if let observation = engine.setMute(
+                muted, expectedGeneration: generation, sequence: sequence)
+            {
+                deliverAudioObservation(observation)
+            }
         }
     }
 
-    // MARK: - Snapshot & Listeners (audioQueue)
+    func refreshRoute() {
+        audioQueue.async { [self] in rebuildRouteLocked() }
+    }
 
-    /// Removes listeners from the old device, probes the new one once, and
-    /// attaches volume/mute listeners to it. CoreAudio delivers every
-    /// subsequent change event-driven, so steady state costs zero polling.
-    private func rebuildSnapshotLocked() {
-        for registration in listenerRegistrations {
-            var address = registration.address
-            AudioObjectRemovePropertyListenerBlock(
-                registration.deviceID, &address, audioQueue, registration.block)
+    func processRoutePropertyChange(deviceID: AudioObjectID, generation: UInt64) {
+        audioQueue.async { [self] in
+            guard let observation = engine.handlePropertyEvent(
+                deviceID: deviceID, expectedGeneration: generation)
+            else { return }
+            deliverAudioObservation(observation)
         }
-        listenerRegistrations.removeAll()
+    }
 
-        let deviceID = systemOutputDeviceID()
-        var snap = DeviceSnapshot(deviceID: deviceID)
-        if deviceID != kAudioObjectUnknown {
-            snap.volumeElements = [kAudioObjectPropertyElementMain, 1, 2, 3, 4].filter {
-                probeScalar(deviceID: deviceID, element: $0)
-            }
-            snap.supportsMute = probeMute(deviceID: deviceID)
-        }
-        snapshot = snap
+    private func rebuildRouteLocked() {
+        removeDeviceListenersLocked()
+        pendingWriteGeneration = nil
+        let observation = engine.switchToDefaultRoute()
+        if observesHardware { attachDeviceListenersLocked(generation: observation.generation) }
+        deliverAudioObservation(observation)
+    }
 
-        let supports = snap.supportsMute
-        DispatchQueue.main.async { [self] in
-            deviceSupportsMute = supports
-        }
-
+    private func attachDeviceListenersLocked(generation: UInt64) {
+        let deviceID = engine.deviceID
         guard deviceID != kAudioObjectUnknown else { return }
-        // Devices without a master volume only expose per-channel scalars;
-        // listen on every element the snapshot validated.
-        for element in snap.volumeElements {
+        for element in engine.listenedVolumeElements {
             attachListenerLocked(
-                deviceID: deviceID, selector: kAudioDevicePropertyVolumeScalar, element: element)
+                deviceID: deviceID, selector: kAudioDevicePropertyVolumeScalar,
+                element: element, generation: generation)
         }
-        if snap.supportsMute {
+        if engine.listensForMute {
             attachListenerLocked(
                 deviceID: deviceID, selector: kAudioDevicePropertyMute,
-                element: kAudioObjectPropertyElementMain)
+                element: kAudioObjectPropertyElementMain, generation: generation)
         }
     }
 
     private func attachListenerLocked(
-        deviceID: AudioObjectID, selector: AudioObjectPropertySelector, element: UInt32
+        deviceID: AudioObjectID, selector: AudioObjectPropertySelector, element: UInt32,
+        generation: UInt64
     ) {
         var address = AudioObjectPropertyAddress(
-            mSelector: selector,
-            mScope: kAudioDevicePropertyScopeOutput,
-            mElement: element
-        )
+            mSelector: selector, mScope: kAudioDevicePropertyScopeOutput, mElement: element)
         let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
-            // Callbacks are delivered on audioQueue already.
-            self?.syncFromDeviceLocked()
+            guard let self,
+                  let observation = self.engine.handlePropertyEvent(
+                    deviceID: deviceID, expectedGeneration: generation,
+                    volumeChanged: selector == kAudioDevicePropertyVolumeScalar)
+            else { return }
+            self.deliverAudioObservation(observation)
         }
         guard AudioObjectAddPropertyListenerBlock(deviceID, &address, audioQueue, block) == noErr
         else { return }
-        listenerRegistrations.append(
+        listeners.append(
             ListenerRegistration(deviceID: deviceID, address: address, block: block))
     }
 
-    /// The system-object device-change listener is permanent (registered
-    /// once) and is delivered on audioQueue like every other callback.
+    private func removeDeviceListenersLocked() {
+        for listener in listeners {
+            var address = listener.address
+            AudioObjectRemovePropertyListenerBlock(
+                listener.deviceID, &address, audioQueue, listener.block)
+        }
+        listeners.removeAll()
+    }
+
     private func installDeviceChangeListener() {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultOutputDevice,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
+            mElement: kAudioObjectPropertyElementMain)
         AudioObjectAddPropertyListenerBlock(
             AudioObjectID(kAudioObjectSystemObject), &address, audioQueue
-        ) { [weak self] _, _ in
-            self?.rebuildSnapshotLocked()
-            self?.syncFromDeviceLocked()
+        ) { [weak self] _, _ in self?.rebuildRouteLocked() }
+    }
+
+    private func deliverAudioObservation(_ observation: VolumeRouteObservation) {
+        deliver(observation)
+        guard let sequence = engine.outstandingWriteSequence else {
+            scheduledRecovery = nil
+            return
         }
-    }
-
-    /// Reads ground truth using the cached snapshot (no Has/GetSize
-    /// probing, unlike the old fetch path) and mirrors it to the published
-    /// main-side state.
-    private func syncFromDeviceLocked() {
-        guard snapshot.deviceID != kAudioObjectUnknown else { return }
-        let volume = readVolumeLocked()
-        let muted = snapshot.supportsMute ? readMuteLocked() : nil
-        DispatchQueue.main.async { [self] in
-            applyFromDevice(volume: volume, hardwareMuted: muted)
-        }
-    }
-
-    @MainActor private func applyFromDevice(volume: Float32?, hardwareMuted: Bool?) {
-        let effectiveMuted = hardwareMuted ?? softwareMuted
-        let changed =
-            (volume != nil && abs(volume! - rawVolume) > 0.0005) || effectiveMuted != isMuted
-        // The initial fetch arms change detection without touching the date;
-        // only later device-reported changes bring the OSD up.
-        if changed && didInitialFetch { lastChangeAt = Date() }
-        if let volume { rawVolume = volume }
-        isMuted = effectiveMuted
-        didInitialFetch = true
-    }
-
-    // MARK: - CoreAudio Primitives (audioQueue, snapshot-backed)
-
-    private func systemOutputDeviceID() -> AudioObjectID {
-        var defaultDeviceID = kAudioObjectUnknown
-        var propertyAddress = AudioObjectPropertyAddress(
-            mSelector: kAudioHardwarePropertyDefaultOutputDevice,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        var dataSize = UInt32(MemoryLayout<AudioObjectID>.size)
-        let status = AudioObjectGetPropertyData(
-            AudioObjectID(kAudioObjectSystemObject),
-            &propertyAddress,
-            0,
-            nil,
-            &dataSize,
-            &defaultDeviceID
-        )
-        if status != noErr { return kAudioObjectUnknown }
-        return defaultDeviceID
-    }
-
-    private func probeScalar(deviceID: AudioObjectID, element: UInt32) -> Bool {
-        var addr = AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyVolumeScalar,
-            mScope: kAudioDevicePropertyScopeOutput,
-            mElement: element
-        )
-        guard AudioObjectHasProperty(deviceID, &addr) else { return false }
-        var sizeNeeded: UInt32 = 0
-        return AudioObjectGetPropertyDataSize(deviceID, &addr, 0, nil, &sizeNeeded) == noErr
-            && sizeNeeded == UInt32(MemoryLayout<Float32>.size)
-    }
-
-    private func probeMute(deviceID: AudioObjectID) -> Bool {
-        var addr = AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyMute,
-            mScope: kAudioDevicePropertyScopeOutput,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        guard AudioObjectHasProperty(deviceID, &addr) else { return false }
-        var sizeNeeded: UInt32 = 0
-        return AudioObjectGetPropertyDataSize(deviceID, &addr, 0, nil, &sizeNeeded) == noErr
-            && sizeNeeded == UInt32(MemoryLayout<UInt32>.size)
-    }
-
-    private func readVolumeLocked() -> Float32? {
-        var collected: [Float32] = []
-        for element in snapshot.volumeElements {
-            var addr = AudioObjectPropertyAddress(
-                mSelector: kAudioDevicePropertyVolumeScalar,
-                mScope: kAudioDevicePropertyScopeOutput,
-                mElement: element
-            )
-            var vol = Float32(0)
-            var size = UInt32(MemoryLayout<Float32>.size)
-            if AudioObjectGetPropertyData(snapshot.deviceID, &addr, 0, nil, &size, &vol) == noErr {
-                collected.append(vol)
+        let generation = engine.generation
+        guard scheduledRecovery?.generation != generation || scheduledRecovery?.sequence != sequence
+        else { return }
+        scheduledRecovery = (generation, sequence)
+        audioQueue.asyncAfter(deadline: .now() + acknowledgementRecoveryInterval) { [weak self] in
+            guard let self,
+                  scheduledRecovery?.generation == generation,
+                  scheduledRecovery?.sequence == sequence else { return }
+            scheduledRecovery = nil
+            if let observation = engine.recoverVolume(
+                expectedGeneration: generation, sequence: sequence) {
+                deliverAudioObservation(observation)
             }
         }
-        guard !collected.isEmpty else { return nil }
-        return max(0, min(1, collected.reduce(0, +) / Float32(collected.count)))
     }
 
-    private func writeVolumeLocked(_ value: Float32) {
-        guard snapshot.deviceID != kAudioObjectUnknown else { return }
-        let newVal = max(0, min(1, value))
-        for element in snapshot.volumeElements {
-            var addr = AudioObjectPropertyAddress(
-                mSelector: kAudioDevicePropertyVolumeScalar,
-                mScope: kAudioDevicePropertyScopeOutput,
-                mElement: element
-            )
-            var val = newVal
-            AudioObjectSetPropertyData(
-                snapshot.deviceID, &addr, 0, nil, UInt32(MemoryLayout<Float32>.size), &val)
+    func deliver(_ observation: VolumeRouteObservation) {
+        mainDelivery { [weak self] in
+            Task { @MainActor in self?.apply(observation) }
         }
     }
 
-    private func readMuteLocked() -> Bool? {
-        var addr = AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyMute,
-            mScope: kAudioDevicePropertyScopeOutput,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        var muted: UInt32 = 0
-        var size = UInt32(MemoryLayout<UInt32>.size)
-        guard AudioObjectGetPropertyData(snapshot.deviceID, &addr, 0, nil, &size, &muted) == noErr
-        else { return nil }
-        return muted != 0
+    @MainActor func apply(_ observation: VolumeRouteObservation) {
+        if observation.isInitialSync {
+            guard observation.generation >= activeGeneration else { return }
+            activeGeneration = observation.generation
+            latestIntentSequence = 0
+            rawVolume = observation.volume ?? 0
+            isMuted = observation.muted ?? false
+            previousVolumeBeforeMute = observation.restoreVolume
+        } else {
+            guard observation.generation == activeGeneration else { return }
+            guard observation.sequence >= latestIntentSequence else { return }
+        }
+        canAdjustVolume = observation.canAdjustVolume
+        canToggleMute = observation.canToggleMute
+        usesHardwareMute = observation.usesHardwareMute
+        previousVolumeBeforeMute = observation.restoreVolume
+        let effectiveMuted = observation.muted ?? isMuted
+        let changed = observation.volume.map { abs($0 - rawVolume) > 0.0005 } == true
+            || effectiveMuted != isMuted
+        if let volume = observation.volume { rawVolume = volume }
+        isMuted = effectiveMuted
+        guard changed else { return }
+        if !observation.isInitialSync { lastChangeAt = Date() }
+        // External callbacks and command reconciliation both update the
+        // current peek. For a successful exact command `changed` is false,
+        // so callback echoes do not create a duplicate presentation.
+        if !observation.isInitialSync {
+            NotchUIEventBus.events.send(
+                .sneakPeek(
+                    type: .volume,
+                    value: effectiveMuted ? 0 : CGFloat(observation.volume ?? rawVolume),
+                    provider: .builtin))
+        }
     }
 
     @MainActor private func publish(volume: Float32, muted: Bool, touchDate: Bool) {

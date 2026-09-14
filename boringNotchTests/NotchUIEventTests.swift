@@ -27,7 +27,7 @@ final class NotchUIEventTests: XCTestCase {
         let expectation = expectation(description: "event delivered")
         NotchUIEventBus.events
             .sink { event in
-                guard case .sneakPeek(let type, let value, let icon, _, let uuid, _) = event else {
+                guard case .sneakPeek(let type, let value, let icon, _, let uuid, _, _) = event else {
                     XCTFail("unexpected event")
                     return
                 }
@@ -58,6 +58,33 @@ final class NotchUIEventTests: XCTestCase {
 
         NotchUIEventBus.events.send(.expandingView(type: .battery))
         waitForExpectations(timeout: 1.0)
+    }
+
+    @MainActor
+    func testCoordinatorGatePreservesMusicEventWhenOSDReplacementIsDisabled() {
+        let expectation = expectation(description: "music event accepted")
+        NotchUIEventBus.events
+            .sink { event in
+                guard case .sneakPeek(let type, _, _, _, _, _, let provider) = event,
+                      BoringViewCoordinator.shouldPresentSneakPeek(
+                        type: type, provider: provider, osdReplacement: false,
+                        volumeSource: .builtin, brightnessSource: .builtin)
+                else { return }
+                XCTAssertEqual(type, .music)
+                expectation.fulfill()
+            }
+            .store(in: &cancellables)
+
+        NotchUIEventBus.events.send(.sneakPeek(type: .music, value: 0))
+        waitForExpectations(timeout: 1.0)
+        XCTAssertFalse(BoringViewCoordinator.shouldPresentSneakPeek(
+            type: .volume, provider: .builtin, osdReplacement: false,
+            volumeSource: .builtin, brightnessSource: .builtin))
+        for type: SneakContentType in [.mic, .battery, .download] {
+            XCTAssertFalse(BoringViewCoordinator.shouldPresentSneakPeek(
+                type: type, provider: nil, osdReplacement: false,
+                volumeSource: .builtin, brightnessSource: .builtin))
+        }
     }
 }
 
