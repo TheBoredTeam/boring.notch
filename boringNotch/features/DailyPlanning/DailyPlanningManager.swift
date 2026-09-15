@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import AppKit
 
 struct DailyWorkflowSession: Equatable, Identifiable {
     let kind: DailyWorkflowKind
@@ -55,6 +56,8 @@ final class DailyPlanningManager: ObservableObject {
     private var timer: Timer?
     private var evaluationTask: Task<Void, Never>?
     private var eventStoreObserver: NSObjectProtocol?
+    private var wakeObserver: NSObjectProtocol?
+    private var applicationActivationObserver: NSObjectProtocol?
     private var hasStarted = false
 
     init(
@@ -72,6 +75,12 @@ final class DailyPlanningManager: ObservableObject {
         evaluationTask?.cancel()
         if let eventStoreObserver {
             NotificationCenter.default.removeObserver(eventStoreObserver)
+        }
+        if let wakeObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(wakeObserver)
+        }
+        if let applicationActivationObserver {
+            NotificationCenter.default.removeObserver(applicationActivationObserver)
         }
     }
 
@@ -91,6 +100,24 @@ final class DailyPlanningManager: ObservableObject {
                     return
                 }
                 await self.reloadActiveSession(showLoadingIndicator: false)
+            }
+        }
+        wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.evaluate()
+            }
+        }
+        applicationActivationObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.evaluate()
             }
         }
         evaluate()
