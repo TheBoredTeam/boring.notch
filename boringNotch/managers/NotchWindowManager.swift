@@ -14,8 +14,6 @@ import SwiftUI
 
 @MainActor
 final class NotchWindowManager {
-    static let shared = NotchWindowManager()
-
     /// All per-screen state in one value — replaces the parallel
     /// windows/viewModels/dragDetectors dictionaries that previously had
     /// to be mutated in lockstep (a missed mutation leaked observers).
@@ -27,12 +25,16 @@ final class NotchWindowManager {
 
     private(set) var contexts: [String: ScreenContext] = [:] // UUID -> ScreenContext
     private(set) var primaryWindow: NSWindow?
-    let primaryViewModel = BoringViewModel()
+    let primaryViewModel: BoringViewModel
     private var primaryDragDetector: DragDetector?
 
     private(set) var isScreenLocked: Bool = false
     private var windowScreenDidChangeObserver: Any?
     private var previousScreens: [NSScreen]?
+
+    init(camera: CameraModel) {
+        primaryViewModel = BoringViewModel(camera: camera)
+    }
 
     // MARK: - Public lookups (preserve AppDelegate's old API shape)
 
@@ -198,7 +200,7 @@ final class NotchWindowManager {
 
                 if contexts[uuid] == nil {
                     contexts[uuid] = ScreenContext(
-                        viewModel: BoringViewModel(screenUUID: uuid),
+                        viewModel: BoringViewModel(screenUUID: uuid, camera: primaryViewModel.camera),
                         window: nil,
                         dragDetector: nil
                     )

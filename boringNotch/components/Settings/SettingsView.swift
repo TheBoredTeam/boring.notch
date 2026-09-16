@@ -65,9 +65,11 @@ struct SettingsView: View {
     @State private var accentColorUpdateTrigger = UUID()
 
     let updaterController: SPUStandardUpdaterController?
+    let camera: CameraModel
 
-    init(updaterController: SPUStandardUpdaterController? = nil) {
+    init(updaterController: SPUStandardUpdaterController? = nil, camera: CameraModel) {
         self.updaterController = updaterController
+        self.camera = camera
     }
 
     var body: some View {
@@ -102,7 +104,7 @@ struct SettingsView: View {
                 case .shelf:
                     ShelfSettingsView()
                 case .mirror:
-                    WebcamSettingsView()
+                    WebcamSettingsView(camera: camera)
                 case .shortcuts:
                     ShortcutsSettingsView()
                 case .advanced:

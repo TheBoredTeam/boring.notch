@@ -18,6 +18,7 @@ final class BoringViewModel: NSObject, ObservableObject {
     let dropInteraction = DropInteractionState()
 
     @Published private(set) var notchState: NotchState = .closed
+
     var cancellables: Set<AnyCancellable> = []
     
     @Published var hideOnClosed: Bool = true
@@ -31,9 +32,7 @@ final class BoringViewModel: NSObject, ObservableObject {
     @Published var notchSize: CGSize = getClosedNotchSize()
     @Published var closedNotchSize: CGSize = getClosedNotchSize()
     
-    let webcamManager = WebcamManager.shared
-    @Published var isCameraExpanded: Bool = false
-    @Published var isRequestingAuthorization: Bool = false
+    let camera: CameraModel
     
     deinit {
         destroy()
@@ -44,12 +43,13 @@ final class BoringViewModel: NSObject, ObservableObject {
         cancellables.removeAll()
     }
 
-    init(screenUUID: String? = nil) {
+    init(screenUUID: String? = nil, camera: CameraModel) {
         animation = animationLibrary.animation
+        self.camera = camera
+        self.screenUUID = screenUUID
 
         super.init()
-        
-        self.screenUUID = screenUUID
+
         notchSize = getClosedNotchSize(screenUUID: screenUUID)
         closedNotchSize = notchSize
 
@@ -122,21 +122,15 @@ final class BoringViewModel: NSObject, ObservableObject {
     }
 
     func toggleCameraPreview() {
-        if isRequestingAuthorization {
-            return
-        }
-
-        switch webcamManager.refreshAuthorizationStatus() {
-        case .authorized:
-            if webcamManager.isSessionRunning {
-                webcamManager.stopSession()
-                isCameraExpanded = false
-            } else if webcamManager.cameraAvailable {
-                webcamManager.startSession()
-                isCameraExpanded = true
+        switch camera.state {
+        case .running:
+            camera.stopSession()
+        case .stopped, .unavailable, .failed:
+            if camera.cameraAvailable {
+                camera.startSession()
             }
 
-        case .denied, .restricted:
+        case .permissionDenied:
             DispatchQueue.main.async {
                 NSApp.setActivationPolicy(.regular)
                 NSApp.activate(ignoringOtherApps: true)
@@ -157,14 +151,10 @@ final class BoringViewModel: NSObject, ObservableObject {
                 NSApp.deactivate()
             }
 
-        case .notDetermined:
-            isRequestingAuthorization = true
-            webcamManager.checkAndRequestVideoAuthorization()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                self.isRequestingAuthorization = false
-            }
+        case .permissionRequired:
+            camera.requestAccess()
 
-        default:
+        case .requestingPermission, .starting:
             break
         }
     }

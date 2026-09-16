@@ -13,7 +13,7 @@ struct WebcamSettingsView: View {
     @Default(.showMirror) private var showMirror
     @Default(.isMirrored) private var isMirrored
     @Default(.mirrorShape) private var mirrorShape
-    @ObservedObject private var webcamManager = WebcamManager.shared
+    let camera: CameraModel
 
     var body: some View {
         Form {
@@ -29,14 +29,14 @@ struct WebcamSettingsView: View {
                 .disabled(!showMirror || !checkVideoInput())
 
                 Picker("Camera", selection: Binding(
-                    get: { webcamManager.selectedCameraID },
-                    set: { webcamManager.setSelectedCamera(id: $0) }
+                    get: { camera.selectedCameraID },
+                    set: { camera.selectCamera($0) }
                 )) {
                     Text("Automatic")
                         .tag(nil as String?)
-                    ForEach(webcamManager.availableCameras, id: \.uniqueID) { camera in
-                        Text(camera.localizedName)
-                            .tag(Optional(camera.uniqueID))
+                    ForEach(camera.availableCameras) { camera in
+                        Text(camera.name)
+                            .tag(camera.id as String?)
                     }
                 }
                 .disabled(!showMirror || !checkVideoInput())
@@ -57,7 +57,7 @@ struct WebcamSettingsView: View {
         .padding()
         .navigationTitle("Mirror")
         .onAppear {
-            webcamManager.checkCameraAvailability()
+            camera.refresh()
         }
     }
 
