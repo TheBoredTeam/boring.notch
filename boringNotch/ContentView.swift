@@ -320,6 +320,13 @@ struct ContentView: View {
                             XPCHelperClient.shared.notchClosed()
                         }
                     }
+                    .onChange(of: coordinator.currentView) { _, view in
+                        guard vm.notchState == .open, !Defaults[.compactMode],
+                              notificationManager.activeNotification == nil else { return }
+                        withAnimation(.smooth(duration: 0.2)) {
+                            vm.notchSize = notchOpenSize(for: view)
+                        }
+                    }
                     .onDisappear {
                         // Balance the refcount: torn down while open (screen
                         // lock, display-set change, window teardown) means the
@@ -573,6 +580,8 @@ struct ContentView: View {
                                 horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
                                 isHoveringMusicArea: $isHoveringMusicArea
                             )
+                        case .clipboard:
+                            ClipboardHistoryView()
                         case .shelf:
                             ShelfView(
                                 dropInteraction: vm.dropInteraction,
@@ -804,10 +813,10 @@ struct ContentView: View {
     }
 
     @discardableResult
-    private func doOpen() -> Bool {
+    private func doOpen(forHover: Bool = false) -> Bool {
         var didOpen = false
         withAnimation(animationSpring) {
-            didOpen = vm.open()
+            didOpen = vm.open(forHover: forHover)
         }
         return didOpen
     }
@@ -851,7 +860,7 @@ struct ContentView: View {
                           !self.shouldDisplayNowPlayingFallbackNotice,
                           !self.coordinator.shouldShowSneakPeek(on: self.vm.screenUUID) else { return }
                     
-                    self.doOpen()
+                    self.doOpen(forHover: true)
                 }
             }
         } else {

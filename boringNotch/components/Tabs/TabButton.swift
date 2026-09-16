@@ -20,6 +20,8 @@ struct TabButton: View {
                 .contentShape(Capsule())
         }
         .buttonStyle(PlainButtonStyle())
+        .help(label)
+        .accessibilityLabel(label)
     }
 }
 
