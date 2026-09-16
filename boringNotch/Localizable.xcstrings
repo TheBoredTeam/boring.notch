@@ -20976,7 +20976,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MacOS 14.2 veya üzeri gerektirir. Gerçek zamanlı ses dalga formunu kullanabilmek için macOS'u güncelleyin."
+            "value" : "macOS 14.2 veya üzeri gerektirir. Gerçek zamanlı ses dalga formunu kullanabilmek için macOS'u güncelleyin."
           }
         },
         "uk" : {
@@ -29345,7 +29345,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MacOS sistem vurgu rengini kullan"
+            "value" : "macOS sistem vurgu rengini kullan"
           }
         },
         "uk" : {
@@ -31000,7 +31000,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MacOS sistem vurgu rengi"
+            "value" : "macOS sistem vurgu rengi"
           }
         },
         "uk" : {
