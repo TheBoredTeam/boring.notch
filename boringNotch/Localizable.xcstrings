@@ -2,109 +2,354 @@
   "sourceLanguage" : "en",
   "strings" : {
     "Play" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oynat"
+          }
+        }
+      }
     },
     "Pause" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duraklat"
+          }
+        }
+      }
     },
     "Add to Favorites" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorilere ekle"
+          }
+        }
+      }
     },
     "Remove from Favorites" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorilerden Kaldır"
+          }
+        }
+      }
     },
     "Rename File" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosyayı Yeniden Adlandır"
+          }
+        }
+      }
     },
     "Rename" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeniden Adlandır"
+          }
+        }
+      }
     },
     " (default)" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " (varsayılan)"
+          }
+        }
+      }
     },
     "Actual Size" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gerçek Boyut"
+          }
+        }
+      }
     },
     "All Applications" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tüm uygulamalar"
+          }
+        }
+      }
     },
     "Always Open With" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Her Zaman Şununla Aç"
+          }
+        }
+      }
     },
     "Audio output" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ses çıkışı"
+          }
+        }
+      }
     },
     "Backward 15s" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 saniye geri sar"
+          }
+        }
+      }
     },
     "Choose Application" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama seç"
+          }
+        }
+      }
     },
     "Choose an application to open the document \"%@\"." : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"%@\" belgesini açmak için bir uygulama seçin."
+          }
+        }
+      }
     },
     "Compression:" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sıkıştırma:"
+          }
+        }
+      }
     },
     "Convert" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dönüştür"
+          }
+        }
+      }
     },
     "Convert Image" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resmi Dönüştür"
+          }
+        }
+      }
     },
     "Custom..." : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Özel..."
+          }
+        }
+      }
     },
     "Empty slot" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boş yuva"
+          }
+        }
+      }
     },
     "Enable:" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktif:"
+          }
+        }
+      }
     },
     "Favorite" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favori"
+          }
+        }
+      }
     },
     "Format:" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biçim:"
+          }
+        }
+      }
     },
     "Forward 15s" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 saniye ileri sar"
+          }
+        }
+      }
     },
     "Image Size:" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görüntü boyutu:"
+          }
+        }
+      }
     },
     "Large" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Büyük"
+          }
+        }
+      }
     },
     "Next" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sıradaki"
+          }
+        }
+      }
     },
     "OK" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamam"
+          }
+        }
+      }
     },
     "Play/Pause" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oynat/Duraklat"
+          }
+        }
+      }
     },
     "Preserve Metadata" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meta veriyi koru"
+          }
+        }
+      }
     },
     "Previous" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önceki"
+          }
+        }
+      }
     },
     "Recommended Applications" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önerilen Uygulamalar"
+          }
+        }
+      }
     },
     "Repeat" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yineleme"
+          }
+        }
+      }
     },
     "Shuffle" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Karıştır"
+          }
+        }
+      }
     },
     "Small" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Küçük"
+          }
+        }
+      }
     },
     "e.g., 1920" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "örn. 1920"
+          }
+        }
+      }
     },
     "" : {
       "localizations" : {
@@ -2603,6 +2848,12 @@
     },
     "Background Removal Failed" : {
       "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la suppression de l'arrière plan"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3345,6 +3596,12 @@
             "value" : "Boring Notch could not verify Now Playing. Try again, or reopen the app if it keeps happening."
           }
         },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch n'a pas pu vérifier la lecture en cours. Essayez à nouveau, ou rouvrez l'application si cela continue de se produire."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3412,6 +3669,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Could not verify Now Playing"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de vérifier la lecture en cours"
           }
         },
         "pt-BR" : {
@@ -4370,7 +4633,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uygulama dilini değiştirmek Boring Notch'u yeniden başlatır."
+            "value" : "Uygulama dilini değiştirmek için Boring Notch'u yeniden başlatmak gerekir."
           }
         },
         "uk" : {
@@ -4708,6 +4971,12 @@
     "Check Again" : {
       "comment" : "A button that refreshes the availability of the 'Now Playing' media source.",
       "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vérifier à nouveau"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5495,6 +5764,12 @@
     },
     "Clear" : {
       "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nettoyer"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5948,7 +6223,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kapalı Notch"
+            "value" : "Çentik Kapalı"
           }
         },
         "uk" : {
@@ -6322,6 +6597,12 @@
             "value" : "Connects directly to the Apple Music app."
           }
         },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se connecte directement à l'application Apple Music."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6343,6 +6624,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Connects directly to the Spotify app."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se connecte directement à l'application Spotify."
           }
         },
         "pt-BR" : {
@@ -8498,6 +8785,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Despejar árvore AX"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AX ağacı dökümü al"
           }
         }
       }
@@ -16393,6 +16686,12 @@
             "value" : "Нормализовать направление жестов"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dokunma hareketi yönünü düzelt"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16619,6 +16918,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Não assistidos"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İzlenmiyor"
           }
         }
       }
@@ -17160,6 +17465,12 @@
             "state" : "translated",
             "value" : "Depuração de Notificação"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirim Hata Ayıklama"
+          }
         }
       }
     },
@@ -17281,6 +17592,12 @@
             "state" : "translated",
             "value" : "Componentes de reprodução não disponíveis agora"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şu An Çalınıyor bileşenleri kullanılamıyor"
+          }
         }
       }
     },
@@ -17298,6 +17615,12 @@
             "state" : "translated",
             "value" : "Conexão de reprodução atual perdida"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şu An Çalınıyor bağlantısı koptu"
+          }
         }
       }
     },
@@ -17307,6 +17630,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apenas esses apps mostram uma atividade ao vivo no entalhe. Ative \"De todos os apps\" para espelhar tudo."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çentikte canlı etkinlik yalnızca bu uygulamalar için gösterilir. Tüm uygulamaları yansıtmak isterseniz \"Tüm uygulamalardan\" seçeneğini etkinleştirin."
           }
         }
       }
@@ -17464,6 +17793,12 @@
             "state" : "translated",
             "value" : "Abrir em %@"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@’de Aç"
+          }
         }
       }
     },
@@ -17473,6 +17808,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abrir no calendário"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takvimde Aç"
           }
         }
       }
@@ -17550,6 +17891,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Открыть вырез"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çentiği Aç"
           }
         },
         "uk" : {
@@ -17816,6 +18163,12 @@
             "state" : "translated",
             "value" : "Abrir configurações"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayarları Aç"
+          }
         }
       }
     },
@@ -17944,6 +18297,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abrir configurações do sistema"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sistem ayarlarını aç"
           }
         }
       }
@@ -18342,6 +18701,12 @@
             "value" : "Показать OSD"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OSD'yi göster"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18402,6 +18767,12 @@
           }
         },
         "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OSD"
+          }
+        },
+        "tr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "OSD"
@@ -18646,6 +19017,12 @@
             "state" : "translated",
             "value" : "A Criação de PDF Falhou"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF Oluşturma Hatası"
+          }
         }
       }
     },
@@ -18805,6 +19182,12 @@
             "value" : "Тонирование плеера"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oynatıcı renklendirmesi"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18839,6 +19222,12 @@
             "state" : "translated",
             "value" : "Por favor, permita o acesso à câmera nas Configurações do Sistema para usar o recurso de espelhamento."
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayna özelliğini kullanmak için lütfen Sistem Ayarları'ndan kamera erişimine izin verin."
+          }
         }
       }
     },
@@ -18855,6 +19244,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Permita o acesso à câmera nas Configurações do Sistema."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lütfen Sistem Ayarları'ndan kamera erişimine izin verin."
           }
         },
         "zh-Hans" : {
@@ -19376,6 +19771,12 @@
             "value" : "Сервис Quick Share"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hızlı Paylaşım Servisi"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19674,6 +20075,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Визуализация аудио в реальном времени"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gerçek zamanlı ses dalga formu"
           }
         },
         "uk" : {
@@ -20242,6 +20649,12 @@
             "value" : "Удалять со стеллажа после перетаскивания"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sürüklendikten sonra raftan kaldır"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20304,6 +20717,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Заменить системный OSD"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sistem OSD'sini Değiştir"
           }
         },
         "uk" : {
@@ -20485,6 +20904,12 @@
             "state" : "translated",
             "value" : "Requer um cliente de terceiros com o plugin API habilitado."
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API eklentisi aktif bir üçüncü taraf istemci gerektirir."
+          }
         }
       }
     },
@@ -20494,6 +20919,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Requer acesso de acessibilidade. Somente \"banners\" são espelhados — notificações entregues silenciosamente ao Centro de Notificações não estão visíveis para o aplicativo."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erişilebilirlik erişimi gerektirir. Yalnızca afiş bildirimleri yansıtılır — sessizce Bildirim Merkezi'ne gönderilen bildirimler uygulama tarafından görülemez."
           }
         }
       }
@@ -20540,6 +20971,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Требуется macOS 14.2 или новее. Обновите macOS, чтобы включить отображение визуализации аудио в реальном времени."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MacOS 14.2 veya üzeri gerektirir. Gerçek zamanlı ses dalga formunu kullanabilmek için macOS'u güncelleyin."
           }
         },
         "uk" : {
@@ -21025,6 +21462,12 @@
             "value" : "Перезапустите, чтобы применить язык"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dili uygulamak için yeniden başlatın"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21206,6 +21649,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Масштабировать радиус скругления закрытого выреза"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çentik kapalıyken köşe yuvarlaklığını ölçeklendir"
           }
         },
         "uk" : {
@@ -21541,6 +21990,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enviar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gönder"
           }
         }
       }
@@ -24165,6 +24620,12 @@
             "state" : "translated",
             "value" : "Mostrar carregamento de voltagem"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şarj gücünü göster"
+          }
         }
       }
     },
@@ -24590,6 +25051,12 @@
             "value" : "Показывать live activity музыки"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canlı müzik görselini aktifleştir"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24696,6 +25163,12 @@
             "value" : "Показывать вырез на экране блокировки"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kilit ekranında çentiği göster"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24722,6 +25195,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostrar notificações no entalhe"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirimleri çentik içinde göster"
           }
         }
       }
@@ -24886,6 +25365,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Показывать OSD в открытом вырезе"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çentik açıkken OSD göster"
           }
         },
         "uk" : {
@@ -25065,6 +25550,12 @@
             "value" : "Показывать процент (закрытый вырез)"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yüzde göster (çentik kapalıyken)"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25127,6 +25618,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Показывать процент (открытый вырез)"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yüzde göster (çentik açıkken)"
           }
         },
         "uk" : {
@@ -25471,6 +25968,12 @@
             "value" : "Показывать значок настроек в вырезе"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayarlar ikonunu çentikte göster"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25647,6 +26150,12 @@
             "value" : "Показывать превью при смене трека"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oynatma değişikliklerinde kısa önizleme göster"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25673,6 +26182,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostrar um entalhe aberto menor com apenas o tocador de música — sem abas, calendário ou espelho."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yalnızca müzik oynatıcıyı içeren daha küçük, açık bir çentik gösterir — sekme, takvim veya ayna içermez."
           }
         }
       }
@@ -26361,6 +26876,12 @@
             "value" : "В строке"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Satır içi"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -26971,6 +27492,12 @@
             "state" : "translated",
             "value" : "Sugerir respostas com Apple Intelligence"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence ile yanıt öner"
+          }
         }
       }
     },
@@ -27341,6 +27868,12 @@
             "state" : "translated",
             "value" : "Toque para ver o próximo de %lld aguardando"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bekleyen %lld öğeden sonrakini görmek için dokunun"
+          }
         }
       }
     },
@@ -27350,6 +27883,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "O plano de fundo auxiliar travou ou foi fechado pelo macOS. Ele reiniciará automaticamente no próximo evento OSD."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arka planda çalışan yardımcı süreç kapandı ya da macOS tarafından sonlandırıldı. Sıradaki OSD olayında kendiliğinden yeniden başlayacaktır."
           }
         }
       }
@@ -27402,6 +27941,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Время до полной зарядки: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tam Şarja Kalan Süre: %@"
           }
         },
         "uk" : {
@@ -27463,6 +28008,12 @@
             "value" : "Время до полной зарядки: расчёт..."
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tam Şarja Kalan Süre: Hesaplanıyor..."
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27522,6 +28073,12 @@
             "value" : "Время до полной разрядки: %@"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şarjın Bitmesine Kalan Süre: %@"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27579,6 +28136,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Время до полной разрядки: расчёт..."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şarjın Bitmesine Kalan Süre: Hesaplanıyor..."
           }
         },
         "uk" : {
@@ -27680,6 +28243,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Окрашивать индикатор прогресса акцентным цветом"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İlerleme çubuğuna vurgu rengi uygula"
           }
         },
         "uk" : {
@@ -28373,6 +28942,12 @@
             "value" : "Со звуком"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sesi Açık"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -28655,6 +29230,12 @@
             "value" : "Использовать встроенный стиль"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Satır içi stili kullan"
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -28831,6 +29412,12 @@
             "value" : "Использует Accelerate FFT для аудио текущего приложения. Требуется разрешение на захват звука и расходуется немного больше CPU."
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çalan uygulamanın sesi üzerinde Accelerate FFT kullanır. Ses yakalama izni gerektirir ve biraz daha fazla CPU kullanır."
+          }
+        },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
@@ -28859,6 +29446,12 @@
             "state" : "translated",
             "value" : "Usando %@ no lugar"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yerine %@ kullanılıyor"
+          }
         }
       }
     },
@@ -28875,6 +29468,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Use %@ em vez disso. Sua preferência do Tocando Agora foi preservada."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bunun yerine %@ kullanılıyor. Şu An Çalınıyor tercihiniz korunuyor."
           }
         }
       }
@@ -28893,6 +29492,12 @@
             "state" : "translated",
             "value" : "Usando %@ temporariamente"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geçici olarak %@ kullanılıyor"
+          }
         }
       }
     },
@@ -28909,6 +29514,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Use %@ em vez disso. Sua preferência do Tocando Agora foi preservada."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geçici olarak %@ kullanılıyor. Şu An Çalınıyor tercihiniz korunuyor."
           }
         }
       }
@@ -28997,6 +29608,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Используется системный акцент"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sistem Vurgusu Kullanılıyor"
           }
         },
         "uk" : {
@@ -29590,6 +30207,12 @@
             "state" : "translated",
             "value" : "Assistindo"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İzleniyor"
+          }
         }
       }
     },
@@ -29630,6 +30253,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "A semana começa em"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haftanın ilk günü"
           }
         },
         "uk" : {
@@ -29677,6 +30306,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Visualização semanal"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haftalık görünüm"
           }
         },
         "uk" : {
@@ -30042,6 +30677,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Funciona com a maioria dos aplicativos de mídia, incluindo navegadores, para detectar o que está tocando. Nota: Isso pode ser removido em uma futura versão do macOS."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tarayıcılar dahil çoğu medya uygulamasıyla çalışarak neyin çalındığını algılar. Not: Bu özellik gelecekteki bir macOS sürümünde kaldırılabilir."
           }
         }
       }
