@@ -72,7 +72,7 @@ final class CameraLifecycleTests: XCTestCase {
         engine.send(.authorization(.authorized))
 
         XCTAssertEqual(camera.authorizationStatus, .authorized)
-        XCTAssertEqual(camera.state, .stopped)
+        XCTAssertEqual(camera.state, .starting)
         XCTAssertEqual(engine.startRequests, ["built-in"])
 
         let session = AVCaptureSession()

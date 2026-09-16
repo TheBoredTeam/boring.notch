@@ -118,7 +118,7 @@ final class PlaybackStateTests: XCTestCase {
             receivedAt: Date())
 
         let view = NotificationExpandedView(notification: notification)
-            .environmentObject(BoringViewModel())
+            .environmentObject(BoringViewModel(camera: CameraModel()))
             .frame(width: 380, height: 132)
 
         let hostingView = NSHostingView(rootView: view)
