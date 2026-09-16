@@ -6,15 +6,18 @@
 //
 
 import Foundation
+import os
+import Combine
 
 // MARK: - HTTP Client
-final class YouTubeMusicHTTPClient: ObservableObject {
+final class YouTubeMusicHTTPClient: Sendable {
     private let session: URLSession
     private let baseURL: String
+    private let retired = OSAllocatedUnfairLock(initialState: false)
     private static let decoder = JSONDecoder()
     private static let encoder = JSONEncoder()
     
-    init(baseURL: String) {
+    init(baseURL: String, session: URLSession? = nil) {
         self.baseURL = baseURL
         
         let config = URLSessionConfiguration.default
@@ -23,9 +26,24 @@ final class YouTubeMusicHTTPClient: ObservableObject {
         config.timeoutIntervalForRequest = 5
         config.timeoutIntervalForResource = 10
         
-        self.session = URLSession(configuration: config)
+        self.session = session ?? URLSession(configuration: config)
     }
     
+    deinit { session.invalidateAndCancel() }
+
+    func cancelAllRequests() {
+        retired.withLock { $0 = true }
+        // Async callers may already be entering URLSession. Invalidating it here
+        // can raise an Objective-C exception while such a caller creates a task.
+        session.getAllTasks { tasks in tasks.forEach { $0.cancel() } }
+    }
+
+    private func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+        try Task.checkCancellation()
+        guard !retired.withLock({ $0 }) else { throw CancellationError() }
+        return try await session.data(for: request)
+    }
+
     // MARK: - Authentication
     func authenticate() async throws -> String {
         guard let url = URL(string: "\(baseURL)/auth/boringNotch") else {
@@ -35,7 +53,7 @@ final class YouTubeMusicHTTPClient: ObservableObject {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
 
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await data(for: request)
         try validateResponse(response)
 
         let authResponse: AuthResponse = try Self.decoder.decode(AuthResponse.self, from: data)
@@ -85,7 +103,7 @@ final class YouTubeMusicHTTPClient: ObservableObject {
             token: token
         )
         
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await data(for: request)
         try validateResponse(response)
         
         return data
@@ -131,7 +149,22 @@ final class YouTubeMusicHTTPClient: ObservableObject {
 }
 
 // MARK: - WebSocket Client
-actor YouTubeMusicWebSocketClient {
+protocol YouTubeMusicWebSocketConnecting: AnyObject, Sendable {
+    func connect(to url: URL, with token: String) async throws
+    func disconnect() async
+}
+
+enum PearDisconnectReason: Sendable {
+    case unauthorized
+    case transient
+
+    static func classify(closeCode: URLSessionWebSocketTask.CloseCode, response: URLResponse?) -> Self {
+        let status = (response as? HTTPURLResponse)?.statusCode
+        return closeCode == .policyViolation || status == 401 || status == 403 ? .unauthorized : .transient
+    }
+}
+
+actor YouTubeMusicWebSocketClient: YouTubeMusicWebSocketConnecting {
     private final class ConnectionState {
         let task: URLSessionWebSocketTask
         var suppressDisconnectCallback = false
@@ -144,13 +177,13 @@ actor YouTubeMusicWebSocketClient {
     private var connection: ConnectionState?
     private let session: URLSession
     private let onMessage: @Sendable (Data) async -> Void
-    private let onDisconnect: @Sendable () async -> Void
+    private let onDisconnect: @Sendable (PearDisconnectReason) async -> Void
     
     var isConnected: Bool { connection != nil }
     
     init(
         onMessage: @escaping @Sendable (Data) async -> Void,
-        onDisconnect: @escaping @Sendable () async -> Void,
+        onDisconnect: @escaping @Sendable (PearDisconnectReason) async -> Void,
         session: URLSession = .shared
     ) {
         self.onMessage = onMessage
@@ -158,11 +191,9 @@ actor YouTubeMusicWebSocketClient {
         self.session = session
     }
     
-    func connect(to url: URL, with token: String) async throws {
-        await disconnect()
-        
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    func connect(to url: URL, with token: String) throws {
+        let request = try WebSocketURLBuilder.authenticatedRequest(to: url, token: token)
+        disconnect()
         
         let newTask = session.webSocketTask(with: request)
         let state = ConnectionState(task: newTask)
@@ -172,7 +203,7 @@ actor YouTubeMusicWebSocketClient {
         Task { await listenForMessages(for: state) }
     }
     
-    func disconnect() async {
+    func disconnect() {
         guard let currentConnection = connection else { return }
         
         currentConnection.suppressDisconnectCallback = true
@@ -188,6 +219,7 @@ actor YouTubeMusicWebSocketClient {
         while !Task.isCancelled && connection === state {
             do {
                 let message = try await state.task.receive()
+                guard connection === state, !state.suppressDisconnectCallback else { return }
                 
                 let data: Data
                 switch message {
@@ -205,13 +237,9 @@ actor YouTubeMusicWebSocketClient {
             }
         }
         
-        if connection === state {
-            connection = nil
-        }
-        
-        if !state.suppressDisconnectCallback {
-            await onDisconnect()
-        }
+        guard connection === state, !state.suppressDisconnectCallback else { return }
+        connection = nil
+        await onDisconnect(.classify(closeCode: state.task.closeCode, response: state.task.response))
     }
 }
 
@@ -231,6 +259,30 @@ struct WebSocketURLBuilder {
 
         components.path = "/api/v1/ws"
         return components.url
+    }
+
+    /// Pear authenticates its WebSocket using the query token. Build it with
+    /// URLComponents so reserved token characters cannot change the query.
+    static func authenticatedRequest(to url: URL, token: String) throws -> URLRequest {
+        guard !token.isEmpty else { throw YouTubeMusicError.authenticationRequired }
+        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              components.scheme == "ws" || components.scheme == "wss",
+              let host = components.host, !host.isEmpty
+        else {
+            throw YouTubeMusicError.invalidURL
+        }
+
+        var items = components.queryItems ?? []
+        items.removeAll { $0.name == "token" }
+        items.append(URLQueryItem(name: "token", value: token))
+        components.queryItems = items
+        // URLSearchParams uses form decoding, where an unescaped + means space.
+        components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+        guard let authenticatedURL = components.url else { throw YouTubeMusicError.invalidURL }
+
+        var request = URLRequest(url: authenticatedURL)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        return request
     }
 }
 
