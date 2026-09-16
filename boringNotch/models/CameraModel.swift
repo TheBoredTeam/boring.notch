@@ -92,8 +92,10 @@ final class CameraModel {
         engine.refresh()
     }
 
-    func selectCamera(_ cameraID: String) {
-        guard availableCameras.contains(where: { $0.id == cameraID }) else { return }
+    func selectCamera(_ cameraID: String?) {
+        if let cameraID, !availableCameras.contains(where: { $0.id == cameraID }) {
+            return
+        }
         selectedCameraID = cameraID
         if isSessionRunning || state == .starting {
             state = .starting
