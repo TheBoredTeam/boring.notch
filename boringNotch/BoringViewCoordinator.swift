@@ -93,6 +93,7 @@ final class BoringViewCoordinator: ObservableObject {
     private var boringShelfCancellable: AnyCancellable?
     private var osdSourceCancellables: [AnyCancellable] = []
     private var notificationLiveActivityCancellable: AnyCancellable?
+    private var captureCancellable: AnyCancellable?
     private var uiEventCancellable: AnyCancellable?
 
     private init() {
@@ -179,6 +180,19 @@ final class BoringViewCoordinator: ObservableObject {
                 Task { @MainActor in
                     guard let self = self else { return }
                     if !change.newValue && self.currentView == .shelf {
+                        self.currentView = .home
+                    }
+                }
+            }
+
+        // Switching capture off while its tab is open would leave the notch on
+        // a tab with no tab button — the same stranding the shelf observer
+        // below guards against.
+        captureCancellable = Defaults.publisher(.captureEnabled)
+            .sink { [weak self] change in
+                Task { @MainActor in
+                    guard let self = self else { return }
+                    if !change.newValue && self.currentView == .capture {
                         self.currentView = .home
                     }
                 }
