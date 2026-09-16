@@ -44,7 +44,7 @@ class SettingsWindowController: NSWindowController {
     }
     
     private func setupWindow() {
-        guard let window = window else { return }
+        guard let window, let camera else { return }
         
         window.title = "Boring Notch Settings"
         window.titlebarAppearsTransparent = false
@@ -64,7 +64,7 @@ class SettingsWindowController: NSWindowController {
         window.identifier = NSUserInterfaceItemIdentifier("BoringNotchSettingsWindow")
         
         // Create the SwiftUI content
-        let settingsView = SettingsView(updaterController: updaterController, camera: camera ?? CameraModel())
+        let settingsView = SettingsView(updaterController: updaterController, camera: camera)
         let hostingView = NSHostingView(rootView: settingsView)
         window.contentView = hostingView
         
