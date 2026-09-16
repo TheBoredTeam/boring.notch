@@ -15,7 +15,7 @@ struct CameraDevice: Identifiable, Equatable {
     let isExternal: Bool
 }
 
-enum CameraSessionEvent {
+enum CameraSessionEvent: @unchecked Sendable {
     case authorization(AVAuthorizationStatus)
     case devices([CameraDevice])
     case started(previewLayer: AVCaptureVideoPreviewLayer, device: CameraDevice)
@@ -24,7 +24,7 @@ enum CameraSessionEvent {
 }
 
 protocol CameraSessionEngine: AnyObject {
-    var eventHandler: ((CameraSessionEvent) -> Void)? { get set }
+    var eventHandler: (@MainActor @Sendable (CameraSessionEvent) -> Void)? { get set }
 
     func refresh()
     func requestAccess()
@@ -34,18 +34,26 @@ protocol CameraSessionEngine: AnyObject {
 }
 
 /// Owns AVFoundation objects and serializes all session work away from the UI.
+private final class CameraEngineState: @unchecked Sendable {
+    var captureSession: AVCaptureSession?
+    var activeCameraID: String?
+    var shouldRun = false
+    var isShutDown = false
+    var eventHandler: (@MainActor @Sendable (CameraSessionEvent) -> Void)?
+}
+
 final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
-    var eventHandler: ((CameraSessionEvent) -> Void)?
+    var eventHandler: (@MainActor @Sendable (CameraSessionEvent) -> Void)? {
+        get { state.eventHandler }
+        set { state.eventHandler = newValue }
+    }
 
     private let sessionQueue = DispatchQueue(
         label: "BoringNotch.CameraSessionEngine",
         qos: .userInitiated
     )
     private let notificationCenter: NotificationCenter
-    private var captureSession: AVCaptureSession?
-    private var activeCameraID: String?
-    private var shouldRun = false
-    private var isShutDown = false
+    private let state = CameraEngineState()
 
     init(notificationCenter: NotificationCenter = .default) {
         self.notificationCenter = notificationCenter
@@ -102,16 +110,18 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
     }
 
     func refresh() {
-        sessionQueue.async { [weak self] in
-            guard let self, !self.isShutDown else { return }
-            self.publishAuthorization()
-            self.publishDevices()
+        let state = state
+        sessionQueue.async {
+            guard !state.isShutDown else { return }
+            Self.publishAuthorization(state: state)
+            Self.publishDevices(state: state)
         }
     }
 
     func requestAccess() {
         let status = AVCaptureDevice.authorizationStatus(for: .video)
-        publish(.authorization(status))
+        let state = state
+        Self.publish(.authorization(status), state: state)
 
         guard status == .notDetermined else {
             if status == .authorized {
@@ -120,57 +130,67 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
             return
         }
 
-        AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
-            guard let self else { return }
-            self.publish(.authorization(granted ? .authorized : .denied))
+        let queue = sessionQueue
+        AVCaptureDevice.requestAccess(for: .video) { granted in
+            Self.publish(.authorization(granted ? .authorized : .denied), state: state)
             if granted {
-                self.refresh()
+                Self.refresh(state: state, queue: queue)
             }
         }
     }
 
     func start(cameraID: String?) {
-        sessionQueue.async { [weak self] in
-            guard let self, !self.isShutDown else { return }
-            self.shouldRun = true
-            self.startSession(cameraID: cameraID)
+        let state = state
+        sessionQueue.async {
+            guard !state.isShutDown else { return }
+            state.shouldRun = true
+            Self.startSession(cameraID: cameraID, state: state)
         }
     }
 
     func stop() {
-        sessionQueue.async { [weak self] in
-            guard let self, !self.isShutDown else { return }
-            self.shouldRun = false
-            self.cleanupSession()
-            self.publish(.stopped)
+        let state = state
+        sessionQueue.async {
+            guard !state.isShutDown else { return }
+            state.shouldRun = false
+            Self.cleanupSession(state: state)
+            Self.publish(.stopped, state: state)
         }
     }
 
     func shutdown() {
         sessionQueue.sync {
-            guard !isShutDown else { return }
-            isShutDown = true
-            shouldRun = false
-            cleanupSession()
+            guard !state.isShutDown else { return }
+            state.isShutDown = true
+            state.shouldRun = false
+            Self.cleanupSession(state: state)
         }
     }
 
-    private func publishAuthorization() {
-        publish(.authorization(AVCaptureDevice.authorizationStatus(for: .video)))
+    private static func refresh(state: CameraEngineState, queue: DispatchQueue) {
+        queue.async {
+            guard !state.isShutDown else { return }
+            publishAuthorization(state: state)
+            publishDevices(state: state)
+        }
     }
 
-    private func publishDevices() {
+    private static func publishAuthorization(state: CameraEngineState) {
+        publish(.authorization(AVCaptureDevice.authorizationStatus(for: .video)), state: state)
+    }
+
+    private static func publishDevices(state: CameraEngineState) {
         let devices = discoveredDevices()
-        publish(.devices(devices))
+        publish(.devices(devices), state: state)
 
         // A running preview should recover after a camera is unplugged and
         // replugged, or after another camera becomes available.
-        if shouldRun, !devices.isEmpty, captureSession == nil {
-            startSession(cameraID: activeCameraID)
+        if state.shouldRun, !devices.isEmpty, state.captureSession == nil {
+            startSession(cameraID: state.activeCameraID, state: state)
         }
     }
 
-    private func discoveredDevices() -> [CameraDevice] {
+    private static func discoveredDevices() -> [CameraDevice] {
         let discovery = AVCaptureDevice.DiscoverySession(
             deviceTypes: [.external, .builtInWideAngleCamera],
             mediaType: .video,
@@ -193,9 +213,9 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
             }
     }
 
-    private func startSession(cameraID: String?) {
+    private static func startSession(cameraID: String?, state: CameraEngineState) {
         guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else {
-            publishAuthorization()
+            publishAuthorization(state: state)
             return
         }
 
@@ -206,11 +226,11 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
         )
         let devices = discovery.devices
         guard !devices.isEmpty else {
-            publish(.devices([]))
+            publish(.devices([]), state: state)
             return
         }
 
-        let requestedID = cameraID ?? activeCameraID
+        let requestedID = cameraID ?? state.activeCameraID
         let videoDevice = devices.first { $0.uniqueID == requestedID }
             ?? devices.sorted { lhs, rhs in
                 if lhs.deviceType == rhs.deviceType {
@@ -219,7 +239,7 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
                 return lhs.deviceType == .external
             }.first!
 
-        cleanupSession()
+        cleanupSession(state: state)
 
         do {
             let session = AVCaptureSession()
@@ -234,8 +254,8 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
             session.commitConfiguration()
 
             session.startRunning()
-            captureSession = session
-            activeCameraID = videoDevice.uniqueID
+            state.captureSession = session
+            state.activeCameraID = videoDevice.uniqueID
 
             let previewLayer = AVCaptureVideoPreviewLayer(session: session)
             previewLayer.videoGravity = .resizeAspectFill
@@ -244,15 +264,15 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
                 name: videoDevice.localizedName,
                 isExternal: videoDevice.deviceType == .external
             )
-            publish(.started(previewLayer: previewLayer, device: camera))
+            publish(.started(previewLayer: previewLayer, device: camera), state: state)
         } catch {
-            cleanupSession()
-            publish(.failed(error.localizedDescription))
+            cleanupSession(state: state)
+            publish(.failed(error.localizedDescription), state: state)
         }
     }
 
-    private func cleanupSession() {
-        guard let session = captureSession else { return }
+    private static func cleanupSession(state: CameraEngineState) {
+        guard let session = state.captureSession else { return }
         if session.isRunning {
             session.stopRunning()
         }
@@ -260,24 +280,26 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
         session.inputs.forEach(session.removeInput)
         session.outputs.forEach(session.removeOutput)
         session.commitConfiguration()
-        captureSession = nil
+        state.captureSession = nil
     }
 
-    private func publish(_ event: CameraSessionEvent) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self, !self.isShutDown else { return }
-            self.eventHandler?(event)
+    private static func publish(_ event: CameraSessionEvent, state: CameraEngineState) {
+        guard let handler = state.eventHandler else { return }
+        DispatchQueue.main.async {
+            guard !state.isShutDown else { return }
+            handler(event)
         }
     }
 
     @objc private func deviceWasDisconnected(_ notification: Notification) {
-        sessionQueue.async { [weak self] in
-            guard let self, !self.isShutDown else { return }
-            if let device = notification.object as? AVCaptureDevice,
-               device.uniqueID == self.activeCameraID {
-                self.cleanupSession()
+        let deviceID = (notification.object as? AVCaptureDevice)?.uniqueID
+        let state = state
+        sessionQueue.async {
+            guard !state.isShutDown else { return }
+            if deviceID == state.activeCameraID {
+                Self.cleanupSession(state: state)
             }
-            self.publishDevices()
+            Self.publishDevices(state: state)
         }
     }
 
@@ -286,68 +308,72 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
     }
 
     @objc private func sessionRuntimeError(_ notification: Notification) {
-        sessionQueue.async { [weak self] in
-            guard let self, !self.isShutDown, self.shouldRun else { return }
-            let error = notification.userInfo?[AVCaptureSessionErrorKey] as? NSError
-            self.cleanupSession()
-            self.startSession(cameraID: self.activeCameraID)
-            if error == nil {
+        let hasError = notification.userInfo?[AVCaptureSessionErrorKey] != nil
+        let state = state
+        sessionQueue.async {
+            guard !state.isShutDown, state.shouldRun else { return }
+            Self.cleanupSession(state: state)
+            Self.startSession(cameraID: state.activeCameraID, state: state)
+            if !hasError {
                 NSLog("Camera session reported an unknown runtime error and was restarted")
             }
         }
     }
 
     @objc private func sessionWasInterrupted(_ notification: Notification) {
-        sessionQueue.async { [weak self] in
-            guard let self,
-                  !self.isShutDown,
-                  let session = notification.object as? AVCaptureSession,
-                  session === self.captureSession else { return }
-            self.publish(.stopped)
+        let sessionID = (notification.object as? AVCaptureSession).map(ObjectIdentifier.init)
+        let state = state
+        sessionQueue.async {
+            guard !state.isShutDown,
+                  sessionID == state.captureSession.map(ObjectIdentifier.init) else { return }
+            Self.publish(.stopped, state: state)
         }
     }
 
     @objc private func sessionInterruptionEnded(_ notification: Notification) {
-        sessionQueue.async { [weak self] in
-            guard let self,
-                  !self.isShutDown,
-                  self.shouldRun,
-                  let session = notification.object as? AVCaptureSession,
-                  session === self.captureSession else { return }
+        let sessionID = (notification.object as? AVCaptureSession).map(ObjectIdentifier.init)
+        let state = state
+        sessionQueue.async {
+            guard !state.isShutDown,
+                  state.shouldRun,
+                  sessionID == state.captureSession.map(ObjectIdentifier.init),
+                  let session = state.captureSession else { return }
             if !session.isRunning {
                 session.startRunning()
             }
             if session.isRunning {
-                let camera = self.discoveredDevices().first(where: { $0.id == self.activeCameraID })
+                let camera = Self.discoveredDevices().first(where: { $0.id == state.activeCameraID })
                 if let camera {
                     let layer = AVCaptureVideoPreviewLayer(session: session)
                     layer.videoGravity = .resizeAspectFill
-                    self.publish(.started(previewLayer: layer, device: camera))
+                    Self.publish(.started(previewLayer: layer, device: camera), state: state)
                 }
             }
         }
     }
 
     @objc private func systemWillSleep(_: Notification) {
-        sessionQueue.async { [weak self] in
-            guard let self, !self.isShutDown, let session = self.captureSession else { return }
+        let state = state
+        sessionQueue.async {
+            guard !state.isShutDown, let session = state.captureSession else { return }
             if session.isRunning {
                 session.stopRunning()
-                self.publish(.stopped)
+                Self.publish(.stopped, state: state)
             }
         }
     }
 
     @objc private func systemDidWake(_: Notification) {
-        sessionQueue.async { [weak self] in
-            guard let self, !self.isShutDown, self.shouldRun else { return }
-            if let session = self.captureSession, !session.isRunning {
+        let state = state
+        sessionQueue.async {
+            guard !state.isShutDown, state.shouldRun else { return }
+            if let session = state.captureSession, !session.isRunning {
                 session.startRunning()
                 if session.isRunning {
-                    self.publishDevices()
+                    Self.publishDevices(state: state)
                 }
-            } else if self.captureSession == nil {
-                self.startSession(cameraID: self.activeCameraID)
+            } else if state.captureSession == nil {
+                Self.startSession(cameraID: state.activeCameraID, state: state)
             }
         }
     }

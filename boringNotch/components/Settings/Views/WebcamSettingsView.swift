@@ -36,7 +36,7 @@ struct WebcamSettingsView: View {
                         .tag(nil as String?)
                     ForEach(camera.availableCameras) { camera in
                         Text(camera.name)
-                            .tag(Optional(camera.id))
+                            .tag(camera.id as String?)
                     }
                 }
                 .disabled(!showMirror || !checkVideoInput())

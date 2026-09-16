@@ -42,9 +42,7 @@ final class CameraModel {
         state = Self.state(for: status)
 
         engine.eventHandler = { [weak self] event in
-            Task { @MainActor [weak self] in
-                self?.handle(event)
-            }
+            self?.handle(event)
         }
         engine.refresh()
     }
