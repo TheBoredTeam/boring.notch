@@ -38,6 +38,7 @@ private final class CameraEngineStub: CameraSessionEngine, @unchecked Sendable {
         shutdownCount += 1
     }
 
+    @MainActor
     func send(_ event: CameraSessionEvent) {
         eventHandler?(event)
     }
