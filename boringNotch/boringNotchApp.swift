@@ -6,6 +6,7 @@
 //
 
 import AVFoundation
+import Combine
 import Defaults
 import KeyboardShortcuts
 import Sparkle
@@ -88,6 +89,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var screenLockedObserver: Any?
     private var screenUnlockedObserver: Any?
     private var observers: [Any] = []
+    private var codexActivityPreference: AnyCancellable?
 
     /// Kept for existing internal readers; the state itself moved to the manager.
     var windows: [String: NSWindow] { windowManager.windows }
@@ -100,6 +102,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        codexActivityPreference?.cancel()
         // Flush debounced shelf persistence to avoid losing recent changes
         ShelfStateViewModel.shared.flushSync()
 
@@ -113,6 +116,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             screenUnlockedObserver = nil
         }
         MainActor.assumeIsolated {
+            CodexActivityManager.shared.stopMonitoring()
             MusicManager.shared.destroy()
             windowManager.cleanup()
         }
@@ -136,6 +140,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        codexActivityPreference = Defaults.publisher(.codexActivityEnabled).sink { _ in
+            Task { @MainActor in
+                if Defaults[.codexActivityEnabled] {
+                    CodexActivityManager.shared.startMonitoring()
+                } else {
+                    CodexActivityManager.shared.stopMonitoring()
+                }
+            }
+        }
+        if Defaults[.codexActivityEnabled] { CodexActivityManager.shared.startMonitoring() }
 
         NotificationCenter.default.addObserver(
             self,

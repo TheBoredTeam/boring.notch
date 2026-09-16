@@ -244,6 +244,8 @@ enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable
     }
 }
 
+extension CodexAvatarStyle: Defaults.Serializable {}
+
 enum PreferenceCompatibility {
     /// Runs before Defaults.Key registers its fallback, so a saved false is
     /// distinguishable from a missing value. Keep the old key for older builds.
@@ -301,6 +303,8 @@ extension Defaults.Keys {
     static let cornerRadiusScaling = Key<Bool>("cornerRadiusScaling", default: true)
 
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)
+    static let codexAvatarStyle = Key<CodexAvatarStyle>("codexAvatarStyle", default: .smile)
+    static let codexActivityEnabled = Key<Bool>("codexActivityEnabled", default: false)
     static let tileShowLabels = Key<Bool>("tileShowLabels", default: false)
     static let showCalendar = Key<Bool>("showCalendar", default: false)
     static let hideCompletedReminders = Key<Bool>("hideCompletedReminders", default: true)
