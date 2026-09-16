@@ -41,7 +41,7 @@ final class CameraModel {
     ) {
         self.engine = engine
         let status = authorizationStatus ?? AVCaptureDevice.authorizationStatus(for: .video)
-        authorizationStatus = status
+        self.authorizationStatus = status
         state = Self.state(for: status)
 
         engine.eventHandler = { [weak self] event in
