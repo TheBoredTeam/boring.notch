@@ -24,6 +24,8 @@ struct ContentView: View {
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
     @ObservedObject var notificationManager = SystemNotificationManager.shared
+    @ObservedObject var meetingManager = MeetingAlertManager.shared
+    @ObservedObject var microphoneMonitor = MicrophoneActivityMonitor.shared
     /// Which entry of the closed-notch activity stack is on top.
     @State private var activityIndex: Int = 0
     @State private var hoverTask: Task<Void, Never>?
@@ -106,6 +108,14 @@ struct ContentView: View {
             items.append(.notification(notification))
         }
 
+        if let meeting = meetingManager.alert {
+            items.append(.meeting(meeting))
+        }
+
+        if microphoneMonitor.isMicrophoneActive {
+            items.append(.microphone)
+        }
+
         let musicIsShowing = (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled
@@ -129,6 +139,10 @@ struct ContentView: View {
     /// lever anyway.
     private var openNotchHeight: CGFloat? {
         if notificationManager.activeNotification != nil { return 132 }
+        // A meeting card is a glance with one button, same as a notification;
+        // stretching it to the full panel height surrounds two lines of text
+        // with empty black.
+        if meetingManager.alert != nil { return 118 }
         return Defaults[.compactMode] ? nil : vm.notchSize.height
     }
 
@@ -139,6 +153,7 @@ struct ContentView: View {
     private var showsHeader: Bool {
         vm.notchState == .open
             && notificationManager.activeNotification == nil
+            && meetingManager.alert == nil
             && !Defaults[.compactMode]
     }
 
@@ -173,6 +188,12 @@ struct ContentView: View {
                 chinWidth = max(420, vm.closedNotchSize.width + 2 * 112)
             case .notification:
                 chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+            case .meeting:
+                // Glyph on one wing, "in 2 min" on the other; the text side
+                // is the wider of the two.
+                chinWidth += (2 * max(44, 2.4 * max(0, displayClosedNotchHeight - 12)) + 20)
+            case .microphone:
+                chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
             case .music:
                 chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
                 // The inline song-change peek widens the pill itself, so the
@@ -482,6 +503,10 @@ struct ContentView: View {
                               switch item {
                               case .notification(let notification):
                                   NotificationLiveActivity(notification: notification)
+                              case .meeting(let meeting):
+                                  MeetingLiveActivity(alert: meeting)
+                              case .microphone:
+                                  MicrophoneLiveActivity()
                               case .music:
                                   MusicLiveActivity()
                                       .frame(alignment: .center)
@@ -556,6 +581,9 @@ struct ContentView: View {
                     if let notification = notificationManager.activeNotification {
                         NotificationExpandedView(notification: notification)
                             .id(notification.id)
+                    } else if let meeting = meetingManager.alert {
+                        MeetingExpandedView(alert: meeting)
+                            .id(meeting.eventID)
                     } else if Defaults[.compactMode] {
                         // Player only — no tab switching, so currentView is
                         // ignored here rather than offering a shelf the
