@@ -158,5 +158,5 @@ struct InlineHUD: View {
         .padding(.horizontal, 8)
         .background(Color.black)
         .padding()
-        .environmentObject(BoringViewModel())
+        .environmentObject(BoringViewModel(camera: CameraModel()))
 }

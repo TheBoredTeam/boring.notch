@@ -50,11 +50,12 @@ struct DynamicNotchApp: App {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
+    let camera: CameraModel
     var statusItem: NSStatusItem?
     var windows: [String: NSWindow] = [:] // UUID -> NSWindow
     var viewModels: [String: BoringViewModel] = [:] // UUID -> BoringViewModel
     var window: NSWindow?
-    let vm: BoringViewModel = .init()
+    lazy var vm: BoringViewModel = BoringViewModel(camera: camera)
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     var quickShareService = QuickShareService.shared
     var whatsNewWindow: NSWindow?
@@ -67,6 +68,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var isScreenLocked: Bool = false
     private var windowScreenDidChangeObserver: Any?
     private var dragDetectors: [String: DragDetector] = [:] // UUID -> DragDetector
+
+    override init() {
+        camera = CameraModel()
+        super.init()
+    }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
@@ -85,6 +91,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         MusicManager.shared.destroy()
         cleanupDragDetectors()
         cleanupWindows()
+        camera.shutdown()
         XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
     }
 
@@ -493,7 +500,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 guard let uuid = screen.displayUUID else { continue }
                 
                 if windows[uuid] == nil {
-                    let viewModel = BoringViewModel(screenUUID: uuid)
+                    let viewModel = BoringViewModel(screenUUID: uuid, camera: camera)
                     let window = createBoringNotchWindow(for: screen, with: viewModel)
 
                     windows[uuid] = window
