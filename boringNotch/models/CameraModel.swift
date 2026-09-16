@@ -35,9 +35,12 @@ final class CameraModel {
     var cameraAvailable: Bool { !availableCameras.isEmpty }
     var isSessionRunning: Bool { state == .running }
 
-    init(engine: CameraSessionEngine = AVCaptureSessionEngine()) {
+    init(
+        engine: CameraSessionEngine = AVCaptureSessionEngine(),
+        authorizationStatus: AVAuthorizationStatus? = nil
+    ) {
         self.engine = engine
-        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        let status = authorizationStatus ?? AVCaptureDevice.authorizationStatus(for: .video)
         authorizationStatus = status
         state = Self.state(for: status)
 
