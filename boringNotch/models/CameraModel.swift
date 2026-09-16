@@ -87,6 +87,10 @@ final class CameraModel {
         engine.shutdown()
     }
 
+    func refresh() {
+        engine.refresh()
+    }
+
     func selectCamera(_ cameraID: String) {
         guard availableCameras.contains(where: { $0.id == cameraID }) else { return }
         selectedCameraID = cameraID

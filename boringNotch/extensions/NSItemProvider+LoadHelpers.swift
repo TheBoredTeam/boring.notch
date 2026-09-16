@@ -32,7 +32,7 @@ extension NSItemProvider {
         return await withCheckedContinuation { (cont: CheckedContinuation<Data?, Never>) in
             loadItem(forTypeIdentifier: UTType.data.identifier, options: nil) { item, error in
                 if let error = error {
-                    print("Error loading data for type \(UTType.data.identifier): \(error.localizedDescription)")
+                    Log.general.error("Error loading data for type \(UTType.data.identifier): \(error.localizedDescription)")
                     cont.resume(returning: nil)
                     return
                 }
@@ -49,19 +49,19 @@ extension NSItemProvider {
                     do {
                         // Delete the file first
                         try fileManager.removeItem(at: url)
-                        print("Deleted file: \(url.path)")
+                        Log.general.debug("Deleted file: \(url.path)")
 
                         // Check folder contents
                         let contents = try fileManager.contentsOfDirectory(atPath: folderURL.path)
                         if contents.isEmpty {
                             try fileManager.removeItem(at: folderURL)
-                            print("Folder was empty, deleted folder: \(folderURL.path)")
+                            Log.general.debug("Folder was empty, deleted folder: \(folderURL.path)")
                         } else {
-                            print("Folder not deleted — it still contains \(contents.count) item(s).")
+                            Log.general.debug("Folder not deleted — it still contains \(contents.count) item(s).")
                         }
 
                     } catch {
-                        print("Error: \(error.localizedDescription)")
+                        Log.general.error("Error: \(error.localizedDescription)")
                     }
                     
                     cont.resume(returning: data)
@@ -104,7 +104,7 @@ extension NSItemProvider {
         await withCheckedContinuation { (cont: CheckedContinuation<URL?, Never>) in
             self.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { item, error in
                 if let error = error {
-                    print("❌ Error loading item for type \(typeIdentifier): \(error.localizedDescription)")
+                    Log.general.error("❌ Error loading item for type \(typeIdentifier): \(error.localizedDescription)")
                     cont.resume(returning: nil)
                     return
                 }
@@ -125,7 +125,7 @@ extension NSItemProvider {
                     if resolvedURL == nil {
                         // Fallback: try treating the data as a bookmark
                         let bookmark = Bookmark(data: data)
-                        resolvedURL = bookmark.resolveURL()
+                        resolvedURL = bookmark.resolvedURL
                     }
                 } else if let string = item as? String {
                     if let url = URL(string: string) {

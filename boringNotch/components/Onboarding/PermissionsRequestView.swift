@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct PermissionRequestView: View {
+struct PermissionsRequestView: View {
     let icon: Image
     let title: String
     let description: String

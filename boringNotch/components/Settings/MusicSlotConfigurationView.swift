@@ -15,6 +15,7 @@ struct MusicSlotConfigurationView: View {
     @State private var draggedSlot: MusicControlButton?
 
     private let fixedSlotCount: Int = 5
+    private let paletteColumnCount: Int = 6
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -120,49 +121,56 @@ struct MusicSlotConfigurationView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
-                ScrollView(.horizontal) {
-                    HStack(spacing: 12) {
-                        ForEach(MusicControlButton.pickerOptions, id: \.self) { control in
-                            VStack(spacing: 6) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color(NSColor.controlBackgroundColor))
-                                        .frame(width: 44, height: 44)
-
-                                    if control != .none {
-                                        Image(systemName: control.iconName)
-                                            .font(.system(size: control.prefersLargeScale ? 18 : 15, weight: .medium))
-                                            .foregroundStyle(control == .none ? Color.secondary : Color.primary)
-                                            .frame(width: 28, height: 28)
-                                    }
-                                }
-                                .cornerRadius(8)
-                                .contentShape(RoundedRectangle(cornerRadius: 8))
-                                .onDrag {
-                                    return NSItemProvider(object: NSString(string: "control:\(control.rawValue)"))
-                                }
-                                .onTapGesture {
-                                    if let idx = musicControlSlots.firstIndex(of: .none) {
-                                        updateSlot(control, at: idx)
-                                    } else {
-                                        withAnimation { updateSlot(control, at: 0) }
-                                    }
-                                }
-
-                                Text(control.label)
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                                    .frame(width: 60)
-                                    .multilineTextAlignment(.center)
-                                    .lineLimit(2)
-                            }
-                        }
+                LazyVGrid(
+                    columns: Array(
+                        repeating: GridItem(.flexible(minimum: 44), spacing: 8),
+                        count: paletteColumnCount
+                    ),
+                    alignment: .leading,
+                    spacing: 12
+                ) {
+                    ForEach(MusicControlButton.pickerOptions, id: \.self) { control in
+                        paletteControl(for: control)
                     }
-                    .padding(.vertical, 4)
                 }
-                .scrollIndicators(.visible)
+                .padding(.vertical, 4)
             }
         }
+    }
+
+    private func paletteControl(for control: MusicControlButton) -> some View {
+        VStack(spacing: 6) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color(NSColor.controlBackgroundColor))
+                    .frame(width: 44, height: 44)
+
+                Image(systemName: control.iconName)
+                    .font(.system(size: control.prefersLargeScale ? 18 : 15, weight: .medium))
+                    .foregroundStyle(Color.primary)
+                    .frame(width: 28, height: 28)
+            }
+            .cornerRadius(8)
+            .contentShape(RoundedRectangle(cornerRadius: 8))
+            .onDrag {
+                NSItemProvider(object: NSString(string: "control:\(control.rawValue)"))
+            }
+            .onTapGesture {
+                if let index = musicControlSlots.firstIndex(of: .none) {
+                    updateSlot(control, at: index)
+                } else {
+                    withAnimation { updateSlot(control, at: 0) }
+                }
+            }
+
+            Text(control.label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity, alignment: .top)
     }
 
     private func slotConfigRow(for index: Int) -> some View {
