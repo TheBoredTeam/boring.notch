@@ -5,6 +5,7 @@
 //  Created by Hugo Persson on 2024-08-25.
 //
 
+import Defaults
 import SwiftUI
 
 struct TabModel: Identifiable {
@@ -14,10 +15,19 @@ struct TabModel: Identifiable {
     let view: NotchViews
 }
 
-let tabs = [
-    TabModel(label: "Home", icon: "house.fill", view: .home),
-    TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)
-]
+/// Computed rather than a stored constant: the system monitor tab only
+/// exists while the feature is switched on, so the tab bar has to be able to
+/// change shape at runtime.
+var tabs: [TabModel] {
+    var models = [
+        TabModel(label: "Home", icon: "house.fill", view: .home),
+        TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)
+    ]
+    if Defaults[.systemMonitorEnabled] {
+        models.append(TabModel(label: "System", icon: "gauge.with.dots.needle.33percent", view: .systemMonitor))
+    }
+    return models
+}
 
 struct TabSelectionView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
