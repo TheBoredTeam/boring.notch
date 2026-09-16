@@ -8,6 +8,7 @@
 import AVFoundation
 import AppKit
 import Foundation
+import os.lock
 
 struct CameraDevice: Identifiable, Equatable {
     let id: String
@@ -38,14 +39,22 @@ private final class CameraEngineState: @unchecked Sendable {
     var captureSession: AVCaptureSession?
     var activeCameraID: String?
     var shouldRun = false
+    let callbacks = OSAllocatedUnfairLock(initialState: CameraEngineCallbacks())
+}
+
+private struct CameraEngineCallbacks: Sendable {
     var isShutDown = false
-    var eventHandler: (@MainActor @Sendable (CameraSessionEvent) -> Void)?
+    var handler: (@MainActor @Sendable (CameraSessionEvent) -> Void)?
 }
 
 final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
     var eventHandler: (@MainActor @Sendable (CameraSessionEvent) -> Void)? {
-        get { state.eventHandler }
-        set { state.eventHandler = newValue }
+        get { state.callbacks.withLock { $0.handler } }
+        set {
+            state.callbacks.withLock {
+                $0.handler = newValue
+            }
+        }
     }
 
     private let sessionQueue = DispatchQueue(
@@ -112,7 +121,7 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
     func refresh() {
         let state = state
         sessionQueue.async {
-            guard !state.isShutDown else { return }
+            guard !state.callbacks.withLock({ $0.isShutDown }) else { return }
             Self.publishAuthorization(state: state)
             Self.publishDevices(state: state)
         }
@@ -142,7 +151,7 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
     func start(cameraID: String?) {
         let state = state
         sessionQueue.async {
-            guard !state.isShutDown else { return }
+            guard !state.callbacks.withLock({ $0.isShutDown }) else { return }
             state.shouldRun = true
             Self.startSession(cameraID: cameraID, state: state)
         }
@@ -151,7 +160,7 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
     func stop() {
         let state = state
         sessionQueue.async {
-            guard !state.isShutDown else { return }
+            guard !state.callbacks.withLock({ $0.isShutDown }) else { return }
             state.shouldRun = false
             Self.cleanupSession(state: state)
             Self.publish(.stopped, state: state)
@@ -159,9 +168,11 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
     }
 
     func shutdown() {
+        state.callbacks.withLock {
+            $0.isShutDown = true
+            $0.handler = nil
+        }
         sessionQueue.sync {
-            guard !state.isShutDown else { return }
-            state.isShutDown = true
             state.shouldRun = false
             Self.cleanupSession(state: state)
         }
@@ -169,7 +180,7 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
 
     private static func refresh(state: CameraEngineState, queue: DispatchQueue) {
         queue.async {
-            guard !state.isShutDown else { return }
+            guard !state.callbacks.withLock({ $0.isShutDown }) else { return }
             publishAuthorization(state: state)
             publishDevices(state: state)
         }
@@ -284,9 +295,9 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
     }
 
     private static func publish(_ event: CameraSessionEvent, state: CameraEngineState) {
-        guard let handler = state.eventHandler else { return }
+        guard let handler = state.callbacks.withLock({ $0.handler }) else { return }
         DispatchQueue.main.async {
-            guard !state.isShutDown else { return }
+            guard !state.callbacks.withLock({ $0.isShutDown }) else { return }
             handler(event)
         }
     }
@@ -295,7 +306,7 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
         let deviceID = (notification.object as? AVCaptureDevice)?.uniqueID
         let state = state
         sessionQueue.async {
-            guard !state.isShutDown else { return }
+            guard !state.callbacks.withLock({ $0.isShutDown }) else { return }
             if deviceID == state.activeCameraID {
                 Self.cleanupSession(state: state)
             }
@@ -311,7 +322,7 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
         let hasError = notification.userInfo?[AVCaptureSessionErrorKey] != nil
         let state = state
         sessionQueue.async {
-            guard !state.isShutDown, state.shouldRun else { return }
+            guard !state.callbacks.withLock({ $0.isShutDown }), state.shouldRun else { return }
             Self.cleanupSession(state: state)
             Self.startSession(cameraID: state.activeCameraID, state: state)
             if !hasError {
@@ -324,7 +335,7 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
         let sessionID = (notification.object as? AVCaptureSession).map(ObjectIdentifier.init)
         let state = state
         sessionQueue.async {
-            guard !state.isShutDown,
+            guard !state.callbacks.withLock({ $0.isShutDown }),
                   sessionID == state.captureSession.map(ObjectIdentifier.init) else { return }
             Self.publish(.stopped, state: state)
         }
@@ -334,7 +345,7 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
         let sessionID = (notification.object as? AVCaptureSession).map(ObjectIdentifier.init)
         let state = state
         sessionQueue.async {
-            guard !state.isShutDown,
+            guard !state.callbacks.withLock({ $0.isShutDown }),
                   state.shouldRun,
                   sessionID == state.captureSession.map(ObjectIdentifier.init),
                   let session = state.captureSession else { return }
@@ -355,7 +366,7 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
     @objc private func systemWillSleep(_: Notification) {
         let state = state
         sessionQueue.async {
-            guard !state.isShutDown, let session = state.captureSession else { return }
+            guard !state.callbacks.withLock({ $0.isShutDown }), let session = state.captureSession else { return }
             if session.isRunning {
                 session.stopRunning()
                 Self.publish(.stopped, state: state)
@@ -366,7 +377,7 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
     @objc private func systemDidWake(_: Notification) {
         let state = state
         sessionQueue.async {
-            guard !state.isShutDown, state.shouldRun else { return }
+            guard !state.callbacks.withLock({ $0.isShutDown }), state.shouldRun else { return }
             if let session = state.captureSession, !session.isRunning {
                 session.startRunning()
                 if session.isRunning {
