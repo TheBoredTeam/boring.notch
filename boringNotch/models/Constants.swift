@@ -260,6 +260,12 @@ enum PreferenceCompatibility {
     }
 }
 
+/// `FocusPhase` lives in FocusSession.swift, which is deliberately free of any
+/// Defaults dependency so the state machine stays testable in isolation. The
+/// storage conformance is added here instead, where Defaults is already in
+/// scope. The raw String value is what gets persisted.
+extension FocusPhase: Defaults.Serializable {}
+
 extension Defaults.Keys {
     // MARK: General
     static let appLanguage = Key<AppLanguage>("appLanguage", default: .system)
@@ -422,6 +428,37 @@ extension Defaults.Keys {
         default: nil
     )
     
+    // MARK: Focus Timer
+    /// Off by default: it adds a tab and, when the blockers are on, changes
+    /// how other apps behave. Nothing about that should switch itself on.
+    static let focusTimerEnabled = Key<Bool>("focusTimerEnabled", default: false)
+    static let focusWorkMinutes = Key<Int>("focusWorkMinutes", default: 25)
+    static let focusShortBreakMinutes = Key<Int>("focusShortBreakMinutes", default: 5)
+    static let focusLongBreakMinutes = Key<Int>("focusLongBreakMinutes", default: 15)
+    static let focusIntervalsBeforeLongBreak = Key<Int>("focusIntervalsBeforeLongBreak", default: 4)
+    /// Rolling into a break unprompted is the Pomodoro default; rolling back
+    /// into work unprompted drags someone back to their desk, so it is not.
+    static let focusAutoStartBreaks = Key<Bool>("focusAutoStartBreaks", default: true)
+    static let focusAutoStartWork = Key<Bool>("focusAutoStartWork", default: false)
+    static let focusPlaySound = Key<Bool>("focusPlaySound", default: true)
+
+    static let focusBlockApps = Key<Bool>("focusBlockApps", default: false)
+    static let focusBlockSites = Key<Bool>("focusBlockSites", default: false)
+    static let focusBlockedApps = Key<Set<String>>("focusBlockedApps", default: [])
+    static let focusBlockedSites = Key<Set<String>>(
+        "focusBlockedSites",
+        default: ["instagram.com", "reddit.com", "youtube.com", "x.com", "twitter.com"]
+    )
+
+    // Session state, persisted so a relaunch mid-Pomodoro doesn't lose it.
+    static let focusPhase = Key<FocusPhase>("focusPhase", default: .work)
+    static let focusCompletedIntervals = Key<Int>("focusCompletedIntervals", default: 0)
+    static let focusDeadline = Key<Date?>("focusDeadline", default: nil)
+    static let focusAccumulatedSeconds = Key<TimeInterval>("focusAccumulatedSeconds", default: 0)
+    /// Stamped so the running total can reset at midnight rather than
+    /// accumulating across days.
+    static let focusAccumulatedDate = Key<Date?>("focusAccumulatedDate", default: nil)
+
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)
