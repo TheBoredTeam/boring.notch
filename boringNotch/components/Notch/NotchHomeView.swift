@@ -164,7 +164,7 @@ struct MusicControlsView: View {
                         return min(max(progressed, 0), musicManager.songDuration)
                     }()
                     let lyricDisplay: (line: String, displayDuration: Double?, animationID: Double?) = {
-                        if LyricsService.shared.isFetchingLyrics { return ("Loading lyrics…", nil, nil) }
+                        if LyricsService.shared.showsLoadingPlaceholder { return ("Loading lyrics…", nil, nil) }
                         if !LyricsService.shared.syncedLyrics.isEmpty {
                             let context = LyricsService.shared.lyricLineContext(at: currentElapsed)
                             let displayDuration = context.endTime.map { max($0 - currentElapsed, 0) }
@@ -186,7 +186,7 @@ struct MusicControlsView: View {
                         line,
                         font: lyricFont,
                         nsFont: .subheadline,
-                        color: musicManager.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
+                        color: LyricsService.shared.showsLoadingPlaceholder ? .gray.opacity(0.7) : .gray,
                         displayDuration: lyricDisplay.displayDuration,
                         animationID: lyricDisplay.animationID,
                         frameWidth: width
