@@ -218,15 +218,19 @@ actor YouTubeMusicWebSocketClient {
 // MARK: - WebSocket URL Helper
 struct WebSocketURLBuilder {
     static func buildURL(from baseURL: String) -> URL? {
-        guard var components = URLComponents(string: baseURL) else { return nil }
+        guard var components = URLComponents(string: baseURL),
+              let scheme = components.scheme?.lowercased(),
+              let host = components.host,
+              !host.isEmpty
+        else { return nil }
 
-        switch components.scheme {
+        switch scheme {
         case "http":
             components.scheme = "ws"
         case "https":
             components.scheme = "wss"
         default:
-            break
+            return nil
         }
 
         components.path = "/api/v1/ws"
@@ -244,12 +248,21 @@ struct WebSocketURLBuilder {
             throw YouTubeMusicError.invalidURL
         }
 
-        var items = components.queryItems ?? []
+        var tokenComponents = URLComponents()
+        tokenComponents.queryItems = [URLQueryItem(name: "token", value: token)]
+        guard var encodedToken = tokenComponents.percentEncodedQueryItems?.first else {
+            throw YouTubeMusicError.invalidURL
+        }
+
+        // Pear versions that use form-style query parsing interpret an unescaped
+        // plus as a space. Change only the token's encoded value; other query
+        // items must keep their original meaning.
+        encodedToken.value = encodedToken.value?.replacingOccurrences(of: "+", with: "%2B")
+
+        var items = components.percentEncodedQueryItems ?? []
         items.removeAll { $0.name == "token" }
-        items.append(URLQueryItem(name: "token", value: token))
-        components.queryItems = items
-        // URLSearchParams uses form decoding, where an unescaped + means space.
-        components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+        items.append(encodedToken)
+        components.percentEncodedQueryItems = items
         guard let authenticatedURL = components.url else { throw YouTubeMusicError.invalidURL }
 
         var request = URLRequest(url: authenticatedURL)
