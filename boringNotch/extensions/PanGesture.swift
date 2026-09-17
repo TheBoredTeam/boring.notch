@@ -19,6 +19,21 @@ enum PanDirection {
     func signed(deltaX: CGFloat, deltaY: CGFloat) -> CGFloat { (isHorizontal ? deltaX : deltaY) * sign }
 }
 
+/// Content scroll views own their wheel events before the notch considers them gestures.
+enum PanGestureScrollRouting {
+    @MainActor static func targetsScrollView(_ event: NSEvent) -> Bool {
+        guard let contentView = event.window?.contentView else { return false }
+        let point = contentView.superview?.convert(event.locationInWindow, from: nil) ?? event.locationInWindow
+        var target = contentView.hitTest(point)
+        while let view = target {
+            // Frozen calendar labels use a clip view and forward their wheel to the timeline.
+            if view is NSScrollView || view is NSClipView { return true }
+            target = view.superview
+        }
+        return false
+    }
+}
+
 extension View {
     func panGesture(direction: PanDirection, threshold: CGFloat = 4, action: @escaping (CGFloat, NSEvent.Phase) -> Void) -> some View {
         self
@@ -91,9 +106,21 @@ private struct ScrollMonitor: NSViewRepresentable {
             // Local monitor for normal in-window scroll events.
             localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { [weak self, weak view] event in
                 guard let self = self, event.window === view?.window else { return event }
+                if PanGestureScrollRouting.targetsScrollView(event) {
+                    self.cancelScrollGesture()
+                    return event
+                }
                 self.handleScroll(event)
                 return event
             }
+        }
+
+        private func cancelScrollGesture() {
+            endTask?.cancel()
+            endTask = nil
+            if active { action(0, .ended) }
+            accumulated = 0
+            active = false
         }
 
         func removeMonitor() {

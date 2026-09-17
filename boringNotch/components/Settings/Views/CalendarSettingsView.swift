@@ -63,25 +63,13 @@ struct CalendarSettings: View {
                         }
                     }
                 } else {
-                    List {
-                        ForEach(calendarManager.eventCalendars, id: \.id) { calendar in
-                            Toggle(
-                                isOn: Binding(
-                                    get: { calendarManager.getCalendarSelected(calendar) },
-                                    set: { isSelected in
-                                        Task {
-                                            await calendarManager.setCalendarSelected(
-                                                calendar, isSelected: isSelected)
-                                        }
-                                    }
-                                )
-                            ) {
-                                Text(calendar.title)
-                            }
-                            .accentColor(lighterColor(from: calendar.color))
-                            .disabled(!showCalendar)
-                        }
+                    calendarPicker(calendarManager.eventCalendars)
+                    Button("Refresh Calendars", systemImage: "arrow.clockwise") {
+                        Task { await calendarManager.reloadCalendarAndReminderLists() }
                     }
+                    Text("Includes calendars from every account available to Apple Calendar. Selection applies to both calendar views.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
             Section(header: Text("Reminders")) {
@@ -99,25 +87,7 @@ struct CalendarSettings: View {
                         }
                     }
                 } else {
-                    List {
-                        ForEach(calendarManager.reminderLists, id: \.id) { calendar in
-                            Toggle(
-                                isOn: Binding(
-                                    get: { calendarManager.getCalendarSelected(calendar) },
-                                    set: { isSelected in
-                                        Task {
-                                            await calendarManager.setCalendarSelected(
-                                                calendar, isSelected: isSelected)
-                                        }
-                                    }
-                                )
-                            ) {
-                                Text(calendar.title)
-                            }
-                            .accentColor(lighterColor(from: calendar.color))
-                            .disabled(!showCalendar)
-                        }
-                    }
+                    calendarPicker(calendarManager.reminderLists)
                 }
             }
         }
@@ -130,21 +100,98 @@ struct CalendarSettings: View {
             }
         }
     }
+
+    @ViewBuilder
+    private func calendarPicker(_ calendars: [CalendarModel]) -> some View {
+        if calendars.isEmpty {
+            Text("No calendars available.")
+                .foregroundStyle(.secondary)
+        } else {
+            HStack {
+                Text("\(calendars.filter { calendarManager.getCalendarSelected($0) }.count) of \(calendars.count) selected")
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("Select All") {
+                    Task { await calendarManager.setCalendarsSelected(calendars, isSelected: true) }
+                }
+                Button("Deselect All") {
+                    Task { await calendarManager.setCalendarsSelected(calendars, isSelected: false) }
+                }
+            }
+            .controlSize(.small)
+
+            let groups = Dictionary(grouping: calendars, by: \.account)
+            ForEach(groups.keys.sorted(), id: \.self) { account in
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(account)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    ForEach((groups[account] ?? []).sorted {
+                        $0.title.localizedStandardCompare($1.title) == .orderedAscending
+                    }, id: \.id) { calendar in
+                        Toggle(isOn: Binding(
+                            get: { calendarManager.getCalendarSelected(calendar) },
+                            set: { isSelected in
+                                Task { await calendarManager.setCalendarSelected(calendar, isSelected: isSelected) }
+                            }
+                        )) {
+                            HStack(spacing: 8) {
+                                Circle()
+                                    .fill(Color(nsColor: calendar.color))
+                                    .frame(width: 8, height: 8)
+                                    .accessibilityHidden(true)
+                                Text(calendar.title)
+                            }
+                        }
+                        .toggleStyle(.checkbox)
+                        .accessibilityLabel(calendar.title)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+        }
+    }
 }
 
-func lighterColor(from nsColor: NSColor, amount: CGFloat = 0.14) -> Color {
-    let srgb = nsColor.usingColorSpace(.sRGB) ?? nsColor
-    var (r, g, b, a): (CGFloat, CGFloat, CGFloat, CGFloat) = (0,0,0,0)
-    srgb.getRed(&r, green: &g, blue: &b, alpha: &a)
+struct CalendarLayoutSettings: View {
+    @Default(.calendarTimelineScale) private var homeScale
+    @Default(.calendarPaneTimelineScale) private var calendarScale
 
-    func lighten(_ c: CGFloat) -> CGFloat {
-        let increased = c + (1.0 - c) * amount
-        return min(max(increased, 0), 1)
+    var body: some View {
+        Form {
+            scaleSection("Home timeline", scale: $homeScale)
+            scaleSection("Calendar pane", scale: $calendarScale)
+        }
+        .navigationTitle("Calendar Layout")
     }
 
-    let nr = lighten(r)
-    let ng = lighten(g)
-    let nb = lighten(b)
+    private func scaleSection(_ title: LocalizedStringKey, scale: Binding<Double>) -> some View {
+        let value = CalendarTimelineScale.clamped(scale.wrappedValue)
+        let description = value == 0 ? "Fit day" : "\(Int((value * 100).rounded()))%"
+        let boundedScale = Binding(
+            get: { CalendarTimelineScale.clamped(scale.wrappedValue) },
+            set: { scale.wrappedValue = CalendarTimelineScale.clamped($0) }
+        )
+        return Section {
+            LabeledContent("Horizontal scale") {
+                Text(description).monospacedDigit()
+            }
+            Slider(value: boundedScale, in: CalendarTimelineScale.range, step: 0.05) {
+                Text(title)
+            } minimumValueLabel: {
+                Text("Fit day")
+            } maximumValueLabel: {
+                Text("250%")
+            }
+            .labelsHidden()
+            .accessibilityValue(value == 0 ? "Fit day" : "\(Int((value * 100).rounded())) percent")
 
-    return Color(red: Double(nr), green: Double(ng), blue: Double(nb), opacity: Double(a))
+            Button("Reset to 100%") { scale.wrappedValue = 1.0 }
+                .disabled(value == 1.0)
+        } header: {
+            Text(title)
+        } footer: {
+            Text("This scale applies only to this timeline. Fit day shows the whole day; narrow event blocks hide titles. Drag its wheel to adjust the scale.")
+        }
+    }
 }

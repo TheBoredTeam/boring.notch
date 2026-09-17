@@ -45,6 +45,7 @@ struct ExpandedItem {
 final class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
 
+    @Published var calendarDate = Date()
     @Published var currentView: NotchViews = .home
     @Published var helloAnimationRunning: Bool = false
     private var osdEnableTask: Task<Void, Never>?
