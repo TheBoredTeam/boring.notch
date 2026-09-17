@@ -39,7 +39,6 @@
 		1153BD982D9881F900979FB0 /* AppleScriptHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD972D9881F900979FB0 /* AppleScriptHelper.swift */; };
 		1153BD9A2D98824300979FB0 /* SpotifyController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD992D98824300979FB0 /* SpotifyController.swift */; };
 		1153BD9C2D98853B00979FB0 /* NowPlayingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */; };
-		A1B2C3D4E5F60718293A4B5D /* NowPlayingStreamSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* NowPlayingStreamSupport.swift */; };
 		1153BDA72D99B22200979FB0 /* YouTubeMusicController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */; };
 		115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115C12EB2ED3D003009754CA /* OpenNotchOSD.swift */; };
 		1160F8D82DD98230006FBB94 /* NotchShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1160F8D72DD98230006FBB94 /* NotchShape.swift */; };
@@ -64,7 +63,6 @@
 		11985BEF2F37E48900F81585 /* OSDIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11985BEE2F37E48900F81585 /* OSDIconView.swift */; };
 		11985BF42F38520A00F81585 /* DraggableProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11985BF32F38520A00F81585 /* DraggableProgressBar.swift */; };
 		11A45C792E34E63100CEB175 /* MediaChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A45C782E34E63100CEB175 /* MediaChecker.swift */; };
-		7EF93DF9889B42E9BCD4634F /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 033B8885979E4EA1A78E8ADC /* Log.swift */; };
 		11C5E3132DFE85970065821E /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C5E3112DFE85970065821E /* SettingsWindowController.swift */; };
 		11C5E3162DFE88510065821E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C5E3152DFE88510065821E /* SettingsView.swift */; };
 		11CC44A22CEE614100C7244B /* BoringViewCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CC44A12CEE614100C7244B /* BoringViewCoordinator.swift */; };
@@ -122,8 +120,11 @@
 		14D570D22C5F6C6A0011E668 /* BoringExtrasMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */; };
 		14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */; };
 		14FC6E502C7DED5600C7BEA5 /* DataTypes+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */; };
+		180E28ABF34A14C2C0F26B65 /* SystemMonitorManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89D87248DCF6CF122767D2B8 /* SystemMonitorManager.swift */; };
 		1A8B65187F974EE9B7664F5C /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0268933F488E47DFB58E48CF /* VisualEffectView.swift */; };
 		201C3E071A104384B8629328 /* AudioOutputRouteResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFAD1670A870402D88BFFE47 /* AudioOutputRouteResolver.swift */; };
+		306C3A777BEB07FBC26F8A00 /* SystemMetricKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491F8F255E960571E93AF27C /* SystemMetricKind.swift */; };
+		3AA682E9CE332EED213E01CA /* SystemMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41657EF617E9DBA5C26F6A26 /* SystemMetrics.swift */; };
 		3C1B922F0813671B2886CF43 /* MeetingLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CA22021D89A9E4FF88A618D /* MeetingLink.swift */; };
 		507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507266DA2C908E2E00A2D00D /* HoverButton.swift */; };
 		5917FD112E57891600E87F1C /* MediaKeyInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */; };
@@ -131,13 +132,18 @@
 		59D8C23C2E589FAA00147B33 /* VolumeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59D8C23B2E589FAA00147B33 /* VolumeManager.swift */; };
 		62A83B43C1AD411097E93D17 /* MediaAppBundleID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F20E44C65E4DA1945BFF5C /* MediaAppBundleID.swift */; };
 		64FA50FB2F4D6F9E00008A28 /* WebcamSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64FA50FA2F4D6F9E00008A28 /* WebcamSettingsView.swift */; };
+		7EF93DF9889B42E9BCD4634F /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 033B8885979E4EA1A78E8ADC /* Log.swift */; };
+		7FC615A006A119358064EB45 /* SystemMonitorGauge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5DE22111476336318BB0C6 /* SystemMonitorGauge.swift */; };
 		80EA0C01BBCF4069AC5D133D /* AppleScriptControllerSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0C26F24108F414781F79D4F /* AppleScriptControllerSupport.swift */; };
+		8E091E7FC3CC18CFF7B37D20 /* SystemMetricCardContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F6D222CAA090577C9AD4A6 /* SystemMetricCardContent.swift */; };
+		8E42038DCF048534ECF5D512 /* SystemMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36F27B8F436D53B6D41AB3C3 /* SystemMonitorView.swift */; };
 		90ED6E81035940418671DCEA /* NotchWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB1C3E8B149445A9E57C6AF /* NotchWindowManager.swift */; };
 		9A0887322C7A693000C160EA /* TabButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887312C7A693000C160EA /* TabButton.swift */; };
 		9A0887352C7AFF8E00C160EA /* TabSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */; };
 		9A987A0D2C73CA66005CA465 /* ShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A987A032C73CA66005CA465 /* ShelfView.swift */; };
 		9A987A102C73CA8D005CA465 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 9A987A0F2C73CA8D005CA465 /* Collections */; };
 		9AB0C6BD2C73C9CB00F7CD30 /* NotchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */; };
+		A1B2C3D4E5F60718293A4B5D /* NowPlayingStreamSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* NowPlayingStreamSupport.swift */; };
 		A1F000012F00000100000001 /* ShelfItemInteractionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F000022F00000100000001 /* ShelfItemInteractionView.swift */; };
 		A7F4A06476BC4B029B6BECEA /* NotchUIEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80E354C7D712441284085CEA /* NotchUIEvent.swift */; };
 		AA01NDW12E7A0001 /* NotificationDebugWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01NDW22E7A0001 /* NotificationDebugWindow.swift */; };
@@ -173,9 +179,9 @@
 		B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F0A0012E60000100000001 /* BrightnessManager.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		C0D300012F60000100000001 /* DropInteractionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D300022F60000100000001 /* DropInteractionState.swift */; };
+		D55125CAA74F0D161DB903C3 /* SystemMonitorSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D49717E686DC55E204C382 /* SystemMonitorSettingsView.swift */; };
 		F1F2A0A100000000000000F1 /* AudioCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
-		F80A422BE2974CF6808C84CA /* MediaEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D24CBD49614ECE88F062B5 /* MediaEnvironment.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -250,7 +256,6 @@
 		1153BD972D9881F900979FB0 /* AppleScriptHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleScriptHelper.swift; sourceTree = "<group>"; };
 		1153BD992D98824300979FB0 /* SpotifyController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyController.swift; sourceTree = "<group>"; };
 		1153BD9B2D98853B00979FB0 /* NowPlayingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingController.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60718293A4B5C /* NowPlayingStreamSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingStreamSupport.swift; sourceTree = "<group>"; };
 		1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeMusicController.swift; sourceTree = "<group>"; };
 		115C12EB2ED3D003009754CA /* OpenNotchOSD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenNotchOSD.swift; sourceTree = "<group>"; };
 		1160F8D72DD98230006FBB94 /* NotchShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchShape.swift; sourceTree = "<group>"; };
@@ -332,20 +337,27 @@
 		14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringExtrasMenu.swift; sourceTree = "<group>"; };
 		14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Button+Bouncing.swift"; sourceTree = "<group>"; };
 		14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataTypes+Extensions.swift"; sourceTree = "<group>"; };
+		36F27B8F436D53B6D41AB3C3 /* SystemMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorView.swift; sourceTree = "<group>"; };
 		3CA22021D89A9E4FF88A618D /* MeetingLink.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MeetingLink.swift; sourceTree = "<group>"; };
+		41657EF617E9DBA5C26F6A26 /* SystemMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMetrics.swift; sourceTree = "<group>"; };
+		491F8F255E960571E93AF27C /* SystemMetricKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMetricKind.swift; sourceTree = "<group>"; };
 		507266DA2C908E2E00A2D00D /* HoverButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverButton.swift; sourceTree = "<group>"; };
-		54D24CBD49614ECE88F062B5 /* MediaEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaEnvironment.swift; sourceTree = "<group>"; };
 		5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKeyInterceptor.swift; sourceTree = "<group>"; };
 		5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationRelauncher.swift; sourceTree = "<group>"; };
 		59D8C23B2E589FAA00147B33 /* VolumeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeManager.swift; sourceTree = "<group>"; };
+		5B5DE22111476336318BB0C6 /* SystemMonitorGauge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorGauge.swift; sourceTree = "<group>"; };
 		61F20E44C65E4DA1945BFF5C /* MediaAppBundleID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaAppBundleID.swift; sourceTree = "<group>"; };
 		64FA50FA2F4D6F9E00008A28 /* WebcamSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebcamSettingsView.swift; sourceTree = "<group>"; };
+		77D49717E686DC55E204C382 /* SystemMonitorSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorSettingsView.swift; sourceTree = "<group>"; };
 		80E354C7D712441284085CEA /* NotchUIEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchUIEvent.swift; sourceTree = "<group>"; };
+		89D87248DCF6CF122767D2B8 /* SystemMonitorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorManager.swift; sourceTree = "<group>"; };
 		9A0887312C7A693000C160EA /* TabButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabButton.swift; sourceTree = "<group>"; };
 		9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelectionView.swift; sourceTree = "<group>"; };
 		9A987A032C73CA66005CA465 /* ShelfView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShelfView.swift; sourceTree = "<group>"; };
 		9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotchHomeView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5C /* NowPlayingStreamSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingStreamSupport.swift; sourceTree = "<group>"; };
 		A1F000022F00000100000001 /* ShelfItemInteractionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfItemInteractionView.swift; sourceTree = "<group>"; };
+		A3F6D222CAA090577C9AD4A6 /* SystemMetricCardContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMetricCardContent.swift; sourceTree = "<group>"; };
 		A5167212301F85B40018095A /* boringNotchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = boringNotchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA01NDW22E7A0001 /* NotificationDebugWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationDebugWindow.swift; sourceTree = "<group>"; };
 		AA01NLA22E7A0001 /* NotificationLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationLiveActivity.swift; sourceTree = "<group>"; };
@@ -440,6 +452,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0413B96664DE531E223C6345 /* SystemMonitor */ = {
+			isa = PBXGroup;
+			children = (
+				36F27B8F436D53B6D41AB3C3 /* SystemMonitorView.swift */,
+				5B5DE22111476336318BB0C6 /* SystemMonitorGauge.swift */,
+			);
+			path = SystemMonitor;
+			sourceTree = "<group>";
+		};
 		1113ABB82E80E27000EC13B2 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -584,6 +605,7 @@
 		11DB26722EDD0CDF001EA0CF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				77D49717E686DC55E204C382 /* SystemMonitorSettingsView.swift */,
 				11DB26672EDD0CDF001EA0CF /* AboutView.swift */,
 				11DB26682EDD0CDF001EA0CF /* AdvancedSettingsView.swift */,
 				11DB26692EDD0CDF001EA0CF /* AppearanceSettingsView.swift */,
@@ -646,6 +668,7 @@
 		1471639B2C5D362F0068B555 /* components */ = {
 			isa = PBXGroup;
 			children = (
+				0413B96664DE531E223C6345 /* SystemMonitor */,
 				11985BDF2F37A3C800F81585 /* OSD */,
 				AA01NDW22E7A0001 /* NotificationDebugWindow.swift */,
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
@@ -667,6 +690,7 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				89D87248DCF6CF122767D2B8 /* SystemMonitorManager.swift */,
 				11DB26652EDD0BE1001EA0CF /* LyricsService.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
@@ -783,6 +807,7 @@
 		14D570BA2C5E98E30011E668 /* enums */ = {
 			isa = PBXGroup;
 			children = (
+				491F8F255E960571E93AF27C /* SystemMetricKind.swift */,
 				14D570BB2C5E98EB0011E668 /* generic.swift */,
 			);
 			path = enums;
@@ -791,6 +816,8 @@
 		14D570C72C5F38760011E668 /* models */ = {
 			isa = PBXGroup;
 			children = (
+				A3F6D222CAA090577C9AD4A6 /* SystemMetricCardContent.swift */,
+				41657EF617E9DBA5C26F6A26 /* SystemMetrics.swift */,
 				11F748812ECB07A400F841DB /* MusicControlButton.swift */,
 				118D1FD02E98FF5F00A2FF63 /* SharingStateManager.swift */,
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
@@ -1106,6 +1133,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D55125CAA74F0D161DB903C3 /* SystemMonitorSettingsView.swift in Sources */,
+				306C3A777BEB07FBC26F8A00 /* SystemMetricKind.swift in Sources */,
+				8E091E7FC3CC18CFF7B37D20 /* SystemMetricCardContent.swift in Sources */,
+				3AA682E9CE332EED213E01CA /* SystemMetrics.swift in Sources */,
+				180E28ABF34A14C2C0F26B65 /* SystemMonitorManager.swift in Sources */,
+				8E42038DCF048534ECF5D512 /* SystemMonitorView.swift in Sources */,
+				7FC615A006A119358064EB45 /* SystemMonitorGauge.swift in Sources */,
 				115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,

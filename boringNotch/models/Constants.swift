@@ -422,6 +422,23 @@ extension Defaults.Keys {
         default: nil
     )
     
+    // MARK: System Monitor
+    /// Off by default: it adds a polling loop and a whole surface to the
+    /// notch, so it is opt-in rather than something existing users find
+    /// switched on after an update.
+    static let systemMonitorEnabled = Key<Bool>("systemMonitorEnabled", default: false)
+    /// Which cards appear in the grid, in `SystemMetricKind.displayOrder`.
+    static let systemMonitorMetrics = Key<Set<SystemMetricKind>>(
+        "systemMonitorMetrics",
+        default: SystemMetricKind.defaultSelection
+    )
+    /// Seconds between samples. Two seconds keeps CPU cost negligible while
+    /// still feeling live; the settings pane offers 1/2/5.
+    static let systemMonitorRefreshInterval = Key<TimeInterval>("systemMonitorRefreshInterval", default: 2)
+    /// Compact CPU/memory readout in the opened notch's header, alongside the
+    /// battery indicator.
+    static let systemMonitorInHeader = Key<Bool>("systemMonitorInHeader", default: false)
+
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)

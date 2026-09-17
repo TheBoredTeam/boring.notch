@@ -93,6 +93,7 @@ final class BoringViewCoordinator: ObservableObject {
     private var boringShelfCancellable: AnyCancellable?
     private var osdSourceCancellables: [AnyCancellable] = []
     private var notificationLiveActivityCancellable: AnyCancellable?
+    private var systemMonitorCancellable: AnyCancellable?
     private var uiEventCancellable: AnyCancellable?
 
     private init() {
@@ -179,6 +180,19 @@ final class BoringViewCoordinator: ObservableObject {
                 Task { @MainActor in
                     guard let self = self else { return }
                     if !change.newValue && self.currentView == .shelf {
+                        self.currentView = .home
+                    }
+                }
+            }
+
+        // Switching the system monitor off while its tab is open would
+        // otherwise leave the notch on a tab that no longer has a tab button
+        // — the same stranding the shelf observer below guards against.
+        systemMonitorCancellable = Defaults.publisher(.systemMonitorEnabled)
+            .sink { [weak self] change in
+                Task { @MainActor in
+                    guard let self = self else { return }
+                    if !change.newValue && self.currentView == .systemMonitor {
                         self.currentView = .home
                     }
                 }
