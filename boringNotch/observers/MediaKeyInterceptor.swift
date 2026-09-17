@@ -12,25 +12,112 @@ import AVFoundation
 
 private let kSystemDefinedEventType = CGEventType(rawValue: 14)!
 
+enum MediaKeyKind: Int {
+    case soundUp = 0
+    case soundDown = 1
+    case brightnessUp = 2
+    case brightnessDown = 3
+    case mute = 7
+    case keyboardBrightnessUp = 21
+    case keyboardBrightnessDown = 22
+}
+
+struct MediaKeyModifiers: OptionSet, Equatable {
+    let rawValue: Int
+    static let option = Self(rawValue: 1 << 0)
+    static let shift = Self(rawValue: 1 << 1)
+    static let command = Self(rawValue: 1 << 2)
+}
+
+enum MediaKeyDisposition: Equatable {
+    case handle
+    case passThrough
+}
+
+struct MediaKeyPolicy {
+    static func disposition(
+        for key: MediaKeyKind, modifiers: MediaKeyModifiers,
+        replacementEnabled: Bool, selectedSource: OSDControlSource,
+        volumeSupported: Bool, brightnessSupported: Bool, backlightSupported: Bool
+    ) -> MediaKeyDisposition {
+        guard replacementEnabled else { return .passThrough }
+        if modifiers.contains(.command) {
+            switch key {
+            case .soundUp, .soundDown, .mute:
+                return .passThrough
+            case .brightnessUp, .brightnessDown:
+                return backlightSupported ? .handle : .passThrough
+            case .keyboardBrightnessUp, .keyboardBrightnessDown:
+                break
+            }
+        }
+        switch key {
+        case .soundUp, .soundDown, .mute:
+            return selectedSource == .builtin && volumeSupported ? .handle : .passThrough
+        case .brightnessUp, .brightnessDown:
+            return selectedSource == .builtin && brightnessSupported ? .handle : .passThrough
+        case .keyboardBrightnessUp, .keyboardBrightnessDown:
+            return backlightSupported ? .handle : .passThrough
+        }
+    }
+
+    static func stepDivisor(modifiers: MediaKeyModifiers) -> Float {
+        modifiers.contains([.option, .shift]) ? 4 : 1
+    }
+
+    static func shouldPlayVolumeFeedback(
+        preferenceEnabled: Bool, modifiers: MediaKeyModifiers
+    ) -> Bool {
+        preferenceEnabled != modifiers.contains(.shift)
+    }
+}
+
+struct MediaKeyTapLifecycle: Equatable {
+    private(set) var generation: UInt64 = 0
+    private(set) var desiredEnabled = false
+
+    mutating func beginStart() -> UInt64 {
+        generation &+= 1
+        desiredEnabled = true
+        return generation
+    }
+
+    mutating func stop() {
+        generation &+= 1
+        desiredEnabled = false
+    }
+
+    func acceptsCompletion(generation: UInt64) -> Bool {
+        desiredEnabled && self.generation == generation
+    }
+}
+
 final class MediaKeyInterceptor {
     static let shared = MediaKeyInterceptor()
-
-    private enum NXKeyType: Int {
-        case soundUp = 0
-        case soundDown = 1
-        case brightnessUp = 2
-        case brightnessDown = 3
-        case mute = 7
-        case keyboardBrightnessUp = 21
-        case keyboardBrightnessDown = 22
-    }
 
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private let step: Float = 1.0 / 16.0
     private var audioPlayer: AVAudioPlayer?
+    private var lifecycle = MediaKeyTapLifecycle()
+    private var screenObservers: [any NSObjectProtocol] = []
     
-    private init() {}
+    private init() {
+        let center = DistributedNotificationCenter.default()
+        screenObservers.append(center.addObserver(
+            forName: Notification.Name("com.apple.screenIsLocked"), object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.stop() }
+        })
+        screenObservers.append(center.addObserver(
+            forName: Notification.Name("com.apple.screenIsUnlocked"), object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                guard self != nil else { return }
+                BoringViewCoordinator.shared.applyOSDSources()
+            }
+        })
+    }
 
     private var isTapActive: Bool {
         eventTap != nil && runLoopSource != nil
@@ -38,17 +125,18 @@ final class MediaKeyInterceptor {
 
     // MARK: - Accessibility (via XPC)
 
-    func requestAccessibilityAuthorization() {
+    @MainActor func requestAccessibilityAuthorization() {
         XPCHelperClient.shared.requestAccessibilityAuthorization()
     }
 
-    func ensureAccessibilityAuthorization(promptIfNeeded: Bool = false) async -> Bool {
+    @MainActor func ensureAccessibilityAuthorization(promptIfNeeded: Bool = false) async -> Bool {
         await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: promptIfNeeded)
     }
 
     // MARK: - Event Tap
     
-    func start(promptIfNeeded: Bool = false) async {
+    @MainActor func start(promptIfNeeded: Bool = false) async {
+        let startGeneration = lifecycle.beginStart()
         // Ensure OSD replacement is enabled
         guard Defaults[.osdReplacement] else {
             stop()
@@ -69,13 +157,17 @@ final class MediaKeyInterceptor {
             }
         }
 
+        guard lifecycle.acceptsCompletion(generation: startGeneration),
+              Defaults[.osdReplacement]
+        else { return }
+
         if let eventTap, isTapActive {
             CGEvent.tapEnable(tap: eventTap, enable: true)
             return
         }
 
         if eventTap != nil || runLoopSource != nil {
-            stop()
+            tearDownTap()
         }
 
         let mask = CGEventMask(1 << kSystemDefinedEventType.rawValue)
@@ -88,12 +180,13 @@ final class MediaKeyInterceptor {
                 guard let userInfo else { return Unmanaged.passRetained(cgEvent) }
                 let interceptor = Unmanaged<MediaKeyInterceptor>.fromOpaque(userInfo).takeUnretainedValue()
 
-                if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
-                    interceptor.reenableEventTap(after: type)
-                    return nil
+                return MainActor.assumeIsolated {
+                    if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+                        interceptor.reenableEventTap(after: type)
+                        return nil
+                    }
+                    return interceptor.handleEvent(cgEvent)
                 }
-
-                return interceptor.handleEvent(cgEvent)
             },
             userInfo: UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
         )
@@ -109,7 +202,12 @@ final class MediaKeyInterceptor {
         }
     }
 
-    func stop() {
+    @MainActor func stop() {
+        lifecycle.stop()
+        tearDownTap()
+    }
+
+    @MainActor private func tearDownTap() {
         if let eventTap {
             CGEvent.tapEnable(tap: eventTap, enable: false)
             CFMachPortInvalidate(eventTap)
@@ -122,7 +220,8 @@ final class MediaKeyInterceptor {
         eventTap = nil
     }
 
-    private func reenableEventTap(after type: CGEventType) {
+    @MainActor private func reenableEventTap(after type: CGEventType) {
+        guard lifecycle.desiredEnabled, Defaults[.osdReplacement] else { return }
         guard let eventTap else { return }
         CGEvent.tapEnable(tap: eventTap, enable: true)
 
@@ -141,7 +240,7 @@ final class MediaKeyInterceptor {
 
     // MARK: - Event Handling
 
-    private func handleEvent(_ cgEvent: CGEvent) -> Unmanaged<CGEvent>? {
+    @MainActor private func handleEvent(_ cgEvent: CGEvent) -> Unmanaged<CGEvent>? {
         // Ensure the CGEvent has a valid type before converting to NSEvent
         guard cgEvent.type != .null else {
             return Unmanaged.passUnretained(cgEvent)
@@ -159,7 +258,7 @@ final class MediaKeyInterceptor {
 
         // 0xA = key down, 0xB = key up. Only handle key down.
         guard stateByte == 0xA,
-              let keyType = NXKeyType(rawValue: keyCode) else {
+              let keyType = MediaKeyKind(rawValue: keyCode) else {
             return Unmanaged.passUnretained(cgEvent)
         }
 
@@ -176,29 +275,24 @@ final class MediaKeyInterceptor {
         }()
 
         let flags = nsEvent.modifierFlags
-        let option = flags.contains(.option)
-        let shift = flags.contains(.shift)
-        let command = flags.contains(.command)
+        var modifiers: MediaKeyModifiers = []
+        if flags.contains(.option) { modifiers.insert(.option) }
+        if flags.contains(.shift) { modifiers.insert(.shift) }
+        if flags.contains(.command) { modifiers.insert(.command) }
+        let volumeSupported = keyType == .mute
+            ? VolumeManager.shared.canToggleMute || VolumeManager.shared.canAdjustVolume
+            : VolumeManager.shared.canAdjustVolume
+        guard MediaKeyPolicy.disposition(
+            for: keyType, modifiers: modifiers,
+            replacementEnabled: Defaults[.osdReplacement], selectedSource: selectedSource,
+            volumeSupported: volumeSupported,
+            brightnessSupported: BrightnessManager.shared.canAdjustBrightness,
+            backlightSupported: KeyboardBacklightManager.shared.canAdjustBrightness) == .handle
+        else { return Unmanaged.passUnretained(cgEvent) }
 
-        // If an external source is selected and available, allow the event to pass through (external app will emit OSD notifications)
-        switch selectedSource {
-        case .betterDisplay:
-            if BetterDisplayManager.shared.isBetterDisplayAvailable {
-                if (keyType == .brightnessUp || keyType == .brightnessDown) && command {
-                    break
-                }
-                return Unmanaged.passUnretained(cgEvent)
-            }
-        case .lunar:
-            if LunarManager.shared.isLunarAvailable {
-                if (keyType == .brightnessUp || keyType == .brightnessDown) && command {
-                    break
-                }
-                return Unmanaged.passUnretained(cgEvent)
-            }
-        case .builtin:
-            break
-        }
+        let option = modifiers.contains(.option)
+        let shift = modifiers.contains(.shift)
+        let command = modifiers.contains(.command)
 
         // Handle option key action (without shift)
         if option && !shift {
@@ -208,11 +302,11 @@ final class MediaKeyInterceptor {
         }
 
         // Handle normal key press
-        handleKeyPress(keyType: keyType, option: option, shift: shift, command: command)
+        handleKeyPress(keyType: keyType, modifiers: modifiers)
         return nil
     }
 
-    private func handleOptionAction(for keyType: NXKeyType, command: Bool) -> Bool {
+    @MainActor private func handleOptionAction(for keyType: MediaKeyKind, command: Bool) -> Bool {
         let action = Defaults[.optionKeyAction]
 
         switch action {
@@ -249,14 +343,16 @@ final class MediaKeyInterceptor {
         }
     }
 
-    private func playFeedbackSound() {
+    private func playFeedbackSound(modifiers: MediaKeyModifiers) {
         // Single-key lookup — persistentDomain(forName:) materialized the
         // entire NSGlobalDomain on every volume key press.
         let feedback = CFPreferencesCopyAppValue(
             "com.apple.sound.beep.feedback" as CFString,
             kCFPreferencesAnyApplication
         ) as? Int
-        guard feedback == 1 else { return }
+        guard MediaKeyPolicy.shouldPlayVolumeFeedback(
+            preferenceEnabled: feedback == 1, modifiers: modifiers)
+        else { return }
 
         prepareAudioPlayerIfNeeded()
         guard let player = audioPlayer else {
@@ -275,18 +371,21 @@ final class MediaKeyInterceptor {
         player.play()
     }
 
-    private func handleKeyPress(keyType: NXKeyType, option: Bool, shift: Bool, command: Bool) {
-        let stepDivisor: Float = (option && shift) ? 4.0 : 1.0
+    @MainActor private func handleKeyPress(
+        keyType: MediaKeyKind, modifiers: MediaKeyModifiers
+    ) {
+        let stepDivisor = MediaKeyPolicy.stepDivisor(modifiers: modifiers)
+        let command = modifiers.contains(.command)
 
         switch keyType {
         case .soundUp:
             Task { @MainActor in
-                self.playFeedbackSound()
+                self.playFeedbackSound(modifiers: modifiers)
                 VolumeManager.shared.increase(stepDivisor: stepDivisor)
             }
         case .soundDown:
             Task { @MainActor in
-                self.playFeedbackSound()
+                self.playFeedbackSound(modifiers: modifiers)
                 VolumeManager.shared.decrease(stepDivisor: stepDivisor)
             }
         case .mute:
@@ -312,7 +411,7 @@ final class MediaKeyInterceptor {
         }
     }
 
-    private func showOSD(for keyType: NXKeyType, command: Bool) {
+    private func showOSD(for keyType: MediaKeyKind, command: Bool) {
         Task { @MainActor in
             switch keyType {
             case .soundUp, .soundDown, .mute:
@@ -334,7 +433,7 @@ final class MediaKeyInterceptor {
         }
     }
 
-    private func openSystemSettings(for keyType: NXKeyType, command: Bool) {
+    private func openSystemSettings(for keyType: MediaKeyKind, command: Bool) {
         let urlString: String
 
         switch keyType {
