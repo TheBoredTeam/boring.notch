@@ -176,6 +176,14 @@
 		F1F2A0A100000000000000F1 /* AudioCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 		F80A422BE2974CF6808C84CA /* MediaEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D24CBD49614ECE88F062B5 /* MediaEnvironment.swift */; };
+		9819FEB1240B688CF1240707 /* FocusDial.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77568992315CF97212244E0F /* FocusDial.swift */; };
+		BE8DE37A9C0BB953164BB985 /* FocusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9268DAB2194297ADEB5625 /* FocusView.swift */; };
+		A00C6F6881DAFFB0900F0FE9 /* FocusLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA615BB48181BABEE9E98B25 /* FocusLiveActivity.swift */; };
+		0E6D74FAD611C9A0ECB6A1CC /* FocusSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12F2974717E9471B6D5BA993 /* FocusSession.swift */; };
+		FFBD275FCBD2A9A9676E9F28 /* DistractionBlocklist.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA9DAEB15D3BF0299B03E2C2 /* DistractionBlocklist.swift */; };
+		11A47F7450E49FB6E1171A26 /* FocusTimerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D562C863E7F1010418A4C85A /* FocusTimerManager.swift */; };
+		444BBB6E60DFA0795DCE21B1 /* DistractionBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D4653AD8A0C393408D22CB7 /* DistractionBlocker.swift */; };
+		6137518DB8C3DF4A7BD1DA7E /* FocusSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A4CAAD0D8E4DE1BFE8FAB15 /* FocusSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -383,6 +391,14 @@
 		EAB1C3E8B149445A9E57C6AF /* NotchWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchWindowManager.swift; sourceTree = "<group>"; };
 		F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureManager.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
+		77568992315CF97212244E0F /* FocusDial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusDial.swift; sourceTree = "<group>"; };
+		CA9268DAB2194297ADEB5625 /* FocusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusView.swift; sourceTree = "<group>"; };
+		DA615BB48181BABEE9E98B25 /* FocusLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusLiveActivity.swift; sourceTree = "<group>"; };
+		12F2974717E9471B6D5BA993 /* FocusSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSession.swift; sourceTree = "<group>"; };
+		AA9DAEB15D3BF0299B03E2C2 /* DistractionBlocklist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistractionBlocklist.swift; sourceTree = "<group>"; };
+		D562C863E7F1010418A4C85A /* FocusTimerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimerManager.swift; sourceTree = "<group>"; };
+		4D4653AD8A0C393408D22CB7 /* DistractionBlocker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistractionBlocker.swift; sourceTree = "<group>"; };
+		6A4CAAD0D8E4DE1BFE8FAB15 /* FocusSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -584,6 +600,7 @@
 		11DB26722EDD0CDF001EA0CF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				6A4CAAD0D8E4DE1BFE8FAB15 /* FocusSettingsView.swift */,
 				11DB26672EDD0CDF001EA0CF /* AboutView.swift */,
 				11DB26682EDD0CDF001EA0CF /* AdvancedSettingsView.swift */,
 				11DB26692EDD0CDF001EA0CF /* AppearanceSettingsView.swift */,
@@ -646,6 +663,7 @@
 		1471639B2C5D362F0068B555 /* components */ = {
 			isa = PBXGroup;
 			children = (
+				5537886749BBC3407A105A86 /* Focus */,
 				11985BDF2F37A3C800F81585 /* OSD */,
 				AA01NDW22E7A0001 /* NotificationDebugWindow.swift */,
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
@@ -667,6 +685,8 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				4D4653AD8A0C393408D22CB7 /* DistractionBlocker.swift */,
+				D562C863E7F1010418A4C85A /* FocusTimerManager.swift */,
 				11DB26652EDD0BE1001EA0CF /* LyricsService.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
@@ -791,6 +811,8 @@
 		14D570C72C5F38760011E668 /* models */ = {
 			isa = PBXGroup;
 			children = (
+				AA9DAEB15D3BF0299B03E2C2 /* DistractionBlocklist.swift */,
+				12F2974717E9471B6D5BA993 /* FocusSession.swift */,
 				11F748812ECB07A400F841DB /* MusicControlButton.swift */,
 				118D1FD02E98FF5F00A2FF63 /* SharingStateManager.swift */,
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
@@ -921,6 +943,16 @@
 				B186543B2C6F49AE000B926A /* ShortcutConstants.swift */,
 			);
 			path = Shortcuts;
+			sourceTree = "<group>";
+		};
+		5537886749BBC3407A105A86 /* Focus */ = {
+			isa = PBXGroup;
+			children = (
+				DA615BB48181BABEE9E98B25 /* FocusLiveActivity.swift */,
+				CA9268DAB2194297ADEB5625 /* FocusView.swift */,
+				77568992315CF97212244E0F /* FocusDial.swift */,
+			);
+			path = Focus;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1106,6 +1138,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6137518DB8C3DF4A7BD1DA7E /* FocusSettingsView.swift in Sources */,
+				444BBB6E60DFA0795DCE21B1 /* DistractionBlocker.swift in Sources */,
+				11A47F7450E49FB6E1171A26 /* FocusTimerManager.swift in Sources */,
+				FFBD275FCBD2A9A9676E9F28 /* DistractionBlocklist.swift in Sources */,
+				0E6D74FAD611C9A0ECB6A1CC /* FocusSession.swift in Sources */,
+				A00C6F6881DAFFB0900F0FE9 /* FocusLiveActivity.swift in Sources */,
+				BE8DE37A9C0BB953164BB985 /* FocusView.swift in Sources */,
+				9819FEB1240B688CF1240707 /* FocusDial.swift in Sources */,
 				115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,
@@ -1494,7 +1534,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music playback, and — when you turn on site blocking in Focus mode — to check the front browser tab against your blocklist.";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
 				INFOPLIST_KEY_NSContactsUsageDescription = "This app matches notification senders to your contacts to show their photo";
@@ -1561,7 +1601,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music playback, and — when you turn on site blocking in Focus mode — to check the front browser tab against your blocklist.";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
 				INFOPLIST_KEY_NSContactsUsageDescription = "This app matches notification senders to your contacts to show their photo";

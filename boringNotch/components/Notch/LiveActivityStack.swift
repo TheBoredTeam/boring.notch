@@ -22,11 +22,16 @@ import SwiftUI
 /// iOS separates them from live activities.
 enum LiveActivityItem: Identifiable, Equatable {
     case notification(SystemNotification)
+    /// A running focus session. Sits behind a notification (a message is an
+    /// interruption worth seeing) but in front of music, because the
+    /// countdown is the thing the user deliberately started.
+    case focus
     case music
 
     var id: String {
         switch self {
         case .notification(let notification): "notification-\(notification.id)"
+        case .focus: "focus"
         case .music: "music"
         }
     }

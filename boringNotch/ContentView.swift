@@ -22,6 +22,7 @@ struct ContentView: View {
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
     @ObservedObject var notificationManager = SystemNotificationManager.shared
+    @ObservedObject var focusTimer = FocusTimerManager.shared
     /// Which entry of the closed-notch activity stack is on top.
     @State private var activityIndex: Int = 0
     @State private var hoverTask: Task<Void, Never>?
@@ -104,6 +105,12 @@ struct ContentView: View {
             items.append(.notification(notification))
         }
 
+        // A paused session still shows: the user needs to see that the clock
+        // is stopped, otherwise a forgotten pause looks like a broken timer.
+        if Defaults[.focusTimerEnabled] && !focusTimer.session.isIdle {
+            items.append(.focus)
+        }
+
         let musicIsShowing = (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled
@@ -171,6 +178,10 @@ struct ContentView: View {
                 chinWidth = max(420, vm.closedNotchSize.width + 2 * 112)
             case .notification:
                 chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+            case .focus:
+                // Glyph on one wing, countdown on the other; the countdown
+                // side is the wider of the two.
+                chinWidth += (2 * max(34, 2 * max(0, displayClosedNotchHeight - 12)) + 20)
             case .music:
                 chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
                 // The inline song-change peek widens the pill itself, so the
@@ -480,6 +491,8 @@ struct ContentView: View {
                               switch item {
                               case .notification(let notification):
                                   NotificationLiveActivity(notification: notification)
+                              case .focus:
+                                  FocusLiveActivity()
                               case .music:
                                   MusicLiveActivity()
                                       .frame(alignment: .center)
@@ -576,6 +589,8 @@ struct ContentView: View {
                                 dropInteraction: vm.dropInteraction,
                                 animation: vm.animation
                             )
+                        case .focus:
+                            FocusView()
                         }
                     }
                 }
