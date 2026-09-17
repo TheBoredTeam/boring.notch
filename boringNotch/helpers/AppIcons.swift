@@ -36,28 +36,6 @@ struct AppIcons {
     
 }
 
-func normalizeBundleIdentifier(_ bundleID: String) -> String {
-    let lower = bundleID.lowercased()
-    
-    // Handle Safari Technology Preview rendering helper processes
-    if lower.hasPrefix("com.apple.safaritechnologypreview.") {
-        return "com.apple.SafariTechnologyPreview"
-    }
-    
-    // Handle WebKit / Safari rendering helper processes
-    if lower.hasPrefix("com.apple.webkit.") || lower.hasPrefix("com.apple.safari.") {
-        return "com.apple.Safari"
-    }
-    
-    // General rule for Chromium/Electron helper processes
-    // e.g., "com.google.Chrome.helper" -> "com.google.Chrome"
-    let components = bundleID.components(separatedBy: ".")
-    if let helperIndex = components.firstIndex(where: { $0.lowercased() == "helper" }) {
-        return components[0..<helperIndex].joined(separator: ".")
-    }
-    
-    return bundleID
-}
 
 func appIcon(for bundleID: String) -> Image {
     let workspace = NSWorkspace.shared

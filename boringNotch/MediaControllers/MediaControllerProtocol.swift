@@ -13,6 +13,7 @@ protocol MediaControllerProtocol: AnyObject {
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> { get }
     var supportsVolumeControl: Bool { get }
     var supportsFavorite: Bool { get }
+    var capabilities: MediaCapabilities { get }
     
     func setFavorite(_ favorite: Bool) async
     func play() async
@@ -34,4 +35,10 @@ protocol NowPlayingRuntimeControlling: MediaControllerProtocol {
 
     func startRuntimeStream()
     func stopRuntimeStream()
+}
+
+extension MediaControllerProtocol {
+    var capabilities: MediaCapabilities {
+        MediaCapabilities(favorite: supportsFavorite)
+    }
 }

@@ -101,6 +101,8 @@ final class MusicManager: ObservableObject {
     @Published var volumeControlSupported: Bool = true
     @Published var usingAppIconForArtwork: Bool = false
     @Published var canFavoriteTrack: Bool = false
+    @Published private(set) var capabilities: MediaCapabilities = .unsupported
+    private var acceptedPlaybackState: PlaybackState?
     
     // Lyrics are now managed by LyricsService
     var lyricsService: LyricsService { LyricsService.shared }
@@ -134,6 +136,13 @@ final class MusicManager: ObservableObject {
         } else {
             activateControllerIfNeeded(preferredMediaController)
         }
+    }
+
+    /// Injecting a controller bypasses provider construction and preference
+    /// migration while exercising the same subscription and command paths.
+    init(controller: any MediaControllerProtocol, type: MediaControllerType) {
+        preferredMediaController = type
+        activateController(controller, type: type)
     }
 
     private static func migrateMediaControllerPreferenceIfNeeded() {
@@ -363,7 +372,8 @@ final class MusicManager: ObservableObject {
         }
         activeController = controller
         effectiveMediaController = type
-        canFavoriteTrack = controller.supportsFavorite
+        capabilities = controller.capabilities
+        canFavoriteTrack = capabilities.favorite
         volumeControlSupported = controller.supportsVolumeControl
 
         controller.playbackStatePublisher
@@ -395,6 +405,9 @@ final class MusicManager: ObservableObject {
     private func resetPublishedPlaybackState() {
         debounceIdleTask?.cancel()
         debounceIdleTask = nil
+        acceptedPlaybackState = nil
+        capabilities = .unsupported
+        canFavoriteTrack = false
 
         songTitle = ""
         artistName = ""
@@ -466,7 +479,12 @@ final class MusicManager: ObservableObject {
     }
 
     // MARK: - Update Methods
-    private func updateFromPlaybackState(_ state: PlaybackState) {
+    private func updateFromPlaybackState(_ incoming: PlaybackState) {
+        var state = incoming
+        state.currentTime = PlaybackTime.sanitized(state.currentTime)
+        state.duration = PlaybackTime.sanitized(state.duration)
+        state.playbackRate = PlaybackTime.sanitized(state.playbackRate)
+        state.volume = min(1, PlaybackTime.sanitized(state.volume))
         guard state.lastUpdated != .distantPast else { return }
 
         if effectiveMediaController == .nowPlaying,
@@ -474,6 +492,12 @@ final class MusicManager: ObservableObject {
            Defaults[.lastSupportedNowPlayingBundleIdentifier] != state.bundleIdentifier {
             Defaults[.lastSupportedNowPlayingBundleIdentifier] = state.bundleIdentifier
         }
+
+        let identityChanged = acceptedPlaybackState?.identity != state.identity
+        acceptedPlaybackState = state
+        capabilities = state.capabilities ?? activeController?.capabilities ?? .unsupported
+        canFavoriteTrack = capabilities.favorite
+        volumeControlSupported = activeController?.supportsVolumeControl ?? false
 
         // Check for playback state changes (playing/paused)
         let playingStateChanged = state.isPlaying != self.isPlaying
@@ -496,7 +520,7 @@ final class MusicManager: ObservableObject {
         let bundleChanged = state.bundleIdentifier != self.lastArtworkBundleIdentifier
 
         // Check for artwork changes
-        let artworkChanged = state.artwork != nil && state.artwork != self.artworkData
+        let artworkChanged = state.artwork != self.artworkData
         let hasContentChange = titleChanged || artistChanged || albumChanged || artworkChanged || bundleChanged
 
         // Handle artwork and visual transitions for changed content
@@ -596,7 +620,7 @@ final class MusicManager: ObservableObject {
         // every no-op stream event invalidates the whole view tree. A pause/
         // resume must rebase it too, or the estimate overshoots by the pause
         // duration.
-        if timeChanged || playbackRateChanged || playingStateChanged {
+        if timeChanged || playbackRateChanged || playingStateChanged || durationChanged || identityChanged || timestampDate != state.lastUpdated {
             self.timestampDate = state.lastUpdated
         }
     }
@@ -608,13 +632,10 @@ final class MusicManager: ObservableObject {
     }
 
     func setFavorite(_ favorite: Bool) {
-        guard canFavoriteTrack else { return }
-        guard let controller = activeController else { return }
-
-        Task { @MainActor in
+        guard capabilities.favorite, let controller = activeController else { return }
+        Task { @MainActor [weak self, controller] in
+            guard self?.activeController === controller else { return }
             await controller.setFavorite(favorite)
-            try? await Task.sleep(for: .milliseconds(150))
-            await controller.updatePlaybackInfo()
         }
     }
 
@@ -698,11 +719,8 @@ final class MusicManager: ObservableObject {
 
     // MARK: - Playback Position Estimation
     func estimatedPlaybackPosition(at date: Date = Date()) -> TimeInterval {
-        guard isPlaying else { return min(elapsedTime, songDuration) }
-
-        let timeDifference = date.timeIntervalSince(timestampDate)
-        let estimated = elapsedTime + (timeDifference * playbackRate)
-        return min(max(0, estimated), songDuration)
+        PlaybackTime.position(elapsed: elapsedTime, duration: songDuration, rate: playbackRate,
+                              playing: isPlaying, sampledAt: timestampDate, now: date)
     }
 
     func calculateAverageColor() {
@@ -750,14 +768,19 @@ final class MusicManager: ObservableObject {
     }
 
     func toggleShuffle() {
-        Task {
-            await activeController?.toggleShuffle()
+        guard capabilities.shuffle, let controller = activeController else { return }
+        Task { @MainActor [weak self, controller] in
+            guard self?.activeController === controller else { return }
+            await controller.toggleShuffle()
         }
     }
 
     func toggleRepeat() {
-        Task {
-            await activeController?.toggleRepeat()
+        guard capabilities.nextRepeatMode(after: repeatMode) != nil,
+              let controller = activeController else { return }
+        Task { @MainActor [weak self, controller] in
+            guard self?.activeController === controller else { return }
+            await controller.toggleRepeat()
         }
     }
     
@@ -780,13 +803,20 @@ final class MusicManager: ObservableObject {
     }
 
     func seek(to position: TimeInterval) {
-        Task {
-            await activeController?.seek(to: position)
+        guard PlaybackTime.valid(position), let range = PlaybackTime.seekRange(duration: songDuration),
+              range.contains(position), let controller = activeController else { return }
+        let identity = acceptedPlaybackState?.identity
+        Task { @MainActor [weak self] in
+            guard let self, self.activeController === controller,
+                  self.acceptedPlaybackState?.identity == identity else { return }
+            await controller.seek(to: position)
         }
     }
     func skip(seconds: TimeInterval) {
-        let newPos = min(max(0, elapsedTime + seconds), songDuration)
-        seek(to: newPos)
+        guard let position = PlaybackTime.relativeSeekTarget(seconds: seconds, elapsed: elapsedTime,
+            duration: songDuration, rate: playbackRate, playing: isPlaying,
+            sampledAt: timestampDate, now: Date()) else { return }
+        seek(to: position)
     }
     
     func setVolume(to level: Double) {
@@ -797,11 +827,12 @@ final class MusicManager: ObservableObject {
         }
     }
     func openMusicApp() {
-        guard let bundleID = bundleIdentifier else {
+        guard let sourceBundleID = bundleIdentifier else {
             Log.music.error("Error: appBundleIdentifier is nil")
             return
         }
 
+        let bundleID = normalizeBundleIdentifier(sourceBundleID)
         let workspace = NSWorkspace.shared
         if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleID) {
             let configuration = NSWorkspace.OpenConfiguration()
@@ -862,12 +893,14 @@ final class MusicManager: ObservableObject {
             return
         }
         
+        let identity = acceptedPlaybackState?.identity
         if let volumeScript = script,
            let result = try? await AppleScriptHelper.execute(volumeScript) {
             let volumeValue = result.int32Value
             let currentVolume = Double(volumeValue) / 100.0
             
             await MainActor.run {
+                guard self.acceptedPlaybackState?.identity == identity else { return }
                 if abs(currentVolume - self.volume) > 0.01 {
                     self.volume = currentVolume
                 }

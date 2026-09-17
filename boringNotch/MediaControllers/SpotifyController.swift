@@ -29,6 +29,8 @@ final class SpotifyController: MediaControllerProtocol {
     }
 
     var supportsFavorite: Bool { false }
+    var capabilities: MediaCapabilities { playbackState.capabilities ?? .unsupported }
+    private var updateGeneration = 0
 
     private var notificationTask: Task<Void, Never>?
     
@@ -36,6 +38,7 @@ final class SpotifyController: MediaControllerProtocol {
     private let commandUpdateDelay: Duration = .milliseconds(25)
 
     private var lastArtworkURL: String?
+    private var artworkRequestID: UUID?
     private var artworkFetchTask: Task<Void, Never>?
     
     init() {
@@ -70,18 +73,22 @@ final class SpotifyController: MediaControllerProtocol {
     }
     
     func seek(to time: Double) async {
+        guard PlaybackTime.valid(time), let range = PlaybackTime.seekRange(duration: playbackState.duration), range.contains(time) else { return }
         await executeAndRefresh("set player position to \(time)")
     }
     
     func toggleShuffle() async {
+        guard capabilities.shuffle else { return }
         await executeAndRefresh("set shuffling to not shuffling")
     }
     
     func toggleRepeat() async {
+        guard capabilities.repeatModes.count > 1 else { return }
         await executeAndRefresh("set repeating to not repeating")
     }
     
     func setVolume(_ level: Double) async {
+        guard level.isFinite else { return }
         let clampedLevel = max(0.0, min(1.0, level))
         let volumePercentage = Int(clampedLevel * 100)
         await executeCommand("set sound volume to \(volumePercentage)")
@@ -94,7 +101,9 @@ final class SpotifyController: MediaControllerProtocol {
     }
     
     func updatePlaybackInfo() async {
-        guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
+        updateGeneration += 1
+        let generation = updateGeneration
+        guard let descriptor = try? await fetchPlaybackInfoAsync(), generation == updateGeneration else { return }
         guard descriptor.numberOfItems >= 10 else { return }
         
         let isPlaying = descriptor.atIndex(1)?.booleanValue ?? false
@@ -110,12 +119,17 @@ final class SpotifyController: MediaControllerProtocol {
         
         var state = PlaybackState(
             bundleIdentifier: MediaAppBundleID.spotify,
+            trackIdentifier: descriptor.atIndex(11)?.stringValue.flatMap { $0.isEmpty ? nil : $0 },
+            capabilities: MediaCapabilities(
+                shuffle: descriptor.atIndex(12)?.booleanValue ?? false,
+                repeatModes: descriptor.atIndex(13)?.booleanValue == true ? [.off, .all] : []
+            ),
             isPlaying: isPlaying,
             title: currentTrack,
             artist: currentTrackArtist,
             album: currentTrackAlbum,
-            currentTime: currentTime,
-            duration: duration,
+            currentTime: PlaybackTime.sanitized(currentTime),
+            duration: PlaybackTime.sanitized(duration),
             playbackRate: 1,
             isShuffled: isShuffled,
             repeatMode: isRepeating ? .all : .off,
@@ -124,33 +138,38 @@ final class SpotifyController: MediaControllerProtocol {
             volume: Double(volumePercentage) / 100.0
         )
 
-        if artworkURL == lastArtworkURL, let existingArtwork = self.playbackState.artwork {
+        if state.identity == playbackState.identity, artworkURL == lastArtworkURL, let existingArtwork = self.playbackState.artwork {
             state.artwork = existingArtwork
         }
 
-    playbackState = state
+        if state.identity != playbackState.identity || artworkURL != lastArtworkURL {
+            artworkFetchTask?.cancel()
+            artworkFetchTask = nil
+        }
+        playbackState = state
 
         if !artworkURL.isEmpty, let url = URL(string: artworkURL) {
             guard artworkURL != lastArtworkURL || state.artwork == nil else { return }
             artworkFetchTask?.cancel()
 
-            let currentState = state
+            let identity = state.identity
+            let requestID = UUID()
+            artworkRequestID = requestID
 
             artworkFetchTask = Task {
                 do {
                     let data = try await ImageService.shared.fetchImageData(from: url)
 
                     await MainActor.run { [weak self] in
-                        guard let self = self else { return }
-                        var updatedState = currentState
-                        updatedState.artwork = data
-                        self.playbackState = updatedState
+                        guard !Task.isCancelled, let self, self.artworkRequestID == requestID, self.playbackState.identity == identity else { return }
+                        self.playbackState.applyArtwork(data, for: identity)
                         self.lastArtworkURL = artworkURL
                         self.artworkFetchTask = nil
                     }
                 } catch {
                     await MainActor.run { [weak self] in
-                        self?.artworkFetchTask = nil
+                        guard let self, self.artworkRequestID == requestID else { return }
+                        self.artworkFetchTask = nil
                     }
                 }
             }
@@ -183,8 +202,23 @@ final class SpotifyController: MediaControllerProtocol {
                 set shuffleState to shuffling
                 set repeatState to repeating
                 set currentVolume to sound volume
-                set artworkURL to artwork url of current track
-                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatState, currentVolume, artworkURL}
+                set artworkURL to ""
+                try
+                    set artworkURL to artwork url of current track
+                end try
+                set trackID to ""
+                try
+                    set trackID to id of current track
+                end try
+                set shuffleAvailable to false
+                set repeatAvailable to false
+                try
+                    set shuffleAvailable to shuffling enabled
+                end try
+                try
+                    set repeatAvailable to repeating enabled
+                end try
+                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatState, currentVolume, artworkURL, trackID, shuffleAvailable, repeatAvailable}
             on error
                 return {false, "Unknown", "Unknown", "Unknown", 0, 0, false, false, 50, ""}
             end try
