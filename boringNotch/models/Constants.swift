@@ -422,6 +422,22 @@ extension Defaults.Keys {
         default: nil
     )
     
+    // MARK: Live Activities
+    /// Surfaces a calendar event in the notch shortly before it starts, with a
+    /// one-click join for events that carry a video link. Off by default: it
+    /// needs Calendar access, which is not something to start using silently.
+    static let meetingLiveActivity = Key<Bool>("meetingLiveActivity", default: false)
+    static let meetingLeadTimeMinutes = Key<Int>("meetingLeadTimeMinutes", default: 2)
+    /// How long after the start the alert keeps showing. Past this the meeting
+    /// is either happening or was skipped, and a permanent banner is noise.
+    static let meetingLingerMinutes = Key<Int>("meetingLingerMinutes", default: 5)
+    /// When on, only events that can actually be joined are surfaced.
+    static let meetingRequiresJoinLink = Key<Bool>("meetingRequiresJoinLink", default: false)
+
+    /// Shows an indicator while any process has the microphone open — a call,
+    /// or macOS dictation.
+    static let microphoneLiveActivity = Key<Bool>("microphoneLiveActivity", default: false)
+
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)

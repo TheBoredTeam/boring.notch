@@ -176,6 +176,11 @@
 		F1F2A0A100000000000000F1 /* AudioCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 		F80A422BE2974CF6808C84CA /* MediaEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D24CBD49614ECE88F062B5 /* MediaEnvironment.swift */; };
+		A34AED13800FF05E9A584CBA /* MeetingAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79FD32FD35183480614B0E7B /* MeetingAlert.swift */; };
+		395A3E9A4095C3193D67B081 /* MeetingAlertManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E868448A117DEA0324873F /* MeetingAlertManager.swift */; };
+		3582B5EDB5C85CEFCC175DE3 /* MicrophoneActivityMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 603616C7CFBD98BA2E50D2B6 /* MicrophoneActivityMonitor.swift */; };
+		0020D3835FB50A487C50673D /* MeetingLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA456B2AC387177D693610CF /* MeetingLiveActivity.swift */; };
+		6587D572EA3A67BE07C734A3 /* LiveActivitySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C78A1BFC9387C2D53B15B9A0 /* LiveActivitySettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -383,6 +388,11 @@
 		EAB1C3E8B149445A9E57C6AF /* NotchWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchWindowManager.swift; sourceTree = "<group>"; };
 		F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureManager.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
+		79FD32FD35183480614B0E7B /* MeetingAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingAlert.swift; sourceTree = "<group>"; };
+		D3E868448A117DEA0324873F /* MeetingAlertManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingAlertManager.swift; sourceTree = "<group>"; };
+		603616C7CFBD98BA2E50D2B6 /* MicrophoneActivityMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrophoneActivityMonitor.swift; sourceTree = "<group>"; };
+		EA456B2AC387177D693610CF /* MeetingLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingLiveActivity.swift; sourceTree = "<group>"; };
+		C78A1BFC9387C2D53B15B9A0 /* LiveActivitySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -584,6 +594,7 @@
 		11DB26722EDD0CDF001EA0CF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				C78A1BFC9387C2D53B15B9A0 /* LiveActivitySettingsView.swift */,
 				11DB26672EDD0CDF001EA0CF /* AboutView.swift */,
 				11DB26682EDD0CDF001EA0CF /* AdvancedSettingsView.swift */,
 				11DB26692EDD0CDF001EA0CF /* AppearanceSettingsView.swift */,
@@ -667,6 +678,8 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				603616C7CFBD98BA2E50D2B6 /* MicrophoneActivityMonitor.swift */,
+				D3E868448A117DEA0324873F /* MeetingAlertManager.swift */,
 				11DB26652EDD0BE1001EA0CF /* LyricsService.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
@@ -791,6 +804,7 @@
 		14D570C72C5F38760011E668 /* models */ = {
 			isa = PBXGroup;
 			children = (
+				79FD32FD35183480614B0E7B /* MeetingAlert.swift */,
 				11F748812ECB07A400F841DB /* MusicControlButton.swift */,
 				118D1FD02E98FF5F00A2FF63 /* SharingStateManager.swift */,
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
@@ -908,6 +922,7 @@
 		B18654312C6F45AE000B926A /* LiveActivities */ = {
 			isa = PBXGroup;
 			children = (
+				EA456B2AC387177D693610CF /* MeetingLiveActivity.swift */,
 				14D570CC2C5F4BB70011E668 /* BoringBattery.swift */,
 				B1C974332C642B6D0000E707 /* MarqueeTextView.swift */,
 				B1D365CD2C6A979C0047BDBC /* LiveActivityModifier.swift */,
@@ -1106,6 +1121,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6587D572EA3A67BE07C734A3 /* LiveActivitySettingsView.swift in Sources */,
+				0020D3835FB50A487C50673D /* MeetingLiveActivity.swift in Sources */,
+				3582B5EDB5C85CEFCC175DE3 /* MicrophoneActivityMonitor.swift in Sources */,
+				395A3E9A4095C3193D67B081 /* MeetingAlertManager.swift in Sources */,
+				A34AED13800FF05E9A584CBA /* MeetingAlert.swift in Sources */,
 				115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,
