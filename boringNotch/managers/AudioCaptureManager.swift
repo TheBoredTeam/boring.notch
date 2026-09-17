@@ -43,6 +43,7 @@ final class AudioCaptureManager: ObservableObject {
     @Published private(set) var isCapturing: Bool = false
 
     private var cancellables = Set<AnyCancellable>()
+    private var audioProcessObserver: AudioProcessObserver?
 
     private var tapObjectID: AudioObjectID = kAudioObjectUnknown
     private var aggregateDeviceID: AudioDeviceID = 0
@@ -185,6 +186,7 @@ final class AudioCaptureManager: ObservableObject {
         }
     }
 
+    @MainActor
     private func evaluate(
         isPlaying: Bool,
         displayBundleID: String?,
@@ -195,9 +197,12 @@ final class AudioCaptureManager: ObservableObject {
               enabled, isPlaying,
               let resolvedDisplayBundleID = displayBundleID,
               !resolvedDisplayBundleID.isEmpty else {
+            audioProcessObserver = nil
             stopCaptureAsync()
             return
         }
+        // Keep listening while a helper has not appeared yet, even without a tap.
+        observeAudioProcessList()
         let resolvedPIDs = resolvePIDs(
             displayBundleID: resolvedDisplayBundleID,
             captureBundleIDs: captureBundleIDs
@@ -214,6 +219,22 @@ final class AudioCaptureManager: ObservableObject {
     private func stopCaptureAsync() {
         lifecycleQueue.async { [weak self] in
             self?.stopCaptureOnLifecycleQueue()
+        }
+    }
+
+    @MainActor
+    private func observeAudioProcessList() {
+        guard #available(macOS 14.2, *), audioProcessObserver == nil else { return }
+        audioProcessObserver = AudioProcessObserver { [weak self] in
+            Task { @MainActor [weak self] in
+                let music = MusicManager.shared
+                self?.evaluate(
+                    isPlaying: music.isPlaying,
+                    displayBundleID: music.bundleIdentifier,
+                    captureBundleIDs: music.audioCaptureBundleIdentifiers,
+                    enabled: Defaults[.realtimeAudioWaveform]
+                )
+            }
         }
     }
 
@@ -240,6 +261,19 @@ final class AudioCaptureManager: ObservableObject {
                 pids.insert(app.processIdentifier)
             }
         }
+
+        // Chromium keeps video audio in a sibling helper process. Same app, different room.
+        let helperPIDs = AudioProcessObserver.processPIDs(matching: Set(bundleIDs)) { pid in
+            if let app = NSRunningApplication(processIdentifier: pid) {
+                return belongsToDisplayApplication(
+                    app,
+                    displayBundlePaths: displayBundlePaths
+                )
+            }
+            guard let executablePath = executablePath(forPID: pid) else { return false }
+            return displayBundlePaths.contains { pathContainsApp($0, candidatePath: executablePath) }
+        }
+        pids.formUnion(helperPIDs)
 
         if pids.isEmpty {
             return NSRunningApplication
@@ -314,11 +348,6 @@ final class AudioCaptureManager: ObservableObject {
     @available(macOS 14.2, *)
     private func startCaptureOnLifecycleQueue(pids: [pid_t]) {
         dispatchPrecondition(condition: .onQueue(lifecycleQueue))
-        if ioProcID != nil, pids == currentPIDs { return }
-        if captureIsConfigured {
-            stopCaptureOnLifecycleQueue()
-        }
-
         let attachedProcesses = pids.compactMap { pid -> (pid: pid_t, objectID: AudioObjectID)? in
             guard let objectID = translatePIDToAudioObject(pid: pid) else {
                 NSLog("[AudioCaptureManager] Failed to translate PID \(pid) to AudioObjectID")
@@ -326,12 +355,17 @@ final class AudioCaptureManager: ObservableObject {
             }
             return (pid: pid, objectID: objectID)
         }
+        let attachedPIDs = attachedProcesses.map(\.pid)
+        if ioProcID != nil, attachedPIDs == currentPIDs { return }
+        if captureIsConfigured {
+            stopCaptureOnLifecycleQueue()
+        }
         guard !attachedProcesses.isEmpty else {
             currentPIDs.removeAll(keepingCapacity: true)
             return
         }
         let resolvedProcessObjectIDs = attachedProcesses.map(\.objectID)
-        currentPIDs = attachedProcesses.map(\.pid)
+        currentPIDs = attachedPIDs
 
         let tapDescription = CATapDescription(monoMixdownOfProcesses: resolvedProcessObjectIDs)
         tapDescription.muteBehavior = .unmuted
