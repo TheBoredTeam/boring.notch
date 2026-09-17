@@ -9,9 +9,6 @@ import AppKit
 import Combine
 import Foundation
 
-extension Notification.Name {
-	static let sharingDidFinish = Notification.Name("com.boringNotch.sharingDidFinish")
-}
 
 @MainActor
 final class SharingStateManager: ObservableObject {
