@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 // MARK: - HTTP Client
 final class YouTubeMusicHTTPClient: ObservableObject {
@@ -158,11 +159,9 @@ actor YouTubeMusicWebSocketClient {
         self.session = session
     }
     
-    func connect(to url: URL, with token: String) async throws {
-        await disconnect()
-        
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    func connect(to url: URL, with token: String) throws {
+        let request = try WebSocketURLBuilder.authenticatedRequest(to: url, token: token)
+        disconnect()
         
         let newTask = session.webSocketTask(with: request)
         let state = ConnectionState(task: newTask)
@@ -172,7 +171,7 @@ actor YouTubeMusicWebSocketClient {
         Task { await listenForMessages(for: state) }
     }
     
-    func disconnect() async {
+    func disconnect() {
         guard let currentConnection = connection else { return }
         
         currentConnection.suppressDisconnectCallback = true
@@ -188,6 +187,7 @@ actor YouTubeMusicWebSocketClient {
         while !Task.isCancelled && connection === state {
             do {
                 let message = try await state.task.receive()
+                guard connection === state, !state.suppressDisconnectCallback else { return }
                 
                 let data: Data
                 switch message {
@@ -218,19 +218,56 @@ actor YouTubeMusicWebSocketClient {
 // MARK: - WebSocket URL Helper
 struct WebSocketURLBuilder {
     static func buildURL(from baseURL: String) -> URL? {
-        guard var components = URLComponents(string: baseURL) else { return nil }
+        guard var components = URLComponents(string: baseURL),
+              let scheme = components.scheme?.lowercased(),
+              let host = components.host,
+              !host.isEmpty
+        else { return nil }
 
-        switch components.scheme {
+        switch scheme {
         case "http":
             components.scheme = "ws"
         case "https":
             components.scheme = "wss"
         default:
-            break
+            return nil
         }
 
         components.path = "/api/v1/ws"
         return components.url
+    }
+
+    /// Pear authenticates its WebSocket using the query token. Build it with
+    /// URLComponents so reserved token characters cannot change the query.
+    static func authenticatedRequest(to url: URL, token: String) throws -> URLRequest {
+        guard !token.isEmpty else { throw YouTubeMusicError.authenticationRequired }
+        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              components.scheme == "ws" || components.scheme == "wss",
+              let host = components.host, !host.isEmpty
+        else {
+            throw YouTubeMusicError.invalidURL
+        }
+
+        var tokenComponents = URLComponents()
+        tokenComponents.queryItems = [URLQueryItem(name: "token", value: token)]
+        guard var encodedToken = tokenComponents.percentEncodedQueryItems?.first else {
+            throw YouTubeMusicError.invalidURL
+        }
+
+        // Pear versions that use form-style query parsing interpret an unescaped
+        // plus as a space. Change only the token's encoded value; other query
+        // items must keep their original meaning.
+        encodedToken.value = encodedToken.value?.replacingOccurrences(of: "+", with: "%2B")
+
+        var items = components.percentEncodedQueryItems ?? []
+        items.removeAll { $0.name == "token" }
+        items.append(encodedToken)
+        components.percentEncodedQueryItems = items
+        guard let authenticatedURL = components.url else { throw YouTubeMusicError.invalidURL }
+
+        var request = URLRequest(url: authenticatedURL)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        return request
     }
 }
 
