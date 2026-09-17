@@ -128,7 +128,7 @@ final class MusicManager: ObservableObject {
         Self.migrateMediaControllerPreferenceIfNeeded()
         preferredMediaController = Defaults[.mediaController]
 
-        if preferredMediaController == .nowPlaying {
+        if preferredMediaController.usesNowPlaying {
             activateFallback()
             ensureNowPlayingAvailabilityChecked()
         } else {
@@ -190,9 +190,9 @@ final class MusicManager: ObservableObject {
         cancelRuntimeRecovery()
         clearNotice()
 
-        if type == .nowPlaying {
+        if type.usesNowPlaying {
             if nowPlayingAvailability == .available {
-                activateControllerIfNeeded(.nowPlaying)
+                activateControllerIfNeeded(type)
             } else {
                 activateFallback()
                 refreshNowPlayingAvailability()
@@ -242,10 +242,10 @@ final class MusicManager: ObservableObject {
 
             if availability == .available {
                 self.clearNotice()
-                if self.preferredMediaController == .nowPlaying {
-                    self.activateControllerIfNeeded(.nowPlaying)
+                if self.preferredMediaController.usesNowPlaying {
+                    self.activateControllerIfNeeded(self.preferredMediaController)
                 }
-            } else if self.preferredMediaController == .nowPlaying,
+            } else if self.preferredMediaController.usesNowPlaying,
                       let failure = availability.failure {
                 let noticeFailure = Defaults[.didChooseMediaController] ? failure : nil
                 self.activateFallback(noticeFailure: noticeFailure)
@@ -318,7 +318,7 @@ final class MusicManager: ObservableObject {
             let controller = try makeController(for: type)
             activateController(controller, type: type)
         } catch {
-            if type == .nowPlaying {
+            if type.usesNowPlaying {
                 let failure = NowPlayingFailure.setup
                 nowPlayingAvailability = .unavailable(failure)
                 let noticeFailure = Defaults[.didChooseMediaController] ? failure : nil
@@ -343,6 +343,21 @@ final class MusicManager: ObservableObject {
             SpotifyController()
         case .youtubeMusic:
             YouTubeMusicController()
+        case .qqMusic:
+            try NowPlayingController(fallbackBundleIdentifier: MediaAppBundleID.qqMusic)
+        }
+    }
+
+    /// App to launch when the active source hasn't reported a bundle identifier
+    /// yet (e.g. nothing has played since launch).
+    static func defaultBundleIdentifier(for type: MediaControllerType) -> String {
+        switch type {
+        case .qqMusic:
+            MediaAppBundleID.qqMusic
+        case .spotify:
+            MediaAppBundleID.spotify
+        default:
+            MediaAppBundleID.appleMusic
         }
     }
 
@@ -425,8 +440,8 @@ final class MusicManager: ObservableObject {
 
     private func handleRuntimeFailure(from controller: any NowPlayingRuntimeControlling) {
         guard activeController === controller,
-              effectiveMediaController == .nowPlaying,
-              preferredMediaController == .nowPlaying
+              effectiveMediaController?.usesNowPlaying == true,
+              preferredMediaController.usesNowPlaying
         else {
             return
         }
@@ -450,7 +465,7 @@ final class MusicManager: ObservableObject {
 
             guard let self,
                   !self.isDestroyed,
-                  self.preferredMediaController == .nowPlaying
+                  self.preferredMediaController.usesNowPlaying
             else {
                 return
             }
@@ -762,6 +777,12 @@ final class MusicManager: ObservableObject {
     }
     
     func togglePlay() {
+        if isPlayerIdle {
+            // No app is playing: sending a system play command would make macOS
+            // launch Apple Music instead of the user's chosen source.
+            openMusicApp()
+            return
+        }
         Task {
             await activeController?.togglePlay()
         }
@@ -797,10 +818,10 @@ final class MusicManager: ObservableObject {
         }
     }
     func openMusicApp() {
-        guard let bundleID = bundleIdentifier else {
-            Log.music.error("Error: appBundleIdentifier is nil")
-            return
-        }
+        // Read the preferred source lazily here: reading Defaults[.mediaController]
+        // during property initialization would deadlock against MusicManager.shared.
+        let bundleID = bundleIdentifier
+            ?? MusicManager.defaultBundleIdentifier(for: Defaults[.mediaController])
 
         let workspace = NSWorkspace.shared
         if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleID) {

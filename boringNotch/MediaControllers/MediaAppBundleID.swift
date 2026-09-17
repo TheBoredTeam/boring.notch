@@ -14,4 +14,5 @@ enum MediaAppBundleID {
     static let appleMusic = "com.apple.Music"
     static let spotify = "com.spotify.client"
     static let youTubeMusic = "com.github.th-ch.youtube-music"
+    static let qqMusic = "com.tencent.QQMusicMac"
 }

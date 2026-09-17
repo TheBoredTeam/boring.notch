@@ -126,7 +126,8 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
     case appleMusic
     case spotify
     case youtubeMusic
-    
+    case qqMusic
+
     var id: String { self.rawValue }
 
     init?(rawValue: String) {
@@ -135,6 +136,7 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
         case "appleMusic", "Apple Music": self = .appleMusic
         case "spotify", "Spotify": self = .spotify
         case "youtubeMusic", "YouTube Music": self = .youtubeMusic
+        case "qqMusic", "QQ Music": self = .qqMusic
         default: return nil
         }
     }
@@ -162,7 +164,14 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
             "Spotify"
         case .youtubeMusic:
             "YouTube Music"
+        case .qqMusic:
+            "QQ Music"
         }
+    }
+
+    /// Whether this source plays through the system Now Playing channel.
+    var usesNowPlaying: Bool {
+        self == .nowPlaying || self == .qqMusic
     }
 
     var localizedString: String {

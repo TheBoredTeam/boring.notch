@@ -30,7 +30,7 @@ struct MusicControllerSelectionView: View {
             ScrollView {
                 VStack(spacing: 12) {
                     ForEach(MediaControllerType.allCases) { controller in
-                        let isEnabled = controller != .nowPlaying
+                        let isEnabled = !controller.usesNowPlaying
                             || isNowPlayingSelectionEnabled
 
                         Button {
@@ -80,7 +80,7 @@ struct MusicControllerSelectionView: View {
     }
 
     private var canContinue: Bool {
-        selectedMediaController != .nowPlaying
+        !selectedMediaController.usesNowPlaying
             || isNowPlayingSelectionEnabled
     }
 
@@ -175,6 +175,11 @@ extension MediaControllerType {
             LocalizedStringResource(
                 "Requires a third-party client with API plugin enabled.",
                 comment: "Onboarding description of the YouTube Music source."
+            )
+        case .qqMusic:
+            LocalizedStringResource(
+                "Works with QQ Music via the system Now Playing channel. Clicking the artwork when idle opens QQ Music.",
+                comment: "Onboarding description of the QQ Music source."
             )
         }
     }

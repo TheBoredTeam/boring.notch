@@ -26,7 +26,7 @@ struct MediaSettingsView: View {
                         Text(controller.localizedResource)
                             .tag(controller)
                             .disabled(
-                                controller == .nowPlaying
+                                controller.usesNowPlaying
                                     && !musicManager.nowPlayingAvailability.isSelectable
                             )
                     }

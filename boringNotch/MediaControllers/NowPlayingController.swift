@@ -16,9 +16,7 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
     }
 
     // MARK: - Properties
-    @Published private(set) var playbackState: PlaybackState = .init(
-        bundleIdentifier: MediaAppBundleID.appleMusic
-    )
+    @Published private(set) var playbackState: PlaybackState
 
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         $playbackState.eraseToAnyPublisher()
@@ -70,8 +68,15 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
 
     private var streamSession: NowPlayingStreamSession?
 
+    /// Bundle identifier reported while no app is publishing Now Playing info,
+    /// so actions like "open music app" have a sensible target when idle.
+    let fallbackBundleIdentifier: String
+
     // MARK: - Initialization
-    init() throws {
+    init(fallbackBundleIdentifier: String = MediaAppBundleID.appleMusic) throws {
+        self.fallbackBundleIdentifier = fallbackBundleIdentifier
+        playbackState = PlaybackState(bundleIdentifier: fallbackBundleIdentifier)
+
         let resources = try NowPlayingResources.load()
 
         guard
@@ -219,11 +224,15 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
         let diff = update.diff ?? false
 
         var newPlaybackState = PlaybackState(bundleIdentifier: playbackState.bundleIdentifier)
-        let resolvedBundleIdentifier = (
-            payload.parentApplicationBundleIdentifier ??
-            payload.bundleIdentifier ??
-            (diff ? self.playbackState.bundleIdentifier : "")
-        )
+        let payloadBundleIdentifier = payload.parentApplicationBundleIdentifier ?? payload.bundleIdentifier
+        let resolvedBundleIdentifier: String
+        if let payloadBundleIdentifier, !payloadBundleIdentifier.isEmpty {
+            resolvedBundleIdentifier = payloadBundleIdentifier
+        } else if diff {
+            resolvedBundleIdentifier = self.playbackState.bundleIdentifier
+        } else {
+            resolvedBundleIdentifier = self.fallbackBundleIdentifier
+        }
         let captureBundleFallbackIdentifiers: [String]
         if diff {
             captureBundleFallbackIdentifiers =
