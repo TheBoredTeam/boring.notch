@@ -99,6 +99,9 @@ final class ShelfItemViewModel: ObservableObject {
     // MARK: - Actions
     func handleClick(event: NSEvent, view: NSView) {
         let flags = event.modifierFlags
+        // Mark that a click landed on an item, so the shelf-background deselect
+        // gesture doesn't wipe this selection on the same click.
+        selection.noteItemClick()
         if flags.contains(.shift) {
             selection.shiftSelect(to: item, in: ShelfStateViewModel.shared.items)
         } else if flags.contains(.command) {
