@@ -3,6 +3,12 @@
   "strings" : {
     "Play" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproduzir"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13,6 +19,12 @@
     },
     "Pause" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23,6 +35,12 @@
     },
     "Add to Favorites" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adicionar aos favoritos"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -33,6 +51,12 @@
     },
     "Remove from Favorites" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remover dos Favoritos"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -43,6 +67,12 @@
     },
     "Rename File" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renomear arquivo"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -53,6 +83,12 @@
     },
     "Rename" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renomear"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -63,6 +99,12 @@
     },
     " (default)" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " (padrão)"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -73,6 +115,12 @@
     },
     "Actual Size" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamanho Atual"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -83,6 +131,12 @@
     },
     "All Applications" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todas os Aplicativos"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -93,6 +147,12 @@
     },
     "Always Open With" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sempre Abrir Com"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -103,6 +163,12 @@
     },
     "Audio output" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saída de áudio"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -113,6 +179,12 @@
     },
     "Backward 15s" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retroceder 15s"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -123,6 +195,12 @@
     },
     "Choose Application" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolher aplicativo"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -133,6 +211,12 @@
     },
     "Choose an application to open the document \"%@\"." : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolha um aplicativo para abrir o documento \"%@\"."
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -143,6 +227,12 @@
     },
     "Compression:" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compressão:"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -153,6 +243,12 @@
     },
     "Convert" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Converter"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -163,6 +259,12 @@
     },
     "Convert Image" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Converter imagem"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -173,6 +275,12 @@
     },
     "Custom..." : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalizado..."
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -183,6 +291,12 @@
     },
     "Empty slot" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Espaço vazio"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -193,6 +307,12 @@
     },
     "Enable:" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ativar:"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -203,6 +323,12 @@
     },
     "Favorite" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorito"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -213,6 +339,12 @@
     },
     "Format:" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Formato:"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -223,6 +355,12 @@
     },
     "Forward 15s" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avançar 15s"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -233,6 +371,12 @@
     },
     "Image Size:" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamanho da imagem:"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -243,6 +387,12 @@
     },
     "Large" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grande"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -253,6 +403,12 @@
     },
     "Next" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Próximo"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -263,6 +419,12 @@
     },
     "OK" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -273,6 +435,12 @@
     },
     "Play/Pause" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproduzir/Pausar"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -283,6 +451,12 @@
     },
     "Preserve Metadata" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preservar Metadados"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -293,6 +467,12 @@
     },
     "Previous" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anterior"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -303,6 +483,12 @@
     },
     "Recommended Applications" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplicativos Recomendados"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -313,6 +499,12 @@
     },
     "Repeat" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repetir"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -323,6 +515,12 @@
     },
     "Shuffle" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aleatório"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -333,6 +531,12 @@
     },
     "Small" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pequeno"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -343,6 +547,12 @@
     },
     "e.g., 1920" : {
       "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ex.: 1920"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -444,7 +654,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "'Tocando agora' era a única opção em versões anteriores e funciona em todos os aplicativos de mídia."
+            "value" : "'Reproduzindo' era a única opção em versões anteriores e funciona em todos os aplicativos de mídia."
           }
         },
         "ru" : {
