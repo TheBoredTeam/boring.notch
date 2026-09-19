@@ -100,9 +100,9 @@ struct OSDSettings: View {
                                 .foregroundStyle(Color.effectiveAccent)
                                 
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Accessibility Access Required")
+                                Text("\(AccessibilityPermission.displayName) Required")
                                     .font(.headline)
-                                Text("Grant Accessibility access so built-in keyboard brightness controls can be intercepted.")
+                                Text("Grant \(AccessibilityPermission.displayName) so built-in keyboard brightness controls can be intercepted.")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }

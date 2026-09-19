@@ -1153,76 +1153,6 @@
         }
       }
     },
-    "Accessibility Access Required" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zugriffsberechtigung erforderlich"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Acceso a la accesibilidad necesario"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accès Accessibilité requis"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アクセシビリティへのアクセスが必要です"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Toegankelijkheidsrechten vereist"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Acesso à Acessibilidade necessário"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Требуется доступ к Универсальному доступу"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erişilebilirlik Erişimi Gereklidir"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Потребує дозвіл на Доступність(Accessibility)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "需要辅助功能权限"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "需要輔助功能權限"
-          }
-        }
-      }
-    },
     "actions: %@" : {
       "localizations" : {
         "pt-BR" : {
@@ -11721,76 +11651,6 @@
         }
       }
     },
-    "Grant Accessibility access so built-in keyboard brightness controls can be intercepted." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zugriff auf Barrierefreiheit gewähren, sodass eingebaute Helligkeitselemente der Tastatur abgefangen werden können."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Concede permisos de Accesibilidad para que se puedan mostrar los controles de brillo del teclado incorporados."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accorder l'accès à l'accès pour que les commandes de luminosité du clavier intégrées puissent être interceptées."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アクセシビリティへのアクセスを許可することで、内蔵のキーボードの明るさコントロールを傍受できます。"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verleen de toegankelijkheidsrechten zodat de ingebouwde instellingen voor de helderheid van het toetsenbord kunnen worden onderschept."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permitir acesso à Acessibilidade para poder interceptar os controles de brilho embutidos do teclado."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Предоставьте доступ к Универсальному доступу, чтобы приложение могло перехватывать клавиши управления яркостью клавиатуры."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dahili klavye parlaklık kontrollerinin yakalanabilmesi için Erişilebilirlik izni verin."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Надайте доступ до Параметрів доступності, щоб система могла перехоплювати сигнали вбудованих клавіш керування яскравістю клавіатури."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "授予辅助功能权限就可以拦截内置键盘亮度控制。"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "授予輔助功能權限就可以攔截內置鍵盤亮度控制。"
-          }
-        }
-      }
-    },
     "Helper Service Unavailable" : {
       "localizations" : {
         "pt-BR" : {
@@ -21119,22 +20979,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "API eklentisi aktif bir üçüncü taraf istemci gerektirir."
-          }
-        }
-      }
-    },
-    "Requires Accessibility access. Only banners are mirrored — notifications delivered silently to Notification Center aren't visible to the app." : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Requer acesso de acessibilidade. Somente \"banners\" são espelhados — notificações entregues silenciosamente ao Centro de Notificações não estão visíveis para o aplicativo."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erişilebilirlik erişimi gerektirir. Yalnızca afiş bildirimleri yansıtılır — sessizce Bildirim Merkezi'ne gönderilen bildirimler uygulama tarafından görülemez."
           }
         }
       }
@@ -31360,6 +31204,96 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "YouTube 音樂需要安裝此第三方應用程式: "
+          }
+        }
+      }
+    },
+    "Accessibility" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accessibility"
+          }
+        }
+      }
+    },
+    "Device Control and Data Access" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device Control and Data Access"
+          }
+        }
+      }
+    },
+    "Enable %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable %@"
+          }
+        }
+      }
+    },
+    "%@ Required" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Required"
+          }
+        }
+      }
+    },
+    "Grant %@ so built-in keyboard brightness controls can be intercepted." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grant %@ so built-in keyboard brightness controls can be intercepted."
+          }
+        }
+      }
+    },
+    "%@ is only needed when using built-in macOS control sources for OSD replacement. External sources like BetterDisplay or Lunar do not require it. You can enable it later in OSD settings if needed." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is only needed when using built-in macOS control sources for OSD replacement. External sources like BetterDisplay or Lunar do not require it. You can enable it later in OSD settings if needed."
+          }
+        }
+      }
+    },
+    "%@ is used only to improve media and brightness notifications. No data is collected or shared." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is used only to improve media and brightness notifications. No data is collected or shared."
+          }
+        }
+      }
+    },
+    "Requires %@. Only banners are mirrored — notifications delivered silently to Notification Center aren't visible to the app." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requires %@. Only banners are mirrored — notifications delivered silently to Notification Center aren't visible to the app."
+          }
+        }
+      }
+    },
+    "Delivery unconfirmed. Your reply may still send — check Messages before sending it again." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delivery unconfirmed. Your reply may still send — check Messages before sending it again."
           }
         }
       }
