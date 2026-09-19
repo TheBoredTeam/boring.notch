@@ -40,7 +40,7 @@ struct NotificationSettingsView: View {
                     Text("Show notifications in the notch")
                 }
             } footer: {
-                Text("Requires Accessibility access. Only banners are mirrored — notifications delivered silently to Notification Center aren't visible to the app.")
+                Text("Requires \(AccessibilityPermission.displayName). Only banners are mirrored — notifications delivered silently to Notification Center aren't visible to the app.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
