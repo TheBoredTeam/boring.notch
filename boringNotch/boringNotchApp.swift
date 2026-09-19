@@ -73,6 +73,14 @@ final class BoringSparkleUpdaterDelegate: NSObject, SPUUpdaterDelegate {
     func updaterShouldPromptForPermissionToCheck(forUpdates updater: SPUUpdater) -> Bool {
         false
     }
+
+    @objc func feedURLString(for updater: SPUUpdater) -> String? {
+        Defaults[.updateChannel].feedURLString
+    }
+
+    @objc func allowedChannels(for updater: SPUUpdater) -> Set<String> {
+        Defaults[.updateChannel].allowedSparkleChannels
+    }
 }
 
 /// App-lifecycle glue: shortcuts, onboarding, termination, observer wiring.
