@@ -2,14 +2,14 @@ name: "Reusable Build"
 on:
   workflow_call:
     inputs:
-      head_ref:
+      source_sha:
         required: true
         type: string
       version:
         required: false
         type: string
       build_number:
-        required: false
+        required: true
         type: string
       xcode_version:
         required: false
@@ -19,6 +19,10 @@ on:
         required: false
         type: string
         default: "Apple Development"
+      update_channel:
+        required: false
+        type: string
+        default: "stable"
     secrets:
       BUILD_CERTIFICATE_BASE64:
         required: true
@@ -31,22 +35,24 @@ jobs:
   build:
     runs-on: macos-latest
     permissions:
-      contents: write
+      contents: read
     env:
       PROJECT_NAME: boringNotch
       EXPORT_METHOD: development
       VERSION_INPUT: ${{ inputs.version }}
       BUILD_NUMBER_INPUT: ${{ inputs.build_number }}
+      UPDATE_CHANNEL: ${{ inputs.update_channel }}
       DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
       CODE_SIGN_IDENTITY: ${{ inputs.code_sign_identity }}
       XCODE_VERSION: ${{ inputs.xcode_version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.head_ref }}
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
 
       - name: Resolve Swift packages
-        run: xcodebuild -resolvePackageDependencies -project ${{ env.PROJECT_NAME }}.xcodeproj
+        run: xcodebuild -resolvePackageDependencies -project "$PROJECT_NAME.xcodeproj"
 
       - name: Install Apple certificate
         env:
@@ -77,45 +83,27 @@ jobs:
 
       - name: Set version and build number
         run: |
-          PBXPROJ="${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj"
-          VERSION="${{ env.VERSION_INPUT }}"
-          BUILD_NUMBER_INPUT="${{ env.BUILD_NUMBER_INPUT }}"
+          set -euo pipefail
+          PBXPROJ="$PROJECT_NAME.xcodeproj/project.pbxproj"
+          VERSION="$VERSION_INPUT"
           if [[ -z "$BUILD_NUMBER_INPUT" ]]; then
-            BUILD_NUMBER="$GITHUB_RUN_NUMBER"
-          else
-            BUILD_NUMBER="$BUILD_NUMBER_INPUT"
+            echo "::error::A reserved build number must be provided by the caller"
+            exit 1
           fi
-          if [[ -n "$VERSION" ]]; then
-            sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${VERSION}/g" "$PBXPROJ"
-          fi
-          sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = ${BUILD_NUMBER}/g" "$PBXPROJ"
-
-      - name: Commit version changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj"
-          VERSION="${{ env.VERSION_INPUT }}"
-          BUILD_NUMBER_INPUT="${{ env.BUILD_NUMBER_INPUT }}"
-          if [[ -z "$BUILD_NUMBER_INPUT" ]]; then
-            BUILD_NUMBER="$GITHUB_RUN_NUMBER"
-          else
-            BUILD_NUMBER="$BUILD_NUMBER_INPUT"
-          fi
-          if [[ -n "$VERSION" ]]; then
-            COMMIT_MSG="Set version to v${VERSION} (build ${BUILD_NUMBER})"
-          else
-            COMMIT_MSG="Set build number to ${BUILD_NUMBER}"
-          fi
-          git commit -m "$COMMIT_MSG" || true
-          git push origin "HEAD:${{ inputs.head_ref }}" || true
+          BUILD_NUMBER="$BUILD_NUMBER_INPUT"
+          python3 .github/scripts/stamp_version.py \
+            --pbxproj "$PBXPROJ" \
+            --version "$VERSION" \
+            --build-number "$BUILD_NUMBER" \
+            --info-plist "$PROJECT_NAME/Info.plist" \
+            --update-channel "$UPDATE_CHANNEL"
 
       - name: Build and archive
         run: |
           xcodebuild clean archive \
-            -project ${{ env.PROJECT_NAME }}.xcodeproj \
-            -scheme ${{ env.PROJECT_NAME }} \
-            -archivePath ${{ env.PROJECT_NAME }} \
+            -project "$PROJECT_NAME.xcodeproj" \
+            -scheme "$PROJECT_NAME" \
+            -archivePath "$PROJECT_NAME" \
             -destination "generic/platform=macOS" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
             CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
@@ -130,7 +118,7 @@ jobs:
           <plist version="1.0">
           <dict>
             <key>method</key>
-            <string>${{ env.EXPORT_METHOD }}</string>
+            <string>${EXPORT_METHOD}</string>
             <key>signingStyle</key>
             <string>automatic</string>
             <key>teamID</key>
@@ -139,15 +127,9 @@ jobs:
           </plist>
           PLIST
           xcodebuild -exportArchive \
-            -archivePath "${{ env.PROJECT_NAME }}.xcarchive" \
+            -archivePath "$PROJECT_NAME.xcarchive" \
             -exportPath Release \
             -exportOptionsPlist "$RUNNER_TEMP/export_options.plist"
-
-      - name: Verify generate_appcast exists
-        run: |
-          if [ ! -x Configuration/sparkle/generate_appcast ]; then
-            echo "::warning title=Missing generate_appcast::Configuration/sparkle/generate_appcast is not present or not executable; skipping appcast generation verification."
-          fi
 
       - name: Create DMG
         run: |
@@ -158,9 +140,9 @@ jobs:
           python3 -m pip install --require-hashes -r Configuration/dmg/requirements.txt
           chmod +x Configuration/dmg/create_dmg.sh
           ./Configuration/dmg/create_dmg.sh \
-            "Release/${{ env.PROJECT_NAME }}.app" \
-            "Release/${{ env.PROJECT_NAME }}.dmg" \
-            "${{ env.PROJECT_NAME }} ${{ env.VERSION_INPUT }}"
+            "Release/$PROJECT_NAME.app" \
+            "Release/$PROJECT_NAME.dmg" \
+            "$PROJECT_NAME $VERSION_INPUT"
 
       - name: Upload DMG
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
