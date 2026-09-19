@@ -22,11 +22,18 @@ import SwiftUI
 /// iOS separates them from live activities.
 enum LiveActivityItem: Identifiable, Equatable {
     case notification(SystemNotification)
+    /// A meeting about to start, or just started. Ahead of music because it
+    /// is time-critical in a way a now-playing track never is.
+    case meeting(MeetingAlert)
+    /// Something is using the microphone — a call, or macOS dictation.
+    case microphone
     case music
 
     var id: String {
         switch self {
         case .notification(let notification): "notification-\(notification.id)"
+        case .meeting(let alert): "meeting-\(alert.eventID)"
+        case .microphone: "microphone"
         case .music: "music"
         }
     }
