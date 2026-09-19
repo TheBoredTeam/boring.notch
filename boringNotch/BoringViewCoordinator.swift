@@ -93,6 +93,7 @@ final class BoringViewCoordinator: ObservableObject {
     private var boringShelfCancellable: AnyCancellable?
     private var osdSourceCancellables: [AnyCancellable] = []
     private var notificationLiveActivityCancellable: AnyCancellable?
+    private var focusTimerCancellable: AnyCancellable?
     private var uiEventCancellable: AnyCancellable?
 
     private init() {
@@ -180,6 +181,23 @@ final class BoringViewCoordinator: ObservableObject {
                     guard let self = self else { return }
                     if !change.newValue && self.currentView == .shelf {
                         self.currentView = .home
+                    }
+                }
+            }
+
+        // Switching the focus timer off while its tab is open would leave the
+        // notch on a tab with no tab button — the same stranding the shelf
+        // observer below guards against.
+        focusTimerCancellable = Defaults.publisher(.focusTimerEnabled)
+            .sink { [weak self] change in
+                Task { @MainActor in
+                    guard let self = self else { return }
+                    if !change.newValue {
+                        if self.currentView == .focus { self.currentView = .home }
+                        // Leaving a blocker running after the feature is off
+                        // would keep hiding the user's apps with no visible
+                        // cause and no way to stop it.
+                        FocusTimerManager.shared.stop()
                     }
                 }
             }

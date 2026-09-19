@@ -17,6 +17,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     case calendar
     case osd
     case battery
+    case focus
     case shelf
     case mirror
     case shortcuts
@@ -34,6 +35,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .calendar: "Calendar"
         case .osd: "OSD"
         case .battery: "Battery"
+        case .focus: "Focus"
         case .shelf: "Shelf"
         case .mirror: "Mirror"
         case .shortcuts: "Shortcuts"
@@ -51,6 +53,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .calendar: "calendar"
         case .osd: "dial.medium.fill"
         case .battery: "battery.100.bolt"
+        case .focus: "timer"
         case .shelf: "books.vertical"
         case .mirror: "camera"
         case .shortcuts: "keyboard"
@@ -101,6 +104,8 @@ struct SettingsView: View {
                     OSDSettings()
                 case .battery:
                     BatterySettingsView()
+                case .focus:
+                    FocusSettingsView()
                 case .shelf:
                     ShelfSettingsView()
                 case .mirror:
