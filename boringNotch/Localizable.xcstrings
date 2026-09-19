@@ -31363,6 +31363,406 @@
           }
         }
       }
+    },
+    "%@/s" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@/s"
+          }
+        }
+      }
+    },
+    "%d dBm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d dBm"
+          }
+        }
+      }
+    },
+    "duration_minutes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dm"
+          }
+        }
+      }
+    },
+    "duration_hours" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dh"
+          }
+        }
+      }
+    },
+    "duration_hours_minutes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$dh %2$dm"
+          }
+        }
+      }
+    },
+    "memory_pressure_normal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Normal"
+          }
+        }
+      }
+    },
+    "memory_pressure_warning" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warning"
+          }
+        }
+      }
+    },
+    "memory_pressure_critical" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Critical"
+          }
+        }
+      }
+    },
+    "system_metric_cpu" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU"
+          }
+        }
+      }
+    },
+    "system_metric_memory" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memory"
+          }
+        }
+      }
+    },
+    "system_metric_battery" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Battery"
+          }
+        }
+      }
+    },
+    "system_metric_disk" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disk"
+          }
+        }
+      }
+    },
+    "system_metric_network" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network"
+          }
+        }
+      }
+    },
+    "system_metric_wifi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wi-Fi"
+          }
+        }
+      }
+    },
+    "system_metric_cpu_short" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU"
+          }
+        }
+      }
+    },
+    "system_metric_memory_short" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAM"
+          }
+        }
+      }
+    },
+    "system_metric_cpu_cores" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d cores"
+          }
+        }
+      }
+    },
+    "system_metric_memory_of_total" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "of %@"
+          }
+        }
+      }
+    },
+    "system_metric_disk_free" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ free"
+          }
+        }
+      }
+    },
+    "system_metric_network_upload" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "↑ %@"
+          }
+        }
+      }
+    },
+    "system_metric_network_measuring" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measuring…"
+          }
+        }
+      }
+    },
+    "system_metric_battery_health" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health %d%%"
+          }
+        }
+      }
+    },
+    "system_metric_battery_service" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Service recommended"
+          }
+        }
+      }
+    },
+    "system_metric_battery_charging" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Charging"
+          }
+        }
+      }
+    },
+    "system_metric_battery_calculating" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimating…"
+          }
+        }
+      }
+    },
+    "system_metric_battery_none" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No battery"
+          }
+        }
+      }
+    },
+    "system_metric_wifi_unit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dBm"
+          }
+        }
+      }
+    },
+    "system_metric_wifi_unavailable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No signal data"
+          }
+        }
+      }
+    },
+    "system_metric_signal_weak" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weak signal"
+          }
+        }
+      }
+    },
+    "system_metric_signal_fair" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fair signal"
+          }
+        }
+      }
+    },
+    "system_metric_signal_strong" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strong signal"
+          }
+        }
+      }
+    },
+    "system_metric_no_reading" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no reading"
+          }
+        }
+      }
+    },
+    "system_monitor_open_activity_monitor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Activity Monitor"
+          }
+        }
+      }
+    },
+    "system_monitor_open_battery_settings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Battery settings"
+          }
+        }
+      }
+    },
+    "system_monitor_open_storage_settings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Storage settings"
+          }
+        }
+      }
+    },
+    "system_monitor_open_wifi_settings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Wi-Fi settings"
+          }
+        }
+      }
+    },
+    "system_monitor_speed_test" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run a speed test"
+          }
+        }
+      }
+    },
+    "system_monitor_interval_1s" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 second"
+          }
+        }
+      }
+    },
+    "system_monitor_interval_2s" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 seconds"
+          }
+        }
+      }
+    },
+    "system_monitor_interval_5s" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 seconds"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

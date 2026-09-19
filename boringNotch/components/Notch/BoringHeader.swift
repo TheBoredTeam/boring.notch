@@ -16,7 +16,7 @@ struct BoringHeader: View {
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if (!shelfState.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
+                if showsTabBar {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()
@@ -82,6 +82,9 @@ struct BoringHeader: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
+                        if Defaults[.systemMonitorEnabled] && Defaults[.systemMonitorInHeader] {
+                            SystemMonitorHeaderGauges()
+                        }
                         if Defaults[.showBatteryIndicator] {
                             BoringBatteryView(
                                 batteryWidth: 30,
@@ -107,6 +110,14 @@ struct BoringHeader: View {
         }
         .foregroundColor(.gray)
         .environmentObject(vm)
+    }
+
+    /// The tab bar is worth showing whenever there is more than one place to
+    /// go. The shelf's own visibility rules still apply to the shelf tab; the
+    /// system monitor adds a second destination that is independent of it.
+    private var showsTabBar: Bool {
+        let shelfTabVisible = (!shelfState.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf]
+        return shelfTabVisible || Defaults[.systemMonitorEnabled]
     }
 
     func isOSDType(_ type: SneakContentType) -> Bool {
