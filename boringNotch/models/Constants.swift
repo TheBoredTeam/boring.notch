@@ -260,6 +260,13 @@ enum PreferenceCompatibility {
     }
 }
 
+/// `CaptureDestination` and `ColorFormat` live in CaptureModels.swift, which is
+/// deliberately free of a Defaults dependency so the capture geometry and OCR
+/// assembly stay testable in isolation. Their storage conformances are added
+/// here, where Defaults is already in scope; the raw String is what persists.
+extension CaptureDestination: Defaults.Serializable {}
+extension ColorFormat: Defaults.Serializable {}
+
 extension Defaults.Keys {
     // MARK: General
     static let appLanguage = Key<AppLanguage>("appLanguage", default: .system)
@@ -422,6 +429,17 @@ extension Defaults.Keys {
         default: nil
     )
     
+    // MARK: Capture
+    /// Off by default: it adds a tab and asks for Screen Recording, which is
+    /// not something to spring on someone after an update.
+    static let captureEnabled = Key<Bool>("captureEnabled", default: false)
+    /// The shelf is the default destination — it is the one that needs no
+    /// extra permission and the app already knows how to preview and share
+    /// from it.
+    static let captureDestination = Key<CaptureDestination>("captureDestination", default: .shelf)
+    static let captureColorFormat = Key<ColorFormat>("captureColorFormat", default: .hex)
+    static let capturePlaySound = Key<Bool>("capturePlaySound", default: true)
+
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)

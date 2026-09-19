@@ -176,6 +176,15 @@
 		F1F2A0A100000000000000F1 /* AudioCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 		F80A422BE2974CF6808C84CA /* MediaEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D24CBD49614ECE88F062B5 /* MediaEnvironment.swift */; };
+		00630E2739ADE9B8A5D725F9 /* CaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E9D8461F577FBE023EF4C9 /* CaptureView.swift */; };
+		B5A4FB356B8501019C0C8D6D /* CaptureOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B879DA0B453375E948B031 /* CaptureOverlay.swift */; };
+		D8F6F6B8C079E698F458FCA7 /* PinnedCaptureWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81AABAE6FBFC9EC5B8E784F /* PinnedCaptureWindow.swift */; };
+		BDC63DC5EA80F9BE09FD7DC5 /* CaptureModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F555D4E332629B48BB8458D /* CaptureModels.swift */; };
+		E05A8BF9A6BC19657C419CED /* ScreenCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 898C1866AD402DF406F70589 /* ScreenCaptureService.swift */; };
+		73A7D03B90932BA04BE6DF1F /* TextRecognitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F208CB7520DCA42D0757DD34 /* TextRecognitionService.swift */; };
+		BCB4AFBED11DD9CE7008E7C8 /* GIFRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E13201E49905B8515AB6724 /* GIFRecorder.swift */; };
+		3ED92922166033F08C5D3C4D /* CaptureCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44A5825987662AA9216A410E /* CaptureCoordinator.swift */; };
+		4DE331B40FBCE3E414278A74 /* CaptureSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C75AD121FA04B9203D7F06 /* CaptureSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -383,6 +392,15 @@
 		EAB1C3E8B149445A9E57C6AF /* NotchWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchWindowManager.swift; sourceTree = "<group>"; };
 		F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureManager.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
+		04E9D8461F577FBE023EF4C9 /* CaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureView.swift; sourceTree = "<group>"; };
+		13B879DA0B453375E948B031 /* CaptureOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureOverlay.swift; sourceTree = "<group>"; };
+		E81AABAE6FBFC9EC5B8E784F /* PinnedCaptureWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinnedCaptureWindow.swift; sourceTree = "<group>"; };
+		7F555D4E332629B48BB8458D /* CaptureModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureModels.swift; sourceTree = "<group>"; };
+		898C1866AD402DF406F70589 /* ScreenCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureService.swift; sourceTree = "<group>"; };
+		F208CB7520DCA42D0757DD34 /* TextRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextRecognitionService.swift; sourceTree = "<group>"; };
+		9E13201E49905B8515AB6724 /* GIFRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GIFRecorder.swift; sourceTree = "<group>"; };
+		44A5825987662AA9216A410E /* CaptureCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureCoordinator.swift; sourceTree = "<group>"; };
+		50C75AD121FA04B9203D7F06 /* CaptureSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -584,6 +602,7 @@
 		11DB26722EDD0CDF001EA0CF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				50C75AD121FA04B9203D7F06 /* CaptureSettingsView.swift */,
 				11DB26672EDD0CDF001EA0CF /* AboutView.swift */,
 				11DB26682EDD0CDF001EA0CF /* AdvancedSettingsView.swift */,
 				11DB26692EDD0CDF001EA0CF /* AppearanceSettingsView.swift */,
@@ -646,6 +665,7 @@
 		1471639B2C5D362F0068B555 /* components */ = {
 			isa = PBXGroup;
 			children = (
+				F1529AD9B218B5C2EF417009 /* Capture */,
 				11985BDF2F37A3C800F81585 /* OSD */,
 				AA01NDW22E7A0001 /* NotificationDebugWindow.swift */,
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
@@ -667,6 +687,10 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				44A5825987662AA9216A410E /* CaptureCoordinator.swift */,
+				9E13201E49905B8515AB6724 /* GIFRecorder.swift */,
+				F208CB7520DCA42D0757DD34 /* TextRecognitionService.swift */,
+				898C1866AD402DF406F70589 /* ScreenCaptureService.swift */,
 				11DB26652EDD0BE1001EA0CF /* LyricsService.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
@@ -791,6 +815,7 @@
 		14D570C72C5F38760011E668 /* models */ = {
 			isa = PBXGroup;
 			children = (
+				7F555D4E332629B48BB8458D /* CaptureModels.swift */,
 				11F748812ECB07A400F841DB /* MusicControlButton.swift */,
 				118D1FD02E98FF5F00A2FF63 /* SharingStateManager.swift */,
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
@@ -921,6 +946,16 @@
 				B186543B2C6F49AE000B926A /* ShortcutConstants.swift */,
 			);
 			path = Shortcuts;
+			sourceTree = "<group>";
+		};
+		F1529AD9B218B5C2EF417009 /* Capture */ = {
+			isa = PBXGroup;
+			children = (
+				E81AABAE6FBFC9EC5B8E784F /* PinnedCaptureWindow.swift */,
+				13B879DA0B453375E948B031 /* CaptureOverlay.swift */,
+				04E9D8461F577FBE023EF4C9 /* CaptureView.swift */,
+			);
+			path = Capture;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1106,6 +1141,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4DE331B40FBCE3E414278A74 /* CaptureSettingsView.swift in Sources */,
+				3ED92922166033F08C5D3C4D /* CaptureCoordinator.swift in Sources */,
+				BCB4AFBED11DD9CE7008E7C8 /* GIFRecorder.swift in Sources */,
+				73A7D03B90932BA04BE6DF1F /* TextRecognitionService.swift in Sources */,
+				E05A8BF9A6BC19657C419CED /* ScreenCaptureService.swift in Sources */,
+				BDC63DC5EA80F9BE09FD7DC5 /* CaptureModels.swift in Sources */,
+				D8F6F6B8C079E698F458FCA7 /* PinnedCaptureWindow.swift in Sources */,
+				B5A4FB356B8501019C0C8D6D /* CaptureOverlay.swift in Sources */,
+				00630E2739ADE9B8A5D725F9 /* CaptureView.swift in Sources */,
 				115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,
