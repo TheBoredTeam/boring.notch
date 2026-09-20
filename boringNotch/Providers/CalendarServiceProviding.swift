@@ -14,6 +14,7 @@ protocol CalendarServiceProviding {
     func requestAccess(to type: EKEntityType) async throws -> Bool
     func calendars() async -> [CalendarModel]
     func events(from start: Date, to end: Date, calendars: [String]) async -> [EventModel]
+    func setReminderCompleted(reminderID: String, completed: Bool) async
 }
 
 class CalendarService: CalendarServiceProviding {
@@ -55,27 +56,28 @@ class CalendarService: CalendarServiceProviding {
     }
     
     func events(from start: Date, to end: Date, calendars ids: [String]) async -> [EventModel] {
-        let allCalendars = await self.calendars()
-        let filteredCalendars = allCalendars.filter { ids.isEmpty || ids.contains($0.id) }
-        let ekCalendars = filteredCalendars.compactMap { calendarModel in
-            store.calendars(for: .event).first { $0.calendarIdentifier == calendarModel.id } ??
-            store.calendars(for: .reminder).first { $0.calendarIdentifier == calendarModel.id }
-        }
+        let identifiers = Set(ids)
+        guard !identifiers.isEmpty else { return [] }
         
         var events: [EventModel] = []
         
         // Fetch regular events
         if hasAccess(to: .event) {
-            let eventCalendars = ekCalendars.filter { store.calendars(for: .event).contains($0) }
-            let predicate = store.predicateForEvents(withStart: start, end: end, calendars: eventCalendars)
-            let ekEvents = store.events(matching: predicate)
-            events.append(contentsOf: ekEvents.compactMap { EventModel(from: $0) })
+            let calendars = store.calendars(for: .event).filter { identifiers.contains($0.calendarIdentifier) }
+            // An empty EventKit calendar list can mean every calendar, so skip it.
+            if !calendars.isEmpty {
+                let predicate = store.predicateForEvents(withStart: start, end: end, calendars: calendars)
+                let ekEvents = store.events(matching: predicate)
+                events.append(contentsOf: ekEvents.compactMap { EventModel(from: $0) })
+            }
         }
         
         // Fetch reminders
         if hasAccess(to: .reminder) {
-            let reminderCalendars = ekCalendars.filter { store.calendars(for: .reminder).contains($0) }
-            events.append(contentsOf: await fetchReminders(from: start, to: end, calendars: reminderCalendars))
+            let calendars = store.calendars(for: .reminder).filter { identifiers.contains($0.calendarIdentifier) }
+            if !calendars.isEmpty {
+                events.append(contentsOf: await fetchReminders(from: start, to: end, calendars: calendars))
+            }
         }
         
         return events.sorted { $0.start < $1.start }

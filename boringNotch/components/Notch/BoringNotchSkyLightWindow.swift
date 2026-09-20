@@ -31,7 +31,7 @@ extension SkyLightOperator {
     }
 }
 
-class BoringNotchSkyLightWindow: NSPanel {
+class BoringNotchSkyLightWindow: NSPanel, CalendarKeyboardFocusProviding {
     private var isSkyLightEnabled: Bool = false
     
     override init(
@@ -165,6 +165,17 @@ class BoringNotchSkyLightWindow: NSPanel {
         }
     }
 
-    override var canBecomeKey: Bool { wantsKeyForTextInput }
+    private var calendarFocusOwners: Set<ObjectIdentifier> = []
+    var wantsKeyForCalendar: Bool { !calendarFocusOwners.isEmpty }
+
+    /// Calendar views release only their own request; notification replies keep text focus.
+    func setCalendarFocus(_ requested: Bool, owner: AnyObject) {
+        let identifier = ObjectIdentifier(owner)
+        if requested { calendarFocusOwners.insert(identifier) }
+        else { calendarFocusOwners.remove(identifier) }
+        if !wantsKeyForCalendar && !wantsKeyForTextInput && isKeyWindow { resignKey() }
+    }
+
+    override var canBecomeKey: Bool { wantsKeyForTextInput || wantsKeyForCalendar }
     override var canBecomeMain: Bool { false }
 }
