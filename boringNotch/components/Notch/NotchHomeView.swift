@@ -17,12 +17,20 @@ struct MusicPlayerView: View {
     let albumArtNamespace: Namespace.ID
     let horizontalMediaGestureFeedback: CGFloat
     @Binding var isHoveringMusicArea: Bool
+    var compactForCalendar = false
 
     var body: some View {
-        HStack {
-            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).frame(width: 120).padding(.all, 5 * (vm.notchSize.height / 190))
-            MusicControlsView(horizontalMediaGestureFeedback: horizontalMediaGestureFeedback)
-                .compositingGroup()
+        Group {
+            if compactForCalendar {
+                MusicControlsView(horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+                                  compactArtworkNamespace: albumArtNamespace)
+            } else {
+                HStack {
+                    AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).frame(width: 120).padding(.all, 5 * (vm.notchSize.height / 190))
+                    MusicControlsView(horizontalMediaGestureFeedback: horizontalMediaGestureFeedback)
+                        .compositingGroup()
+                }
+            }
         }
         .contentShape(Rectangle())
         .onHover { hovering in
@@ -38,6 +46,7 @@ struct AlbumArtView: View {
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var vm: BoringViewModel
     let albumArtNamespace: Namespace.ID
+    var compactForCalendar = false
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -106,8 +115,8 @@ struct AlbumArtView: View {
             appIcon(for: musicManager.bundleIdentifier ?? MediaAppBundleID.appleMusic)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 30, height: 30)
-                .offset(x: 10, y: 10)
+                .frame(width: compactForCalendar ? 20 : 30, height: compactForCalendar ? 20 : 30)
+                .offset(x: compactForCalendar ? 5 : 10, y: compactForCalendar ? 5 : 10)
                 .transition(.scale.combined(with: .opacity))
                 .zIndex(2)
         }
@@ -118,6 +127,7 @@ struct MusicControlsView: View {
     @ObservedObject var musicManager = MusicManager.shared
     @EnvironmentObject var vm: BoringViewModel
     let horizontalMediaGestureFeedback: CGFloat
+    var compactArtworkNamespace: Namespace.ID?
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
@@ -125,8 +135,17 @@ struct MusicControlsView: View {
     @Default(.musicControlSlotLimit) private var slotLimit
 
     var body: some View {
-        VStack(alignment: .leading) {
-            songInfoAndSlider
+        VStack(alignment: .leading, spacing: compactArtworkNamespace == nil ? nil : 0) {
+            if let compactArtworkNamespace {
+                HStack(spacing: 10) {
+                    AlbumArtView(vm: vm, albumArtNamespace: compactArtworkNamespace, compactForCalendar: true)
+                        .frame(width: 80, height: 80)
+                    songInfoAndSlider
+                }
+                .frame(height: 90)
+            } else {
+                songInfoAndSlider
+            }
             slotToolbar
         }
         .buttonStyle(PlainButtonStyle())
@@ -431,6 +450,7 @@ struct NotchHomeView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.showMonthOnHome) private var showMonthOnHome
     let albumArtNamespace: Namespace.ID
     let horizontalMediaGestureFeedback: CGFloat
     @Binding var isHoveringMusicArea: Bool
@@ -449,15 +469,17 @@ struct NotchHomeView: View {
             MusicPlayerView(
                 albumArtNamespace: albumArtNamespace,
                 horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
-                isHoveringMusicArea: $isHoveringMusicArea
+                isHoveringMusicArea: $isHoveringMusicArea,
+                compactForCalendar: Defaults[.showCalendar]
             )
 
             if Defaults[.showCalendar] {
-                CalendarView()
-                    .frame(width: shouldShowCamera ? 170 : 215)
+                HomeCalendarView()
+                    .frame(width: shouldShowCamera ? 190 : showMonthOnHome ? 240 : 315)
                     .onHover { isHovering in
                         vm.isHoveringCalendar = isHovering
                     }
+                    .onDisappear { vm.isHoveringCalendar = false }
                     .environmentObject(vm)
                     .transition(.opacity)
             }
