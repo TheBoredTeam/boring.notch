@@ -3556,6 +3556,9 @@
         }
       }
     },
+    "Beta" : {
+      "comment" : "Update channel: beta"
+    },
     "Boring Notch" : {
       "localizations" : {
         "cs" : {
@@ -16363,6 +16366,9 @@
         }
       }
     },
+    "Nightly" : {
+      "comment" : "Update channel: nightly"
+    },
     "No events" : {
       "localizations" : {
         "cs" : {
@@ -27388,6 +27394,12 @@
         }
       }
     },
+    "Stable" : {
+      "comment" : "Update channel: stable"
+    },
+    "Stable and Beta come from official releases." : {
+      "comment" : "Software updates channel footer"
+    },
     "Start" : {
       "localizations" : {
         "pt-BR" : {
@@ -29021,6 +29033,9 @@
           }
         }
       }
+    },
+    "Update channel" : {
+      "comment" : "Software updates channel picker label"
     },
     "Upgrade to Pro" : {
       "localizations" : {
