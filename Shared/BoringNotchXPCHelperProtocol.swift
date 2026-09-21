@@ -61,4 +61,3 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
 }
 
 @objc protocol BoringNotchXPCAppDelegate: BoringNotchXPCHelperLunarListener, BoringNotchXPCHelperDelegate {}
-
