@@ -68,9 +68,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             return
         }
 
-        // Without a prompt there is nothing to await — polling would stall the
-        // caller for 15s and hide UI (e.g. the "Grant Access" banner in
-        // Settings) until the deadline. Reply with the current state instead.
         guard promptIfNeeded else {
             reply(false)
             return
