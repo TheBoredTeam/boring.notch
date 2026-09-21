@@ -1,98 +1,12 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Play" : {
+    "" : {
       "localizations" : {
-        "pt-BR" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reproduzir"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Oynat"
-          }
-        }
-      }
-    },
-    "Pause" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pausar"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Duraklat"
-          }
-        }
-      }
-    },
-    "Add to Favorites" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Adicionar aos favoritos"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Favorilere ekle"
-          }
-        }
-      }
-    },
-    "Remove from Favorites" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remover dos Favoritos"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Favorilerden Kaldır"
-          }
-        }
-      }
-    },
-    "Rename File" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Renomear arquivo"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dosyayı Yeniden Adlandır"
-          }
-        }
-      }
-    },
-    "Rename" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Renomear"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Yeniden Adlandır"
+            "value" : ""
           }
         }
       }
@@ -109,464 +23,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : " (varsayılan)"
-          }
-        }
-      }
-    },
-    "Actual Size" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tamanho Atual"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gerçek Boyut"
-          }
-        }
-      }
-    },
-    "All Applications" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Todas os Aplicativos"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tüm uygulamalar"
-          }
-        }
-      }
-    },
-    "Always Open With" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sempre Abrir Com"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Her Zaman Şununla Aç"
-          }
-        }
-      }
-    },
-    "Audio output" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saída de áudio"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ses çıkışı"
-          }
-        }
-      }
-    },
-    "Backward 15s" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Retroceder 15s"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "15 saniye geri sar"
-          }
-        }
-      }
-    },
-    "Choose Application" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolher aplicativo"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uygulama seç"
-          }
-        }
-      }
-    },
-    "Choose an application to open the document \"%@\"." : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolha um aplicativo para abrir o documento \"%@\"."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "\"%@\" belgesini açmak için bir uygulama seçin."
-          }
-        }
-      }
-    },
-    "Compression:" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compressão:"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sıkıştırma:"
-          }
-        }
-      }
-    },
-    "Convert" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Converter"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dönüştür"
-          }
-        }
-      }
-    },
-    "Convert Image" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Converter imagem"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Resmi Dönüştür"
-          }
-        }
-      }
-    },
-    "Custom..." : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Personalizado..."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Özel..."
-          }
-        }
-      }
-    },
-    "Empty slot" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Espaço vazio"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Boş yuva"
-          }
-        }
-      }
-    },
-    "Enable:" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ativar:"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktif:"
-          }
-        }
-      }
-    },
-    "Favorite" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Favorito"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Favori"
-          }
-        }
-      }
-    },
-    "Format:" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Formato:"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Biçim:"
-          }
-        }
-      }
-    },
-    "Forward 15s" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Avançar 15s"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "15 saniye ileri sar"
-          }
-        }
-      }
-    },
-    "Image Size:" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tamanho da imagem:"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Görüntü boyutu:"
-          }
-        }
-      }
-    },
-    "Large" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Grande"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Büyük"
-          }
-        }
-      }
-    },
-    "Next" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Próximo"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sıradaki"
-          }
-        }
-      }
-    },
-    "OK" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "OK"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tamam"
-          }
-        }
-      }
-    },
-    "Play/Pause" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reproduzir/Pausar"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Oynat/Duraklat"
-          }
-        }
-      }
-    },
-    "Preserve Metadata" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Preservar Metadados"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Meta veriyi koru"
-          }
-        }
-      }
-    },
-    "Previous" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anterior"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Önceki"
-          }
-        }
-      }
-    },
-    "Recommended Applications" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aplicativos Recomendados"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Önerilen Uygulamalar"
-          }
-        }
-      }
-    },
-    "Repeat" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Repetir"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Yineleme"
-          }
-        }
-      }
-    },
-    "Shuffle" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aleatório"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Karıştır"
-          }
-        }
-      }
-    },
-    "Small" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pequeno"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Küçük"
-          }
-        }
-      }
-    },
-    "e.g., 1920" : {
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ex.: 1920"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "örn. 1920"
-          }
-        }
-      }
-    },
-    "" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ""
           }
         }
       }
@@ -1169,6 +625,22 @@
         }
       }
     },
+    "Actual Size" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamanho Atual"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gerçek Boyut"
+          }
+        }
+      }
+    },
     "Add" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1407,6 +879,22 @@
         }
       }
     },
+    "Add to Favorites" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adicionar aos favoritos"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorilere ekle"
+          }
+        }
+      }
+    },
     "Additional features" : {
       "localizations" : {
         "cs" : {
@@ -1633,6 +1121,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "更多進階功能"
+          }
+        }
+      }
+    },
+    "All Applications" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todas os Aplicativos"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tüm uygulamalar"
           }
         }
       }
@@ -1869,6 +1373,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "容許存取"
+          }
+        }
+      }
+    },
+    "Always Open With" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sempre Abrir Com"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Her Zaman Şununla Aç"
           }
         }
       }
@@ -2439,6 +1959,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uygulamalar"
+          }
+        }
+      }
+    },
+    "Audio output" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saída de áudio"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ses çıkışı"
           }
         }
       }
@@ -3080,6 +2616,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "按鍵燈光"
+          }
+        }
+      }
+    },
+    "Backward 15s" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retroceder 15s"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 saniye geri sar"
           }
         }
       }
@@ -3805,35 +3357,6 @@
         }
       }
     },
-    "Could not verify Now Playing" : {
-      "comment" : "Title of the passive notice shown when the Now Playing availability probe fails.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Could not verify Now Playing"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de vérifier la lecture en cours"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não foi possível verificar o Reproduzindo Agora"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Şu An Çalınan içerik doğrulanamadı"
-          }
-        }
-      }
-    },
     "boring.notch" : {
       "localizations" : {
         "cs" : {
@@ -4199,6 +3722,7 @@
       }
     },
     "Calendar access is denied. Please enable it in System Settings." : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -5451,6 +4975,22 @@
         }
       }
     },
+    "Choose an application to open the document \"%@\"." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolha um aplicativo para abrir o documento \"%@\"."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"%@\" belgesini açmak için bir uygulama seçin."
+          }
+        }
+      }
+    },
     "Choose any color" : {
       "localizations" : {
         "de" : {
@@ -5563,6 +5103,22 @@
         }
       }
     },
+    "Choose Application" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolher aplicativo"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama seç"
+          }
+        }
+      }
+    },
     "Choose between your system accent color or customize it with your own selection." : {
       "localizations" : {
         "de" : {
@@ -5671,6 +5227,132 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "喺系統強調色同你自訂顏色之間選擇。"
+          }
+        }
+      }
+    },
+    "Choose how the calendar is displayed in the notch." : {
+      "comment" : "A description of the settings for the calendar.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اختر كيفية عرض التقويم داخل الشق."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zvolte, jak se má kalendář zobrazovat ve výřezu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle, wie der Kalender in der Notch angezeigt wird."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose how the calendar is displayed in the notch."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose how the calendar is displayed in the notch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige cómo se muestra el calendario en la muesca."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez comment l'agenda est affiché dans l'encoche."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בחרו כיצד לוח השנה מוצג בשקע."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Válaszd ki, hogyan jelenjen meg a naptár a bevágásban."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scegli come il calendario viene mostrato nell'incavo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ノッチ内でのカレンダーの表示方法を選択します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "노치에 캘린더가 표시되는 방식을 선택하세요."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies hoe de agenda in de notch wordt weergegeven."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybierz sposób wyświetlania kalendarza we wcięciu."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolha como o calendário é exibido na notch."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите, как календарь отображается в вырезе."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takvimin çentikte nasıl görüneceğini seçin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Виберіть, як календар відображається у вирізі."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择日历在刘海屏中的显示方式。"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇日曆在螢幕凹槽中的顯示方式。"
           }
         }
       }
@@ -6731,6 +6413,44 @@
         }
       }
     },
+    "Compact mode" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode compact"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo compacto"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompakt mod"
+          }
+        }
+      }
+    },
+    "Compression:" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compressão:"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sıkıştırma:"
+          }
+        }
+      }
+    },
     "Connects directly to the Apple Music app." : {
       "comment" : "Onboarding description of the Apple Music source.",
       "localizations" : {
@@ -6785,28 +6505,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Doğrudan Spotify uygulamasına bağlanır."
-          }
-        }
-      }
-    },
-    "Compact mode" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mode compact"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modo compacto"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kompakt mod"
           }
         }
       }
@@ -7047,6 +6745,38 @@
         }
       }
     },
+    "Convert" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Converter"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dönüştür"
+          }
+        }
+      }
+    },
+    "Convert Image" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Converter imagem"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resmi Dönüştür"
+          }
+        }
+      }
+    },
     "Copied" : {
       "localizations" : {
         "fr" : {
@@ -7209,6 +6939,35 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Toplantı Bağlantısını Kopyala"
+          }
+        }
+      }
+    },
+    "Could not verify Now Playing" : {
+      "comment" : "Title of the passive notice shown when the Now Playing availability probe fails.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not verify Now Playing"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de vérifier la lecture en cours"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível verificar o Reproduzindo Agora"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şu An Çalınan içerik doğrulanamadı"
           }
         }
       }
@@ -7578,6 +7337,22 @@
         }
       }
     },
+    "Custom..." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalizado..."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Özel..."
+          }
+        }
+      }
+    },
     "Customize in Settings" : {
       "localizations" : {
         "cs" : {
@@ -7919,6 +7694,10 @@
           }
         }
       }
+    },
+    "Delivery unconfirmed. Your reply may still send — check Messages before sending it again." : {
+      "comment" : "A message that appears when a reply to a notification is sent, but the system hasn't confirmed that it was delivered.",
+      "isCommentAutoGenerated" : true
     },
     "Description" : {
       "extractionState" : "stale",
@@ -8938,6 +8717,22 @@
         }
       }
     },
+    "e.g., 1920" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ex.: 1920"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "örn. 1920"
+          }
+        }
+      }
+    },
     "Edit layout" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -9053,6 +8848,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "編輯版面"
+          }
+        }
+      }
+    },
+    "Empty slot" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Espaço vazio"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boş yuva"
           }
         }
       }
@@ -9936,6 +9747,22 @@
         }
       }
     },
+    "Enable:" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ativar:"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktif:"
+          }
+        }
+      }
+    },
     "Enjoy your free time!" : {
       "localizations" : {
         "cs" : {
@@ -10050,6 +9877,132 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "享受您的闲暇时光！"
+          }
+        }
+      }
+    },
+    "Events" : {
+      "comment" : "A section in the calendar settings for toggling events.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الأحداث"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Události"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ereignisse"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Events"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Events"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eventos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Événements"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אירועים"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Események"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eventi"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "イベント"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이벤트"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evenementen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wydarzenia"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eventos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "События"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etkinlikler"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Події"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "事件"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "事件"
           }
         }
       }
@@ -10407,6 +10360,22 @@
         }
       }
     },
+    "Favorite" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorito"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favori"
+          }
+        }
+      }
+    },
     "Files dropped on the shelf will be shared via this service" : {
       "localizations" : {
         "de" : {
@@ -10650,6 +10619,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Videoyu çevir"
+          }
+        }
+      }
+    },
+    "Format:" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Formato:"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biçim:"
+          }
+        }
+      }
+    },
+    "Forward 15s" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avançar 15s"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 saniye ileri sar"
           }
         }
       }
@@ -12782,6 +12783,22 @@
         }
       }
     },
+    "Image Size:" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamanho da imagem:"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görüntü boyutu:"
+          }
+        }
+      }
+    },
     "In progress" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -13489,6 +13506,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "语言"
+          }
+        }
+      }
+    },
+    "Large" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grande"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Büyük"
           }
         }
       }
@@ -16369,6 +16402,22 @@
     "Nightly" : {
       "comment" : "Update channel: nightly"
     },
+    "Next" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Próximo"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sıradaki"
+          }
+        }
+      }
+    },
     "No events" : {
       "localizations" : {
         "cs" : {
@@ -17700,6 +17749,22 @@
         }
       }
     },
+    "OK" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamam"
+          }
+        }
+      }
+    },
     "Only these apps show a live activity in the notch. Turn on \"From all apps\" to mirror everything instead." : {
       "localizations" : {
         "pt-BR" : {
@@ -17739,6 +17804,7 @@
       }
     },
     "Open Calendar Settings" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -18108,6 +18174,7 @@
       }
     },
     "Open Reminder Settings" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -19086,6 +19153,22 @@
         }
       }
     },
+    "Pause" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duraklat"
+          }
+        }
+      }
+    },
     "PDF Creation Failed" : {
       "localizations" : {
         "pt-BR" : {
@@ -19210,6 +19293,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "選擇顏色"
+          }
+        }
+      }
+    },
+    "Play" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproduzir"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oynat"
+          }
+        }
+      }
+    },
+    "Play/Pause" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproduzir/Pausar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oynat/Duraklat"
           }
         }
       }
@@ -19556,6 +19671,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "主顯示器"
+          }
+        }
+      }
+    },
+    "Preserve Metadata" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preservar Metadados"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meta veriyi koru"
+          }
+        }
+      }
+    },
+    "Previous" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anterior"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önceki"
           }
         }
       }
@@ -20173,6 +20320,22 @@
         }
       }
     },
+    "Recommended Applications" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplicativos Recomendados"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önerilen Uygulamalar"
+          }
+        }
+      }
+    },
     "Release name" : {
       "localizations" : {
         "cs" : {
@@ -20410,6 +20573,7 @@
       }
     },
     "Reminder access is denied. Please enable it in System Settings." : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -20645,6 +20809,22 @@
         }
       }
     },
+    "Remove from Favorites" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remover dos Favoritos"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorilerden Kaldır"
+          }
+        }
+      }
+    },
     "Remove from shelf after dragging" : {
       "localizations" : {
         "de" : {
@@ -20747,6 +20927,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "拖拽後自動移除中轉站內容"
+          }
+        }
+      }
+    },
+    "Rename" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renomear"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeniden Adlandır"
+          }
+        }
+      }
+    },
+    "Rename File" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renomear arquivo"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosyayı Yeniden Adlandır"
+          }
+        }
+      }
+    },
+    "Repeat" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repetir"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yineleme"
           }
         }
       }
@@ -26252,6 +26480,22 @@
         }
       }
     },
+    "Shuffle" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aleatório"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Karıştır"
+          }
+        }
+      }
+    },
     "Slider color" : {
       "localizations" : {
         "cs" : {
@@ -26645,6 +26889,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "白色"
+          }
+        }
+      }
+    },
+    "Small" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pequeno"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Küçük"
           }
         }
       }
