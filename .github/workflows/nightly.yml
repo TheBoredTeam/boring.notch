@@ -248,13 +248,13 @@ jobs:
             if [[ "$IS_DRAFT" == "false" ]]; then
               echo "Release $TAG is already published; keeping immutable release."
               SHOULD_PUBLISH=false
-            fi
-
-            if [[ "$SHOULD_PUBLISH" == "true" ]]; then
+            else
+              # A draft left behind by a failed earlier attempt; rework and
+              # publish it. The tag already pins the target, so it cannot be
+              # changed here.
               gh release edit "$TAG" \
                 --draft \
                 --prerelease \
-                --target "$SOURCE_SHA" \
                 --title "$TITLE" \
                 --notes "$NOTES"
             fi
