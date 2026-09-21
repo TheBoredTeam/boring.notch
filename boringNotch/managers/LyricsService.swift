@@ -7,6 +7,7 @@
 
 import AppKit
 import Foundation
+import Combine
 
 /// Service responsible for fetching and parsing lyrics for the currently playing track.
 @MainActor
@@ -16,6 +17,11 @@ final class LyricsService: ObservableObject {
     @Published var currentLyrics: String = ""
     @Published var isFetchingLyrics: Bool = false
     @Published var syncedLyrics: [(time: Double, text: String)] = []
+
+    var showsLoadingPlaceholder: Bool {
+        isFetchingLyrics && syncedLyrics.isEmpty
+            && currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     
     // Cache to avoid redundant fetches; NSCache evicts under memory pressure
     // instead of growing for the whole session.
@@ -27,76 +33,110 @@ final class LyricsService: ObservableObject {
             self.synced = synced
         }
     }
-    private let lyricsCache = NSCache<NSString, LyricsEntry>()
+    private final class Track: NSObject {
+        let bundleIdentifier: String?
+        let title: String
+        let artist: String
+
+        init(bundleIdentifier: String?, title: String, artist: String) {
+            self.bundleIdentifier = bundleIdentifier
+            self.title = title
+            self.artist = artist
+        }
+
+        override var hash: Int {
+            var hasher = Hasher()
+            hasher.combine(bundleIdentifier)
+            hasher.combine(title)
+            hasher.combine(artist)
+            return hasher.finalize()
+        }
+
+        override func isEqual(_ object: Any?) -> Bool {
+            guard let other = object as? Track else { return false }
+            return bundleIdentifier == other.bundleIdentifier && title == other.title && artist == other.artist
+        }
+    }
+
+    typealias LyricsResult = (plain: String, synced: [(time: Double, text: String)])
+    typealias NativeFetcher = @MainActor (String, String) async -> String?
+    typealias WebFetcher = @MainActor (String, String) async -> LyricsResult
+
+    private let lyricsCache = NSCache<Track, LyricsEntry>()
     private var currentFetchTask: Task<Void, Never>?
-    
-    private init() {}
+    private var requestID = UUID()
+    private let nativeFetcher: NativeFetcher
+    private let webFetcher: WebFetcher
+
+    init(nativeFetcher: NativeFetcher? = nil, webFetcher: WebFetcher? = nil) {
+        self.nativeFetcher = nativeFetcher ?? Self.fetchAppleMusicLyrics
+        self.webFetcher = webFetcher ?? Self.fetchLyricsFromWeb
+    }
     
     // MARK: - Public API
     
-    /// Fetches lyrics for the given track, preferring native Apple Music lyrics when available.
+    /// Prefer synchronized lyrics; keep native plain text visible during web lookup.
     func fetchLyrics(bundleIdentifier: String?, title: String, artist: String) async {
-        // Cancel any pending fetch
         currentFetchTask?.cancel()
-        
+        let id = UUID()
+        requestID = id
         guard !title.isEmpty else {
             clearLyrics()
             return
         }
-        
-        // Check cache first
-        let cacheKey = cacheKey(title: title, artist: artist)
-        if let cached = lyricsCache.object(forKey: cacheKey as NSString) {
+
+        let track = Track(bundleIdentifier: bundleIdentifier, title: title, artist: artist)
+        if let cached = lyricsCache.object(forKey: track) {
             currentLyrics = cached.plain
             syncedLyrics = cached.synced
             isFetchingLyrics = false
             return
         }
-        
+
         isFetchingLyrics = true
         currentLyrics = ""
         syncedLyrics = []
-        
+
         let task = Task { [weak self] in
-            guard let self = self else { return }
-            
-            // Try Apple Music first if applicable
-            if let bundleIdentifier = bundleIdentifier, bundleIdentifier.contains(MediaAppBundleID.appleMusic) {
-                if let lyrics = await self.fetchAppleMusicLyrics() {
-                    guard !Task.isCancelled else { return }
-                    await MainActor.run {
-                        self.currentLyrics = lyrics
-                        self.syncedLyrics = []
-                        self.isFetchingLyrics = false
-                        self.lyricsCache.setObject(LyricsEntry(plain: lyrics, synced: []), forKey: cacheKey as NSString)
-                    }
+            guard let self else { return }
+            var nativePlain = ""
+            if bundleIdentifier == MediaAppBundleID.appleMusic {
+                nativePlain = await self.nativeFetcher(title, artist) ?? ""
+                guard !Task.isCancelled, self.requestID == id else { return }
+                let nativeSynced = Self.parseLRC(nativePlain)
+                self.currentLyrics = nativePlain
+                if !nativeSynced.isEmpty {
+                    self.syncedLyrics = nativeSynced
+                    self.isFetchingLyrics = false
+                    self.lyricsCache.setObject(LyricsEntry(plain: nativePlain, synced: nativeSynced), forKey: track)
                     return
                 }
             }
-            
-            // Fallback to web
-            guard !Task.isCancelled else { return }
-            let webResult = await self.fetchLyricsFromWeb(title: title, artist: artist)
-            
-            guard !Task.isCancelled else { return }
-            await MainActor.run {
-                self.currentLyrics = webResult.plain
-                self.syncedLyrics = webResult.synced
-                self.isFetchingLyrics = false
-                if !webResult.plain.isEmpty {
-                    self.lyricsCache.setObject(LyricsEntry(plain: webResult.plain, synced: webResult.synced), forKey: cacheKey as NSString)
-                }
+
+            guard !Task.isCancelled, self.requestID == id else { return }
+            let web = await self.webFetcher(title, artist)
+            guard !Task.isCancelled, self.requestID == id else { return }
+
+            let plain = !web.synced.isEmpty ? web.plain : (nativePlain.isEmpty ? web.plain : nativePlain)
+            self.currentLyrics = plain
+            self.syncedLyrics = web.synced
+            self.isFetchingLyrics = false
+            // Do not cache a failed lookup that only retained native plain text:
+            // a later visit to this track should be able to find synchronized lyrics.
+            if !web.plain.isEmpty || !web.synced.isEmpty {
+                self.lyricsCache.setObject(LyricsEntry(plain: plain, synced: web.synced), forKey: track)
             }
         }
-        
+
         currentFetchTask = task
         await task.value
     }
-    
+
     /// Clears all lyrics data.
     func clearLyrics() {
         currentFetchTask?.cancel()
         currentFetchTask = nil
+        requestID = UUID()
         currentLyrics = ""
         syncedLyrics = []
         isFetchingLyrics = false
@@ -132,11 +172,7 @@ final class LyricsService: ObservableObject {
     
     // MARK: - Private Methods
     
-    private func cacheKey(title: String, artist: String) -> String {
-        "\(normalizedQuery(title))|\(normalizedQuery(artist))"
-    }
-    
-    private func fetchAppleMusicLyrics() async -> String? {
+    private static func fetchAppleMusicLyrics(title: String, artist: String) async -> String? {
         let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: MediaAppBundleID.appleMusic)
         guard !runningApps.isEmpty else { return nil }
         
@@ -145,11 +181,12 @@ final class LyricsService: ObservableObject {
             if it is running then
                 if player state is playing or player state is paused then
                     try
-                        set l to lyrics of current track
+                        set sourceTrack to current track
+                        set l to lyrics of sourceTrack
                         if l is missing value then
                             return ""
                         else
-                            return l
+                            return {name of sourceTrack, artist of sourceTrack, l}
                         end if
                     on error
                         return ""
@@ -165,7 +202,11 @@ final class LyricsService: ObservableObject {
         
         do {
             if let result = try await AppleScriptHelper.execute(script),
-               let lyricsString = result.stringValue,
+               let sourceTitle = result.atIndex(1)?.stringValue,
+               let sourceArtist = result.atIndex(2)?.stringValue,
+               normalizedQuery(sourceTitle) == normalizedQuery(title),
+               normalizedQuery(sourceArtist) == normalizedQuery(artist),
+               let lyricsString = result.atIndex(3)?.stringValue,
                !lyricsString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 return lyricsString.trimmingCharacters(in: .whitespacesAndNewlines)
             }
@@ -175,7 +216,7 @@ final class LyricsService: ObservableObject {
         return nil
     }
     
-    private func fetchLyricsFromWeb(title: String, artist: String) async -> (plain: String, synced: [(time: Double, text: String)]) {
+    private static func fetchLyricsFromWeb(title: String, artist: String) async -> (plain: String, synced: [(time: Double, text: String)]) {
         let cleanTitle = normalizedQuery(title)
         let cleanArtist = normalizedQuery(artist)
         
@@ -200,6 +241,7 @@ final class LyricsService: ObservableObject {
         }()
         
         for urlString in searchStrategies {
+            guard !Task.isCancelled else { return ("", []) }
             guard let url = URL(string: urlString) else { continue }
             
             do {
@@ -231,7 +273,7 @@ final class LyricsService: ObservableObject {
     }
     
     /// Find the best matching result from the search results based on title similarity
-    private func findBestMatch(in results: [[String: Any]], title: String, artist: String) -> [String: Any]? {
+    private static func findBestMatch(in results: [[String: Any]], title: String, artist: String) -> [String: Any]? {
         guard !results.isEmpty else { return nil }
         
         // If only one result, use it
@@ -284,7 +326,7 @@ final class LyricsService: ObservableObject {
     
     // MARK: - Synced lyrics helpers
     
-    private func parseLRC(_ lrc: String) -> [(time: Double, text: String)] {
+    private static func parseLRC(_ lrc: String) -> [(time: Double, text: String)] {
         var result: [(Double, String)] = []
         let pattern = #"\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]"#
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
@@ -304,9 +346,10 @@ final class LyricsService: ObservableObject {
             
             let minutes = Double(minStr) ?? 0
             let seconds = Double(secStr) ?? 0
-            // Handle both centiseconds (2 digits) and milliseconds (3 digits)
+            guard seconds < 60 else { continue }
+            // LRC fractions may contain one, two or three decimal digits.
             let msValue = Double(msStr) ?? 0
-            let msDivisor = msStr.count == 3 ? 1000.0 : 100.0
+            let msDivisor = pow(10.0, Double(msStr.count))
             let time = minutes * 60 + seconds + msValue / msDivisor
             
             let textStart = match.range.location + match.range.length
@@ -319,7 +362,7 @@ final class LyricsService: ObservableObject {
         return result.sorted { $0.0 < $1.0 }
     }
     
-    private func normalizedQuery(_ string: String) -> String {
+    private static func normalizedQuery(_ string: String) -> String {
         string
             .folding(options: .diacriticInsensitive, locale: .current)
             .replacingOccurrences(of: "\u{FFFD}", with: "")
