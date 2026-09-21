@@ -972,6 +972,7 @@
       }
     },
     "Additional features" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -1090,6 +1091,7 @@
       }
     },
     "Advanced" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1787,7 +1789,18 @@
         }
       }
     },
+    "App" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App"
+          }
+        }
+      }
+    },
     "App icon" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -3222,6 +3235,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "電池狀態"
+          }
+        }
+      }
+    },
+    "Behavior" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Behavior"
           }
         }
       }
@@ -6366,6 +6389,7 @@
       }
     },
     "Coming soon" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -7716,6 +7740,7 @@
       }
     },
     "Default" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -8219,6 +8244,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已停用"
+          }
+        }
+      }
+    },
+    "Displays" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Displays"
           }
         }
       }
@@ -10476,6 +10511,26 @@
         }
       }
     },
+    "Feature toggles" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feature toggles"
+          }
+        }
+      }
+    },
+    "Features" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Features"
+          }
+        }
+      }
+    },
     "Files dropped on the shelf will be shared via this service" : {
       "localizations" : {
         "de" : {
@@ -11143,6 +11198,7 @@
       }
     },
     "Gesture control" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -11374,6 +11430,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "手勢靈敏度"
+          }
+        }
+      }
+    },
+    "Gestures" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestures"
           }
         }
       }
@@ -12931,6 +12997,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "https://github.com/pear-devs/pear-desktop"
+          }
+        }
+      }
+    },
+    "Idle state" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idle state"
           }
         }
       }
@@ -16010,6 +16086,7 @@
       }
     },
     "Miscellaneous" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -17341,6 +17418,16 @@
         }
       }
     },
+    "Notch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notch"
+          }
+        }
+      }
+    },
     "Notch animation" : {
       "localizations" : {
         "cs" : {
@@ -17424,6 +17511,7 @@
       }
     },
     "Notch behavior" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -17537,6 +17625,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "劉海顯示方式"
+          }
+        }
+      }
+    },
+    "Notch chrome" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notch chrome"
           }
         }
       }
@@ -17766,6 +17864,7 @@
       }
     },
     "Notch sizing" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -19743,6 +19842,16 @@
         }
       }
     },
+    "Player appearance" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Player appearance"
+          }
+        }
+      }
+    },
     "Player tinting" : {
       "localizations" : {
         "de" : {
@@ -20457,6 +20566,10 @@
           }
         }
       }
+    },
+    "Quickly enable or disable features. Each has more options in its own settings page." : {
+      "comment" : "A description of the features that can be enabled or disabled in the settings.",
+      "isCommentAutoGenerated" : true
     },
     "Quit" : {
       "localizations" : {
@@ -27080,6 +27193,16 @@
         }
       }
     },
+    "Sizing" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sizing"
+          }
+        }
+      }
+    },
     "Slider color" : {
       "localizations" : {
         "cs" : {
@@ -28646,6 +28769,7 @@
       }
     },
     "System features" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -31490,7 +31614,18 @@
         }
       }
     },
+    "Window" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Window"
+          }
+        }
+      }
+    },
     "Window Appearance" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -31603,6 +31738,7 @@
       }
     },
     "Window Behavior" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
