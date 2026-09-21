@@ -1,63 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generator: Apple Native CoreSVG 360 -->
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
-  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!--
+  Custom Notched Display Symbol - MacBook Pro 14" Proportion
+  
+  Geometry reference:
+    viewBox: 0 0 1000 765
+    outer border weight: 24
+    inner screen below notch: 800 x 500 (Exactly 16:10)
+    total inner screen: 800 x 537
+    screen corner radius: 24
+    
+  Notch reference (MacBook Pro 14" Physical Proportions):
+    notch depth: 37 (from y=114 down to y=151)
+    notch width: 214 (centered between x=393 and x=607)
+    top bezel fillet radius: 10 (~1/3 of depth)
+    bottom notch corner radius: 16 (~1/2 of depth)
+    vertical side drop: 11 units
+-->
+<svg xmlns="http://www.w3.org/2000/svg"
+     version="1.1"
+     width="1000"
+     height="765"
+     viewBox="0 0 1000 765"
+     fill="none">
 
-<svg
-  version="1.1"
-  xmlns="http://www.w3.org/2000/svg"
-  xmlns:xlink="http://www.w3.org/1999/xlink"
-  viewBox="0 0 35.6827 20.1066"
->
-  <g>
-    <rect
-      x="0"
-      y="0"
-      width="35.6827"
-      height="20.1066"
-      opacity="0"
-    />
-
-    <path
-      fill="black"
-      d="
-        M14.203 1.74586
-        L14.5247 1.74586
-        C14.7066 1.74586 14.8082 1.83683 14.8082 2.03435
-        L14.8082 2.17859
-        C14.8082 2.6646 15.1178 3.00637 15.6249 3.00637
-        L20.09 3.00637
-        C20.5705 3.00637 20.8856 2.6646 20.8856 2.17859
-        L20.8856 2.03435
-        C20.8856 1.83683 20.9872 1.74586 21.1741 1.74586
-        L21.4958 1.74586
-        L21.4958 0.865396
-        L14.203 0.865396
+  <!-- Filled display frame + integrated notch.
+       Uses even-odd fill so the interior screen remains transparent. -->
+  <path fill="currentColor" fill-rule="evenodd"
+        d="
+        M 124 90
+        H 876
+        A 48 48 0 0 1 924 138
+        V 627
+        A 48 48 0 0 1 876 675
+        H 124
+        A 48 48 0 0 1 76 627
+        V 138
+        A 48 48 0 0 1 124 90
         Z
 
-        M0 18.812
-        C0 19.5317 0.569412 20.1066 1.27856 20.1066
-        L34.4042 20.1066
-        C35.1184 20.1066 35.6827 19.5317 35.6827 18.812
-        C35.6827 18.0873 35.1184 17.5123 34.4042 17.5123
-        L31.6433 17.5123
-        L31.6433 2.62867
-        C31.6433 0.904704 30.7335 0.0216153 29.0151 0.0216153
-        L6.66763 0.0216153
-        C5.02307 0.0216153 4.03947 0.904704 4.03947 2.62867
-        L4.03947 17.5123
-        L1.27856 17.5123
-        C0.569412 17.5123 0 18.0873 0 18.812
+        M 124 114
+        H 383
+        A 10 10 0 0 1 393 124
+        V 135
+        A 16 16 0 0 0 409 151
+        H 591
+        A 16 16 0 0 0 607 135
+        V 124
+        A 10 10 0 0 1 617 114
+        H 876
+        A 24 24 0 0 1 900 138
+        V 627
+        A 24 24 0 0 1 876 651
+        H 124
+        A 24 24 0 0 1 100 627
+        V 138
+        A 24 24 0 0 1 124 114
         Z
-
-        M5.7798 17.5123
-        L5.7798 3.08797
-        C5.7798 2.19323 6.21662 1.74586 7.11689 1.74586
-        L28.5659 1.74586
-        C29.4661 1.74586 29.9135 2.19323 29.9135 3.08797
-        L29.9135 17.5123
-        Z
-      "
-    />
-  </g>
+        "/>
 </svg>
