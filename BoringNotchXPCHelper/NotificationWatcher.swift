@@ -42,6 +42,8 @@ final class NotificationWatcher {
     var onBanner: ((CapturedNotification) -> Void)?
 
     private var appElement: AXUIElement?
+    private var axObserver: AXObserver?
+    private var observerRunLoop: AXObserverRunLoop?
     private var pollTimer: DispatchSourceTimer?
     private var liveTokens = Set<String>()
     private var allowedBundleIDs = Set<String>()
@@ -51,6 +53,11 @@ final class NotificationWatcher {
     private var currentPollInterval: TimeInterval = 0
     private let activePollInterval: TimeInterval = 0.5
     private let idlePollInterval: TimeInterval = 2
+    private let observerNotifications = [
+        kAXWindowCreatedNotification,
+        kAXCreatedNotification,
+        kAXUIElementDestroyedNotification,
+    ]
 
     var isRunning: Bool { pollTimer != nil }
 
@@ -69,6 +76,10 @@ final class NotificationWatcher {
         }
 
         appElement = AXUIElementCreateApplication(application.processIdentifier)
+        guard installObserver(for: application.processIdentifier) else {
+            appElement = nil
+            return false
+        }
         let timer = DispatchSource.makeTimerSource(queue: .main)
         timer.schedule(deadline: .now(), repeating: activePollInterval)
         timer.setEventHandler { [weak self] in self?.scan() }
@@ -82,9 +93,90 @@ final class NotificationWatcher {
     func stop() {
         pollTimer?.cancel()
         pollTimer = nil
+        if let axObserver, let appElement {
+            for notification in observerNotifications {
+                AXObserverRemoveNotification(axObserver, appElement, notification as CFString)
+            }
+            observerRunLoop?.stop()
+        }
+        axObserver = nil
+        observerRunLoop = nil
         appElement = nil
         liveTokens.removeAll()
         restoreAllWindows()
+    }
+
+    private func installObserver(for processIdentifier: pid_t) -> Bool {
+        var observer: AXObserver?
+        let result = AXObserverCreate(processIdentifier, { _, _, _, refcon in
+            guard let refcon else { return }
+            let watcher = Unmanaged<NotificationWatcher>.fromOpaque(refcon).takeUnretainedValue()
+            DispatchQueue.main.async {
+                watcher.scan()
+            }
+        }, &observer)
+        guard result == .success, let observer, let appElement else { return false }
+
+        let refcon = Unmanaged.passUnretained(self).toOpaque()
+        let registered = observerNotifications.contains { notification in
+            AXObserverAddNotification(
+                observer,
+                appElement,
+                notification as CFString,
+                refcon
+            ) == .success
+        }
+        guard registered else {
+            return false
+        }
+
+        let runLoop = AXObserverRunLoop(observer: observer)
+        guard runLoop.start() else { return false }
+        axObserver = observer
+        observerRunLoop = runLoop
+        return true
+    }
+
+    private final class AXObserverRunLoop {
+        private let observer: AXObserver
+        private let ready = DispatchSemaphore(value: 0)
+        private var thread: Thread?
+        private var runLoop: CFRunLoop?
+
+        init(observer: AXObserver) {
+            self.observer = observer
+        }
+
+        func start() -> Bool {
+            let thread = Thread { [weak self] in
+                guard let self else { return }
+                let runLoop = CFRunLoopGetCurrent()
+                self.runLoop = runLoop
+                CFRunLoopAddSource(
+                    runLoop,
+                    AXObserverGetRunLoopSource(self.observer),
+                    .defaultMode
+                )
+                self.ready.signal()
+                CFRunLoopRun()
+                CFRunLoopRemoveSource(
+                    runLoop,
+                    AXObserverGetRunLoopSource(self.observer),
+                    .defaultMode
+                )
+            }
+            self.thread = thread
+            thread.start()
+            return ready.wait(timeout: .now() + 1) == .success
+        }
+
+        func stop() {
+            guard let runLoop else { return }
+            CFRunLoopStop(runLoop)
+            CFRunLoopWakeUp(runLoop)
+            thread = nil
+            self.runLoop = nil
+        }
     }
 
     private func scan() {
