@@ -30,11 +30,13 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
     }
 
     var supportsFavorite: Bool {
-        let bundleID = playbackState.bundleIdentifier
-        return bundleID == MediaAppBundleID.appleMusic
+        capabilities.favorite
     }
 
+    var capabilities: MediaCapabilities { playbackState.capabilities ?? .unsupported }
+
     func setFavorite(_ favorite: Bool) async {
+        guard supportsFavorite else { return }
         let bundleID = playbackState.bundleIdentifier
         
         if bundleID == MediaAppBundleID.appleMusic {
@@ -51,7 +53,7 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
             }
         }
         
-        // Update the favorite state locally and fetch updated info
+        // Reconcile from Music; never assume a script command succeeded.
         try? await Task.sleep(for: .milliseconds(150))
         await updatePlaybackInfo()
     }
@@ -69,6 +71,8 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
     private let runtimeFailureContinuation: AsyncStream<Void>.Continuation
 
     private var streamSession: NowPlayingStreamSession?
+    private var favoriteFetchTask: Task<Void, Never>?
+    private var favoriteRequestID = UUID()
 
     // MARK: - Initialization
     init() throws {
@@ -108,6 +112,7 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
     }
 
     deinit {
+        favoriteFetchTask?.cancel()
         if let streamSession {
             Task { @MainActor in
                 streamSession.stop()
@@ -138,6 +143,7 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
     }
 
     func seek(to time: Double) async {
+        guard PlaybackTime.valid(time), let range = PlaybackTime.seekRange(duration: playbackState.duration), range.contains(time) else { return }
         MRMediaRemoteSetElapsedTimeFunction(time)
     }
 
@@ -146,21 +152,19 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
     }
     
     func toggleShuffle() async {
-        // MRMediaRemoteSendCommandFunction(6, nil)
+        guard capabilities.shuffle else { return }
         MRMediaRemoteSetShuffleModeFunction(playbackState.isShuffled ? 1 : 3)
-        playbackState.isShuffled.toggle()
     }
     
     func toggleRepeat() async {
-        // MRMediaRemoteSendCommandFunction(7, nil)
-        let newRepeatMode = (playbackState.repeatMode == .off) ? 3 : (playbackState.repeatMode.rawValue - 1)
-        playbackState.repeatMode = RepeatMode(rawValue: newRepeatMode) ?? .off
-        MRMediaRemoteSetRepeatModeFunction(newRepeatMode)
+        guard let mode = capabilities.nextRepeatMode(after: playbackState.repeatMode) else { return }
+        MRMediaRemoteSetRepeatModeFunction(mode.rawValue)
     }
     
     func setVolume(_ level: Double) async {
         // MediaRemote framework doesn't provide direct volume control for the active audio session
         // As a workaround, try to control the currently active music app directly
+        guard level.isFinite else { return }
         let clampedLevel = max(0.0, min(1.0, level))
         let volumePercentage = Int(clampedLevel * 100)
         
@@ -208,6 +212,8 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
     }
 
     func stopRuntimeStream() {
+        favoriteFetchTask?.cancel()
+        favoriteRequestID = UUID()
         let session = streamSession
         streamSession = nil
         session?.stop()
@@ -215,91 +221,15 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
 
     // MARK: - Update Methods
     private func handleAdapterUpdate(_ update: NowPlayingUpdate) async {
-        let payload = update.payload
-        let diff = update.diff ?? false
-
-        var newPlaybackState = PlaybackState(bundleIdentifier: playbackState.bundleIdentifier)
-        let resolvedBundleIdentifier = (
-            payload.parentApplicationBundleIdentifier ??
-            payload.bundleIdentifier ??
-            (diff ? self.playbackState.bundleIdentifier : "")
-        )
-        let captureBundleFallbackIdentifiers: [String]
-        if diff {
-            captureBundleFallbackIdentifiers =
-                resolvedBundleIdentifier != self.playbackState.bundleIdentifier
-                ? [resolvedBundleIdentifier]
-                : self.playbackState.effectiveAudioCaptureBundleIdentifiers
-        } else {
-            captureBundleFallbackIdentifiers = [resolvedBundleIdentifier]
-        }
-        let captureBundleIdentifiers = Self.audioCaptureBundleIdentifiers(
-            sourceBundleIdentifier: payload.bundleIdentifier,
-            fallbackBundleIdentifiers: captureBundleFallbackIdentifiers
-        )
-        
-        newPlaybackState.title = payload.title ?? (diff ? self.playbackState.title : "")
-        newPlaybackState.artist = payload.artist ?? (diff ? self.playbackState.artist : "")
-        newPlaybackState.album = payload.album ?? (diff ? self.playbackState.album : "")
-        newPlaybackState.duration = payload.duration ?? (diff ? self.playbackState.duration : 0)
-        
-        if let elapsedTime = payload.elapsedTime {
-            newPlaybackState.currentTime = elapsedTime
-        } else if diff {
-            if payload.playing == false {
-                let timeSinceLastUpdate = Date().timeIntervalSince(self.playbackState.lastUpdated)
-                newPlaybackState.currentTime = self.playbackState.currentTime + (self.playbackState.playbackRate * timeSinceLastUpdate)
-            } else {
-                newPlaybackState.currentTime = self.playbackState.currentTime
+        let previousIdentity = playbackState.identity
+        playbackState = update.applying(to: playbackState)
+        if playbackState.identity != previousIdentity || update.diff != true {
+            favoriteFetchTask?.cancel()
+            favoriteRequestID = UUID()
+            favoriteFetchTask = Task { [weak self] in
+                await self?.fetchFavoriteStateIfSupported()
             }
-        } else {
-            newPlaybackState.currentTime = 0
         }
-
-        
-        if let shuffleMode = payload.shuffleMode {
-            newPlaybackState.isShuffled = shuffleMode != 1
-        } else if !diff {
-            newPlaybackState.isShuffled = false
-        } else {
-            newPlaybackState.isShuffled = self.playbackState.isShuffled
-        }
-        if let repeatModeValue = payload.repeatMode {
-            newPlaybackState.repeatMode = RepeatMode(rawValue: repeatModeValue) ?? .off
-        } else if !diff {
-            newPlaybackState.repeatMode = .off
-        } else {
-            newPlaybackState.repeatMode = self.playbackState.repeatMode
-        }
-
-        if let artworkDataString = payload.artworkData {
-            newPlaybackState.artwork = Data(
-                base64Encoded: artworkDataString.trimmingCharacters(in: .whitespacesAndNewlines)
-            )
-        } else if !diff {
-            newPlaybackState.artwork = nil
-        } else {
-            newPlaybackState.artwork = self.playbackState.artwork
-        }
-
-        if let dateString = payload.timestamp,
-           let date = ISO8601DateFormatter().date(from: dateString) {
-            newPlaybackState.lastUpdated = date
-        } else if !diff {
-            newPlaybackState.lastUpdated = Date()
-        } else {
-            newPlaybackState.lastUpdated = self.playbackState.lastUpdated
-        }
-
-        newPlaybackState.playbackRate = payload.playbackRate ?? (diff ? self.playbackState.playbackRate : 1.0)
-        newPlaybackState.isPlaying = payload.playing ?? (diff ? self.playbackState.isPlaying : false)
-        newPlaybackState.bundleIdentifier = resolvedBundleIdentifier
-        newPlaybackState.audioCaptureBundleIdentifiers = captureBundleIdentifiers
-        
-        newPlaybackState.volume = payload.volume ?? (diff ? self.playbackState.volume : 0.5)
-        
-        self.playbackState = newPlaybackState
-
     }
 
     private func fetchFavoriteStateIfSupported() async {
@@ -308,29 +238,14 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
         let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: MediaAppBundleID.appleMusic)
         guard !runningApps.isEmpty else { return }
 
-        let script = """
-        tell application "Music"
-            try
-                return favorited of current track
-            on error
-                return false
-            end try
-        end tell
-        """
+        let identity = playbackState.identity
+        let requestID = UUID()
+        favoriteRequestID = requestID
+        let script = "tell application \"Music\" to return favorited of current track"
         if let result = try? await AppleScriptHelper.execute(script) {
-            var updated = playbackState
-            updated.isFavorite = result.booleanValue
-            playbackState = updated
+            guard !Task.isCancelled, playbackState.identity == identity, favoriteRequestID == requestID else { return }
+            playbackState.isFavorite = result.booleanValue
+            playbackState.capabilities?.favorite = true
         }
-    }
-}
-
-private extension NowPlayingController {
-    static func audioCaptureBundleIdentifiers(
-        sourceBundleIdentifier: String?,
-        fallbackBundleIdentifiers: [String]
-    ) -> [String] {
-        let preferred = sourceBundleIdentifier.map { [$0] } ?? fallbackBundleIdentifiers
-        return preferred.normalizedBundleIdentifiers
     }
 }
