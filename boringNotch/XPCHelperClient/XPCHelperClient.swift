@@ -394,6 +394,7 @@ final class NotificationXPCDelegate: NSObject, BoringNotchXPCAppDelegate {
             name: .systemNotificationDidAppear, object: nil, userInfo: payload
         )
     }
+
 }
 
 extension XPCHelperClient {
@@ -434,6 +435,7 @@ extension XPCHelperClient {
             }
         }
     }
+
 }
 
 extension Notification.Name {
