@@ -9,6 +9,7 @@ intentionally left to real workflow runs.
 
 from __future__ import annotations
 
+import re
 import unittest
 from pathlib import Path
 
@@ -72,6 +73,29 @@ class WorkflowSmokeTests(unittest.TestCase):
             with self.subTest(workflow=name):
                 self.assertIn("uses: ./.github/actions/build-generate-appcast", workflow)
                 self.assertNotIn("Build Sparkle generate_appcast from source\n        run:", workflow)
+
+    def test_gh_api_calls_with_parameters_pin_the_get_method(self) -> None:
+        # gh api switches to POST as soon as -f/-F parameters are supplied,
+        # which silently breaks read endpoints such as listing pulls.
+        workflows = "\n".join((self.release, self.nightly, self.manual_build))
+        logical_lines = workflows.replace("\\\n", " ")
+        gh_api_calls = re.findall(r"\bgh api\b[^\n]*", logical_lines)
+        self.assertTrue(gh_api_calls, "expected to find gh api invocations")
+        for call in gh_api_calls:
+            if re.search(r"\s(-f|-F|--field|--raw-field)\s", call):
+                self.assertRegex(
+                    call,
+                    r"\s(-X|--method)(=|\s+)GET\b",
+                    f"gh api call supplies parameters without an explicit GET:\n{call}",
+                )
+
+    def test_release_pr_merge_pins_the_head_commit_flag(self) -> None:
+        self.assertIn("--match-head-commit", self.release)
+        self.assertNotIn(
+            "--match-head ",
+            self.release,
+            "--match-head is not a gh pr merge flag; use --match-head-commit",
+        )
 
     def test_build_numbers_come_from_the_shared_counter(self) -> None:
         counter_path = REPOSITORY_ROOT / ".github" / "build-number"

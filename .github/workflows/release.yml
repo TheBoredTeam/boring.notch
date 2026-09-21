@@ -123,7 +123,9 @@ jobs:
 
           # Fresh release: exactly one open same-repository dev-to-main PR is
           # the reviewed source of truth. Its head is the build source.
-          PR_CANDIDATES=$(gh api "repos/${REPO}/pulls" \
+          # gh api switches to POST when parameters are supplied, which is not
+          # the list operation; pin the method to GET explicitly.
+          PR_CANDIDATES=$(gh api -X GET "repos/${REPO}/pulls" \
             -f state=open -f base=main -f head="${OWNER}:dev" -f per_page=5 \
             --jq '[.[].number]')
           PR_COUNT="$(jq length <<< "$PR_CANDIDATES")"
@@ -403,7 +405,9 @@ jobs:
         run: |
           set -euo pipefail
           OWNER="${REPO%%/*}"
-          PR_LIST=$(gh api "repos/${REPO}/pulls" \
+          # gh api switches to POST when parameters are supplied, which is not
+          # the list operation; pin the method to GET explicitly.
+          PR_LIST=$(gh api -X GET "repos/${REPO}/pulls" \
             -f state=open -f base=main -f head="${OWNER}:dev" -f per_page=5 \
             --jq '[.[].number]')
           PR_COUNT="$(jq length <<< "$PR_LIST")"
@@ -418,7 +422,7 @@ jobs:
               echo "::error::PR head moved to ${HEAD_SHA}; rebuild before merging"
               exit 1
             fi
-            gh pr merge "$PR_NUMBER" --repo "$REPO" --merge --match-head "$SOURCE_SHA"
+            gh pr merge "$PR_NUMBER" --repo "$REPO" --merge --match-head-commit "$SOURCE_SHA"
             echo "Merged release PR #${PR_NUMBER}."
           else
             echo "No open release PR; assuming it was merged in a previous run."
