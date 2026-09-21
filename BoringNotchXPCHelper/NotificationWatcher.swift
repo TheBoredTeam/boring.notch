@@ -17,6 +17,16 @@ private extension AXUIElement {
         }
         return value
     }
+
+    func point(attribute: String) -> CGPoint? {
+        guard let value = self[attribute],
+              CFGetTypeID(value as CFTypeRef) == AXValueGetTypeID(),
+              AXValueGetType(value as! AXValue) == .cgPoint
+        else { return nil }
+        var point = CGPoint.zero
+        AXValueGetValue(value as! AXValue, .cgPoint, &point)
+        return point
+    }
 }
 
 struct CapturedNotification {
@@ -36,8 +46,10 @@ final class NotificationWatcher {
     private var liveTokens = Set<String>()
     private var allowedBundleIDs = Set<String>()
     private var mirrorAllApps = false
+    private var parkedWindowByToken: [String: Int] = [:]
+    private var parkedWindows: [Int: (window: AXUIElement, origin: CGPoint)] = [:]
     private var currentPollInterval: TimeInterval = 0
-    private let activePollInterval: TimeInterval = 0.75
+    private let activePollInterval: TimeInterval = 0.5
     private let idlePollInterval: TimeInterval = 2
 
     var isRunning: Bool { pollTimer != nil }
@@ -72,6 +84,7 @@ final class NotificationWatcher {
         pollTimer = nil
         appElement = nil
         liveTokens.removeAll()
+        restoreAllWindows()
     }
 
     private func scan() {
@@ -89,11 +102,17 @@ final class NotificationWatcher {
                     guard mirrorAllApps || isAllowed(notification) else {
                         continue
                     }
+                    guard park(window, for: token) else {
+                        NSLog("[boringNotch] could not hide notification banner \(token)")
+                        continue
+                    }
                     liveTokens.insert(token)
                     onBanner?(notification)
                 }
             }
+            let removed = liveTokens.subtracting(seen)
             liveTokens.formIntersection(seen)
+            removed.forEach(restoreWindowIfUnused)
             updatePollInterval()
         }
     }
@@ -103,6 +122,42 @@ final class NotificationWatcher {
         guard interval != currentPollInterval, let pollTimer else { return }
         currentPollInterval = interval
         pollTimer.schedule(deadline: .now() + interval, repeating: interval)
+    }
+
+    private func park(_ window: AXUIElement, for token: String) -> Bool {
+        let key = Int(bitPattern: CFHash(window))
+        if parkedWindows[key] == nil {
+            guard let origin = window.point(attribute: kAXPositionAttribute) else { return false }
+            parkedWindows[key] = (window, origin)
+            var hidden = CGPoint(x: -10000, y: -10000)
+            guard let value = AXValueCreate(.cgPoint, &hidden),
+                  AXUIElementSetAttributeValue(window, kAXPositionAttribute as CFString, value) == .success
+            else {
+                parkedWindows.removeValue(forKey: key)
+                return false
+            }
+        }
+        parkedWindowByToken[token] = key
+        return true
+    }
+
+    private func restoreWindowIfUnused(_ token: String) {
+        guard let key = parkedWindowByToken.removeValue(forKey: token),
+              !parkedWindowByToken.values.contains(key),
+              let parked = parkedWindows.removeValue(forKey: key)
+        else { return }
+        var origin = parked.origin
+        if let value = AXValueCreate(.cgPoint, &origin) {
+            AXUIElementSetAttributeValue(parked.window, kAXPositionAttribute as CFString, value)
+        }
+    }
+
+    private func restoreAllWindows() {
+        for token in Array(parkedWindowByToken.keys) {
+            restoreWindowIfUnused(token)
+        }
+        parkedWindowByToken.removeAll()
+        parkedWindows.removeAll()
     }
 
     private func banners(in element: AXUIElement, depth: Int = 0) -> [AXUIElement] {
