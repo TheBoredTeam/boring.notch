@@ -9,15 +9,15 @@
 //  (https://github.com/Ebullioscopic/Atoll, GPL-3.0, itself a boring.notch
 //  fork): 50pt album art, 12/10pt title and artist, a fixed-width
 //  visualizer block on the right sized to match the trailing time label so
-//  the bars centre over it, an inline progress row with a counting-down
-//  remaining time, and a 10pt-spaced transport row.
+//  the bars centre over it, a progress row, and a transport row.
 //
-//  Built on this project's own MusicSliderView / HoverButton /
-//  MarqueeText rather than porting Atoll's ~1500-line view wholesale, so
-//  seeking behaves identically in both layouts instead of drifting apart.
-//  The transport row is a fixed five here rather than the musicControlSlots
-//  preference — that preference exists to configure the full layout, and
-//  its default would leave compact mode without shuffle or media output.
+//  Transport and slider are deliberately shared with the standard layout
+//  (MusicControlSlotButton / MusicSliderView) rather than ported separately,
+//  so seeking and the buttons behave identically in both layouts instead of
+//  drifting apart. The transport row is a fixed five here rather than the
+//  musicControlSlots preference — that preference exists to configure the
+//  full layout, and its default would leave compact mode without shuffle or
+//  media output.
 //
 
 import Defaults
@@ -28,15 +28,15 @@ struct CompactHomeView: View {
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     let albumArtNamespace: Namespace.ID
+    let horizontalMediaGestureFeedback: CGFloat
 
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
-    @State private var showingOutputPicker = false
-    @ObservedObject private var routeManager = AudioRouteManager.shared
 
     @Default(.coloredSpectrogram) private var coloredSpectrogram
     @Default(.playerColorTinting) private var playerColorTinting
+    @Default(.showRemainingTime) private var showRemainingTime
 
     private let albumArtWidth: CGFloat = 45
     private let headerSpacing: CGFloat = 10
@@ -55,17 +55,19 @@ struct CompactHomeView: View {
                 .frame(height: albumArtWidth)
 
             progressRow
-                .padding(.top, 4)
+                .padding(.top, 6)
 
             transport
-                .padding(.top, 1)
+                .padding(.top, 2)
         }
         .padding(.horizontal, 12)
         // Atoll's 15/3 formula assumes the player is the whole panel; here
         // a notch-clearance spacer sits above it, so these are trimmed to
-        // land the panel at the intended overall height.
+        // land the panel at the intended overall height. The 2pt bottom pad
+        // keeps the play/pause's hover fill from kissing the rounded corner
+        // without adding a visible band of empty space.
         .padding(.top, 4)
-        .padding(.bottom, 1)
+        .padding(.bottom, 2)
         .frame(maxWidth: .infinity)
         .buttonStyle(PlainButtonStyle())
     }
@@ -138,128 +140,46 @@ struct CompactHomeView: View {
     // MARK: - Progress
 
     private var progressRow: some View {
-        // See NotchHomeView.musicSlider — 0.5s ticks are imperceptible here.
-        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.5 : nil)) { timeline in
+        MusicPlaybackTimeline(playbackRate: musicManager.playbackRate) { date in
             MusicSliderView(
                 sliderValue: $sliderValue,
                 duration: $musicManager.songDuration,
                 lastDragged: $lastDragged,
                 color: musicManager.avgColor,
                 dragging: $dragging,
-                currentDate: timeline.date,
+                currentDate: date,
                 timestampDate: musicManager.timestampDate,
                 elapsedTime: musicManager.elapsedTime,
                 playbackRate: musicManager.playbackRate,
                 isPlaying: musicManager.isPlaying,
                 onValueChange: { MusicManager.shared.seek(to: $0) },
-                labelLayout: .inline,
-                trailingLabel: .remaining,
-                restingTrackHeight: 7,
-                draggingTrackHeight: 11
+                trailingLabel: showRemainingTime ? .remaining : .duration
             )
+            .padding(.top, 5)
+            .frame(height: 36)
         }
         .onAppear { sliderValue = musicManager.elapsedTime }
     }
 
     // MARK: - Transport
 
+    /// The standard layout's fixed five, rendered through the same
+    /// MusicControlSlotButton the expanded view uses — so sizing, glyphs and
+    /// the swipe-to-skip bounce match exactly.
+    private var displayedSlots: [MusicControlButton] {
+        MusicControlButton.defaultLayout
+    }
+
     private var transport: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 6) {
             ForEach(Array(displayedSlots.enumerated()), id: \.offset) { _, slot in
-                slotView(for: slot)
-                    .help(slot.actionLabel(isPlaying: musicManager.isPlaying, isFavorite: musicManager.isFavoriteTrack))
-                    .accessibilityLabel(slot.actionLabel(isPlaying: musicManager.isPlaying, isFavorite: musicManager.isFavoriteTrack))
-                    .accessibilityHidden(slot == .none)
+                MusicControlSlotButton(
+                    slot: slot,
+                    horizontalMediaGestureFeedback: horizontalMediaGestureFeedback
+                )
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
-        .frame(height: playPauseSize)
-    }
-
-    /// Atoll's control dimensions: 36pt secondary buttons with 18pt glyphs,
-    /// a 54pt play/pause with a 26pt glyph. HoverButton's 30/40 is what made
-    /// this row read undersized against the rest of the panel.
-    private let controlSize: CGFloat = 32
-    private let playPauseSize: CGFloat = 48
-
-    private func compactControl(
-        icon: String,
-        size: CGFloat,
-        glyph: CGFloat,
-        tint: Color = .white,
-        action: @escaping () -> Void
-    ) -> some View {
-        CompactControlButton(
-            icon: icon,
-            frameSize: size,
-            glyphSize: glyph,
-            tint: tint,
-            action: action
-        )
-    }
-
-    /// Fixed five rather than the musicControlSlots preference, so compact
-    /// mode always shows the full transport regardless of how the standard
-    /// layout is configured.
-    private var displayedSlots: [MusicControlButton] {
-        [.shuffle, .previous, .playPause, .next, .mediaOutput]
-    }
-
-    @ViewBuilder
-    private func slotView(for slot: MusicControlButton) -> some View {
-        switch slot {
-        case .shuffle:
-            compactControl(
-                icon: "shuffle",
-                size: controlSize,
-                glyph: 16,
-                tint: musicManager.isShuffled ? .red : .white
-            ) { MusicManager.shared.toggleShuffle() }
-        case .previous:
-            compactControl(icon: "backward.fill", size: controlSize, glyph: 16) {
-                MusicManager.shared.previousTrack()
-            }
-        case .playPause:
-            compactControl(
-                icon: musicManager.isPlaying ? "pause.fill" : "play.fill",
-                size: playPauseSize,
-                glyph: 23
-            ) { MusicManager.shared.togglePlay() }
-        case .next:
-            compactControl(icon: "forward.fill", size: controlSize, glyph: 16) {
-                MusicManager.shared.nextTrack()
-            }
-        case .repeatMode:
-            compactControl(icon: repeatIcon, size: controlSize, glyph: 16, tint: repeatIconColor) {
-                MusicManager.shared.toggleRepeat()
-            }
-        case .mediaOutput:
-            mediaOutputButton
-        case .none:
-            EmptyView()
-        default:
-            // Slots that only make sense in the full layout are skipped
-            // rather than rendered half-working in a player-only view.
-            EmptyView()
-        }
-    }
-
-    /// Shows where audio is going and switches it, via a popover device
-    /// picker.
-    private var mediaOutputButton: some View {
-        compactControl(icon: routeSymbol, size: controlSize, glyph: 16) {
-            // Enumerate on open rather than polling: devices come and go
-            // (AirPods connecting, a display waking) and a list built at
-            // launch would be stale by the time anyone opened it.
-            routeManager.refreshDevices()
-            showingOutputPicker.toggle()
-        }
-        .popover(isPresented: $showingOutputPicker, arrowEdge: .bottom) {
-            AudioOutputPicker(
-                routeManager: routeManager,
-                onSelect: { showingOutputPicker = false }
-            )
-        }
     }
 
     private var compactAlbumArt: some View {
@@ -283,24 +203,9 @@ struct CompactHomeView: View {
         }
         .frame(width: albumArtWidth, height: albumArtWidth)
     }
-
-    /// Prefer the live device's own icon; fall back to the resolver's
-    /// classification before the first enumeration has run.
-    private var routeSymbol: String {
-        routeManager.activeDevice?.iconName ?? AudioOutputRouteResolver.shared.outputRouteSymbol()
-    }
-
-    private var repeatIcon: String {
-        musicManager.repeatMode == .one ? "repeat.1" : "repeat"
-    }
-
-    private var repeatIconColor: Color {
-        musicManager.repeatMode == .off ? .primary : .red
-    }
-
 }
 
-/// Output device list for the compact player's media-output button.
+/// Output device list shared by both layouts' media-output buttons.
 struct AudioOutputPicker: View {
     @ObservedObject var routeManager: AudioRouteManager
     let onSelect: () -> Void
@@ -350,65 +255,5 @@ struct AudioOutputPicker: View {
             }
         }
         .frame(minWidth: 220)
-    }
-}
-
-/// Transport button matching Atoll's MinimalisticSquircircleButton: a
-/// squircle that fills faintly on hover, sized independently of its glyph
-/// so a 54pt play/pause and a 36pt skip share the same visual language.
-///
-/// Not HoverButton — that's fixed at 30/40pt with a capsule fill, which
-/// reads undersized against this layout's 50pt artwork.
-private struct CompactControlButton: View {
-    let icon: String
-    let frameSize: CGFloat
-    let glyphSize: CGFloat
-    let tint: Color
-    let action: () -> Void
-
-    @State private var isHovering = false
-
-    var body: some View {
-        Button(action: action) {
-            RoundedRectangle(cornerRadius: frameSize * 0.4, style: .continuous)
-                .fill(isHovering ? Color.white.opacity(0.12) : .clear)
-                .frame(width: frameSize, height: frameSize)
-                .overlay {
-                    Image(systemName: icon)
-                        .font(.system(size: glyphSize, weight: .medium))
-                        .foregroundStyle(tint)
-                        .contentTransition(.symbolEffect(.replace))
-                }
-                .contentShape(RoundedRectangle(cornerRadius: frameSize * 0.4, style: .continuous))
-        }
-        .buttonStyle(.plain)
-        .onHover { hovering in
-            withAnimation(.easeOut(duration: 0.18)) { isHovering = hovering }
-        }
-    }
-}
-
-/// Audio-output slot for the standard layout's control row.
-///
-/// Separate from CompactHomeView's inline version only because that one
-/// uses the compact button sizing; the picker and behaviour are shared.
-struct MediaOutputSlotButton: View {
-    @ObservedObject private var routeManager = AudioRouteManager.shared
-    @State private var showingPicker = false
-
-    var body: some View {
-        HoverButton(icon: routeSymbol, scale: .medium) {
-            routeManager.refreshDevices()
-            showingPicker.toggle()
-        }
-        .popover(isPresented: $showingPicker, arrowEdge: .bottom) {
-            AudioOutputPicker(routeManager: routeManager) {
-                showingPicker = false
-            }
-        }
-    }
-
-    private var routeSymbol: String {
-        routeManager.activeDevice?.iconName ?? AudioOutputRouteResolver.shared.outputRouteSymbol()
     }
 }
