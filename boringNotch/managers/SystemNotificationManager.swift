@@ -92,6 +92,15 @@ final class SystemNotificationManager: ObservableObject {
         }
     }
 
+    func showNextQueued() {
+        guard isUserPresent, let next = queuedNotifications.first else { return }
+        if let activeNotification {
+            queuedNotifications.append(activeNotification)
+        }
+        queuedNotifications.removeFirst()
+        show(next)
+    }
+
     func open(_ notification: SystemNotification) async -> Bool {
         guard let bundleID = notification.bundleID,
               let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID)

@@ -2,6 +2,7 @@
 //  NotificationLiveActivity.swift
 //  boringNotch
 //
+
 import SwiftUI
 
 private struct NotificationSourceIcon: View {
@@ -27,21 +28,45 @@ struct NotificationLiveActivity: View {
     @EnvironmentObject private var vm: BoringViewModel
     let notification: SystemNotification
 
-    var body: some View {
-        HStack(spacing: 8) {
-            NotificationSourceIcon(
-                bundleID: notification.bundleID,
-                size: max(0, vm.effectiveClosedNotchHeight - 12)
-            )
-            if let title = notification.title ?? notification.appName {
-                Text(title)
-                    .font(.system(size: 12, weight: .medium))
-                    .lineLimit(1)
-            }
-        }
-        .frame(height: vm.effectiveClosedNotchHeight)
+    @State private var ringScale: CGFloat = 1
+    @State private var ringOpacity = 0.0
+
+    private var itemSize: CGFloat {
+        max(0, vm.effectiveClosedNotchHeight - 12)
     }
 
+    var body: some View {
+        HStack {
+            NotificationSourceIcon(bundleID: notification.bundleID, size: itemSize)
+
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.closedNotchSize.width - cornerRadiusInsets.closed.top)
+
+            ZStack {
+                Circle()
+                    .stroke(Color.effectiveAccent, lineWidth: 1.5)
+                    .scaleEffect(ringScale)
+                    .opacity(ringOpacity)
+                Circle()
+                    .fill(Color.effectiveAccent)
+                    .frame(width: 7, height: 7)
+            }
+            .frame(width: itemSize, height: itemSize)
+        }
+        .frame(height: vm.effectiveClosedNotchHeight)
+        .onAppear { pulse() }
+        .onChange(of: notification.id) { _, _ in pulse() }
+    }
+
+    private func pulse() {
+        ringScale = 1
+        ringOpacity = 0.8
+        withAnimation(.easeOut(duration: 0.6)) {
+            ringScale = 1.8
+            ringOpacity = 0
+        }
+    }
 }
 
 struct NotificationExpandedView: View {
