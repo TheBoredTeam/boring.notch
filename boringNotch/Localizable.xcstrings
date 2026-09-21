@@ -13,6 +13,12 @@
     },
     " (default)" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " (predefinito)"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -186,6 +192,12 @@
             "value" : "%@x"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@x"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -225,6 +237,12 @@
             "value" : "%lld%%"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld%%"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -241,6 +259,12 @@
     },
     "+%lld" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -611,6 +635,12 @@
     },
     "actions: %@" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "azioni: %@"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -627,6 +657,12 @@
     },
     "Actual Size" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimensioni effettive"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -881,6 +917,12 @@
     },
     "Add to Favorites" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiungi ai Preferiti"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1127,6 +1169,12 @@
     },
     "All Applications" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tutte le applicazioni"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1379,6 +1427,12 @@
     },
     "Always Open With" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apri sempre con"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1949,6 +2003,12 @@
     },
     "Apps" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1965,6 +2025,12 @@
     },
     "Audio output" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uscita audio"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2530,6 +2596,12 @@
             "value" : "Échec de la suppression de l'arrière plan"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rimozione sfondo fallita"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2562,6 +2634,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rétro-éclairage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retroilluminazione"
           }
         },
         "ja" : {
@@ -2622,6 +2700,12 @@
     },
     "Backward 15s" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indietro 15s"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3320,6 +3404,12 @@
             "value" : "Boring Notch lost its Now Playing connection. Reconnecting automatically..."
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch ha perso la connessione alla Riproduzione in corso. Riconessione automatica..."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3341,6 +3431,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boring Notch's Now Playing components are unavailable. Reopen or reinstall the app."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I componenti della Riproduzione in corso di Boring Notch non sono disponibili. Riapri o reinstalla l'app."
           }
         },
         "pt-BR" : {
@@ -3551,6 +3647,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Source de luminosité"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorgente Luminosità"
           }
         },
         "ja" : {
@@ -3973,6 +4075,12 @@
             "value" : "Caméra"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotocamera"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4000,6 +4108,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Accès à la caméra requis"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accesso Fotocamera Richiesto"
           }
         },
         "pt-BR" : {
@@ -4271,6 +4385,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La modification de la langue nécessite le redémarrage de l'application."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La modifica della lingua dell'app richiede il riavvio di Boring Notch."
           }
         },
         "ja" : {
@@ -4644,6 +4764,12 @@
             "value" : "Vérifier à nouveau"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controlla di nuovo"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4676,6 +4802,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vérifier les mises à jour automatiquement"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controlla aggiornamenti automaticamente"
           }
         },
         "ja" : {
@@ -4977,6 +5109,12 @@
     },
     "Choose an application to open the document \"%@\"." : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scegli un'applicazione per aprire il documento \"%@\"."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5105,6 +5243,12 @@
     },
     "Choose Application" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scegli applicazione"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5233,126 +5377,11 @@
     },
     "Choose how the calendar is displayed in the notch." : {
       "comment" : "A description of the settings for the calendar.",
-      "isCommentAutoGenerated" : true,
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اختر كيفية عرض التقويم داخل الشق."
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zvolte, jak se má kalendář zobrazovat ve výřezu."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wähle, wie der Kalender in der Notch angezeigt wird."
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Choose how the calendar is displayed in the notch."
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose how the calendar is displayed in the notch."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elige cómo se muestra el calendario en la muesca."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisissez comment l'agenda est affiché dans l'encoche."
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "בחרו כיצד לוח השנה מוצג בשקע."
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Válaszd ki, hogyan jelenjen meg a naptár a bevágásban."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scegli come il calendario viene mostrato nell'incavo."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ノッチ内でのカレンダーの表示方法を選択します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "노치에 캘린더가 표시되는 방식을 선택하세요."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kies hoe de agenda in de notch wordt weergegeven."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wybierz sposób wyświetlania kalendarza we wcięciu."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolha como o calendário é exibido na notch."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выберите, как календарь отображается в вырезе."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Takvimin çentikte nasıl görüneceğini seçin."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Виберіть, як календар відображається у вирізі."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "选择日历在刘海屏中的显示方式。"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "選擇日曆在螢幕凹槽中的顯示方式。"
           }
         }
       }
@@ -5593,6 +5622,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nettoyer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancella"
           }
         },
         "pt-BR" : {
@@ -6421,6 +6456,12 @@
             "value" : "Mode compact"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modalità compatta"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6437,6 +6478,12 @@
     },
     "Compression:" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compressione:"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6466,6 +6513,12 @@
             "value" : "Se connecte directement à l'application Apple Music."
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si collega direttamente all'app Apple Music."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6493,6 +6546,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Se connecte directement à l'application Spotify."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si collega direttamente all'app Spotify."
           }
         },
         "pt-BR" : {
@@ -6747,6 +6806,12 @@
     },
     "Convert" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Converti"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6763,6 +6828,12 @@
     },
     "Convert Image" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Converti immagine"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6785,6 +6856,12 @@
             "value" : "Copié"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiato"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6805,6 +6882,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copier"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia"
           }
         },
         "pt-BR" : {
@@ -6929,6 +7012,12 @@
     },
     "Copy Meeting Link" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia Link Riunione"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7323,6 +7412,12 @@
             "value" : "Tamaño personalizado del notch - %@"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimensione notch personalizzata - %@"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7339,6 +7434,12 @@
     },
     "Custom..." : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalizza..."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7696,8 +7797,20 @@
       }
     },
     "Delivery unconfirmed. Your reply may still send — check Messages before sending it again." : {
-      "comment" : "A message that appears when a reply to a notification is sent, but the system hasn't confirmed that it was delivered.",
-      "isCommentAutoGenerated" : true
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delivery unconfirmed. Your reply may still send — check Messages before sending it again."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consegna non confermata. La tua risposta potrebbe ancora essere inviata - controlla i Messaggi prima di inviarla di nuovo."
+          }
+        }
+      }
     },
     "Description" : {
       "extractionState" : "stale",
@@ -8719,6 +8832,12 @@
     },
     "e.g., 1920" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "es. 1920"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8854,6 +8973,12 @@
     },
     "Empty slot" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slot vuoto"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9749,6 +9874,12 @@
     },
     "Enable:" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abilita:"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9883,126 +10014,11 @@
     },
     "Events" : {
       "comment" : "A section in the calendar settings for toggling events.",
-      "isCommentAutoGenerated" : true,
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "الأحداث"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Události"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ereignisse"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Events"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Events"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eventos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Événements"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "אירועים"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Események"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eventi"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "イベント"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이벤트"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Evenementen"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wydarzenia"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eventos"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "События"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Etkinlikler"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Події"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "事件"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "事件"
           }
         }
       }
@@ -10115,6 +10131,12 @@
     },
     "expired" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "scaduto"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10362,6 +10384,12 @@
     },
     "Favorite" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferito"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10609,6 +10637,12 @@
             "value" : "Voltear vídeo"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capovolgi video"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10625,6 +10659,12 @@
     },
     "Format:" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Formato:"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10641,6 +10681,12 @@
     },
     "Forward 15s" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avanti 15s"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10670,6 +10716,12 @@
             "value" : "Forma del marco"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forma della cornice"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10686,6 +10738,12 @@
     },
     "From all apps" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Da tutte le app"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11657,6 +11715,12 @@
     },
     "Helper Service Unavailable" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servizio Helper non disponibile"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11837,6 +11901,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Teljesített emlékeztetők elrejtése"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nascondi i promemoria completati"
           }
         },
         "ja" : {
@@ -12357,6 +12427,12 @@
             "value" : "Masquer les fenêtres sur les affichages non-encoches du Mission Control"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nascondi le finestre su display non notch da Mission Control"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12769,6 +12845,12 @@
     },
     "Image Conversion Failed" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conversione immagine fallita"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12785,6 +12867,12 @@
     },
     "Image Size:" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimensione immagine:"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13176,6 +13264,12 @@
             "value" : "Interaction"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interazione"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13228,6 +13322,12 @@
     },
     "Join %@ meeting" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partecipa alla riunione di %@"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13244,6 +13344,12 @@
     },
     "Join meeting when tapping an event" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unisciti alla riunione quando tocchi un evento"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13277,6 +13383,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Garder Boring Notch à jour"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantieni Boring Notch aggiornato"
           }
         },
         "ja" : {
@@ -13390,6 +13502,12 @@
             "value" : "Source du clavier"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorgente Tastiera"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13466,6 +13584,12 @@
             "value" : "Langue"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lingua"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13512,6 +13636,12 @@
     },
     "Large" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grande"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13644,6 +13774,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lancer au démarrage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apri al login"
           }
         },
         "ja" : {
@@ -13804,6 +13940,12 @@
     },
     "Looking for devices…" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ricerca di dispositivi…"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14635,6 +14777,12 @@
             "value" : "Capacidad máxima: %@"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capacità Massima: %@"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14668,6 +14816,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Capacité maximale : Indisponible"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capacità massima: non disponibile"
           }
         },
         "ja" : {
@@ -15424,6 +15578,12 @@
     },
     "Message couldn't be sent. Your draft is still here — try again or open Messages." : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il messaggio non può essere inviato. La tua bozza è ancora qui - riprova o apri i Messaggi."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15462,6 +15622,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Micro"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Microfono"
           }
         },
         "ja" : {
@@ -15768,6 +15934,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Divers"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varie"
           }
         },
         "ja" : {
@@ -16404,6 +16576,12 @@
     },
     "Next" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avanti"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16787,6 +16965,12 @@
             "value" : "Normaliser la direction des gestes"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Normalizza direzione gesto"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16861,6 +17045,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pas en charge"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non in carica"
           }
         },
         "ja" : {
@@ -17077,6 +17267,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Animation de l'encoche"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Animazione notch"
           }
         },
         "ja" : {
@@ -17585,6 +17781,12 @@
     },
     "Notification Debug" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notification debug"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17605,6 +17807,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Notifications"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifiche"
           }
         },
         "pt-BR" : {
@@ -17645,6 +17853,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lecture en cours"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In riproduzione"
           }
         },
         "ja" : {
@@ -17751,6 +17965,12 @@
     },
     "OK" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17787,6 +18007,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ouvrir"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apri"
           }
         },
         "pt-BR" : {
@@ -17930,6 +18156,12 @@
             "value" : "Ouvrir dans %@"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apri in %@"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17946,6 +18178,12 @@
     },
     "Open in Calendar" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apri in Calendario"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18301,6 +18539,12 @@
             "value" : "Open Settings"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apri Impostazioni"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18434,6 +18678,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open System Settings"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apri le Impostazioni di Sistema"
           }
         },
         "pt-BR" : {
@@ -18666,6 +18916,12 @@
             "value" : "Aucune action"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessuna azione"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18741,6 +18997,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ouvrir les paramètres système"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apri le Impostazioni di Sistema"
           }
         },
         "ja" : {
@@ -18820,6 +19082,12 @@
             "value" : "Afficher l'OSD"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra OSD"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18886,6 +19154,12 @@
           }
         },
         "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OSD"
+          }
+        },
+        "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "OSD"
@@ -18966,6 +19240,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Intégré"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Integrato"
           }
         },
         "ja" : {
@@ -19139,6 +19419,12 @@
     },
     "Output" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Output"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19155,6 +19441,12 @@
     },
     "Pause" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausa"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19171,6 +19463,12 @@
     },
     "PDF Creation Failed" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Creazione PDF fallita"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19299,6 +19597,12 @@
     },
     "Play" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19315,6 +19619,12 @@
     },
     "Play/Pause" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play/Pausa"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19408,6 +19718,12 @@
             "value" : "Please allow camera access in System Settings to use the mirror feature."
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consenti l'accesso alla fotocamera nelle Impostazioni di sistema per utilizzare la funzione specchio."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19429,6 +19745,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Please allow camera access in System Settings."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consenti l'accesso alla fotocamera nelle Impostazioni di sistema."
           }
         },
         "pt-BR" : {
@@ -19677,6 +19999,12 @@
     },
     "Preserve Metadata" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conserva i Metadati"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19693,6 +20021,12 @@
     },
     "Previous" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Precedente"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20276,6 +20610,12 @@
             "value" : "Forme d'onde audio en temps réel"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forma onda audio in tempo reale"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20322,6 +20662,12 @@
     },
     "Recommended Applications" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applicazioni Consigliate"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20811,6 +21157,12 @@
     },
     "Remove from Favorites" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rimuovi dai Preferiti"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20933,6 +21285,12 @@
     },
     "Rename" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rinomina"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20949,6 +21307,12 @@
     },
     "Rename File" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rinomina File"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20965,6 +21329,12 @@
     },
     "Repeat" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ripeti"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21051,6 +21421,12 @@
     },
     "Reply" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rispondi"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21203,6 +21579,12 @@
             "value" : "Requires a third-party client with API plugin enabled."
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Richiede un client di terze parti con il plugin API abilitato."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21235,6 +21617,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nécessite macOS 14.2 ou ultérieur. Mettre à jour macOS pour activer la forme d'onde audio en temps réel."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Richiede macOS 14.2 o successivo. Aggiorna macOS per abilitare la forma d'onda audio in tempo reale."
           }
         },
         "ja" : {
@@ -21656,6 +22044,12 @@
             "value" : "Redémarrer maintenant"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riavvia ora"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21724,6 +22118,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Redémarrer pour changer la langue"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riavvia per applicare la lingua"
           }
         },
         "ja" : {
@@ -22103,6 +22503,12 @@
             "value" : "Sélectionnez le fournisseur à utiliser pour les contrôles système. BetterDisplay et Lunar exigent que leurs applications respectives soient installées et exécutées."
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selezionare quale provider utilizzare per i controlli di sistema. BetterDisplay e Lunar richiedono che le rispettive applicazioni siano installate ed in esecuzione."
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22274,6 +22680,12 @@
     },
     "Send" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invia"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24903,6 +25315,12 @@
     "Show charging wattage" : {
       "comment" : "A checkbox to show the wattage of the charging port.",
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra potenza di ricarica"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25479,6 +25897,12 @@
     },
     "Show notifications in the notch" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra le notifiche nel notch"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25814,6 +26238,12 @@
             "value" : "Afficher le pourcentage (encoche fermée)"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra percentuale (notch chiuso)"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25882,6 +26312,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Afficher le pourcentage (encoche ouverte)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra percentuale (notch aperto)"
           }
         },
         "ja" : {
@@ -26302,6 +26738,12 @@
             "value" : "Afficher les ombres"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra ombreggiatura"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -26466,6 +26908,12 @@
     },
     "Shows a smaller opened notch with just the music player — no tabs, calendar or mirror." : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra una notch aperta più piccola, con solo il lettore musicale - nessuna scheda, calendario o specchio."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -26482,6 +26930,12 @@
     },
     "Shuffle" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Casuale"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -26766,6 +27220,12 @@
             "value" : "Faire correspondre la pochette de l'album"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corrispondenza copertina album"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -26843,6 +27303,12 @@
             "value" : "Blanc"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bianco"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -26895,6 +27361,12 @@
     },
     "Small" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piccolo"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27172,6 +27644,12 @@
             "value" : "En ligne"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In linea"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27241,6 +27719,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Par défaut"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Predefinito"
           }
         },
         "ja" : {
@@ -27678,6 +28162,12 @@
     },
     "Stop" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27813,6 +28303,12 @@
     },
     "Suggest replies with Apple Intelligence" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suggerisci risposte con Apple Intelligence"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27964,6 +28460,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Système par défaut"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Predefinito di sistema"
           }
         },
         "ja" : {
@@ -28149,6 +28651,12 @@
             "value" : "Ajustes del sistema"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impostazioni di sistema"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -28189,6 +28697,12 @@
     },
     "Tap to see the next of %lld waiting" : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocca per vedere il prossimo %lld in attesa"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -28205,6 +28719,12 @@
     },
     "The background helper crashed or was closed by macOS. It restarts automatically on the next OSD event." : {
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'helper dello sfondo è andato in crash o è stato chiuso da macOS. Si riavvia automaticamente nel prossimo evento OSD."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -28243,6 +28763,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Temps avant la charge complète : %@ min"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tempo alla carica completa: %@ min"
           }
         },
         "ja" : {
@@ -28308,6 +28834,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Temps avant la charge complète : Calcul..."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tempo per la ricarica completa: calcolo..."
           }
         },
         "ja" : {
@@ -29535,6 +30067,12 @@
             "value" : "Utiliser le style en ligne"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa lo stile in linea"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -29717,6 +30255,12 @@
             "value" : "Utilise l'accélération FFT sur l'audio de l'application de lecture. Nécessite l'autorisation de capture audio et utilise un peu plus de CPU."
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilizza Accelera FFT sull'audio dell'app in riproduzione. Richiede l'autorizzazione di acquisizione audio e utilizza un po' più di CPU."
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -29816,6 +30360,12 @@
             "value" : "Using %@ temporarily"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uso temporaneo di %@"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -29837,6 +30387,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Using %@ temporarily. Your Now Playing preference is preserved."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uso temporaneo di %@. La tua preferenza per la Riproduzione in corso è conservata."
           }
         },
         "pt-BR" : {
@@ -30333,6 +30889,12 @@
             "value" : "Visibilité"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visibilità"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -30398,6 +30960,12 @@
           }
         },
         "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volume"
+          }
+        },
+        "it" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Volume"
@@ -30471,6 +31039,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Source du volume"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorgente Volume"
           }
         },
         "ja" : {
@@ -30566,6 +31140,12 @@
             "value" : "La semana comienza el"
           }
         },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La settimana inizia da"
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
@@ -30617,6 +31197,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vista semanal"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vista settimanale"
           }
         },
         "ja" : {
@@ -31000,6 +31586,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Works with most media apps, including browsers, to detect what's playing. Note: This may be removed in a future macOS version."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Funziona con la maggior parte delle app multimediali, inclusi i browser, per rilevare ciò che è in riproduzione. Nota: Questo potrebbe essere rimosso in una futura versione di macOS."
           }
         },
         "pt-BR" : {
@@ -31490,6 +32082,12 @@
             "state" : "translated",
             "value" : "Accessibility"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accessibilità"
+          }
         }
       }
     },
@@ -31499,6 +32097,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Device Control and Data Access"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controllo dispositivo e accesso ai dati"
           }
         }
       }
@@ -31510,6 +32114,12 @@
             "state" : "translated",
             "value" : "Enable %@"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abilita %@"
+          }
         }
       }
     },
@@ -31520,6 +32130,12 @@
             "state" : "translated",
             "value" : "%@ Required"
           }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Richiesto %@"
+          }
         }
       }
     },
@@ -31529,6 +32145,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Grant %@ so built-in keyboard brightness controls can be intercepted."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Concedi %@ così i controlli della luminosità della tastiera possono essere intercettati."
           }
         }
       }
@@ -31559,16 +32181,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Requires %@. Only banners are mirrored — notifications delivered silently to Notification Center aren't visible to the app."
-          }
-        }
-      }
-    },
-    "Delivery unconfirmed. Your reply may still send — check Messages before sending it again." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delivery unconfirmed. Your reply may still send — check Messages before sending it again."
           }
         }
       }
