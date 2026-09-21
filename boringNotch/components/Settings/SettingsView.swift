@@ -20,7 +20,6 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     case shelf
     case mirror
     case shortcuts
-    case advanced
     case about
 
     var id: Self { self }
@@ -37,7 +36,6 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .shelf: "Shelf"
         case .mirror: "Mirror"
         case .shortcuts: "Shortcuts"
-        case .advanced: "Advanced"
         case .about: "About"
         }
     }
@@ -54,7 +52,6 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .shelf: "books.vertical"
         case .mirror: "camera"
         case .shortcuts: "keyboard"
-        case .advanced: "gearshape.2"
         case .about: "info.circle"
         }
     }
@@ -107,8 +104,6 @@ struct SettingsView: View {
                     WebcamSettingsView(camera: camera)
                 case .shortcuts:
                     ShortcutsSettingsView()
-                case .advanced:
-                    AdvancedSettingsView()
                 case .about:
                     if let controller = updaterController {
                         AboutView(updaterController: controller)
