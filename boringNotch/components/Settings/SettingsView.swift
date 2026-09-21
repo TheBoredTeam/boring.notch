@@ -45,7 +45,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .general: "gear"
-        case .notch: "notch"
+        case .notch: "dial.medium.fill"
         case .appearance: "paintbrush"
         case .media: "play.rectangle"
         case .calendar: "calendar"
