@@ -14,100 +14,22 @@
     " – %lld" : {
       "extractionState" : "stale",
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : " – %lld"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : " – %lld"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : " – %lld"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " – %lld"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : " – %lld"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : " – %lld"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : " – %lld"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : " – %lld"
-          }
-        },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : " – %lld"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : " – %lld"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : " – %lld"
+            "state" : "translated",
+            "value" : " (predefinito)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : " – %lld"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : " – %lld"
+            "state" : "translated",
+            "value" : " (padrão)"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : " – %lld"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : " – %lld"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : " – %lld"
+            "state" : "translated",
+            "value" : " (varsayılan)"
           }
         }
       }
@@ -278,7 +200,8 @@
         }
       }
     },
-    "%d%%" : {
+    "%@x" : {
+      "comment" : "Animation speed multiplier.",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -718,13 +641,13 @@
             "value" : "Erişilebilirlik Erişimi Gereklidir"
           }
         },
-        "uk" : {
+        "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Потребує дозвіл на Доступність(Accessibility)"
           }
         },
-        "zh-Hans" : {
+        "tr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "需要辅助功能权限"
@@ -3642,6 +3565,7 @@
       }
     },
     "Calendar access is denied. Please enable it in System Settings." : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -5361,6 +5285,7 @@
       }
     },
     "Close" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -7422,6 +7347,7 @@
       }
     },
     "Download" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -8054,6 +7980,7 @@
       }
     },
     "Edit layout" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -9158,6 +9085,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "享受您的闲暇时光！"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "享受您的闲暇时光！"
+          }
+        }
+      }
+    },
+    "Events" : {
+      "comment" : "A section in the calendar settings for toggling events.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Events"
           }
         }
       }
@@ -11773,6 +11717,7 @@
       }
     },
     "In progress" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -15201,194 +15146,35 @@
             "value" : "No custom animation available"
           }
         },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Žádná vlastní animace není k dispozici"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Keine benutzerdefinierte Animation verfügbar"
-          }
-        },
-        "en" : {
+        "zh-Hant-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No custom animation available"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No custom animation available"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sin animación personalizada"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Aucune animation personnalisée disponible"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom animation available"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Nessuna animazione personalizzata disponibile"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "사용자 정의 애니메이션 없음"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Brak dostępnych niestandardowych animacji"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom animation available"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom animation available"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Özel animasyon mevcut değil"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom animation available"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "没有可用的自定义动画"
+            "value" : "永不隱藏"
           }
         }
       }
     },
-    "No custom visualizer" : {
+    "Nightly" : {
+      "comment" : "Update channel: nightly"
+    },
+    "Next" : {
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom visualizer"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Žádný vlastní vizualizér není k dispozici"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Keine benutzerdefinierte Audiovisualisierung"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No custom visualizer"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No custom visualiser"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sin visualizador personalizado"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Aucun visualiseur personnalisé"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom visualizer"
-          }
-        },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Nessun visualizzatore personalizzato"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "사용자 지정 시각화 도구 없음"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Brak niestandardowych wizualizerów"
+            "state" : "translated",
+            "value" : "Avanti"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom visualizer"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom visualizer"
+            "state" : "translated",
+            "value" : "Próximo"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Özel görselleştirici bulunmuyor"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom visualizer"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "没有自定义可视化器"
+            "state" : "translated",
+            "value" : "Sıradaki"
           }
         }
       }
@@ -16629,6 +16415,7 @@
       }
     },
     "Open Calendar Settings" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -16957,6 +16744,7 @@
       }
     },
     "Open Reminder Settings" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -19023,6 +18811,7 @@
       }
     },
     "Reminder access is denied. Please enable it in System Settings." : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -22314,79 +22103,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show HUD in open notch"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show HUD in open notch"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show HUD in open notch"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show HUD in open notch"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show HUD in open notch"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show HUD in open notch"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show HUD in open notch"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show HUD in open notch"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show HUD in open notch"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show HUD in open notch"
+            "value" : "Показывать анимацию мордочки, когда неактивно"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show HUD in open notch"
+            "state" : "translated",
+            "value" : "Çalışmadığı zaman havalı yüz animasyonları göster"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show HUD in open notch"
+            "state" : "translated",
+            "value" : "Показувати класну анімацію обличчя під час неактивності"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show HUD in open notch"
+            "state" : "translated",
+            "value" : "空闲时显示酷炫脸部动画"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "閒置時顯示炫酷臉部動畫"
           }
         }
       }
@@ -23533,6 +23274,18 @@
       "comment" : "Display name for the Spotify media controller.",
       "isCommentAutoGenerated" : true
     },
+    "Spotify" : {
+      "comment" : "Spotify service name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spotify"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
     "Square" : {
       "comment" : "A caption displayed underneath the name of a square mirror shape.",
       "isCommentAutoGenerated" : true
@@ -23584,6 +23337,9 @@
     "Unmuted" : {
       "comment" : "A text that displays when the mic is unmuted.",
       "isCommentAutoGenerated" : true
+    },
+    "Update channel" : {
+      "comment" : "Software updates channel picker label"
     },
     "Upgrade to Pro" : {
       "comment" : "A button label.",

@@ -21,7 +21,7 @@ enum SneakContentType {
     case audioDevice
 }
 
-struct sneakPeek {
+struct SneakPeekState {
     var show: Bool = false
     var type: SneakContentType = .music
     var value: CGFloat = 0
@@ -51,7 +51,7 @@ struct ExpandedItem {
 }
 
 @MainActor
-class BoringViewCoordinator: ObservableObject {
+final class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
 
     @Published var currentView: NotchViews = .home
@@ -185,35 +185,13 @@ class BoringViewCoordinator: ObservableObject {
         }
     }
     
-    @objc func sneakPeekEvent(_ notification: Notification) {
-        let decoder = JSONDecoder()
-        if let decodedData = try? decoder.decode(
-            SharedSneakPeek.self, from: notification.userInfo?.first?.value as! Data)
-        {
-            let contentType =
-                decodedData.type == "brightness"
-                ? SneakContentType.brightness
-                : decodedData.type == "volume"
-                    ? SneakContentType.volume
-                    : decodedData.type == "backlight"
-                        ? SneakContentType.backlight
-                        : decodedData.type == "mic"
-                            ? SneakContentType.mic : SneakContentType.brightness
+    // MARK: - Per-Screen Sneak Peek Management
 
-            let formatter = NumberFormatter()
-            formatter.locale = Locale(identifier: "en_US_POSIX")
-            formatter.numberStyle = .decimal
-            let value = CGFloat((formatter.number(from: decodedData.value) ?? 0.0).floatValue)
-            let icon = decodedData.icon
+    // Dictionary to hold sneak peek state for each screen UUID
+    @Published var sneakPeekStates: [String: SneakPeekState] = [:]
 
-            print("Decoded: \(decodedData), Parsed value: \(value)")
-
-            toggleSneakPeek(status: decodedData.show, type: contentType, value: value, icon: icon)
-
-        } else {
-            print("Failed to decode JSON data")
-        }
-    }
+    // Dictionary to hold hide tasks for each screen UUID
+    private var sneakPeekTasks: [String: Task<Void, Never>] = [:]
 
     // MARK: - Per-Screen Sneak Peek Management
 

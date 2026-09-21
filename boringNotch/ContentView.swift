@@ -16,8 +16,6 @@ import SwiftUIIntrospect
 @MainActor
 struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject var webcamManager = WebcamManager.shared
-
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
@@ -85,6 +83,61 @@ struct ContentView: View {
             topCornerRadius: topCornerRadius,
             bottomCornerRadius: bottomCorner
         )
+    }
+
+    /// Closed-notch activities, newest first. A notification sits in front of
+    /// music, so an incoming message takes over the display; when it expires
+    /// it drops out of this list on its own and music comes back — no
+    /// explicit "restore previous activity" bookkeeping needed.
+    private var liveActivities: [LiveActivityItem] {
+        var items: [LiveActivityItem] = []
+
+        if let notification = notificationManager.activeNotification {
+            items.append(.notification(notification))
+        }
+
+        let musicIsShowing = (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
+            && (musicManager.isPlaying || !musicManager.isPlayerIdle)
+            && coordinator.musicLiveActivityEnabled
+        if musicIsShowing {
+            items.append(.music)
+        }
+
+        return items
+    }
+
+    /// A notification is a glance, not a workspace — it doesn't need the full
+    /// height the home/shelf tabs are sized for, and stretching to fill it
+    /// just surrounds two lines of text with empty black.
+    /// nil means "size to content".
+    ///
+    /// Compact mode must use nil: this frame bounds hit-testing as well as
+    /// layout, so any value shorter than the content leaves the transport
+    /// row outside the hover region — moving toward the buttons registered
+    /// as a hover-exit and closed the notch. The compact panel's height is
+    /// controlled by its own internal padding instead, which is the honest
+    /// lever anyway.
+    private var openNotchHeight: CGFloat? {
+        if notificationManager.activeNotification != nil { return 132 }
+        return Defaults[.compactMode] ? nil : vm.notchSize.height
+    }
+
+    /// Compact mode drops the tab bar along with the tabs it switches
+    /// between — there's only the player to show, so a switcher would have
+    /// nothing to switch to. Also what keeps the panel narrow, since the
+    /// header spans the full notch width.
+    private var showsHeader: Bool {
+        vm.notchState == .open
+            && notificationManager.activeNotification == nil
+            && !Defaults[.compactMode]
+    }
+
+    /// The activity currently on top of the stack — what the chin has to be
+    /// sized for.
+    private var selectedActivity: LiveActivityItem? {
+        let items = liveActivities
+        guard !items.isEmpty else { return nil }
+        return items[min(max(activityIndex, 0), items.count - 1)]
     }
 
     private var computedChinWidth: CGFloat {
@@ -173,7 +226,14 @@ struct ContentView: View {
                     .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
                 
                 mainLayout
-                    .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
+                    // alignment: .top matters here — without it this frame
+                    // defaults to centering, and shrinking the height for a
+                    // notification (openNotchHeight < vm.notchSize.height)
+                    // then pulls the visible top edge down by half the
+                    // difference instead of staying flush with the window's
+                    // top-anchored origin. That's what read as "the notch
+                    // sits a bit off the top of the screen."
+                    .frame(height: vm.notchState == .open ? openNotchHeight : nil, alignment: .top)
                     .conditionalModifier(true) { view in
                         return view
                             .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchState)
@@ -229,6 +289,34 @@ struct ContentView: View {
                                 isHovering = false
                             }
                         }
+                        // Keep the helper's banner keep-alive gate in sync
+                        // with the effective open state (refcounted client-side).
+                        if newState == .open {
+                            XPCHelperClient.shared.notchOpened()
+                        } else {
+                            XPCHelperClient.shared.notchClosed()
+                        }
+                    }
+                    .onDisappear {
+                        // Balance the refcount: torn down while open (screen
+                        // lock, display-set change, window teardown) means the
+                        // open->closed onChange never fires — without this the
+                        // helper's focus gate would stay stuck open forever.
+                        if vm.notchState == .open {
+                            XPCHelperClient.shared.notchClosed()
+                        }
+                    }
+                    // A new notification always takes the front of the stack,
+                    // even if the user had swiped away to music.
+                    .onChange(of: notificationManager.activeNotification?.id) { _, newID in
+                        if newID != nil { activityIndex = 0 }
+                    }
+                    // Activities disappear on their own (a notification
+                    // expires, music stops). Keep the selection in range so
+                    // the stack falls back to whatever is left instead of
+                    // pointing past the end.
+                    .onChange(of: liveActivities.count) { _, count in
+                        if activityIndex >= count { activityIndex = max(count - 1, 0) }
                     }
                     .onChange(of: vm.isBatteryPopoverActive) {
                         if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
@@ -368,9 +456,16 @@ struct ContentView: View {
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
-                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
-                          MusicLiveActivity()
-                              .frame(alignment: .center)
+                      } else if !liveActivities.isEmpty && vm.notchState == .closed && !vm.hideOnClosed {
+                          LiveActivityStack(items: liveActivities, index: $activityIndex) { item in
+                              switch item {
+                              case .notification(let notification):
+                                  NotificationLiveActivity(notification: notification)
+                              case .music:
+                                  MusicLiveActivity()
+                                      .frame(alignment: .center)
+                              }
+                          }
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
@@ -526,6 +621,32 @@ struct ContentView: View {
         )
     }
 
+    /// True while the song-change peek is expanding the closed pill inline.
+    private var showingInlineMusicPeek: Bool {
+        coordinator.expandingView.show
+            && coordinator.expandingView.type == .music
+            && Defaults[.sneakPeekStyles] == .inline
+    }
+
+    /// Width of the black centre section of the closed music pill.
+    ///
+    /// Derived from the real notch width rather than the previous hard-coded
+    /// 380. That constant assumed a particular notch size: the title sits
+    /// left of the cutout and the artist right of it, separated by a spacer
+    /// as wide as the notch itself, so on a wider notch there was no room
+    /// left for the artist and the labels collided. Sizing from
+    /// closedNotchSize keeps a fixed label budget either side whatever the
+    /// hardware is, and keeps liveActivityEdgeMargin in play so content
+    /// clears the bezel — the inline path had dropped it entirely.
+    private var musicActivityCenterWidth: CGFloat {
+        let margin = vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin)
+        guard showingInlineMusicPeek else { return margin }
+        return margin + (2 * inlineMusicPeekLabelWidth)
+    }
+
+    /// Space reserved for the title (left of the cutout) and artist (right).
+    private let inlineMusicPeekLabelWidth: CGFloat = 110
+
     @ViewBuilder
     func MusicLiveActivity() -> some View {
         HStack(spacing: 0) {
@@ -562,7 +683,10 @@ struct ContentView: View {
             Rectangle()
                 .fill(.black)
                 .overlay(
-                    HStack(alignment: .top) {
+                    // .center, not .top: the album art beside this is
+                    // vertically centered, so top-aligned labels sat visibly
+                    // high against it.
+                    HStack(alignment: .center) {
                         if coordinator.expandingView.show
                             && coordinator.expandingView.type == .music
                         {
@@ -583,6 +707,7 @@ struct ContentView: View {
                             Text(musicManager.artistName)
                                 .lineLimit(1)
                                 .truncationMode(.tail)
+                                .frame(width: inlineMusicPeekLabelWidth, alignment: .trailing)
                                 .foregroundStyle(
                                     Defaults[.coloredSpectrogram]
                                         ? Color(nsColor: musicManager.avgColor)
@@ -596,6 +721,7 @@ struct ContentView: View {
                                 )
                         }
                     }
+                    .padding(.horizontal, 8)
                 )
                 .frame(
                     width: (coordinator.expandingView.show
@@ -673,7 +799,16 @@ struct ContentView: View {
             withAnimation(animationSpring) {
                 isHovering = true
             }
-            
+
+            // Freeze the dismiss countdown the moment the pointer arrives,
+            // not when the notch finishes opening. Opening waits out
+            // minimumHoverDuration plus an animation, and a notification
+            // near the end of its life would expire during that — so it
+            // vanished exactly as the notch opened around it.
+            if notificationManager.activeNotification != nil {
+                notificationManager.holdActive()
+            }
+
             if vm.notchState == .closed && Defaults[.enableHaptics] {
                 haptics.toggle()
             }
@@ -719,7 +854,10 @@ struct ContentView: View {
                     withAnimation(animationSpring) {
                         self.isHovering = false
                     }
-                    
+
+                    // Pointer left — let the notification age out again.
+                    self.notificationManager.resumeDismiss()
+
                     if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
                         // Clear audio device expanded view when closing
                         if self.coordinator.expandingView.type == .audioDevice && self.coordinator.expandingView.show {
@@ -908,7 +1046,7 @@ struct GeneralDropTargetDelegate: DropDelegate {
 }
 
 #Preview {
-    let vm = BoringViewModel()
+    let vm = BoringViewModel(camera: CameraModel())
     vm.open()
     return ContentView()
         .environmentObject(vm)

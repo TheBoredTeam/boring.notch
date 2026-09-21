@@ -21,7 +21,7 @@ struct InlineOSD: View {
             HStack(spacing: 5) {
                 OSDIconView(eventType: type, icon: icon, value: value, accent: accent)
                 
-                Text(Type2Name(type))
+                Text(osdTypeName(type))
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .lineLimit(1)
@@ -100,5 +100,5 @@ struct InlineOSD: View {
         .padding(.horizontal, 8)
         .background(Color.black)
         .padding()
-        .environmentObject(BoringViewModel())
+        .environmentObject(BoringViewModel(camera: CameraModel()))
 }

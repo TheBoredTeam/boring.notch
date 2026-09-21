@@ -7,6 +7,7 @@
 
 import AppKit
 
+@MainActor
 enum ApplicationRelauncher {
     static func restart() {
         guard let bundleIdentifier = Bundle.main.bundleIdentifier else { return }

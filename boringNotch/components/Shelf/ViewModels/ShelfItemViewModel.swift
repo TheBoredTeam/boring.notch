@@ -57,7 +57,6 @@ final class ShelfItemViewModel: ObservableObject {
     private var sharingLifecycle: SharingLifecycleDelegate?
     private var quickShareLifecycle: SharingLifecycleDelegate?
     private var sharingAccessingURLs: [URL] = []
-    private static var copiedURLs: [URL] = []
 
     private let selection = ShelfSelectionModel.shared
 
@@ -145,7 +144,11 @@ final class ShelfItemViewModel: ObservableObject {
 
     func handleRightClick(event: NSEvent, view: NSView) {
         if !selection.isSelected(item.id) { selection.selectSingle(item) }
-        presentContextMenu(event: event, in: view)
+        ShelfContextMenuBuilder.present(
+            item: item, event: event, in: view,
+            onShare: { [weak self] v in self?.shareItem(from: v) },
+            onQuickLook: { [weak self] urls in self?.onQuickLookRequest?(urls) }
+        )
     }
 
     func handleDoubleClick() {

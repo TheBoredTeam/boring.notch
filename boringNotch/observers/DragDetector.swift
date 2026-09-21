@@ -40,6 +40,8 @@ final class DragDetector {
     
     /// Checks if the drag pasteboard contains valid content types that can be dropped on the shelf
     private func hasValidDragContent() -> Bool {
+        guard let items = dragPasteboard.pasteboardItems, !items.isEmpty else { return false }
+
         let validTypes: [NSPasteboard.PasteboardType] = [
             .fileURL,
             NSPasteboard.PasteboardType(UTType.url.identifier),

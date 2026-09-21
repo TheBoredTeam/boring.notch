@@ -51,10 +51,16 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 
 <a href="https://github.com/TheBoredTeam/boring.notch/releases/latest/download/boringNotch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
 
-Once downloaded, open the `.dmg` and move **Boring Notch** to your `/Applications` folder.
+1. Open the downloaded `boringNotch.dmg` file.
+2. Drag **Boring Notch** onto the **Applications** folder in the installer window.
+3. Wait for the copy to finish.
+4. Eject the Boring Notch disk image in Finder.
+5. Open **Boring Notch** from your **Applications** folder.
+
+The installed app stays available after you eject the disk image. Opening the app inside the installer does not install it.
 
 > [!IMPORTANT]
-> We don't have an Apple Developer account (yet 👀), so macOS will warn you that Boring Notch is from an unidentified developer on first launch. This is expected behavior.
+> Release builds are not notarized with Apple (macOS will warn you that Boring Notch is from an unidentified developer on first launch). This is expected behavior.
 >
 > You'll need to bypass this before the app will open. You only need to do this once. Use one of the methods below.
 
@@ -186,12 +192,11 @@ We would like to express our gratitude to the authors and maintainers of the ope
 - **[MediaRemoteAdapter](https://github.com/ungive/mediaremote-adapter)** –  An open-source project that allowed us to use the Now Playing source in macOS 15.4+
 - **[NotchDrop](https://github.com/Lakr233/NotchDrop)** – An open-source project that has been instrumental in developing the first version of the "Shelf" feature in Boring Notch.
 
-For a full list of licenses and attributions, please see the [Third-Party Licenses](./THIRD_PARTY_LICENSES.md) file.
+For a full list of licenses and attributions, please see the [Third-Party Licenses](./THIRD_PARTY_LICENSES) file.
 
 ### Icon credits: [@maxtron95](https://github.com/maxtron95)
 ### Website credits: [@himanshhhhuv](https://github.com/himanshhhhuv)
 
 - **SwiftUI**: For making us look like coding wizards.
 - **You**: For being awesome and checking out **boring.notch**!
-
 

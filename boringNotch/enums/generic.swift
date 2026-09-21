@@ -8,7 +8,7 @@
 import Foundation
 import Defaults
 
-public enum Style {
+enum Style {
     case notch
     case floating
 }
@@ -18,7 +18,7 @@ public enum NotchState {
     case open
 }
 
-public enum NotchViews {
+enum NotchViews {
     case home
     case shelf
 }

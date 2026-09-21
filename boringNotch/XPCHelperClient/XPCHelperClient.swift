@@ -11,9 +11,17 @@ final class XPCHelperClient: NSObject {
     }
 
     private let serviceName = "theboringteam.boringnotch.BoringNotchXPCHelper"
+
+    /// Coarse, UI-friendly view of helper connectivity. Flips to false from
+    /// the connection's interruption/invalidation handlers so a crashed
+    /// helper is visible in Settings instead of features silently degrading;
+    /// flips back to true when a live connection is (re)established.
+    @MainActor @Published private(set) var helperAvailable = true
+    @MainActor private(set) var lastError: XPCHelperError?
     
     private var remoteService: RemoteXPCService<BoringNotchXPCHelperProtocol>?
     private var connection: NSXPCConnection?
+    /// Set by the interruption/invalidation hops, cleared when a fresh
     private var lastKnownAuthorization: Bool?
     private var monitoringTask: Task<Void, Never>?
     private var lunarListener: BoringNotchXPCHelperLunarListener?
@@ -50,8 +58,8 @@ final class XPCHelperClient: NSObject {
                 self?.hasLunarListener = false
             }
         }
-        
-        conn.invalidationHandler = { [weak self] in
+
+        conn.invalidationHandler = { [weak self, weak conn] in
             Task { @MainActor in
                 self?.connection = nil
                 self?.remoteService = nil
@@ -60,7 +68,7 @@ final class XPCHelperClient: NSObject {
         }
         
         conn.resume()
-        
+
         let service = RemoteXPCService<BoringNotchXPCHelperProtocol>(
             connection: conn,
             remoteInterface: BoringNotchXPCHelperProtocol.self
@@ -68,6 +76,18 @@ final class XPCHelperClient: NSObject {
         
         connection = conn
         remoteService = service
+        helperAvailable = true
+        lastError = nil
+        // A helper restart forgets our state — always re-announce the
+        // effective notch-open state so its banner keep-alive gate converges
+        // to ours, whether we currently count open notches or not.
+        Task {
+            do {
+                try await service.withService { $0.setNotchOpen(notchOpenCount > 0) }
+            } catch {
+                lastError = .transport(underlying: error)
+            }
+        }
         return service
     }
     
@@ -110,6 +130,9 @@ final class XPCHelperClient: NSObject {
                 } catch { break }
             }
         }
+        // Initial probe so observers get the current state without waiting
+        // for the first activation.
+        Task { _ = await isAccessibilityAuthorized() }
     }
 
     func stopMonitoringAccessibilityAuthorization() {
@@ -146,6 +169,7 @@ final class XPCHelperClient: NSObject {
             notifyAuthorizationChange(result)
             return result
         } catch {
+            lastError = .transport(underlying: error)
             return false
         }
     }
@@ -161,6 +185,7 @@ final class XPCHelperClient: NSObject {
             notifyAuthorizationChange(result)
             return result
         } catch {
+            lastError = .transport(underlying: error)
             return false
         }
     }
@@ -190,6 +215,7 @@ final class XPCHelperClient: NSObject {
             }
             return result?.floatValue
         } catch {
+            lastError = .transport(underlying: error)
             return nil
         }
     }
@@ -203,6 +229,7 @@ final class XPCHelperClient: NSObject {
                 }
             }
         } catch {
+            lastError = .transport(underlying: error)
             return false
         }
     }
@@ -232,6 +259,23 @@ final class XPCHelperClient: NSObject {
             }
             return result?.floatValue
         } catch {
+            lastError = .transport(underlying: error)
+            return nil
+        }
+    }
+
+    func displayIDForBrightness() async -> CGDirectDisplayID? {
+        do {
+            let service = ensureRemoteService()
+            let result: NSNumber? = try await service.withContinuation { service, continuation in
+                service.displayIDForBrightness(with: { value in
+                    continuation.resume(returning: value)
+                })
+            }
+            guard let num = result else { return nil }
+            return CGDirectDisplayID(num.uint32Value)
+        } catch {
+            lastError = .transport(underlying: error)
             return nil
         }
     }
@@ -260,6 +304,82 @@ final class XPCHelperClient: NSObject {
                 }
             }
         } catch {
+            lastError = .transport(underlying: error)
+            return false
+        }
+    }
+    /// Returns the resulting brightness, or nil on failure.
+    func adjustScreenBrightness(by value: Float) async -> Float? {
+        do {
+            let service = ensureRemoteService()
+            return try await service.withContinuation { service, continuation in
+                service.adjustScreenBrightness(by: value) { result in
+                    continuation.resume(returning: result?.floatValue)
+                }
+            }
+        } catch {
+            lastError = .transport(underlying: error)
+            return nil
+        }
+    }
+
+    // MARK: - Lunar Events
+
+    func isLunarAvailable() async -> Bool {
+        do {
+            let service = ensureRemoteService()
+            return try await service.withContinuation { service, continuation in
+                service.isLunarAvailable { available in
+                    continuation.resume(returning: available)
+                }
+            }
+        } catch {
+            lastError = .transport(underlying: error)
+            return false
+        }
+    }
+
+    func startLunarEventStream(listener: BoringNotchXPCHelperLunarListener) async -> Bool {
+        lunarListener = listener
+        // Register on the shared exported object too: the connection may
+        // already exist (it isn't rebuilt for listeners any more), in
+        // which case this is the only path that hooks Lunar events up.
+        notificationDelegate.lunarListener = listener
+        do {
+            let service = ensureRemoteService()
+            return try await service.withContinuation { service, continuation in
+                service.startLunarEventStream { started in
+                    continuation.resume(returning: started)
+                }
+            }
+        } catch {
+            lastError = .transport(underlying: error)
+            return false
+        }
+    }
+
+    func stopLunarEventStream() async {
+        do {
+            let service = ensureRemoteService()
+            try await service.withService { service in
+                service.stopLunarEventStream()
+            }
+        } catch {
+            lastError = .transport(underlying: error)
+            return
+        }
+    }
+
+    func setLunarOSDHidden(_ hide: Bool) async -> Bool {
+        do {
+            let service = ensureRemoteService()
+            return try await service.withContinuation { service, continuation in
+                service.setLunarOSDHidden(hide) { ok in
+                    continuation.resume(returning: ok)
+                }
+            }
+        } catch {
+            lastError = .transport(underlying: error)
             return false
         }
     }

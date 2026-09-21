@@ -234,12 +234,12 @@ final class MediaKeyInterceptor {
         if FileManager.default.fileExists(atPath: defaultPath) {
             do {
                 audioPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: defaultPath))
-                print("🔊 [MediaKeyInterceptor] Loaded default Bezel audio from: \(defaultPath)")
+                Log.osd.debug("🔊 [MediaKeyInterceptor] Loaded default Bezel audio from: \(defaultPath)")
             } catch {
-                print("⚠️ [MediaKeyInterceptor] Failed to init AVAudioPlayer with default path \(defaultPath): \(error.localizedDescription)")
+                Log.osd.error("⚠️ [MediaKeyInterceptor] Failed to init AVAudioPlayer with default path \(defaultPath): \(error.localizedDescription)")
             }
         } else {
-            print("⚠️ [MediaKeyInterceptor] Default bezel audio not found at: \(defaultPath)")
+            Log.osd.error("⚠️ [MediaKeyInterceptor] Default bezel audio not found at: \(defaultPath)")
         }
 
         if let player = audioPlayer {
@@ -250,18 +250,23 @@ final class MediaKeyInterceptor {
     }
 
     private func playFeedbackSound() {
-        guard let feedback = UserDefaults.standard.persistentDomain(forName: "NSGlobalDomain")?["com.apple.sound.beep.feedback"] as? Int,
-              feedback == 1 else { return }
+        // Single-key lookup — persistentDomain(forName:) materialized the
+        // entire NSGlobalDomain on every volume key press.
+        let feedback = CFPreferencesCopyAppValue(
+            "com.apple.sound.beep.feedback" as CFString,
+            kCFPreferencesAnyApplication
+        ) as? Int
+        guard feedback == 1 else { return }
 
         prepareAudioPlayerIfNeeded()
         guard let player = audioPlayer else {
-            print("⚠️ [MediaKeyInterceptor] No audio player available to play feedback sound")
+            Log.osd.error("⚠️ [MediaKeyInterceptor] No audio player available to play feedback sound")
             return
         }
         if let url = player.url {
-            print("🔊 [MediaKeyInterceptor] Playing feedback sound from: \(url.path)")
+            Log.osd.debug("🔊 [MediaKeyInterceptor] Playing feedback sound from: \(url.path)")
         } else {
-            print("🔊 [MediaKeyInterceptor] Playing feedback sound (no url available for AVAudioPlayer)")
+            Log.osd.debug("🔊 [MediaKeyInterceptor] Playing feedback sound (no url available for AVAudioPlayer)")
         }
         if player.isPlaying {
             player.stop()

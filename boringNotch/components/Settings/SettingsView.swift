@@ -63,9 +63,11 @@ struct SettingsView: View {
     @State private var accentColorUpdateTrigger = UUID()
 
     let updaterController: SPUStandardUpdaterController?
+    let camera: CameraModel
 
-    init(updaterController: SPUStandardUpdaterController? = nil) {
+    init(updaterController: SPUStandardUpdaterController? = nil, camera: CameraModel) {
         self.updaterController = updaterController
+        self.camera = camera
     }
 
     var body: some View {
@@ -105,10 +107,10 @@ struct SettingsView: View {
                     Advanced()
                 case .about:
                     if let controller = updaterController {
-                        About(updaterController: controller)
+                        AboutView(updaterController: controller)
                     } else {
                         // Fallback with a default controller
-                        About(
+                        AboutView(
                             updaterController: SPUStandardUpdaterController(
                                 startingUpdater: false, updaterDelegate: nil,
                                 userDriverDelegate: nil))

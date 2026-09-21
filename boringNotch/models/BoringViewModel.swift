@@ -9,7 +9,7 @@ import Combine
 import Defaults
 import SwiftUI
 
-class BoringViewModel: NSObject, ObservableObject {
+final class BoringViewModel: NSObject, ObservableObject {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var detector = FullscreenMediaDetector.shared
 
@@ -31,9 +31,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var notchSize: CGSize = getClosedNotchSize()
     @Published var closedNotchSize: CGSize = getClosedNotchSize()
     
-    let webcamManager = WebcamManager.shared
-    @Published var isCameraExpanded: Bool = false
-    @Published var isRequestingAuthorization: Bool = false
+    let camera: CameraModel
     
     deinit {
         destroy()
@@ -44,12 +42,13 @@ class BoringViewModel: NSObject, ObservableObject {
         cancellables.removeAll()
     }
 
-    init(screenUUID: String? = nil) {
+    init(screenUUID: String? = nil, camera: CameraModel) {
         animation = animationLibrary.animation
+        self.camera = camera
+        self.screenUUID = screenUUID
 
         super.init()
-        
-        self.screenUUID = screenUUID
+
         notchSize = getClosedNotchSize(screenUUID: screenUUID)
         closedNotchSize = notchSize
 
@@ -136,7 +135,7 @@ class BoringViewModel: NSObject, ObservableObject {
                 isCameraExpanded = true
             }
 
-        case .denied, .restricted:
+        case .permissionDenied:
             DispatchQueue.main.async {
                 NSApp.setActivationPolicy(.regular)
                 NSApp.activate(ignoringOtherApps: true)
@@ -157,14 +156,10 @@ class BoringViewModel: NSObject, ObservableObject {
                 NSApp.deactivate()
             }
 
-        case .notDetermined:
-            isRequestingAuthorization = true
-            webcamManager.checkAndRequestVideoAuthorization()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                self.isRequestingAuthorization = false
-            }
+        case .permissionRequired:
+            camera.requestAccess()
 
-        default:
+        case .requestingPermission, .starting:
             break
         }
     }

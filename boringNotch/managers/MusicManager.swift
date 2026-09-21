@@ -476,7 +476,8 @@ final class MusicManager: ObservableObject {
         }
 
         // Check for playback state changes (playing/paused)
-        if state.isPlaying != self.isPlaying {
+        let playingStateChanged = state.isPlaying != self.isPlaying
+        if playingStateChanged {
             NSLog("Playback state changed: \(state.isPlaying ? "Playing" : "Paused")")
             withAnimation(.smooth) {
                 self.isPlaying = state.isPlaying
@@ -506,7 +507,7 @@ final class MusicManager: ObservableObject {
                 self.updateArtwork(artwork)
             } else if state.artwork == nil {
                 // Try to use app icon if no artwork but track changed
-                if let appIconImage = AppIconAsNSImage(for: state.bundleIdentifier) {
+                if let appIconImage = appIconAsNSImage(for: state.bundleIdentifier) {
                     self.usingAppIconForArtwork = true
                     self.updateAlbumArt(newAlbumArt: appIconImage)
                 } else {
@@ -589,8 +590,15 @@ final class MusicManager: ObservableObject {
         if volumeChanged {
             self.volume = state.volume
         }
-        
-        self.timestampDate = state.lastUpdated
+
+        // The slider extrapolates from (elapsedTime, timestampDate); only
+        // republish when an extrapolation input actually changed — otherwise
+        // every no-op stream event invalidates the whole view tree. A pause/
+        // resume must rebase it too, or the estimate overshoots by the pause
+        // duration.
+        if timeChanged || playbackRateChanged || playingStateChanged {
+            self.timestampDate = state.lastUpdated
+        }
     }
 
     func toggleFavoriteTrack() {
@@ -679,6 +687,7 @@ final class MusicManager: ObservableObject {
 
     func updateAlbumArt(newAlbumArt: NSImage) {
         workItem?.cancel()
+        averageColorTask?.cancel()
         withAnimation(.smooth) {
             self.albumArt = newAlbumArt
             if Defaults[.coloredSpectrogram] {
@@ -688,7 +697,7 @@ final class MusicManager: ObservableObject {
     }
 
     // MARK: - Playback Position Estimation
-    public func estimatedPlaybackPosition(at date: Date = Date()) -> TimeInterval {
+    func estimatedPlaybackPosition(at date: Date = Date()) -> TimeInterval {
         guard isPlaying else { return min(elapsedTime, songDuration) }
 
         let timeDifference = date.timeIntervalSince(timestampDate)
@@ -697,22 +706,27 @@ final class MusicManager: ObservableObject {
     }
 
     func calculateAverageColor() {
-        albumArt.averageColor { [weak self] color in
-            DispatchQueue.main.async {
-                withAnimation(.smooth) {
-                    self?.avgColor = color ?? .white
-                }
+        let artwork = albumArt
+        averageColorTask = Task { [weak self, artwork] in
+            let color = await artwork.averageColor()
+            guard !Task.isCancelled,
+                  let self,
+                  self.albumArt === artwork else {
+                return
+            }
+
+            withAnimation(.smooth) {
+                self.avgColor = color ?? .white
             }
         }
     }
 
     private func updateSneakPeek() {
-        if isPlaying && Defaults[.enableSneakPeek] {
-            if Defaults[.sneakPeekStyles] == .standard {
-                coordinator.toggleSneakPeek(status: true, type: .music)
-            } else {
-                coordinator.toggleExpandingView(status: true, type: .music)
-            }
+        guard isPlaying && Defaults[.enableSneakPeek] else { return }
+        if Defaults[.sneakPeekStyles] == .standard {
+            NotchUIEventBus.events.send(.sneakPeek(type: .music, value: 0))
+        } else {
+            NotchUIEventBus.events.send(.expandingView(type: .music))
         }
     }
 
@@ -784,7 +798,7 @@ final class MusicManager: ObservableObject {
     }
     func openMusicApp() {
         guard let bundleID = bundleIdentifier else {
-            print("Error: appBundleIdentifier is nil")
+            Log.music.error("Error: appBundleIdentifier is nil")
             return
         }
 
@@ -793,13 +807,13 @@ final class MusicManager: ObservableObject {
             let configuration = NSWorkspace.OpenConfiguration()
             workspace.openApplication(at: appURL, configuration: configuration) { (app, error) in
                 if let error = error {
-                    print("Failed to launch app with bundle ID: \(bundleID), error: \(error)")
+                    Log.music.error("Failed to launch app with bundle ID: \(bundleID), error: \(error)")
                 } else {
-                    print("Launched app with bundle ID: \(bundleID)")
+                    Log.music.debug("Launched app with bundle ID: \(bundleID)")
                 }
             }
         } else {
-            print("Failed to find app with bundle ID: \(bundleID)")
+            Log.music.error("Failed to find app with bundle ID: \(bundleID)")
         }
     }
 
@@ -823,7 +837,7 @@ final class MusicManager: ObservableObject {
               NSWorkspace.shared.runningApplications.contains(where: { $0.bundleIdentifier == bundleID }) else { return }
         
         var script: String?
-        if bundleID == "com.apple.Music" {
+        if bundleID == MediaAppBundleID.appleMusic {
             script = """
             tell application "Music"
                 if it is running then
@@ -833,7 +847,7 @@ final class MusicManager: ObservableObject {
                 end if
             end tell
             """
-        } else if bundleID == "com.spotify.client" {
+        } else if bundleID == MediaAppBundleID.spotify {
             script = """
             tell application "Spotify"
                 if it is running then

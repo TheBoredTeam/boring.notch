@@ -40,6 +40,10 @@ struct DynamicNotchApp: App {
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             CheckForUpdatesView(updater: updaterController.updater)
+            Button("Notification Debug") {
+                openWindow(id: "notification-debug")
+                NSApp.activate(ignoringOtherApps: true)
+            }
             Divider()
             Button("Restart Boring Notch") {
                 ApplicationRelauncher.restart()
@@ -48,6 +52,10 @@ struct DynamicNotchApp: App {
                 NSApplication.shared.terminate(self)
             }
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
+        }
+
+        Window("Notification Debug", id: "notification-debug") {
+            NotificationDebugView()
         }
     }
 }
@@ -66,16 +74,10 @@ final class BoringSparkleUpdaterDelegate: NSObject, SPUUpdaterDelegate {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
-    var windows: [String: NSWindow] = [:] // UUID -> NSWindow
-    var viewModels: [String: BoringViewModel] = [:] // UUID -> BoringViewModel
-    var window: NSWindow?
-    let vm: BoringViewModel = .init()
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     var quickShareService = QuickShareService.shared
-    var whatsNewWindow: NSWindow?
-    var timer: Timer?
     var closeNotchTask: Task<Void, Never>?
-    private var previousScreens: [NSScreen]?
+    private lazy var windowManager = NotchWindowManager(camera: camera)
     private var onboardingWindowController: NSWindowController?
     private var screenLockedObserver: Any?
     private var screenUnlockedObserver: Any?
@@ -115,12 +117,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @MainActor
     func onScreenLocked(_ notification: Notification) {
-        isScreenLocked = true
-        if !Defaults[.showOnLockScreen] {
-            cleanupWindows()
-        } else {
-            enableSkyLightOnAllWindows()
-        }
+        windowManager.screenLocked()
     }
 
     @MainActor
@@ -316,6 +313,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        SettingsWindowController.shared.setCamera(camera)
 
         NotificationCenter.default.addObserver(
             self,
@@ -328,8 +326,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             forName: Notification.Name.selectedScreenChanged, object: nil, queue: nil
         ) { [weak self] _ in
             Task { @MainActor in
-                self?.adjustWindowPosition(changeAlpha: true)
-                self?.setupDragDetectors()
+                self?.windowManager.adjustWindowPosition(changeAlpha: true)
+                self?.windowManager.setupDragDetectors()
             }
         })
 
@@ -337,8 +335,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             forName: Notification.Name.notchHeightChanged, object: nil, queue: nil
         ) { [weak self] _ in
             Task { @MainActor in
-                self?.adjustWindowPosition()
-                self?.setupDragDetectors()
+                self?.windowManager.adjustWindowPosition()
+                self?.windowManager.setupDragDetectors()
             }
         })
 
@@ -356,9 +354,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             Task { @MainActor in
                 guard let self = self else { return }
-                self.cleanupWindows(shouldInvert: true)
-                self.adjustWindowPosition(changeAlpha: true)
-                self.setupDragDetectors()
+                self.windowManager.cleanupWindows(shouldInvert: true)
+                self.windowManager.adjustWindowPosition(changeAlpha: true)
+                self.windowManager.setupDragDetectors()
             }
         })
 
@@ -366,7 +364,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             forName: Notification.Name.expandedDragDetectionChanged, object: nil, queue: nil
         ) { [weak self] _ in
             Task { @MainActor in
-                self?.setupDragDetectors()
+                self?.windowManager.setupDragDetectors()
             }
         })
 
@@ -489,17 +487,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func playWelcomeSound() {
         let audioPlayer = AudioPlayer()
         audioPlayer.play(fileName: "boring", fileExtension: "m4a")
-    }
-
-    func deviceHasNotch() -> Bool {
-        if #available(macOS 12.0, *) {
-            for screen in NSScreen.screens {
-                if screen.safeAreaInsets.top > 0 {
-                    return true
-                }
-            }
-        }
-        return false
     }
 
     @objc func screenConfigurationDidChange() {

@@ -6,7 +6,7 @@
 
 import SwiftUI
 
-struct MinimalFaceFeatures: View {
+struct AnimatedFace: View {
     @State private var isBlinking = false
     @State private var blinkTask: Task<Void, Never>? = nil
     var height: CGFloat = 24
