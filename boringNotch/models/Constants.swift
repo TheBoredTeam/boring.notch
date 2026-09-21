@@ -115,6 +115,14 @@ enum AccessibilityPermission {
         }
     }
 
+    static var systemImageName: String {
+        if #available(macOS 27, *) {
+            return "folder.badge.gearshape"
+        } else {
+            return "accessibility"
+        }
+    }
+
     private static let osLocalizationPath =
         "/System/Library/PrivateFrameworks/UniversalAccess.framework/Versions/A/Resources/universalAccessAuthWarn.app/Contents/Resources/Localizable.loctable"
 

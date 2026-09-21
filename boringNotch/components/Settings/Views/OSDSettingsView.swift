@@ -95,7 +95,7 @@ struct OSDSettings: View {
                     }
                     if !isAccessibilityAuthorized {
                         HStack(alignment: .center, spacing: 12) {
-                            Image(systemName: "accessibility")
+                            Image(systemName: AccessibilityPermission.systemImageName)
                                 .font(.title)
                                 .foregroundStyle(Color.effectiveAccent)
                                 
