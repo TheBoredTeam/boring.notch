@@ -17,6 +17,7 @@ struct NotificationSettingsView: View {
     @Default(.notificationLiveActivity) private var notificationLiveActivity
     @Default(.notificationsFromAllApps) private var notificationsFromAllApps
     @Default(.notificationAllowedApps) private var allowedApps
+    @State private var isAccessibilityAuthorized = true
 
     private var selectedApps: [NotificationApp] {
         allowedApps
@@ -34,6 +35,31 @@ struct NotificationSettingsView: View {
                 Text("Requires \(AccessibilityPermission.displayName). Only visible banners are mirrored.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            }
+
+            if !isAccessibilityAuthorized {
+                Section {
+                    HStack(alignment: .center, spacing: 12) {
+                        Image(systemName: AccessibilityPermission.systemImageName)
+                            .font(.title)
+                            .foregroundStyle(Color.effectiveAccent)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("\(AccessibilityPermission.displayName) Required")
+                                .font(.headline)
+                            Text("Grant \(AccessibilityPermission.displayName) to mirror notification banners.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Button("Grant Access") {
+                            Task {
+                                let granted = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
+                                isAccessibilityAuthorized = granted
+                            }
+                        }
+                    }
+                }
             }
 
             Section {
@@ -84,6 +110,19 @@ struct NotificationSettingsView: View {
         }
         .formStyle(.grouped)
         .navigationTitle("Notifications")
+        .task {
+            isAccessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notification in
+            if let granted = notification.userInfo?["granted"] as? Bool {
+                isAccessibilityAuthorized = granted
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task {
+                isAccessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+            }
+        }
         .onChange(of: allowedApps) { _, _ in
             SystemNotificationManager.shared.updateFilter()
         }

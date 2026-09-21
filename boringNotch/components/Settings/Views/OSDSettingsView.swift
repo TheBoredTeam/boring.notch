@@ -166,7 +166,10 @@ struct OSDSettings: View {
         .accentColor(.effectiveAccent)
         .task(id: osdReplacementDefault) {
             guard osdReplacementDefault else { return }
-            isAccessibilityAuthorized = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization()
+            // Fast, non-prompting probe: ensureAccessibilityAuthorization()
+            // blocks up to 15s waiting for a grant, which kept the "Grant
+            // Access" banner hidden for that long every time this tab appeared.
+            isAccessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
         }
         .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notif in
             if let granted = notif.userInfo?["granted"] as? Bool {
