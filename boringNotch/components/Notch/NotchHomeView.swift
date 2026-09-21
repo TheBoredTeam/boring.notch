@@ -201,16 +201,14 @@ struct MusicControlsView: View {
     }
 
     private var musicSlider: some View {
-        // 0.2s ticks — the most the slider tolerates before steps become visible
-        // (reviewer-capped; the original 10 Hz targeted ~1px on 1.5-2min songs).
-        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.2 : nil)) { timeline in
+        MusicPlaybackTimeline(playbackRate: musicManager.playbackRate) { date in
             MusicSliderView(
                 sliderValue: $sliderValue,
                 duration: $musicManager.songDuration,
                 lastDragged: $lastDragged,
                 color: musicManager.avgColor,
                 dragging: $dragging,
-                currentDate: timeline.date,
+                currentDate: date,
                 timestampDate: musicManager.timestampDate,
                 elapsedTime: musicManager.elapsedTime,
                 playbackRate: musicManager.playbackRate,
@@ -337,6 +335,19 @@ struct MusicControlSlotButton: View {
         }
     }
 }
+
+struct MusicPlaybackTimeline<Content: View>: View {
+    let playbackRate: Double
+    @ViewBuilder let content: (Date) -> Content
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: playbackRate > 0 ? musicPlaybackTickInterval : nil)) { context in
+            content(context.date)
+        }
+    }
+}
+
+private let musicPlaybackTickInterval: TimeInterval = 0.2
 
 struct FavoriteControlButton: View {
     @ObservedObject var musicManager = MusicManager.shared
