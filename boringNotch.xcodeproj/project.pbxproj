@@ -140,14 +140,12 @@
 		9AB0C6BD2C73C9CB00F7CD30 /* NotchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */; };
 		A1F000012F00000100000001 /* ShelfItemInteractionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F000022F00000100000001 /* ShelfItemInteractionView.swift */; };
 		A7F4A06476BC4B029B6BECEA /* NotchUIEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80E354C7D712441284085CEA /* NotchUIEvent.swift */; };
-		AA01NDW12E7A0001 /* NotificationDebugWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01NDW22E7A0001 /* NotificationDebugWindow.swift */; };
 		AA01NLA12E7A0001 /* NotificationLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01NLA22E7A0001 /* NotificationLiveActivity.swift */; };
 		AA01SNM12E7A0001 /* SystemNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01SNM22E7A0001 /* SystemNotificationManager.swift */; };
 		AA02CAM12E7A0001 /* ContactAvatarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02CAM22E7A0001 /* ContactAvatarManager.swift */; };
 		AA02NSV12E7A0001 /* NotificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02NSV22E7A0001 /* NotificationSettingsView.swift */; };
 		AA03OTP12E7A0001 /* OTPDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03OTP22E7A0001 /* OTPDetector.swift */; };
 		AA04LAS12E7A0001 /* LiveActivityStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA04LAS22E7A0001 /* LiveActivityStack.swift */; };
-		AA05SRM12E7A0001 /* SmartReplyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA05SRM22E7A0001 /* SmartReplyManager.swift */; };
 		AA06CHV12E7A0001 /* CompactHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA06CHV22E7A0001 /* CompactHomeView.swift */; };
 		AA07ARM12E7A0001 /* AudioRouteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA07ARM22E7A0001 /* AudioRouteManager.swift */; };
 		AFA82F21304B406590337862 /* ShelfContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = E49B58CAC648403F864E6D78 /* ShelfContextMenu.swift */; };
@@ -347,14 +345,12 @@
 		9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotchHomeView.swift; sourceTree = "<group>"; };
 		A1F000022F00000100000001 /* ShelfItemInteractionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfItemInteractionView.swift; sourceTree = "<group>"; };
 		A5167212301F85B40018095A /* boringNotchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = boringNotchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		AA01NDW22E7A0001 /* NotificationDebugWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationDebugWindow.swift; sourceTree = "<group>"; };
 		AA01NLA22E7A0001 /* NotificationLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationLiveActivity.swift; sourceTree = "<group>"; };
 		AA01SNM22E7A0001 /* SystemNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemNotificationManager.swift; sourceTree = "<group>"; };
 		AA02CAM22E7A0001 /* ContactAvatarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactAvatarManager.swift; sourceTree = "<group>"; };
 		AA02NSV22E7A0001 /* NotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsView.swift; sourceTree = "<group>"; };
 		AA03OTP22E7A0001 /* OTPDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTPDetector.swift; sourceTree = "<group>"; };
 		AA04LAS22E7A0001 /* LiveActivityStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityStack.swift; sourceTree = "<group>"; };
-		AA05SRM22E7A0001 /* SmartReplyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartReplyManager.swift; sourceTree = "<group>"; };
 		AA06CHV22E7A0001 /* CompactHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompactHomeView.swift; sourceTree = "<group>"; };
 		AA07ARM22E7A0001 /* AudioRouteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRouteManager.swift; sourceTree = "<group>"; };
 		AFAD1670A870402D88BFFE47 /* AudioOutputRouteResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioOutputRouteResolver.swift; sourceTree = "<group>"; };
@@ -647,7 +643,6 @@
 			isa = PBXGroup;
 			children = (
 				11985BDF2F37A3C800F81585 /* OSD */,
-				AA01NDW22E7A0001 /* NotificationDebugWindow.swift */,
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
 				14C08BB72C8DE49E000F8AA0 /* Calendar */,
 				9A987A042C73CA66005CA465 /* Shelf */,
@@ -676,7 +671,6 @@
 				AA02CAM22E7A0001 /* ContactAvatarManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
 				AA07ARM22E7A0001 /* AudioRouteManager.swift */,
-				AA05SRM22E7A0001 /* SmartReplyManager.swift */,
 				F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */,
 				C1A6A2AF2D00000100000001 /* CameraSessionEngine.swift */,
 				14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */,
@@ -1158,7 +1152,6 @@
 				14C08BC12C8E03AD000F8AA0 /* NSImage+Extensions.swift in Sources */,
 				149E0B9A2C737D40006418B1 /* WebcamView.swift in Sources */,
 				AA01SNM12E7A0001 /* SystemNotificationManager.swift in Sources */,
-				AA01NDW12E7A0001 /* NotificationDebugWindow.swift in Sources */,
 				AA01NLA12E7A0001 /* NotificationLiveActivity.swift in Sources */,
 				AA06CHV12E7A0001 /* CompactHomeView.swift in Sources */,
 				AA04LAS12E7A0001 /* LiveActivityStack.swift in Sources */,
@@ -1166,7 +1159,6 @@
 				AA03OTP12E7A0001 /* OTPDetector.swift in Sources */,
 				1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */,
 				AA07ARM12E7A0001 /* AudioRouteManager.swift in Sources */,
-				AA05SRM12E7A0001 /* SmartReplyManager.swift in Sources */,
 				F1F2A0A100000000000000F1 /* AudioCaptureManager.swift in Sources */,
 				B1B112932C6A577E00093D8F /* MouseTracker.swift in Sources */,
 				B1C448962C9712C4001F0858 /* ActionBar.swift in Sources */,

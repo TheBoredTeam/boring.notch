@@ -57,9 +57,6 @@ struct DynamicNotchApp: App {
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
         }
 
-        Window("Notification Debug", id: "notification-debug") {
-            NotificationDebugView()
-        }
     }
 }
 
