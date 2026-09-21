@@ -11,14 +11,15 @@ import SwiftUIIntrospect
 
 private enum SettingsTab: String, CaseIterable, Identifiable {
     case general
+    case notch
     case appearance
     case media
-    case notifications
     case calendar
-    case osd
-    case battery
     case shelf
     case mirror
+    case battery
+    case osd
+    case notifications
     case shortcuts
     case about
 
@@ -27,14 +28,15 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .general: "General"
+        case .notch: "Notch"
         case .appearance: "Appearance"
         case .media: "Media"
-        case .notifications: "Notifications"
         case .calendar: "Calendar"
-        case .osd: "OSD"
-        case .battery: "Battery"
         case .shelf: "Shelf"
         case .mirror: "Mirror"
+        case .battery: "Battery"
+        case .osd: "OSD"
+        case .notifications: "Notifications"
         case .shortcuts: "Shortcuts"
         case .about: "About"
         }
@@ -43,14 +45,15 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .general: "gear"
-        case .appearance: "eye"
-        case .media: "play.laptopcomputer"
-        case .notifications: "bell.badge"
+        case .notch: "notch"
+        case .appearance: "paintbrush"
+        case .media: "play.rectangle"
         case .calendar: "calendar"
-        case .osd: "dial.medium.fill"
+        case .shelf: "tray.and.arrow.down"
+        case .mirror: "video"
         case .battery: "battery.100.bolt"
-        case .shelf: "books.vertical"
-        case .mirror: "camera"
+        case .osd: "dial.medium.fill"
+        case .notifications: "bell.badge"
         case .shortcuts: "keyboard"
         case .about: "info.circle"
         }
@@ -86,6 +89,8 @@ struct SettingsView: View {
                 switch selectedTab {
                 case .general:
                     GeneralSettings()
+                case .notch:
+                    NotchSettingsView()
                 case .appearance:
                     AppearanceSettingsView()
                 case .media:
