@@ -588,8 +588,17 @@ struct ContentView: View {
                         // 336 = Atoll's 420 base less 20%, which also lands
                         // within a few points of their Dynamic Island width
                         // (340) — the tighter of their two compact sizes.
-                        CompactHomeView(albumArtNamespace: albumArtNamespace)
-                            .frame(width: 336)
+                        CompactHomeView(
+                            albumArtNamespace: albumArtNamespace,
+                            horizontalMediaGestureFeedback: horizontalMediaGestureFeedback
+                        )
+                        .frame(width: 336)
+                        .onHover { hovering in
+                            isHoveringMusicArea = hovering
+                        }
+                        .onDisappear {
+                            isHoveringMusicArea = false
+                        }
                     } else {
                         switch coordinator.currentView {
                         case .home:
