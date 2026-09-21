@@ -395,6 +395,7 @@ final class NotificationXPCDelegate: NSObject, BoringNotchXPCAppDelegate {
         )
     }
 }
+
 extension XPCHelperClient {
     nonisolated func startNotificationWatching() async -> Bool {
         do {
@@ -434,7 +435,7 @@ extension XPCHelperClient {
         }
     }
 }
+
 extension Notification.Name {
     static let systemNotificationDidAppear = Notification.Name("systemNotificationDidAppear")
 }
-

@@ -145,7 +145,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             Self.watcher.configureFilter(bundleIDs: Set(bundleIDs), allApps: allApps)
         }
     }
-
     private class KeyboardBrightnessClient {
         private static let keyboardID: UInt64 = 1
         private var clientInstance: NSObject?

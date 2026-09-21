@@ -489,7 +489,6 @@ extension Defaults.Keys {
             "com.anthropic.claudefordesktop"
         ]
     )
-
     static let enableGradient = Key<Bool>("enableGradient", default: false)
     static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
     static let systemEventIndicatorUseAccent = Key<Bool>("systemEventIndicatorUseAccent", default: false)
