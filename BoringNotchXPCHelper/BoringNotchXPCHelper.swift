@@ -68,13 +68,29 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             return
         }
 
-        if promptIfNeeded {
-            requestAccessibilityAuthorization()
+        // Without a prompt there is nothing to await — polling would stall the
+        // caller for 15s and hide UI (e.g. the "Grant Access" banner in
+        // Settings) until the deadline. Reply with the current state instead.
+        guard promptIfNeeded else {
+            reply(false)
+            return
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            reply(AXIsProcessTrusted())
+        requestAccessibilityAuthorization()
+
+        let deadline = DispatchTime.now() + .seconds(15)
+        func waitForAuthorization() {
+            if AXIsProcessTrusted() {
+                reply(true)
+            } else if DispatchTime.now() >= deadline {
+                reply(false)
+            } else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    waitForAuthorization()
+                }
+            }
         }
+        waitForAuthorization()
     }
     
     // MARK: - Notification Center banners
