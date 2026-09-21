@@ -46,7 +46,7 @@ final class SystemNotificationManager: ObservableObject {
     }
 
     func start() async {
-        guard await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true) else {
+        guard await XPCHelperClient.shared.isAccessibilityAuthorized() else {
             isWatching = false
             return
         }
