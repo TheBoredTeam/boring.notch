@@ -59,7 +59,7 @@ extension ShapeStyle where Self == AngularGradient {
 struct GlowingSnake<
     Content: Shape,
     Fill: ShapeStyle
->: View, Animatable {
+>: View, @MainActor Animatable {
     
     var progress: Double
     var delay: Double = 1.0
