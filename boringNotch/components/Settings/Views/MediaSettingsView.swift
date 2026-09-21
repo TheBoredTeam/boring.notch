@@ -95,6 +95,9 @@ struct MediaSettingsView: View {
                         customBadge(text: "Beta")
                     }
                 }
+                Defaults.Toggle(key: .showRemainingTime) {
+                    Text("Show remaining time instead of duration")
+                }
             } header: {
                 Text("Media controls")
             }  footer: {
