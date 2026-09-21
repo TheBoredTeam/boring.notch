@@ -148,6 +148,40 @@ struct ContentView: View {
         return items[min(max(activityIndex, 0), items.count - 1)]
     }
 
+    private enum ClosedNotchContent: Equatable {
+        case hello
+        case nowPlayingFallback
+        case batteryStatus
+        case osd(SneakContentType)
+        case activities([LiveActivityItem])
+        case face
+        case idle
+    }
+
+    private var closedNotchContent: ClosedNotchContent {
+        if coordinator.helloAnimationRunning { return .hello }
+        if nowPlayingFallbackNoticeActive { return .nowPlayingFallback }
+        if coordinator.expandingView.show,
+           coordinator.expandingView.type == .battery,
+           Defaults[.showPowerStatusNotifications] {
+            return .batteryStatus
+        }
+        if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
+            return .osd(coordinator.sneakPeekState(for: vm.screenUUID).type)
+        }
+        if !liveActivities.isEmpty, !vm.hideOnClosed {
+            return .activities(liveActivities)
+        }
+        if !coordinator.expandingView.show,
+           !musicManager.isPlaying,
+           musicManager.isPlayerIdle,
+           Defaults[.showNotHumanFace],
+           !vm.hideOnClosed {
+            return .face
+        }
+        return .idle
+    }
+
     private var computedChinWidth: CGFloat {
         var chinWidth: CGFloat = vm.closedNotchSize.width
 
@@ -191,6 +225,10 @@ struct ContentView: View {
     }
 
     private var shouldDisplayNowPlayingFallbackNotice: Bool {
+        vm.notchState == .closed && nowPlayingFallbackNoticeActive
+    }
+
+    private var nowPlayingFallbackNoticeActive: Bool {
         guard musicManager.nowPlayingNotice != nil else { return false }
 
         let selectedScreen = NSScreen.screen(withUUID: coordinator.selectedScreenUUID)
@@ -201,7 +239,6 @@ struct ContentView: View {
 
         return isConnected
             && isTargetDisplay
-            && vm.notchState == .closed
             && !isNotchHeightZero
     }
 
@@ -259,6 +296,12 @@ struct ContentView: View {
                         return view
                             .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchState)
                             .animation(.smooth, value: gestureProgress)
+                            // Outermost on purpose: it only fires when the
+                            // closed-state content changes (the key is stable
+                            // across open/close), and when several keys change
+                            // at once the innermost animation wins, so the
+                            // open/close springs below keep precedence.
+                            .animation(.smooth(duration: 0.3), value: closedNotchContent)
                     }
                     .contentShape(Rectangle())
                     .onHover { hovering in
