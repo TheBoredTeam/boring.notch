@@ -74,40 +74,54 @@ struct NotificationExpandedView: View {
     let notification: SystemNotification
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            NotificationSourceIcon(bundleID: notification.bundleID, size: 42)
+        HStack(alignment: .center, spacing: 12) {
+            NotificationSourceIcon(bundleID: notification.bundleID, size: 46)
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 5) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(notification.appName ?? "Notification")
-                        .font(.headline)
+                        .font(.system(size: 14, weight: .semibold))
                         .lineLimit(1)
-                    if manager.queuedNotifications.count > 0 {
-                        Text("+\(manager.queuedNotifications.count)")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                    }
+
                     Text(notification.receivedAt, style: .relative)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.tertiary)
+                        .fixedSize()
+
+                    if !manager.queuedNotifications.isEmpty {
+                        Button {
+                            manager.showNextQueued()
+                        } label: {
+                            Text("+\(manager.queuedNotifications.count)")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(.white.opacity(0.9))
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .background(.white.opacity(0.14), in: Capsule())
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
 
                 if let title = notification.title, title != notification.appName {
                     Text(title)
-                        .font(.subheadline.weight(.medium))
+                        .font(.system(size: 12, weight: .medium))
                         .lineLimit(1)
                 }
+
                 if let subtitle = notification.subtitle {
                     Text(subtitle)
-                        .font(.subheadline)
+                        .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
+
                 if let body = notification.body {
                     Text(body)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(3)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary.opacity(0.9))
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 Button {
@@ -117,15 +131,27 @@ struct NotificationExpandedView: View {
                     }
                 } label: {
                     Label("Open in \(notification.appName ?? "app")", systemImage: "arrow.up.forward.app")
+                        .font(.system(size: 12, weight: .medium))
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
             }
             .frame(maxWidth: 300, alignment: .leading)
         }
-        .padding(.horizontal, 8)
+        .padding(.horizontal, 4)
+        .overlay(alignment: .topTrailing) {
+            Button {
+                manager.dismissActive(token: notification.id)
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 18, height: 18)
+                    .background(.white.opacity(0.1), in: Circle())
+            }
+            .buttonStyle(.plain)
+        }
         .onAppear { manager.holdActive() }
         .onDisappear { manager.resumeDismiss() }
     }
-
 }
