@@ -89,6 +89,12 @@ final class MediaKeyInterceptor {
                 let interceptor = Unmanaged<MediaKeyInterceptor>.fromOpaque(userInfo).takeUnretainedValue()
 
                 if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+                    guard AXIsProcessTrusted() else {
+                        DispatchQueue.main.async {
+                            interceptor.stop()
+                        }
+                        return nil
+                    }
                     interceptor.reenableEventTap(after: type)
                     return nil
                 }

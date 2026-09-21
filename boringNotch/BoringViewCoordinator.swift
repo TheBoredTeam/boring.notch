@@ -123,8 +123,17 @@ final class BoringViewCoordinator: ObservableObject {
             queue: .main
         ) { _ in
             Task { @MainActor in
-                if Defaults[.osdReplacement] {
-                    await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+                let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                if authorized {
+                    if Defaults[.osdReplacement] {
+                        await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+                    }
+                    if Defaults[.notificationLiveActivity] {
+                        await SystemNotificationManager.shared.start()
+                    }
+                } else {
+                    MediaKeyInterceptor.shared.stop()
+                    SystemNotificationManager.shared.stop()
                 }
             }
         }
@@ -191,9 +200,6 @@ final class BoringViewCoordinator: ObservableObject {
                 Task { @MainActor in
                     if change.newValue {
                         await SystemNotificationManager.shared.start()
-                        if !SystemNotificationManager.shared.isWatching {
-                            Defaults[.notificationLiveActivity] = false
-                        }
                     } else {
                         SystemNotificationManager.shared.stop()
                     }
