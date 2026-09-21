@@ -485,17 +485,7 @@ extension Defaults.Keys {
     static let notificationsFromAllApps = Key<Bool>("notificationsFromAllApps", default: false)
     static let notificationAllowedApps = Key<Set<String>>(
         "notificationAllowedApps",
-        default: [
-            "com.apple.MobileSMS",       // Messages
-            "com.apple.FaceTime",
-            "com.apple.mail",
-            "com.microsoft.Outlook",
-            "net.whatsapp.WhatsApp",
-            "ru.keepcoder.Telegram",     // Telegram Desktop (App Store build)
-            "com.tdesktop.Telegram",
-            "com.hnc.Discord",
-            "com.anthropic.claudefordesktop"
-        ]
+        default: []
     )
     static let enableGradient = Key<Bool>("enableGradient", default: false)
     static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
