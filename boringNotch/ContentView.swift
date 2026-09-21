@@ -341,13 +341,6 @@ struct ContentView: View {
                             }
                         }
                     }
-                    .onChange(of: vm.notchState) { _, newState in
-                        if newState == .closed && isHovering {
-                            withAnimation {
-                                isHovering = false
-                            }
-                        }
-                    }
                     // A new notification always takes the front of the stack,
                     // even if the user had swiped away to music.
                     .onChange(of: notificationManager.activeNotification?.id) { _, newID in
