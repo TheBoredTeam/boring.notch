@@ -23,6 +23,11 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     case shortcuts
     case about
 
+    enum Icon {
+        case system(String)
+        case custom(String)
+    }
+
     var id: Self { self }
 
     var title: String {
@@ -42,20 +47,20 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         }
     }
 
-    var systemImage: String {
+    var icon: Icon {
         switch self {
-        case .general: "gear"
-        case .notch: "dial.medium.fill"
-        case .appearance: "paintbrush"
-        case .media: "play.rectangle"
-        case .calendar: "calendar"
-        case .shelf: "tray.and.arrow.down"
-        case .mirror: "video"
-        case .battery: "battery.100.bolt"
-        case .osd: "dial.medium.fill"
-        case .notifications: "bell.badge"
-        case .shortcuts: "keyboard"
-        case .about: "info.circle"
+        case .general: .system("gear")
+        case .notch: .custom("notch")
+        case .appearance: .system("paintbrush")
+        case .media: .system("play.rectangle")
+        case .calendar: .system("calendar")
+        case .shelf: .system("tray.and.arrow.down")
+        case .mirror: .system("video")
+        case .battery: .system("battery.100.bolt")
+        case .osd: .system("dial.medium.fill")
+        case .notifications: .system("bell.badge")
+        case .shortcuts: .system("keyboard")
+        case .about: .system("info.circle")
         }
     }
 }
@@ -76,8 +81,7 @@ struct SettingsView: View {
         NavigationSplitView {
             List(selection: $selectedTab) {
                 ForEach(SettingsTab.allCases) { tab in
-                    Label(tab.title, systemImage: tab.systemImage)
-                        .tag(tab)
+                    tabItem(tab)
                 }
             }
             .listStyle(SidebarListStyle())
@@ -140,5 +144,20 @@ struct SettingsView: View {
         .onReceive(NotificationCenter.default.publisher(for: .accentColorChanged)) { _ in
             accentColorUpdateTrigger = UUID()
         }
+    }
+
+    private func tabItem(_ tab: SettingsTab) -> some View {
+        Label {
+            Text(tab.title)
+        } icon: {
+            switch tab.icon {
+            case .system(let imageName):
+                Image(systemName: imageName)
+
+            case .custom(let imageName):
+                Image(imageName)
+            }
+        }
+        .tag(tab)
     }
 }
