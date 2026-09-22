@@ -31,6 +31,22 @@ enum MusicPlayerImageSizes {
     static let size = (opened: CGSize(width: 90, height: 90), closed: CGSize(width: 20, height: 20))
 }
 
+/// Album artwork and the waveform cannot be rendered legibly in a closed
+/// notch smaller than this. Hiding them avoids an unusable thumbnail and
+/// clipped waveform for custom heights below 24 points.
+enum ClosedMusicActivityContent {
+    static let minimumHeight: CGFloat = 24
+
+    static func shouldDisplay(at height: CGFloat) -> Bool {
+        height >= minimumHeight
+    }
+
+    static func additionalChinWidth(at height: CGFloat) -> CGFloat {
+        guard shouldDisplay(at: height) else { return 0 }
+        return 2 * max(0, height - 12) + 20 + 2 * liveActivityEdgeMargin + 2
+    }
+}
+
 @MainActor func getScreenFrame(_ screenUUID: String? = nil) -> CGRect? {
     var selectedScreen = NSScreen.main
 
