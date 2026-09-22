@@ -20,7 +20,7 @@ final class BoringViewModel: NSObject, ObservableObject {
     @Published private(set) var notchState: NotchState = .closed
 
     var cancellables: Set<AnyCancellable> = []
-    
+
     @Published var hideOnClosed: Bool = true
 
     @Published var edgeAutoOpenActive: Bool = false
@@ -31,9 +31,9 @@ final class BoringViewModel: NSObject, ObservableObject {
 
     @Published var notchSize: CGSize = getClosedNotchSize()
     @Published var closedNotchSize: CGSize = getClosedNotchSize()
-    
+
     let camera: CameraModel
-    
+
     deinit {
         destroy()
     }
@@ -55,7 +55,7 @@ final class BoringViewModel: NSObject, ObservableObject {
 
         setupDetectorObserver()
     }
-    
+
     private func setupDetectorObserver() {
         // Publisher for the user’s fullscreen detection setting
         let enabledPublisher = Defaults
@@ -158,17 +158,16 @@ final class BoringViewModel: NSObject, ObservableObject {
             break
         }
     }
-    
+
     func isMouseHovering(position: NSPoint = NSEvent.mouseLocation) -> Bool {
         let screenFrame = getScreenFrame(screenUUID)
         if let frame = screenFrame {
-            
             let baseY = frame.maxY - notchSize.height
             let baseX = frame.midX - notchSize.width / 2
-            
+
             return position.y >= baseY && position.x >= baseX && position.x <= baseX + notchSize.width
         }
-        
+
         return false
     }
 
@@ -178,7 +177,7 @@ final class BoringViewModel: NSObject, ObservableObject {
 
         self.notchSize = openNotchSize
         self.notchState = .open
-        
+
         // Force music information update when notch is opened
         MusicManager.shared.forceUpdate()
 

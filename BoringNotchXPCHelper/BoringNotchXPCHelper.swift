@@ -12,7 +12,6 @@ import IOKit
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     private weak var connection: NSXPCConnection?
 
-    private let messagesQueue = DispatchQueue(label: "BoringNotchXPCHelper.messages", qos: .userInitiated)
     private let lunarStateQueue = DispatchQueue(label: "BoringNotchXPCHelper.lunar.state")
     private let lunarExecutableURL = URL(fileURLWithPath: "/Applications/Lunar.app/Contents/MacOS/Lunar")
     private var lunarProcess: Process?
@@ -53,7 +52,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             Task { await ph.close() }
         }
     }
-    
+
     @objc func isAccessibilityAuthorized(with reply: @escaping (Bool) -> Void) {
         reply(AXIsProcessTrusted())
     }
@@ -69,15 +68,28 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             return
         }
 
-        if promptIfNeeded {
-            requestAccessibilityAuthorization()
+        guard promptIfNeeded else {
+            reply(false)
+            return
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            reply(AXIsProcessTrusted())
+        requestAccessibilityAuthorization()
+
+        let deadline = DispatchTime.now() + .seconds(15)
+        func waitForAuthorization() {
+            if AXIsProcessTrusted() {
+                reply(true)
+            } else if DispatchTime.now() >= deadline {
+                reply(false)
+            } else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    waitForAuthorization()
+                }
+            }
         }
+        waitForAuthorization()
     }
-    
+
     // MARK: - Notification Center banners
 
     /// One watcher for the whole helper: `BoringNotchXPCHelper` is created per
@@ -106,18 +118,15 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         DispatchQueue.main.async {
             let watcher = Self.watcher
             watcher.onBanner = { notification in
-                NSLog("[boringNotch] captured banner: app=\(notification.appName ?? "-") bundle=\(notification.bundleID ?? "-") title=\(notification.title ?? "-") delegate=\(delegate == nil ? "nil" : "ok")")
                 delegate?.notificationDidAppear([
                     "token": notification.token,
                     "appName": notification.appName ?? "",
                     "bundleID": notification.bundleID ?? "",
                     "title": notification.title ?? "",
                     "subtitle": notification.subtitle ?? "",
-                    "body": notification.body ?? "",
-                    "actions": notification.actions.joined(separator: "\n")
+                    "body": notification.body ?? ""
                 ])
             }
-            watcher.onBannerGone = { delegate?.notificationDidDisappear($0) }
             let started = watcher.start()
             NSLog("[boringNotch] notification watcher start -> \(started), AX trusted: \(AXIsProcessTrusted())")
             reply(started)
@@ -128,46 +137,11 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         DispatchQueue.main.async { Self.watcher.stop() }
     }
 
-    @objc func replyToNotification(_ token: String, text: String, with reply: @escaping (Bool) -> Void) {
-        // The watcher's reply path does bounded waiting on the banner's AX
-        // hierarchy; it runs on the watcher's reply queue, never on main —
-        // the helper's main queue drives the banner poll and hold refresh.
-        Self.watcher.replyOnQueue(token: token, text: text, completion: reply)
+    @objc func setNotificationFilter(_ bundleIDs: [String], allApps: Bool) {
+        DispatchQueue.main.async {
+            Self.watcher.configureFilter(bundleIDs: Set(bundleIDs), allApps: allApps)
+        }
     }
-
-    /// Sends an iMessage directly through the Messages scripting
-    /// dictionary, bypassing the notification entirely. The app falls back
-    /// to this when the AX reply above fails because the banner has faded —
-    /// for Messages that recovers a real send instead of a clipboard
-    /// hand-off. No other supported app offers an equivalent.
-    @objc func sendIMessage(_ text: String, toChatNamed name: String, with reply: @escaping (Bool) -> Void) {
-        messagesQueue.async { reply(MessagesSender.send(text, toChatNamed: name)) }
-    }
-
-    @objc func performNotificationAction(_ token: String, name: String, with reply: @escaping (Bool) -> Void) {
-        DispatchQueue.main.async { reply(Self.watcher.performAction(token: token, name: name)) }
-    }
-
-    @objc func openNotification(_ token: String, with reply: @escaping (Bool) -> Void) {
-        DispatchQueue.main.async { reply(Self.watcher.open(token: token)) }
-    }
-
-    @objc func notificationDebugDump(with reply: @escaping (String) -> Void) {
-        DispatchQueue.main.async { reply(Self.watcher.debugDump()) }
-    }
-
-    @objc func holdNotification(_ token: String) {
-        DispatchQueue.main.async { Self.watcher.hold(token: token) }
-    }
-
-    @objc func releaseNotification(_ token: String) {
-        DispatchQueue.main.async { Self.watcher.release(token: token) }
-    }
-
-    @objc func setNotchOpen(_ open: Bool) {
-        DispatchQueue.main.async { Self.watcher.notchOpen = open }
-    }
-
     private class KeyboardBrightnessClient {
         private static let keyboardID: UInt64 = 1
         private var clientInstance: NSObject?
@@ -283,7 +257,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         }
         reply(false)
     }
-    
+
     @objc func adjustScreenBrightness(by value: Float, with reply: @escaping (NSNumber?) -> Void) {
         let displayID = brightnessDisplayID()
         if displayServicesSetBrightnessSmooth(displayID: displayID, value: value) {
@@ -464,7 +438,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         let fn = unsafeBitCast(sym, to: Fn.self)
         return fn(displayID, value) == 0
     }
-    
+
     private func displayServicesSetBrightnessSmooth(displayID: CGDirectDisplayID, value: Float) -> Bool {
         guard let sym = dlsym(DisplayServicesHandle.handle, "DisplayServicesSetBrightnessSmooth") else { return false }
         typealias Fn = @convention(c) (CGDirectDisplayID, Float) -> Int32

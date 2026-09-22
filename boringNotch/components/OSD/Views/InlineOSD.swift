@@ -20,7 +20,7 @@ struct InlineOSD: View {
         HStack {
             HStack(spacing: 5) {
                 OSDIconView(eventType: type, icon: icon, value: value, accent: accent)
-                
+
                 Text(osdTypeName(type))
                     .font(.subheadline)
                     .fontWeight(.medium)
@@ -29,13 +29,13 @@ struct InlineOSD: View {
                     .contentTransition(.numericText())
             }
             .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.notchSize.height - (hoverAnimation ? 0 : 12), alignment: .leading)
-            
+
             Rectangle()
                 .fill(.black)
                 .frame(width: vm.closedNotchSize.width - 20)
-            
+
             HStack {
-                if (type == .mic) {
+                if type == .mic {
                     Text(value.isZero ? "muted" : "unmuted")
                         .foregroundStyle(.gray)
                         .lineLimit(1)
@@ -53,7 +53,7 @@ struct InlineOSD: View {
                             }
                         }, accentColor: accent, compact: true)
                         .frame(maxWidth: .infinity)
-                        if (type == .volume && value.isZero) {
+                        if type == .volume && value.isZero {
                             Text("muted")
                                 .font(.caption)
                                 .fontWeight(.medium)
@@ -78,9 +78,9 @@ struct InlineOSD: View {
         }
         .frame(height: vm.closedNotchSize.height + (hoverAnimation ? 8 : 0), alignment: .center)
     }
-    
+
     func osdTypeName(_ type: SneakContentType) -> String {
-        switch(type) {
+        switch type {
             case .volume:
                 return NSLocalizedString("Volume", comment: "")
             case .brightness:

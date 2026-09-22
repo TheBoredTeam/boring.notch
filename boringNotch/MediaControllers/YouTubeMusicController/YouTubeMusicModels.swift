@@ -13,7 +13,7 @@ struct YouTubeMusicConfiguration: Sendable {
     let bundleIdentifier: String
     let reconnectDelay: ClosedRange<TimeInterval>
     let updateInterval: TimeInterval
-    
+
     static let `default` = YouTubeMusicConfiguration(
         baseURL: "http://localhost:26538",
         bundleIdentifier: MediaAppBundleID.youTubeMusic,
@@ -77,7 +77,7 @@ struct WebSocketMessage {
 extension PlaybackResponse {
     static func from(websocketData: [String: Any]) -> PlaybackResponse? {
         let songData = websocketData["song"] as? [String: Any]
-        
+
         let isPaused: Bool
         if let paused = songData?["isPaused"] as? Bool {
             isPaused = paused
@@ -86,7 +86,7 @@ extension PlaybackResponse {
         } else {
             isPaused = true
         }
-        
+
         let title = (songData?["title"] as? String) ??
                    (songData?["alternativeTitle"] as? String) ??
                    (websocketData["title"] as? String)
@@ -98,11 +98,11 @@ extension PlaybackResponse {
 
         let duration = extractDouble(from: songData, key: "songDuration") ??
                       extractDouble(from: websocketData, key: "songDuration")
-        
+
         let imageSrc = (songData?["imageSrc"] as? String) ?? (websocketData["imageSrc"] as? String)
         let isShuffled = (websocketData["shuffle"] as? Bool) ?? (songData?["isShuffled"] as? Bool)
 
-        var repeatModeInt: Int? = nil
+        var repeatModeInt: Int?
         if let repeatVal = websocketData["repeat"] as? String {
             switch repeatVal.uppercased() {
             case "NONE": repeatModeInt = 0
@@ -118,7 +118,7 @@ extension PlaybackResponse {
             default: break
             }
         }
-        
+
         let volume = extractDouble(from: websocketData, key: "volume") ?? extractDouble(from: songData, key: "volume")
 
         return PlaybackResponse(
@@ -134,7 +134,7 @@ extension PlaybackResponse {
             volume: volume
         )
     }
-    
+
     func with(elapsedSeconds: Double) -> PlaybackResponse {
         PlaybackResponse(
             isPaused: isPaused,

@@ -131,10 +131,10 @@ struct OnboardingView: View {
                     }
                 )
                 .transition(.opacity)
-                
+
             case .accessibilityPermission:
                 PermissionsRequestView(
-                    icon: Image(systemName: "hand.raised.fill"),
+                    icon: Image(systemName: AccessibilityPermission.systemImageName),
                     title: String(localized: "Enable \(AccessibilityPermission.displayName)"),
                     description: String(localized: "\(AccessibilityPermission.displayName) is only needed when using built-in macOS control sources for OSD replacement. External sources like BetterDisplay or Lunar do not require it. You can enable it later in OSD settings if needed."),
                     privacyNote: String(localized: "\(AccessibilityPermission.displayName) is used only to improve media and brightness notifications. No data is collected or shared."),
@@ -150,7 +150,7 @@ struct OnboardingView: View {
                     }
                 )
                 .transition(.opacity)
-                
+
             case .musicPermission:
                 MusicControllerSelectionView(
                     onContinue: {
@@ -208,7 +208,6 @@ struct OnboardingView: View {
         }
         return .accessibilityPermission
     }
-    
 }
 
 struct SoftwareUpdatePermissionView: View {

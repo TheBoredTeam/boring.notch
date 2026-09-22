@@ -50,8 +50,7 @@ struct AlbumArtView: View {
 
     private var albumArtBackground: some View {
         Image(nsImage: musicManager.albumArt)
-            .resizable()
-            .aspectRatio(contentMode: .fit)
+            .resizable().scaledToFit()
             .clipShape(
                 RoundedRectangle(
                     cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.opened)
@@ -67,14 +66,14 @@ struct AlbumArtView: View {
             Button {
                 musicManager.openMusicApp()
             } label: {
-                ZStack(alignment:.bottomTrailing) {
+                ZStack(alignment: .bottomTrailing) {
                     albumArtImage
                     appIconOverlay
                 }
             }
             .buttonStyle(PlainButtonStyle())
             .scaleEffect(musicManager.isPlaying ? 1 : 0.85)
-            
+
             albumArtDarkOverlay
         }
     }
@@ -86,13 +85,11 @@ struct AlbumArtView: View {
             .blur(radius: 50)
             .allowsHitTesting(false)
     }
-                
 
     private var albumArtImage: some View {
         Image(nsImage: musicManager.albumArt)
             .interpolation(.high)
-            .resizable()
-            .aspectRatio(contentMode: .fit)
+            .resizable().scaledToFit()
             .clipShape(
                 RoundedRectangle(
                     cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.opened)
@@ -104,8 +101,7 @@ struct AlbumArtView: View {
     private var appIconOverlay: some View {
         if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
             appIcon(for: musicManager.bundleIdentifier ?? MediaAppBundleID.appleMusic)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+                .resizable().scaledToFit()
                 .frame(width: 30, height: 30)
                 .offset(x: 10, y: 10)
                 .transition(.scale.combined(with: .opacity))
@@ -123,6 +119,7 @@ struct MusicControlsView: View {
     @State private var lastDragged: Date = .distantPast
     @Default(.musicControlSlots) private var slotConfig
     @Default(.musicControlSlotLimit) private var slotLimit
+    @Default(.showRemainingTime) private var showRemainingTime
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -200,23 +197,23 @@ struct MusicControlsView: View {
     }
 
     private var musicSlider: some View {
-        // 0.2s ticks — the most the slider tolerates before steps become visible
-        // (reviewer-capped; the original 10 Hz targeted ~1px on 1.5-2min songs).
-        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.2 : nil)) { timeline in
+        MusicPlaybackTimeline(playbackRate: musicManager.playbackRate) { date in
             MusicSliderView(
                 sliderValue: $sliderValue,
                 duration: $musicManager.songDuration,
                 lastDragged: $lastDragged,
                 color: musicManager.avgColor,
                 dragging: $dragging,
-                currentDate: timeline.date,
+                currentDate: date,
                 timestampDate: musicManager.timestampDate,
                 elapsedTime: musicManager.elapsedTime,
                 playbackRate: musicManager.playbackRate,
-                isPlaying: musicManager.isPlaying
-            ) { newValue in
-                MusicManager.shared.seek(to: newValue)
-            }
+                isPlaying: musicManager.isPlaying,
+                onValueChange: { newValue in
+                    MusicManager.shared.seek(to: newValue)
+                },
+                trailingLabel: showRemainingTime ? .remaining : .duration
+            )
             .padding(.top, 5)
             .frame(height: 36)
         }
@@ -225,12 +222,8 @@ struct MusicControlsView: View {
     private var slotToolbar: some View {
         let slots = activeSlots
         return HStack(spacing: 6) {
-            ForEach(Array(slots.enumerated()), id: \.offset) { index, slot in
+            ForEach(Array(slots.enumerated()), id: \.offset) { _, slot in
                 slotView(for: slot)
-                    .help(slot.actionLabel(isPlaying: musicManager.isPlaying, isFavorite: musicManager.isFavoriteTrack))
-                    .accessibilityLabel(slot.actionLabel(isPlaying: musicManager.isPlaying, isFavorite: musicManager.isFavoriteTrack))
-                    .accessibilityHidden(slot == .none)
-                    .frame(alignment: .center)
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
@@ -252,50 +245,70 @@ struct MusicControlsView: View {
         return result
     }
 
-    @ViewBuilder
     private func slotView(for slot: MusicControlButton) -> some View {
-        switch slot {
-        case .shuffle:
-            HoverButton(icon: "shuffle", iconColor: musicManager.isShuffled ? .red : .primary, scale: .medium) {
-                MusicManager.shared.toggleShuffle()
+        MusicControlSlotButton(
+            slot: slot,
+            horizontalMediaGestureFeedback: horizontalMediaGestureFeedback
+        )
+    }
+}
+
+/// A single transport button, shared by the standard and compact layouts so
+/// both render the exact same controls — sizing, glyphs, swipe-to-skip
+/// bounce — and can't drift apart.
+struct MusicControlSlotButton: View {
+    @ObservedObject var musicManager = MusicManager.shared
+    let slot: MusicControlButton
+    let horizontalMediaGestureFeedback: CGFloat
+
+    var body: some View {
+        Group {
+            switch slot {
+            case .shuffle:
+                HoverButton(icon: "shuffle", iconColor: musicManager.isShuffled ? .red : .primary, scale: .medium) {
+                    MusicManager.shared.toggleShuffle()
+                }
+            case .previous:
+                HoverButton(icon: "backward.fill", scale: .medium) {
+                    MusicManager.shared.previousTrack()
+                }
+                .scaleEffect(horizontalMediaGestureFeedback > 0 ? 1.12 : 1)
+                .animation(.interactiveSpring(response: 0.18, dampingFraction: 0.62), value: horizontalMediaGestureFeedback)
+            case .playPause:
+                HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill", scale: .large) {
+                    MusicManager.shared.togglePlay()
+                }
+            case .next:
+                HoverButton(icon: "forward.fill", scale: .medium) {
+                    MusicManager.shared.nextTrack()
+                }
+                .scaleEffect(horizontalMediaGestureFeedback < 0 ? 1.12 : 1)
+                .animation(.interactiveSpring(response: 0.18, dampingFraction: 0.62), value: horizontalMediaGestureFeedback)
+            case .repeatMode:
+                HoverButton(icon: repeatIcon, iconColor: repeatIconColor, scale: .medium) {
+                    MusicManager.shared.toggleRepeat()
+                }
+            case .mediaOutput:
+                MediaOutputSlotButton()
+            case .volume:
+                VolumeControlView()
+            case .favorite:
+                FavoriteControlButton()
+            case .goBackward:
+                HoverButton(icon: "gobackward.15", scale: .medium) {
+                    MusicManager.shared.skip(seconds: -15)
+                }
+            case .goForward:
+                HoverButton(icon: "goforward.15", scale: .medium) {
+                    MusicManager.shared.skip(seconds: 15)
+                }
+            case .none:
+                Color.clear.frame(height: 1)
             }
-        case .previous:
-            HoverButton(icon: "backward.fill", scale: .medium) {
-                MusicManager.shared.previousTrack()
-            }
-            .scaleEffect(horizontalMediaGestureFeedback > 0 ? 1.12 : 1)
-            .animation(.interactiveSpring(response: 0.18, dampingFraction: 0.62), value: horizontalMediaGestureFeedback)
-        case .playPause:
-            HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill", scale: .large) {
-                MusicManager.shared.togglePlay()
-            }
-        case .next:
-            HoverButton(icon: "forward.fill", scale: .medium) {
-                MusicManager.shared.nextTrack()
-            }
-            .scaleEffect(horizontalMediaGestureFeedback < 0 ? 1.12 : 1)
-            .animation(.interactiveSpring(response: 0.18, dampingFraction: 0.62), value: horizontalMediaGestureFeedback)
-        case .repeatMode:
-            HoverButton(icon: repeatIcon, iconColor: repeatIconColor, scale: .medium) {
-                MusicManager.shared.toggleRepeat()
-            }
-        case .mediaOutput:
-            MediaOutputSlotButton()
-        case .volume:
-            VolumeControlView()
-        case .favorite:
-            FavoriteControlButton()
-        case .goBackward:
-            HoverButton(icon: "gobackward.15", scale: .medium) {
-                MusicManager.shared.skip(seconds: -15)
-            }
-        case .goForward:
-            HoverButton(icon: "goforward.15", scale: .medium) {
-                MusicManager.shared.skip(seconds: 15)
-            }
-        case .none:
-            Color.clear.frame(height: 1)
         }
+        .help(slot.actionLabel(isPlaying: musicManager.isPlaying, isFavorite: musicManager.isFavoriteTrack))
+        .accessibilityLabel(slot.actionLabel(isPlaying: musicManager.isPlaying, isFavorite: musicManager.isFavoriteTrack))
+        .accessibilityHidden(slot == .none)
     }
 
     private var repeatIcon: String {
@@ -319,6 +332,19 @@ struct MusicControlsView: View {
     }
 }
 
+struct MusicPlaybackTimeline<Content: View>: View {
+    let playbackRate: Double
+    @ViewBuilder let content: (Date) -> Content
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: playbackRate > 0 ? musicPlaybackTickInterval : nil)) { context in
+            content(context.date)
+        }
+    }
+}
+
+private let musicPlaybackTickInterval: TimeInterval = 0.2
+
 struct FavoriteControlButton: View {
     @ObservedObject var musicManager = MusicManager.shared
 
@@ -339,6 +365,35 @@ struct FavoriteControlButton: View {
     }
 }
 
+/// Audio-output slot for a control row. Shows where audio is going and
+/// switches it, via a popover device picker. Both layouts use this through
+/// MusicControlSlotButton.
+struct MediaOutputSlotButton: View {
+    @ObservedObject private var routeManager = AudioRouteManager.shared
+    @State private var showingPicker = false
+
+    var body: some View {
+        HoverButton(icon: routeSymbol, scale: .medium) {
+            // Enumerate on open rather than polling: devices come and go
+            // (AirPods connecting, a display waking) and a list built at
+            // launch would be stale by the time anyone opened it.
+            routeManager.refreshDevices()
+            showingPicker.toggle()
+        }
+        .popover(isPresented: $showingPicker, arrowEdge: .bottom) {
+            AudioOutputPicker(routeManager: routeManager) {
+                showingPicker = false
+            }
+        }
+    }
+
+    /// Prefer the live device's own icon; fall back to the resolver's
+    /// classification before the first enumeration has run.
+    private var routeSymbol: String {
+        routeManager.activeDevice?.iconName ?? AudioOutputRouteResolver.shared.outputRouteSymbol()
+    }
+}
+
 private extension Array where Element == MusicControlButton {
     func padded(to length: Int, filler: MusicControlButton) -> [MusicControlButton] {
         if count >= length { return self }
@@ -355,7 +410,7 @@ struct VolumeControlView: View {
     @State private var showVolumeSlider: Bool = false
     @State private var lastVolumeUpdateTime: Date = Date.distantPast
     private let volumeUpdateThrottle: TimeInterval = 0.1
-    
+
     var body: some View {
         HStack(spacing: 4) {
             Button(action: {
@@ -488,21 +543,9 @@ struct MusicSliderView: View {
     let isPlaying: Bool
     var onValueChange: (Double) -> Void
 
-    // Layout options, ported from Atoll (GPL-3.0, itself a boring.notch
-    // fork) so the compact layout can put the times either side of the
-    // track. Defaults reproduce the previous stacked/duration look exactly,
-    // so the standard layout is untouched.
-    var labelLayout: TimeLabelLayout = .stacked
+    // Ported from Atoll (GPL-3.0, itself a boring.notch fork) so the
+    // trailing timestamp can count down instead of showing the duration.
     var trailingLabel: TrailingLabel = .duration
-    var restingTrackHeight: CGFloat = 5
-    var draggingTrackHeight: CGFloat = 9
-
-    enum TimeLabelLayout {
-        /// Times on a row beneath the track.
-        case stacked
-        /// Times flanking the track on the same row.
-        case inline
-    }
 
     enum TrailingLabel {
         case duration
@@ -511,19 +554,6 @@ struct MusicSliderView: View {
     }
 
     var body: some View {
-        Group {
-            switch labelLayout {
-            case .stacked: stackedContent
-            case .inline: inlineContent
-            }
-        }
-        .onChange(of: currentDate) {
-           guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else { return }
-            sliderValue = MusicManager.shared.estimatedPlaybackPosition(at: currentDate)
-        }
-    }
-
-    private var stackedContent: some View {
         VStack {
             sliderCore
                 .frame(height: sliderFrameHeight, alignment: .center)
@@ -537,23 +567,9 @@ struct MusicSliderView: View {
             .foregroundColor(timeLabelColor)
             .font(.caption)
         }
-    }
-
-    private var inlineContent: some View {
-        HStack(spacing: 6) {
-            Text(timeString(from: sliderValue))
-                .font(inlineLabelFont)
-                .foregroundColor(timeLabelColor)
-                .frame(width: 36, alignment: .leading)
-
-            sliderCore
-                .frame(height: sliderFrameHeight)
-                .frame(maxWidth: .infinity)
-
-            Text(trailingTimeText)
-                .font(inlineLabelFont)
-                .foregroundColor(timeLabelColor)
-                .frame(width: 42, alignment: .trailing)
+        .onChange(of: currentDate) {
+           guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else { return }
+            sliderValue = MusicManager.shared.estimatedPlaybackPosition(at: currentDate)
         }
     }
 
@@ -566,9 +582,7 @@ struct MusicSliderView: View {
                 : Defaults[.sliderColor] == SliderColorEnum.accent ? .effectiveAccent : .white,
             dragging: $dragging,
             lastDragged: $lastDragged,
-            onValueChange: onValueChange,
-            restingTrackHeight: restingTrackHeight,
-            draggingTrackHeight: draggingTrackHeight
+            onValueChange: onValueChange
         )
     }
 
@@ -586,13 +600,8 @@ struct MusicSliderView: View {
         }
     }
 
-    /// Monospaced digits so the label doesn't jitter as the numbers tick.
-    private var inlineLabelFont: Font {
-        .system(size: 11, weight: .medium).monospacedDigit()
-    }
-
     private var sliderFrameHeight: CGFloat {
-        max(restingTrackHeight, draggingTrackHeight) + 1
+        10
     }
 
     func timeString(from seconds: Double) -> String {
@@ -618,15 +627,11 @@ struct CustomSlider: View {
     @Binding var lastDragged: Date
     var onValueChange: ((Double) -> Void)?
     var onDragChange: ((Double) -> Void)?
-    /// Defaults match the previous hard-coded 5/9 so the standard layout is
-    /// unchanged; the compact layout passes a chunkier track.
-    var restingTrackHeight: CGFloat = 5
-    var draggingTrackHeight: CGFloat = 9
 
     var body: some View {
         GeometryReader { geometry in
             let width = geometry.size.width
-            let height = CGFloat(dragging ? draggingTrackHeight : restingTrackHeight)
+            let height = CGFloat(dragging ? 9 : 5)
             let rangeSpan = range.upperBound - range.lowerBound
 
             let progress = rangeSpan == .zero ? 0 : (value - range.lowerBound) / rangeSpan
@@ -642,7 +647,7 @@ struct CustomSlider: View {
                     .frame(width: filledTrackWidth, height: height)
             }
             .cornerRadius(height / 2)
-            .frame(height: max(restingTrackHeight, draggingTrackHeight) + 1)
+            .frame(height: 10)
             .contentShape(Rectangle())
             .gesture(
                 DragGesture(minimumDistance: 0)

@@ -26,7 +26,7 @@ final class ShelfStateViewModel: ObservableObject {
     private init() {
         items = ShelfPersistenceService.shared.load()
     }
-    
+
     private func schedulePersistence() {
         persistenceTask?.cancel()
         persistenceTask = Task { @MainActor [weak self] in
@@ -35,7 +35,6 @@ final class ShelfStateViewModel: ObservableObject {
             await ShelfPersistenceService.shared.saveAsync(self.items)
         }
     }
-
 
     func add(_ newItems: [ShelfItem]) {
         guard !newItems.isEmpty else { return }
@@ -63,7 +62,6 @@ final class ShelfStateViewModel: ObservableObject {
             items[idx] = ShelfItem(id: items[idx].id, kind: .file(bookmark: bookmark), isTemporary: items[idx].isTemporary)
         }
     }
-
 
     func load(_ providers: [NSItemProvider]) {
         guard !providers.isEmpty else { return }
@@ -97,7 +95,6 @@ final class ShelfStateViewModel: ObservableObject {
             await MainActor.run { self.items = keep }
         }
     }
-
 
     /// Resolves the file URL for an item and updates the bookmark if stale.
     /// Use this for user-initiated actions where bookmark refresh is desired.

@@ -14,9 +14,17 @@ struct MediaSettingsView: View {
     @Default(.hideNotchOption) var hideNotchOption
     @Default(.enableSneakPeek) private var enableSneakPeek
     @Default(.sneakPeekStyles) var sneakPeekStyles
+    @Default(.sliderColor) var sliderColor
 
     @Default(.enableLyrics) var enableLyrics
     @ObservedObject private var musicManager = MusicManager.shared
+
+    private var realtimeAudioWaveformSupported: Bool {
+        if #available(macOS 14.2, *) {
+            return true
+        }
+        return false
+    }
 
     var body: some View {
         Form {
@@ -36,7 +44,7 @@ struct MediaSettingsView: View {
             } footer: {
                 mediaSourceFooter
             }
-            
+
             Section {
                 Toggle(
                     "Show music live activity",
@@ -86,7 +94,7 @@ struct MediaSettingsView: View {
             } header: {
                 Text("Media playback live activity")
             }
-            
+
             Section {
                 MusicSlotConfigurationView()
                 Defaults.Toggle(key: .enableLyrics) {
@@ -95,12 +103,49 @@ struct MediaSettingsView: View {
                         customBadge(text: "Beta")
                     }
                 }
+                Defaults.Toggle(key: .showRemainingTime) {
+                    Text("Show remaining time instead of duration")
+                }
             } header: {
                 Text("Media controls")
             }  footer: {
                 Text("Customize which controls appear in the music player. Volume expands when active.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            }
+
+            Section {
+                Defaults.Toggle(key: .coloredSpectrogram) {
+                    Text("Colored spectrogram")
+                }
+                Defaults.Toggle(key: .realtimeAudioWaveform) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Real-time audio waveform")
+                        Group {
+                            if realtimeAudioWaveformSupported {
+                                Text("Uses Accelerate FFT on the playing app's audio. Requires audio capture permission and uses slightly more CPU.")
+                            } else {
+                                Text("Requires macOS 14.2 or later. Update macOS to enable real-time audio waveform.")
+                            }
+                        }
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    }
+                }
+                .disabled(!realtimeAudioWaveformSupported)
+                Defaults.Toggle(key: .playerColorTinting) {
+                    Text("Player tinting")
+                }
+                Defaults.Toggle(key: .lightingEffect) {
+                    Text("Enable blur effect behind album art")
+                }
+                Picker("Slider color", selection: $sliderColor) {
+                    ForEach(SliderColorEnum.allCases, id: \.self) { option in
+                        Text(option.localizedString)
+                    }
+                }
+            } header: {
+                Text("Player appearance")
             }
         }
         .accentColor(.effectiveAccent)

@@ -58,7 +58,7 @@ enum SliderColorEnum: String, CaseIterable, Defaults.Serializable {
         default: return nil
         }
     }
-    
+
     var localizedString: String {
         switch self {
         case .white:

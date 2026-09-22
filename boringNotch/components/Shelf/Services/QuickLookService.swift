@@ -44,14 +44,14 @@ final class QuickLookService: ObservableObject {
         }
         self.urls = accessingURLs
         self.isQuickLookOpen = true
-        
+
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(50))
             if selectFirst {
                 self.selectedURL = accessingURLs.first
             }
         }
-        
+
         // Observe the shared Quick Look preview panel closing so we can relinquish security scope
         let panel = QLPreviewPanel.shared()
         // Remove any existing observer for previous panel
@@ -75,7 +75,7 @@ final class QuickLookService: ObservableObject {
             previewPanel = nil
         }
     }
-    
+
     private func stopAccessingCurrentURLs() {
         NSLog("Stopping access to \(accessingURLs.count) URLs")
         for url in accessingURLs where url.isFileURL {
@@ -88,7 +88,7 @@ final class QuickLookService: ObservableObject {
             previewPanel = nil
         }
     }
-    
+
     func updateSelection(urls: [URL]) {
         guard isQuickLookOpen else { return }
         show(urls: urls, selectFirst: true)

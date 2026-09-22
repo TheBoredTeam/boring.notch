@@ -70,7 +70,7 @@ struct WheelPicker: View {
         .sensoryFeedback(.alignment, trigger: haptics)
         .onContinuousHover { phase in
             switch phase {
-            case .active(_):
+            case .active:
                 isHovering = true
             case .ended:
                 isHovering = false
@@ -97,7 +97,7 @@ struct WheelPicker: View {
                 scrollMonitor = nil
             }
         }
-        .onChange(of: scrollPosition) { oldValue, newValue in
+        .onChange(of: scrollPosition) { _, newValue in
             if !byClick {
                 handleScrollChange(newValue: newValue, config: config)
             } else {
@@ -586,7 +586,6 @@ struct EventListView: View {
     @Default(.autoScrollToNextEvent) private var autoScrollToNextEvent
     @Default(.showFullEventTitles) private var showFullEventTitles
     @State private var hoveredEventID: String?
-
 
     static func filteredEvents(events: [EventModel]) -> [EventModel] {
         events.filter { event in

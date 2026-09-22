@@ -5,7 +5,6 @@
 //  Created by Alexander on 2026-02-07.
 //
 
-
 import SwiftUI
 import Defaults
 
@@ -16,7 +15,7 @@ struct OSDIconView: View {
     var accent: Color?
 
     var body: some View {
-        switch (eventType) {
+        switch eventType {
         case .volume:
             Image(systemName: icon.isEmpty ? AudioOutputRouteResolver.shared.volumeSymbol(for: value) : icon)
                 .contentTransition(.interpolate)

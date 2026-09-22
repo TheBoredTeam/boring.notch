@@ -114,7 +114,7 @@ final class PlaybackStateTests: XCTestCase {
     func testNotificationExpandedViewPaintsContent() throws {
         let notification = SystemNotification(
             id: "test-token", appName: "WhatsApp", bundleID: "net.whatsapp.WhatsApp",
-            title: "Sender", subtitle: nil, body: "hello", actions: [],
+            title: "Sender", subtitle: nil, body: "hello",
             receivedAt: Date())
 
         let view = NotificationExpandedView(notification: notification)

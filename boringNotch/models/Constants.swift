@@ -115,6 +115,14 @@ enum AccessibilityPermission {
         }
     }
 
+    static var systemImageName: String {
+        if #available(macOS 27, *) {
+            return "folder.badge.gearshape"
+        } else {
+            return "accessibility"
+        }
+    }
+
     private static let osLocalizationPath =
         "/System/Library/PrivateFrameworks/UniversalAccess.framework/Versions/A/Resources/universalAccessAuthWarn.app/Contents/Resources/Localizable.loctable"
 
@@ -173,16 +181,16 @@ extension Notification.Name {
     static let notchHeightChanged = Notification.Name("NotchHeightChanged")
     static let showOnAllDisplaysChanged = Notification.Name("showOnAllDisplaysChanged")
     static let automaticallySwitchDisplayChanged = Notification.Name("automaticallySwitchDisplayChanged")
-    
+
     // MARK: - Shelf
     static let expandedDragDetectionChanged = Notification.Name("expandedDragDetectionChanged")
-    
+
     // MARK: - System
     static let accessibilityAuthorizationChanged = Notification.Name("accessibilityAuthorizationChanged")
-    
+
     // MARK: - Sharing
     static let sharingDidFinish = Notification.Name("com.boringNotch.sharingDidFinish")
-    
+
     // MARK: - UI
     static let accentColorChanged = Notification.Name("AccentColorChanged")
 }
@@ -193,7 +201,7 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
     case appleMusic
     case spotify
     case youtubeMusic
-    
+
     var id: String { self.rawValue }
 
     init?(rawValue: String) {
@@ -241,7 +249,7 @@ enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializa
 enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     case standard
     case inline
-    
+
     var id: String { self.rawValue }
 
     init?(rawValue: String) {
@@ -251,7 +259,7 @@ enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
         default: return nil
         }
     }
-    
+
     var localizedString: String {
         switch self {
         case .standard:
@@ -278,7 +286,7 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
         default: return nil
         }
     }
-    
+
     var localizedString: String {
         switch self {
         case .openSettings:
@@ -298,7 +306,7 @@ enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable
     case lunar = "Lunar"
 
     var id: String { self.rawValue }
-    
+
     var localizedString: String {
         switch self {
         case .builtin:
@@ -381,7 +389,7 @@ extension Defaults.Keys {
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
     static let updateChannel = Key<UpdateChannel>("updateChannel", default: UpdateChannel.bundled)
-    
+
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
     static let enableOpeningAnimation = Key<Bool>("enableOpeningAnimation", default: true)
@@ -399,12 +407,12 @@ extension Defaults.Keys {
     )
     static let nonNotchHeight = Key<CGFloat>("nonNotchHeight", default: 32)
     static let notchHeight = Key<CGFloat>("notchHeight", default: 32)
-    //static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
+    // static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
     static let showOnLockScreen = Key<Bool>("showOnLockScreen", default: false)
     static let hideFromScreenRecording = Key<Bool>("hideFromScreenRecording", default: false)
-    
+
     // MARK: Appearance
-    //static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
+    // static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
     static let showMirror = Key<Bool>("showMirror", default: false)
     static let isMirrored = Key<Bool>("isMirrored", default: true)
     static let mirrorShape = Key<MirrorShapeEnum>("mirrorShape", default: MirrorShapeEnum.rectangle)
@@ -423,13 +431,13 @@ extension Defaults.Keys {
         default: SliderColorEnum.white
     )
     static let playerColorTinting = Key<Bool>("playerColorTinting", default: true)
-    
+
     // MARK: Gestures
     static let enableGestures = Key<Bool>("enableGestures", default: true)
     static let enableHorizontalMediaGestures = Key<Bool>("enableHorizontalMediaGestures", default: false)
     static let closeGestureEnabled = Key<Bool>("closeGestureEnabled", default: true)
     static let gestureSensitivity = Key<CGFloat>("gestureSensitivity", default: 200.0)
-    
+
     // MARK: Media playback
     static let coloredSpectrogram = Key<Bool>("coloredSpectrogram", default: true)
     static let realtimeAudioWaveform = Key<Bool>("realtimeAudioWaveform", default: false)
@@ -438,6 +446,7 @@ extension Defaults.Keys {
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
     static let enableLyrics = Key<Bool>("enableLyrics", default: false)
+    static let showRemainingTime = Key<Bool>("showRemainingTime", default: false)
     static let musicControlSlots = Key<[MusicControlButton]>(
         "musicControlSlots",
         default: MusicControlButton.defaultLayout
@@ -446,20 +455,20 @@ extension Defaults.Keys {
         "musicControlSlotLimit",
         default: MusicControlButton.defaultLayout.count
     )
-    
+
     // MARK: Battery
     static let showPowerStatusNotifications = Key<Bool>("showPowerStatusNotifications", default: true)
     static let showBatteryIndicator = Key<Bool>("showBatteryIndicator", default: true)
     static let showBatteryPercentage = Key<Bool>("showBatteryPercentage", default: true)
     static let showPowerStatusIcons = Key<Bool>("showPowerStatusIcons", default: true)
     static let showChargingWattage = Key<Bool>("showChargingWattage", default: true)
-    
+
     // MARK: Downloads
     static let enableDownloadListener = Key<Bool>("enableDownloadListener", default: true)
     static let enableSafariDownloads = Key<Bool>("enableSafariDownloads", default: true)
     static let selectedDownloadIndicatorStyle = Key<DownloadIndicatorStyle>("selectedDownloadIndicatorStyle", default: DownloadIndicatorStyle.progress)
     static let selectedDownloadIconStyle = Key<DownloadIconStyle>("selectedDownloadIconStyle", default: DownloadIconStyle.onlyAppIcon)
-    
+
     // MARK: OSD
     static let osdReplacement = Key<Bool>(PreferenceCompatibility.migratedKeyName("osdReplacement", from: "hudReplacement"), default: false)
     static let inlineOSD = Key<Bool>(PreferenceCompatibility.migratedKeyName("inlineOSD", from: "inlineHUD"), default: false)
@@ -476,23 +485,8 @@ extension Defaults.Keys {
     static let notificationsFromAllApps = Key<Bool>("notificationsFromAllApps", default: false)
     static let notificationAllowedApps = Key<Set<String>>(
         "notificationAllowedApps",
-        default: [
-            "com.apple.MobileSMS",       // Messages
-            "com.apple.FaceTime",
-            "com.apple.mail",
-            "com.microsoft.Outlook",
-            "net.whatsapp.WhatsApp",
-            "ru.keepcoder.Telegram",     // Telegram Desktop (App Store build)
-            "com.tdesktop.Telegram",
-            "com.hnc.Discord",
-            "com.anthropic.claudefordesktop"
-        ]
+        default: []
     )
-    /// Off by default: a new capability, even though it runs entirely
-    /// on-device with no network calls. Only takes effect on macOS 26+ with
-    /// Apple Intelligence enabled — see SmartReplyManager.
-    static let smartRepliesEnabled = Key<Bool>("smartRepliesEnabled", default: false)
-
     static let enableGradient = Key<Bool>("enableGradient", default: false)
     static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
     static let systemEventIndicatorUseAccent = Key<Bool>("systemEventIndicatorUseAccent", default: false)
@@ -504,7 +498,7 @@ extension Defaults.Keys {
     // Brightness/volume/keyboard source selection
     static let osdBrightnessSource = Key<OSDControlSource>("osdBrightnessSource", default: .builtin)
     static let osdVolumeSource = Key<OSDControlSource>("osdVolumeSource", default: .builtin)
-    
+
     // MARK: Shelf
     static let boringShelf = Key<Bool>("boringShelf", default: true)
     static let openShelfByDefault = Key<Bool>("openShelfByDefault", default: true)
@@ -514,7 +508,7 @@ extension Defaults.Keys {
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
     static let reverseShelfOrdering = Key<Bool>("reverseShelfOrdering", default: false)
-    
+
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
@@ -523,10 +517,10 @@ extension Defaults.Keys {
     static let calendarWeekView = Key<Bool>("calendarWeekView", default: false)
     static let weekStartDay = Key<WeekStartDay>("weekStartDay", default: .system)
     static let joinMeetingOnEventTap = Key<Bool>("joinMeetingOnEventTap", default: true)
-    
+
     // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
-    
+
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
     static let didChooseMediaController = Key<Bool>("didChooseMediaController", default: false)
@@ -535,7 +529,7 @@ extension Defaults.Keys {
         "lastSupportedNowPlayingBundleIdentifier",
         default: nil
     )
-    
+
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)
@@ -544,7 +538,7 @@ extension Defaults.Keys {
     static let hideNonNotchedFromMissionControl = Key<Bool>("hideNonNotchedFromMissionControl", default: true)
     // Normalize scroll/gesture direction so when macOS "Natural scrolling" is disabled, it doesn't invert gestures
     static let normalizeGestureDirection = Key<Bool>("normalizeGestureDirection", default: true)
-    
+
     // Keep the default stable. Runtime availability is handled by MusicManager.
     static var defaultMediaController: MediaControllerType {
         .nowPlaying

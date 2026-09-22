@@ -47,7 +47,7 @@ struct CameraPreviewView: View {
         }
         .aspectRatio(1, contentMode: .fit)
     }
-    
+
     private func handleCameraTap() {
         switch camera.state {
         case .running:

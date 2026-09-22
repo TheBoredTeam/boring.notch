@@ -35,15 +35,10 @@ struct OSDSettings: View {
 
             if osdReplacementDefault {
                 Section(header: Text("Control Sources"), footer: Text("Select which provider to use for system controls. BetterDisplay and Lunar require their respective apps to be installed and running.")) {
-                    HStack {
-                        Text("Brightness Source")
-                        Spacer()
-                        Picker("", selection: $osdBrightnessSourceDefault) {
-                            ForEach(OSDControlSource.allCases) { source in
-                                Text(source.localizedString).tag(source)
-                            }
+                    Picker("Brightness Source", selection: $osdBrightnessSourceDefault) {
+                        ForEach(OSDControlSource.allCases) { source in
+                            Text(source.localizedString).tag(source)
                         }
-                        .pickerStyle(.menu)
                     }
                     if osdBrightnessSourceDefault == .builtin {
                         HelpText("Only Apple displays are supported. In multi-display setups, the brightness OSD appears on the active display if supported, or on another supported display otherwise.")
@@ -55,25 +50,19 @@ struct OSDSettings: View {
                         HelpText("Lunar is not installed or not reachable")
                     }
 
-                    HStack {
-                        Text("Volume Source")
-                        Spacer()
-                        Picker("", selection: $osdVolumeSourceDefault) {
-                            // Lunar does not support volume control so hide it from the picker
-                            ForEach(OSDControlSource.allCases.filter { $0 != .lunar }) { source in
-                                Text(source.localizedString).tag(source)
-                            }
+                    Picker("Volume Source", selection: $osdVolumeSourceDefault) {
+                        // Lunar does not support volume control so hide it from the picker
+                        ForEach(OSDControlSource.allCases.filter { $0 != .lunar }) { source in
+                            Text(source.localizedString).tag(source)
                         }
-                        .pickerStyle(.menu)
                     }
                     if osdVolumeSourceDefault == .betterDisplay && !BetterDisplayManager.shared.isBetterDisplayAvailable {
                         HelpText("BetterDisplay is not installed or not running")
                     }
 
-                    HStack {
-                        Text("Keyboard Source")
-                        Spacer()
+                    LabeledContent("Keyboard Source") {
                         Text(OSDControlSource.builtin.localizedString)
+                            .foregroundStyle(.secondary)
                     }
                     HelpText("Keyboard brightness currently supports the built-in source only.")
                     if !xpcClient.helperAvailable {
@@ -95,10 +84,10 @@ struct OSDSettings: View {
                     }
                     if !isAccessibilityAuthorized {
                         HStack(alignment: .center, spacing: 12) {
-                            Image(systemName: "accessibility")
+                            Image(systemName: AccessibilityPermission.systemImageName)
                                 .font(.title)
                                 .foregroundStyle(Color.effectiveAccent)
-                                
+
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("\(AccessibilityPermission.displayName) Required")
                                     .font(.headline)
@@ -147,26 +136,20 @@ struct OSDSettings: View {
                 }
 
                 Section(header: Text("Interaction")) {
-                    HStack {
-                        Text("Option (⌥) Key Behavior")
-                        Spacer()
-                        Picker("", selection: $optionKeyActionDefault) {
-                            ForEach(OptionKeyAction.allCases) { action in
-                                Text(action.localizedString).tag(action)
-                            }
+                    Picker("Option (⌥) Key Behavior", selection: $optionKeyActionDefault) {
+                        ForEach(OptionKeyAction.allCases) { action in
+                            Text(action.localizedString).tag(action)
                         }
-                        .pickerStyle(.menu)
                     }
                     HelpText("Define what happens when you hold the Option key while pressing media keys.")
                 }
             }
-
         }
         .formStyle(.grouped)
         .accentColor(.effectiveAccent)
         .task(id: osdReplacementDefault) {
             guard osdReplacementDefault else { return }
-            isAccessibilityAuthorized = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization()
+            isAccessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
         }
         .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notif in
             if let granted = notif.userInfo?["granted"] as? Bool {
@@ -185,7 +168,6 @@ struct OSDSettings: View {
                 menuBarBrightnessSupported = true
             }
         }
-
     }
 }
 

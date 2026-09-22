@@ -22,7 +22,7 @@ enum XPCHelperError: Error {
 final class XPCHelperClient: NSObject, ObservableObject {
     nonisolated static let shared = XPCHelperClient()
 
-    nonisolated private override init() {
+    override nonisolated private init() {
         super.init()
     }
 
@@ -34,7 +34,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
     /// flips back to true when a live connection is (re)established.
     @MainActor @Published private(set) var helperAvailable = true
     @MainActor private(set) var lastError: XPCHelperError?
-    
+
     private var remoteService: RemoteXPCService<BoringNotchXPCHelperProtocol>?
     private var connection: NSXPCConnection?
     /// Set by the interruption/invalidation hops, cleared when a fresh
@@ -43,13 +43,8 @@ final class XPCHelperClient: NSObject, ObservableObject {
     @MainActor private var activationObserver: (any NSObjectProtocol)?
     private var lunarListener: BoringNotchXPCHelperLunarListener?
 
-    /// Open-notch refcount: one ContentView per screen can hold the notch
-    /// open, but the helper only wants the effective state, so
-    /// `setNotchOpen` is sent on the 0→1 and 1→0 transitions only.
-    @MainActor private var notchOpenCount = 0
-    
     // MARK: - Connection Management (Main Actor Isolated)
-    
+
     private func ensureRemoteService() -> RemoteXPCService<BoringNotchXPCHelperProtocol> {
         // Always reuse a live connection — never tear one down to attach a
         // listener. The exported object below serves *both* callback
@@ -95,28 +90,18 @@ final class XPCHelperClient: NSObject, ObservableObject {
                 self.lastError = .unavailable
             }
         }
-        
+
         conn.resume()
 
         let service = RemoteXPCService<BoringNotchXPCHelperProtocol>(
             connection: conn,
             remoteInterface: BoringNotchXPCHelperProtocol.self
         )
-        
+
         connection = conn
         remoteService = service
         helperAvailable = true
         lastError = nil
-        // A helper restart forgets our state — always re-announce the
-        // effective notch-open state so its banner keep-alive gate converges
-        // to ours, whether we currently count open notches or not.
-        Task {
-            do {
-                try await service.withService { $0.setNotchOpen(notchOpenCount > 0) }
-            } catch {
-                lastError = .transport(underlying: error)
-            }
-        }
         return service
     }
 
@@ -130,7 +115,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
         )
         return interface
     }
-    
+
     private func notifyAuthorizationChange(_ granted: Bool) {
         guard lastKnownAuthorization != granted else { return }
         lastKnownAuthorization = granted
@@ -143,13 +128,9 @@ final class XPCHelperClient: NSObject, ObservableObject {
 
     // MARK: - Monitoring
 
-    /// AX trust has no public change notification. Polling the helper every
-    /// few seconds costs ~29k XPC round-trips per day for a boolean that
-    /// changes maybe twice a year, so instead we check once at start and
-    /// then on every app activation — the natural moment a user comes back
-    /// from System Settings after toggling the switch. Every AX-needing
-    /// call (isAccessibilityAuthorized/ensureAccessibilityAuthorization)
-    /// also re-posts changes itself via notifyAuthorizationChange.
+    /// AX trust has no public change notification. Check once at startup and
+    /// whenever the app becomes active after a permission change in System
+    /// Settings. Every AX-needing call also publishes changes.
     func startMonitoringAccessibilityAuthorization() {
         stopMonitoringAccessibilityAuthorization()
         activationObserver = NotificationCenter.default.addObserver(
@@ -169,9 +150,9 @@ final class XPCHelperClient: NSObject, ObservableObject {
         NotificationCenter.default.removeObserver(activationObserver)
         self.activationObserver = nil
     }
-    
+
     // MARK: - Accessibility
-    
+
     // Fire-and-forget: callers invoke this from non-isolated contexts, and the work
     // itself hops onto the main actor.
     nonisolated func requestAccessibilityAuthorization() {
@@ -186,7 +167,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
             }
         }
     }
-    
+
     func isAccessibilityAuthorized() async -> Bool {
         do {
             let service = ensureRemoteService()
@@ -202,7 +183,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
             return false
         }
     }
-    
+
     func ensureAccessibilityAuthorization(promptIfNeeded: Bool) async -> Bool {
         do {
             let service = ensureRemoteService()
@@ -218,9 +199,9 @@ final class XPCHelperClient: NSObject, ObservableObject {
             return false
         }
     }
-    
+
     // MARK: - Keyboard Brightness
-    
+
     func currentKeyboardBrightness() async -> Float? {
         do {
             let service = ensureRemoteService()
@@ -235,7 +216,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
             return nil
         }
     }
-    
+
     func setKeyboardBrightness(_ value: Float) async -> Bool {
         do {
             let service = ensureRemoteService()
@@ -249,9 +230,9 @@ final class XPCHelperClient: NSObject, ObservableObject {
             return false
         }
     }
-    
+
     // MARK: - Screen Brightness
-    
+
     func currentScreenBrightness() async -> Float? {
         do {
             let service = ensureRemoteService()
@@ -282,7 +263,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
             return nil
         }
     }
-    
+
     func setScreenBrightness(_ value: Float) async -> Bool {
         do {
             let service = ensureRemoteService()
@@ -409,15 +390,8 @@ final class NotificationXPCDelegate: NSObject, BoringNotchXPCAppDelegate {
     }
 
     func notificationDidAppear(_ payload: [String: String]) {
-        NSLog("[boringNotch] app received banner: \(payload["appName"] ?? "-") / \(payload["title"] ?? "-")")
         NotificationCenter.default.post(
             name: .systemNotificationDidAppear, object: nil, userInfo: payload
-        )
-    }
-
-    func notificationDidDisappear(_ token: String) {
-        NotificationCenter.default.post(
-            name: .systemNotificationDidDisappear, object: nil, userInfo: ["token": token]
         )
     }
 }
@@ -437,6 +411,19 @@ extension XPCHelperClient {
         }
     }
 
+    nonisolated func setNotificationFilter(bundleIDs: Set<String>, allApps: Bool) {
+        Task {
+            let service = await MainActor.run { ensureRemoteService() }
+            do {
+                try await service.withService {
+                    $0.setNotificationFilter(Array(bundleIDs), allApps: allApps)
+                }
+            } catch {
+                await MainActor.run { self.lastError = .transport(underlying: error) }
+            }
+        }
+    }
+
     nonisolated func stopNotificationWatching() {
         Task {
             let service = await MainActor.run { ensureRemoteService() }
@@ -447,137 +434,8 @@ extension XPCHelperClient {
             }
         }
     }
-
-    nonisolated func replyToNotification(token: String, text: String) async -> Bool {
-        do {
-            let service = await MainActor.run { ensureRemoteService() }
-            return try await service.withContinuation { service, continuation in
-                service.replyToNotification(token, text: text) { sent in
-                    continuation.resume(returning: sent)
-                }
-            }
-        } catch {
-            await MainActor.run { self.lastError = .transport(underlying: error) }
-            return false
-        }
-    }
-
-    nonisolated func performNotificationAction(token: String, name: String) async -> Bool {
-        do {
-            let service = await MainActor.run { ensureRemoteService() }
-            return try await service.withContinuation { service, continuation in
-                service.performNotificationAction(token, name: name) { done in
-                    continuation.resume(returning: done)
-                }
-            }
-        } catch {
-            await MainActor.run { self.lastError = .transport(underlying: error) }
-            return false
-        }
-    }
-
-    nonisolated func openNotification(token: String) async -> Bool {
-        do {
-            let service = await MainActor.run { ensureRemoteService() }
-            return try await service.withContinuation { service, continuation in
-                service.openNotification(token) { opened in
-                    continuation.resume(returning: opened)
-                }
-            }
-        } catch {
-            await MainActor.run { self.lastError = .transport(underlying: error) }
-            return false
-        }
-    }
-
-    /// Keeps a banner alive so its reply field stays usable, optionally
-    /// moving it off-screen so the user never sees it.
-    nonisolated func holdNotification(token: String) {
-        Task {
-            let service = await MainActor.run { ensureRemoteService() }
-            do {
-                try await service.withService { $0.holdNotification(token) }
-            } catch {
-                await MainActor.run { self.lastError = .transport(underlying: error) }
-            }
-        }
-    }
-
-    nonisolated func releaseNotification(token: String) {
-        Task {
-            let service = await MainActor.run { ensureRemoteService() }
-            do {
-                try await service.withService { $0.releaseNotification(token) }
-            } catch {
-                await MainActor.run { self.lastError = .transport(underlying: error) }
-            }
-        }
-    }
-
-    /// Feeds the helper the notch's effective open state so it can gate its
-    /// focus-stealing banner keep-alive expand to open-notch-only.
-    /// Refcounted across screens: only 0→1 sends true, only 1→0 sends false.
-    nonisolated func notchOpened() {
-        Task { @MainActor in
-            notchOpenCount += 1
-            if notchOpenCount == 1 { sendNotchOpen(true) }
-        }
-    }
-
-    nonisolated func notchClosed() {
-        Task { @MainActor in
-            guard notchOpenCount > 0 else {
-                NSLog("[boringNotch] XPCHelperClient: unmatched notchClosed ignored")
-                return
-            }
-            notchOpenCount -= 1
-            if notchOpenCount == 0 { sendNotchOpen(false) }
-        }
-    }
-
-    @MainActor private func sendNotchOpen(_ open: Bool) {
-        let service = ensureRemoteService()
-        Task {
-            do {
-                try await service.withService { $0.setNotchOpen(open) }
-            } catch {
-                lastError = .transport(underlying: error)
-            }
-        }
-    }
-
-    nonisolated func sendIMessage(_ text: String, toChatNamed name: String) async -> Bool {
-        do {
-            let service = await MainActor.run { ensureRemoteService() }
-            return try await service.withContinuation { service, continuation in
-                service.sendIMessage(text, toChatNamed: name) { sent in
-                    continuation.resume(returning: sent)
-                }
-            }
-        } catch {
-            await MainActor.run { self.lastError = .transport(underlying: error) }
-            return false
-        }
-    }
-
-    nonisolated func notificationDebugDump() async -> String {
-        do {
-            let service = await MainActor.run { ensureRemoteService() }
-            return try await service.withContinuation { service, continuation in
-                service.notificationDebugDump { dump in
-                    continuation.resume(returning: dump)
-                }
-            }
-        } catch {
-            await MainActor.run { self.lastError = .transport(underlying: error) }
-            return "xpc error: \(error)"
-        }
-    }
 }
 
 extension Notification.Name {
     static let systemNotificationDidAppear = Notification.Name("systemNotificationDidAppear")
-    static let systemNotificationDidDisappear = Notification.Name("systemNotificationDidDisappear")
 }
-
-

@@ -2,36 +2,28 @@
 //  NotificationSettingsView.swift
 //  boringNotch
 //
-//  Per-app controls for the notch's notification live activity: which apps
-//  are mirrored, and which of those should also have their system banner
-//  auto-dismissed once captured.
-//
-
+import AppKit
 import Defaults
 import SwiftUI
 
-private struct KnownNotificationApp: Identifiable {
+private struct NotificationApp: Identifiable {
     let bundleID: String
     let name: String
+
     var id: String { bundleID }
 }
 
-private let knownNotificationApps: [KnownNotificationApp] = [
-    .init(bundleID: "com.apple.MobileSMS", name: "Messages"),
-    .init(bundleID: "com.apple.FaceTime", name: "FaceTime"),
-    .init(bundleID: "com.apple.mail", name: "Mail"),
-    .init(bundleID: "com.microsoft.Outlook", name: "Outlook"),
-    .init(bundleID: "net.whatsapp.WhatsApp", name: "WhatsApp"),
-    .init(bundleID: "ru.keepcoder.Telegram", name: "Telegram"),
-    .init(bundleID: "com.tdesktop.Telegram", name: "Telegram Desktop"),
-    .init(bundleID: "com.hnc.Discord", name: "Discord"),
-    .init(bundleID: "com.anthropic.claudefordesktop", name: "Claude")
-]
-
 struct NotificationSettingsView: View {
-    @Default(.notificationLiveActivity) var notificationLiveActivity
-    @Default(.notificationsFromAllApps) var notificationsFromAllApps
-    @Default(.notificationAllowedApps) var allowedApps
+    @Default(.notificationLiveActivity) private var notificationLiveActivity
+    @Default(.notificationsFromAllApps) private var notificationsFromAllApps
+    @Default(.notificationAllowedApps) private var allowedApps
+    @State private var isAccessibilityAuthorized = true
+
+    private var selectedApps: [NotificationApp] {
+        allowedApps
+            .map { NotificationApp(bundleID: $0, name: displayName(for: $0)) }
+            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+    }
 
     var body: some View {
         Form {
@@ -40,9 +32,34 @@ struct NotificationSettingsView: View {
                     Text("Show notifications in the notch")
                 }
             } footer: {
-                Text("Requires \(AccessibilityPermission.displayName). Only banners are mirrored — notifications delivered silently to Notification Center aren't visible to the app.")
+                Text("Requires \(AccessibilityPermission.displayName). Only visible banners are mirrored.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            }
+
+            if !isAccessibilityAuthorized {
+                Section {
+                    HStack(alignment: .center, spacing: 12) {
+                        Image(systemName: AccessibilityPermission.systemImageName)
+                            .font(.title)
+                            .foregroundStyle(Color.effectiveAccent)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("\(AccessibilityPermission.displayName) Required")
+                                .font(.headline)
+                            Text("Grant \(AccessibilityPermission.displayName) to mirror notification banners.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Button("Grant Access") {
+                            Task {
+                                let granted = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
+                                isAccessibilityAuthorized = granted
+                            }
+                        }
+                    }
+                }
             }
 
             Section {
@@ -52,68 +69,89 @@ struct NotificationSettingsView: View {
                 .disabled(!notificationLiveActivity)
 
                 if !notificationsFromAllApps {
-                    ForEach(knownNotificationApps) { app in
-                        appRow(app)
+                    if selectedApps.isEmpty {
+                        Text("No apps selected")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(selectedApps) { app in
+                            HStack {
+                                appIcon(for: app.bundleID)
+                                    .resizable().scaledToFit()
+                                    .frame(width: 20, height: 20)
+                                    .clipShape(RoundedRectangle(cornerRadius: 5))
+
+                                Text(app.name)
+                                Spacer()
+                                Button("Remove", role: .destructive) {
+                                    allowedApps.remove(app.bundleID)
+                                }
+                                .buttonStyle(.borderless)
+                            }
+                        }
+                    }
+
+                    Button {
+                        chooseApplication()
+                    } label: {
+                        Label("Add Application…", systemImage: "plus")
                     }
                 }
             } header: {
                 Text("Apps")
             } footer: {
                 if !notificationsFromAllApps {
-                    Text("Only these apps show a live activity in the notch. Turn on \"From all apps\" to mirror everything instead.")
+                    Text("Only selected apps are mirrored. Add applications from your Mac; no preset app list is used.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
             .disabled(!notificationLiveActivity)
-
-            Section {
-                Defaults.Toggle(key: .smartRepliesEnabled) {
-                    Text("Suggest replies with Apple Intelligence")
-                }
-                .disabled(!notificationLiveActivity || !smartRepliesAvailable)
-            } footer: {
-                Text(smartReplyFooter)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
         }
         .formStyle(.grouped)
         .navigationTitle("Notifications")
-    }
-
-    private var smartRepliesAvailable: Bool {
-        if case .available = SmartReplyManager.availability { return true }
-        return false
-    }
-
-    private var smartReplyFooter: String {
-        // Drafts run entirely on-device via Apple's on-device model — no
-        // network calls, nothing leaves the Mac.
-        switch SmartReplyManager.availability {
-        case .available:
-            return "Drafts a few short reply options for messages, entirely on-device. Nothing is sent over the network."
-        case .unavailable(let reason):
-            return reason
+        .task {
+            isAccessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notification in
+            if let granted = notification.userInfo?["granted"] as? Bool {
+                isAccessibilityAuthorized = granted
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task {
+                isAccessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+            }
+        }
+        .onChange(of: allowedApps) { _, _ in
+            SystemNotificationManager.shared.updateFilter()
+        }
+        .onChange(of: notificationsFromAllApps) { _, _ in
+            SystemNotificationManager.shared.updateFilter()
         }
     }
 
-    @ViewBuilder
-    private func appRow(_ app: KnownNotificationApp) -> some View {
-        HStack {
-            appIcon(for: app.bundleID)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 20, height: 20)
-                .clipShape(RoundedRectangle(cornerRadius: 5))
-
-            Toggle(app.name, isOn: Binding(
-                get: { allowedApps.contains(app.bundleID) },
-                set: { on in
-                    if on { allowedApps.insert(app.bundleID) } else { allowedApps.remove(app.bundleID) }
-                }
-            ))
+    private func chooseApplication() {
+        let panel = NSOpenPanel()
+        panel.allowedFileTypes = ["app"]
+        panel.allowsMultipleSelection = true
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.begin { response in
+            guard response == .OK else { return }
+            let bundleIDs = panel.urls.compactMap { Bundle(url: $0)?.bundleIdentifier }
+            guard !bundleIDs.isEmpty else { return }
+            DispatchQueue.main.async {
+                allowedApps.formUnion(bundleIDs)
+            }
         }
-        .disabled(!notificationLiveActivity)
+    }
+
+    private func displayName(for bundleID: String) -> String {
+        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID),
+              let name = Bundle(url: url)?.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+        else {
+            return bundleID
+        }
+        return name
     }
 }
