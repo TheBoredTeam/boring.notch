@@ -819,6 +819,10 @@ struct ContentView: View {
         }
     }
 
+}
+// MARK: - Gesture & Hover Handling
+
+extension ContentView {
     @discardableResult
     private func doOpen() -> Bool {
         var didOpen = false
