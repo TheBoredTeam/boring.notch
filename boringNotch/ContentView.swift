@@ -199,7 +199,9 @@ struct ContentView: View {
             case .notification:
                 chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
             case .music:
-                chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
+                chinWidth += ClosedMusicActivityContent.additionalChinWidth(
+                    at: displayClosedNotchHeight
+                )
                 // The inline song-change peek widens the pill itself, so the
                 // chin has to grow with it — otherwise the hover region is
                 // narrower than what's on screen.
@@ -699,6 +701,10 @@ struct ContentView: View {
 
     @ViewBuilder
     func MusicLiveActivity() -> some View {
+        let shouldDisplayDecorativeContent = ClosedMusicActivityContent.shouldDisplay(
+            at: displayClosedNotchHeight
+        )
+
         HStack(spacing: 0) {
             // Closed-mode album art: scale padding and corner radius according to cornerRadiusScaleFactor
             let baseArtSize = displayClosedNotchHeight - 12
@@ -717,17 +723,19 @@ struct ContentView: View {
                 return base
             }()
 
-            Image(nsImage: musicManager.albumArt)
-                .resizable().scaledToFit()
-                .clipShape(
-                    RoundedRectangle(
-                        cornerRadius: closedCornerRadius)
-                )
-                .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                .frame(
-                    width: scaledArtSize,
-                    height: scaledArtSize
-                )
+            if shouldDisplayDecorativeContent {
+                Image(nsImage: musicManager.albumArt)
+                    .resizable().scaledToFit()
+                    .clipShape(
+                        RoundedRectangle(
+                            cornerRadius: closedCornerRadius)
+                    )
+                    .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                    .frame(
+                        width: scaledArtSize,
+                        height: scaledArtSize
+                    )
+            }
 
             Rectangle()
                 .fill(.black)
@@ -773,27 +781,29 @@ struct ContentView: View {
                 )
                 .frame(width: musicActivityCenterWidth)
 
-            HStack {
-                MusicVisualizer(
-                    isPlaying: musicManager.isPlaying,
-                    tintColor: Defaults[.coloredSpectrogram]
-                    ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
-                    : Color.gray
+            if shouldDisplayDecorativeContent {
+                HStack {
+                    MusicVisualizer(
+                        isPlaying: musicManager.isPlaying,
+                        tintColor: Defaults[.coloredSpectrogram]
+                        ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
+                        : Color.gray
+                    )
+                    .frame(width: 18, height: 12)
+                }
+                .frame(
+                    width: max(
+                        0,
+                        displayClosedNotchHeight - 12
+                            + gestureProgress / 2
+                    ),
+                    height: max(
+                        0,
+                        displayClosedNotchHeight - 12
+                    ),
+                    alignment: .center
                 )
-                .frame(width: 18, height: 12)
             }
-            .frame(
-                width: max(
-                    0,
-                    displayClosedNotchHeight - 12
-                        + gestureProgress / 2
-                ),
-                height: max(
-                    0,
-                    displayClosedNotchHeight - 12
-                ),
-                alignment: .center
-            )
         }
         .frame(
             height: displayClosedNotchHeight,
