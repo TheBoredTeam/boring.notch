@@ -185,8 +185,7 @@ struct CompactHomeView: View {
     private var compactAlbumArt: some View {
         ZStack(alignment: .bottomTrailing) {
             Image(nsImage: musicManager.albumArt)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
+                .resizable().scaledToFill()
                 .frame(width: albumArtWidth, height: albumArtWidth)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
 
@@ -195,8 +194,7 @@ struct CompactHomeView: View {
             // on 50pt art it spills outside the corner.
             if !musicManager.usingAppIconForArtwork {
                 appIcon(for: musicManager.bundleIdentifier ?? MediaAppBundleID.appleMusic)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .resizable().scaledToFit()
                     .frame(width: 18, height: 18)
                     .offset(x: 5, y: 5)
             }

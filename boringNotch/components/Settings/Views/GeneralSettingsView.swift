@@ -31,7 +31,7 @@ struct GeneralSettings: View {
                     Text("Show menu bar icon")
                 }
                 .tint(.effectiveAccent)
-                LaunchAtLogin.Toggle() {
+                LaunchAtLogin.Toggle {
                     Text("Launch at login")
                 }
                 Picker("Language", selection: $appLanguage) {

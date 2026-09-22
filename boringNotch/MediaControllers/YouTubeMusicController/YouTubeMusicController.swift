@@ -18,7 +18,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
     )
 
     private var artworkFetchTask: Task<Void, Never>?
-    
+
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         $playbackState.eraseToAnyPublisher()
     }
@@ -49,20 +49,20 @@ final class YouTubeMusicController: MediaControllerProtocol {
     private let httpClient: YouTubeMusicHTTPClient
     private let authManager: YouTubeMusicAuthManager
     private var webSocketClient: YouTubeMusicWebSocketClient?
-    
+
     private var updateTimer: Timer?
     private var appStateObserver: Task<Void, Never>?
     private var reconnectTask: Task<Void, Never>?
     private var reconnectDelay: TimeInterval = 1.0
-    
+
     // MARK: - Initialization
     init(configuration: YouTubeMusicConfiguration = .default) {
         self.configuration = configuration
         self.httpClient = YouTubeMusicHTTPClient(baseURL: configuration.baseURL)
         self.authManager = YouTubeMusicAuthManager(httpClient: httpClient)
-        
+
         setupAppStateObserver()
-        
+
         Task {
             await initializeIfAppActive()
         }
@@ -80,21 +80,21 @@ final class YouTubeMusicController: MediaControllerProtocol {
             }
         }
     }
-    
+
     // MARK: - MediaControllerProtocol Implementation
     func play() async { await sendCommand(endpoint: "/play", method: "POST") }
-    
+
     func pause() async { await sendCommand(endpoint: "/pause", method: "POST") }
-    
+
     func togglePlay() async {
         if !isActive() { launchApp() }
         await sendCommand(endpoint: "/toggle-play", method: "POST")
     }
-    
+
     func nextTrack() async { await sendCommand(endpoint: "/next", method: "POST") }
 
     func previousTrack() async { await sendCommand(endpoint: "/previous", method: "POST") }
-    
+
     func seek(to time: Double) async {
         let payload = ["seconds": time]
         await sendCommand(endpoint: "/seek-to", method: "POST", body: payload)
@@ -108,7 +108,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
     }
     func fetchShuffleState() async { await sendCommand(endpoint: "/shuffle", method: "GET", refresh: false) }
     func fetchRepeatMode() async { await sendCommand(endpoint: "/repeat-mode", method: "GET", refresh: false) }
-    
+
     func toggleShuffle() async { await sendCommand(endpoint: "/shuffle", method: "POST") }
     func toggleRepeat() async { await sendCommand(endpoint: "/switch-repeat", method: "POST") }
 
@@ -117,13 +117,13 @@ final class YouTubeMusicController: MediaControllerProtocol {
             $0.bundleIdentifier == configuration.bundleIdentifier
         }
     }
-    
+
     func updatePlaybackInfo() async {
         guard isActive() else {
             resetPlaybackState()
             return
         }
-        
+
         do {
             let token = try await authManager.authenticate()
             let response = try await httpClient.getPlaybackInfo(token: token)
@@ -155,7 +155,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
             Log.music.error("[YouTubeMusicController] Failed to update playback info: \(error)")
         }
     }
-    
+
     // MARK: - Private Methods
     private func setupAppStateObserver() {
         appStateObserver = Task { [weak self] in
@@ -164,17 +164,17 @@ final class YouTubeMusicController: MediaControllerProtocol {
                     let launchNotifications = NSWorkspace.shared.notificationCenter.notifications(
                         named: NSWorkspace.didLaunchApplicationNotification
                     )
-                    
+
                     for await notification in launchNotifications {
                         await self?.handleAppLaunched(notification)
                     }
                 }
-                
+
                 group.addTask {
                     let terminateNotifications = NSWorkspace.shared.notificationCenter.notifications(
                         named: NSWorkspace.didTerminateApplicationNotification
                     )
-                    
+
                     for await notification in terminateNotifications {
                         await self?.handleAppTerminated(notification)
                     }
@@ -182,17 +182,17 @@ final class YouTubeMusicController: MediaControllerProtocol {
             }
         }
     }
-    
+
     private func handleAppLaunched(_ notification: Notification) async {
         guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
               app.bundleIdentifier == configuration.bundleIdentifier else {
             return
         }
-        
+
         cancelReconnect(resetDelay: true)
         await initializeIfAppActive()
     }
-    
+
     private func handleAppTerminated(_ notification: Notification) async {
         guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
               app.bundleIdentifier == configuration.bundleIdentifier else {
@@ -200,7 +200,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
         }
 
         let disconnectedClient = takeWebSocketClient()
-        
+
         Task { @MainActor in
             stopPeriodicUpdates()
             // NOTE: Do NOT cancel appStateObserver here.
@@ -211,17 +211,17 @@ final class YouTubeMusicController: MediaControllerProtocol {
         resetPlaybackState()
         disconnectClient(disconnectedClient)
     }
-    
+
     private func initializeIfAppActive() async {
         guard isActive() else { return }
-        
+
         cancelReconnect(resetDelay: false)
-        
+
         if await hasActiveWebSocketConnection() {
             await updatePlaybackInfo()
             return
         }
-        
+
         do {
             let token = try await authManager.authenticate()
             await setupWebSocketIfPossible(token: token)
@@ -232,13 +232,13 @@ final class YouTubeMusicController: MediaControllerProtocol {
             scheduleReconnect()
         }
     }
-    
+
     private func setupWebSocketIfPossible(token: String) async {
         guard let wsURL = WebSocketURLBuilder.buildURL(from: configuration.baseURL) else {
             Log.music.error("[YouTubeMusicController] Failed to build WebSocket URL")
             return
         }
-        
+
         let client = YouTubeMusicWebSocketClient(
             onMessage: { [weak self] data in
                 await self?.handleWebSocketMessage(data)
@@ -247,7 +247,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
                 await self?.handleWebSocketDisconnect()
             }
         )
-        
+
         do {
             try await client.connect(to: wsURL, with: token)
             activateWebSocket(client)
@@ -256,7 +256,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
             scheduleReconnect()
         }
     }
-    
+
     private func handleWebSocketMessage(_ data: Data) async {
         guard let message = WebSocketMessage(from: data) else {
             if let response = try? JSONDecoder().decode(PlaybackResponse.self, from: data) {
@@ -274,7 +274,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
         case .positionChanged:
             guard let data = message.extractData() else { return }
 
-            var position: Double? = nil
+            var position: Double?
             if let pos = data["position"] as? Double {
                 position = pos
             } else if let elapsed = data["elapsedSeconds"] as? Double {
@@ -309,8 +309,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
         case .shuffleChanged:
             guard let data = message.extractData() else { return }
             var copy = playbackState
-            if let shuffle = data["shuffle"] as? Bool { copy.isShuffled = shuffle }
-            else if let shuffle = data["isShuffled"] as? Bool { copy.isShuffled = shuffle }
+            if let shuffle = data["shuffle"] as? Bool { copy.isShuffled = shuffle } else if let shuffle = data["isShuffled"] as? Bool { copy.isShuffled = shuffle }
             copy.lastUpdated = Date()
             if copy != playbackState { playbackState = copy }
 
@@ -326,7 +325,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
             if copy != playbackState { playbackState = copy }
         }
     }
-    
+
     private func handleWebSocketDisconnect() async {
         _ = takeWebSocketClient()
         await startPeriodicUpdates() // Fallback to polling
@@ -370,35 +369,35 @@ final class YouTubeMusicController: MediaControllerProtocol {
             await client?.disconnect()
         }
     }
-    
+
     private func scheduleReconnect() {
         guard reconnectTask == nil else { return }
-        
+
         let delay = reconnectDelay
         reconnectTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(delay))
             guard let self else { return }
-            
+
             self.reconnectTask = nil
             self.reconnectDelay = min(delay * 2, self.configuration.reconnectDelay.upperBound)
-            
+
             guard self.isActive(), self.webSocketClient == nil else { return }
             await self.initializeIfAppActive()
         }
     }
-    
+
     private func startPeriodicUpdates() async {
         guard isActive() && webSocketClient == nil else { return }
-        
+
         stopPeriodicUpdates()
-        
+
         updateTimer = Timer.scheduledTimer(withTimeInterval: configuration.updateInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 await self?.updatePlaybackInfo()
             }
         }
     }
-    
+
     private func stopPeriodicUpdates() {
         updateTimer?.invalidate()
         updateTimer = nil
@@ -408,12 +407,12 @@ final class YouTubeMusicController: MediaControllerProtocol {
         if !isActive() {
             return
         }
-        
+
         await fetchRepeatMode()
         await fetchShuffleState()
         await updatePlaybackInfo()
     }
-    
+
     private func sendCommand(
         endpoint: String,
         method: String = "POST",
@@ -422,7 +421,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
     ) async {
         do {
             let token = try await authManager.authenticate()
-            
+
             let data = try await httpClient.sendCommand(
                 endpoint: endpoint,
                 method: method,
@@ -440,7 +439,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
                 if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                     if let mode = json["mode"] as? String { updateRepeatMode(mode) }
                 }
-            }  else if endpoint == "/switch-repeat" {
+            } else if endpoint == "/switch-repeat" {
                 // Find next repeat mode
                 let nextMode: RepeatMode
                 switch playbackState.repeatMode {
@@ -459,10 +458,10 @@ final class YouTubeMusicController: MediaControllerProtocol {
             Log.music.error("[YouTubeMusicController] Command failed: \(error)")
         }
     }
-    
+
     private func updatePlaybackState(with response: PlaybackResponse) async {
         var newState = playbackState
-        
+
         newState.isPlaying = !response.isPaused
 
         if let title = response.title {
@@ -486,11 +485,11 @@ final class YouTubeMusicController: MediaControllerProtocol {
         }
 
         newState.lastUpdated = Date()
-        
+
         if let shuffled = response.isShuffled {
             newState.isShuffled = shuffled
         }
-        
+
         if let mode = response.repeatMode {
             switch mode {
             case 0: newState.repeatMode = .off
@@ -517,14 +516,13 @@ final class YouTubeMusicController: MediaControllerProtocol {
                         let data = try await ImageService.shared.fetchImageData(from: url)
                         await MainActor.run { [weak self] in
                             self?.playbackState.artwork = data
-
                         }
                     } catch { /* ignore */ }
                 }
             }
         }
     }
-    
+
     private func resetPlaybackState() {
         playbackState = PlaybackState(
             bundleIdentifier: configuration.bundleIdentifier,
@@ -532,7 +530,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
             lastUpdated: Date()
         )
     }
-    
+
     private func launchApp() {
         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: configuration.bundleIdentifier) else {
             return
@@ -541,7 +539,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
     }
 
      private func updateRepeatMode(_ mode: String) {
-        var target: RepeatMode? = nil
+        var target: RepeatMode?
         switch mode {
             case "NONE": target = .off
             case "ALL": target = .all
@@ -550,5 +548,4 @@ final class YouTubeMusicController: MediaControllerProtocol {
         }
         if let target, target != playbackState.repeatMode { playbackState.repeatMode = target }
     }
-    
 }

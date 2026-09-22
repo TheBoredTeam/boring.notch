@@ -5,18 +5,15 @@
 //  Created by Alexander on 2025-09-24.
 //
 
-
 import AppKit
 import Foundation
 import UniformTypeIdentifiers
 
 extension NSItemProvider {
-    
     func extractItem() async -> URL? {
         return await loadFileURL(typeIdentifier: UTType.item.identifier)
     }
 
-    
     /// Detects if this is a file dragged from the filesystem
     func extractFileURL() async -> URL? {
         if hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
@@ -24,7 +21,7 @@ extension NSItemProvider {
         }
         return nil
     }
-    
+
     /// Loads raw data for the given type identifier
     func loadData() async -> Data? {
         NSLog(String(describing: self.registeredTypeIdentifiers))
@@ -42,7 +39,7 @@ extension NSItemProvider {
                         return
                     }
                     self.suggestedName = self.suggestedName ?? url.lastPathComponent
-                    
+
                     let fileManager = FileManager.default
                     let folderURL = url.deletingLastPathComponent()
 
@@ -59,11 +56,10 @@ extension NSItemProvider {
                         } else {
                             Log.general.debug("Folder not deleted — it still contains \(contents.count) item(s).")
                         }
-
                     } catch {
                         Log.general.error("Error: \(error.localizedDescription)")
                     }
-                    
+
                     cont.resume(returning: data)
                 } else if let data = item as? Data {
                     cont.resume(returning: data)
@@ -78,7 +74,7 @@ extension NSItemProvider {
     func extractURL() async -> URL? {
         if self.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
             if let url = await loadURL(typeIdentifier: UTType.url.identifier) {
-                //Validate URL
+                // Validate URL
                 guard url.scheme != nil else { return nil }
                 return url
             }

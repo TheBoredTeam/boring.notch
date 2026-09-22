@@ -37,11 +37,11 @@ enum MusicPlayerImageSizes {
     if let uuid = screenUUID {
         selectedScreen = NSScreen.screen(withUUID: uuid)
     }
-    
+
     if let screen = selectedScreen {
         return screen.frame
     }
-    
+
     return nil
 }
 
@@ -52,7 +52,7 @@ enum MusicPlayerImageSizes {
             return safeAreaTop
         }
     }
-    
+
     return 38
 }
 
@@ -152,8 +152,7 @@ enum MusicPlayerImageSizes {
     if let screen = selectedScreen {
         // Calculate and set the exact width of the notch
         if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
-           let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width
-        {
+           let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width {
             notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 4
         }
         notchHeight = screen.safeAreaInsets.top > 0 ? Defaults[.notchHeight] : Defaults[.nonNotchHeight]

@@ -45,10 +45,8 @@ func warningBadge(_ text: String, _ description: String) -> some View {
     }
 }
 
-
 func HelpText(_ text: String) -> some View {
     Text(text)
         .font(.caption)
         .foregroundStyle(.secondary)
 }
-

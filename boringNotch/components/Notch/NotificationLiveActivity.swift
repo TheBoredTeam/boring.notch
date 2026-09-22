@@ -12,8 +12,7 @@ private struct NotificationSourceIcon: View {
     var body: some View {
         if let bundleID {
             appIcon(for: bundleID)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+                .resizable().scaledToFit()
                 .frame(width: size, height: size)
                 .clipShape(RoundedRectangle(cornerRadius: size * 0.2))
         } else {

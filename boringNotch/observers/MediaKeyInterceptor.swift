@@ -29,7 +29,7 @@ final class MediaKeyInterceptor {
     private var runLoopSource: CFRunLoopSource?
     private let step: Float = 1.0 / 16.0
     private var audioPlayer: AVAudioPlayer?
-    
+
     private init() {}
 
     private var isTapActive: Bool {
@@ -47,7 +47,7 @@ final class MediaKeyInterceptor {
     }
 
     // MARK: - Event Tap
-    
+
     func start(promptIfNeeded: Bool = false) async {
         // Ensure OSD replacement is enabled
         guard Defaults[.osdReplacement] else {
@@ -103,7 +103,7 @@ final class MediaKeyInterceptor {
             },
             userInfo: UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
         )
-        
+
         if let eventTap {
             runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
             if let runLoopSource {

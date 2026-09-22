@@ -3,7 +3,6 @@ import Defaults
 
 /// A view that displays the battery status with an icon and charging indicator.
 struct BatteryView: View {
-
     var levelBattery: Float
     var isPluggedIn: Bool
     var isCharging: Bool
@@ -17,11 +16,9 @@ struct BatteryView: View {
     var iconStatus: String {
         if isCharging {
             return "bolt"
-        }
-        else if isPluggedIn {
+        } else if isPluggedIn {
             return "plug"
-        }
-        else {
+        } else {
             return ""
         }
     }
@@ -60,11 +57,9 @@ struct BatteryView: View {
 
     var body: some View {
         ZStack(alignment: .leading) {
-
             Image(systemName: icon)
                 .resizable()
-                .fontWeight(.thin)
-                .aspectRatio(contentMode: .fit)
+                .fontWeight(.thin).scaledToFit()
                 .foregroundColor(.white.opacity(0.5))
                 .frame(
                     width: batteryWidth + 1
@@ -81,8 +76,7 @@ struct BatteryView: View {
             if iconStatus != "" && (isForNotification || Defaults[.showPowerStatusIcons]) {
                 ZStack {
                     Image(iconStatus)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
+                        .resizable().scaledToFit()
                         .foregroundColor(.white)
                         .frame(
                             width: 17 * sizeScale,
@@ -105,7 +99,6 @@ struct ScaleButtonStyle: ButtonStyle {
 
 /// A view that displays detailed battery information and settings.
 struct BatteryMenuView: View {
-    
     var isPluggedIn: Bool
     var isCharging: Bool
     var levelBattery: Float
@@ -150,7 +143,6 @@ struct BatteryMenuView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-
             HStack {
                 Text("Battery Status")
                     .font(.headline)
@@ -163,7 +155,7 @@ struct BatteryMenuView: View {
                     .font(.headline)
                     .fontWeight(.semibold)
             }
-            
+
             VStack(alignment: .leading, spacing: 8) {
                 if let maxCapacity {
                     Text(
@@ -211,7 +203,6 @@ struct BatteryMenuView: View {
                         .font(.subheadline)
                         .fontWeight(.regular)
                 }
-                    
             }
             .padding(.vertical, 8)
 
@@ -240,7 +231,6 @@ struct BatteryMenuView: View {
 
 /// A view that displays the battery status and allows interaction to show detailed information.
 struct BoringBatteryView: View {
-    
     @State var batteryWidth: CGFloat = 26
     var isCharging: Bool = false
     var isInLowPowerMode: Bool = false
@@ -251,12 +241,12 @@ struct BoringBatteryView: View {
     var timeToDischarge: Int = 0
     var maxAdapterWatts: Int = 0
     @State var isForNotification: Bool = false
-    
+
     @State private var showPopupMenu: Bool = false
     @State private var isPressed: Bool = false
     @State private var isHoveringButton: Bool = false
     @State private var isHoveringPopover: Bool = false
-    @State private var hideTask: Task<Void, Never>? = nil
+    @State private var hideTask: Task<Void, Never>?
 
     @EnvironmentObject var vm: BoringViewModel
 

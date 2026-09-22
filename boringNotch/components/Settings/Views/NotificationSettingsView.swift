@@ -76,8 +76,7 @@ struct NotificationSettingsView: View {
                         ForEach(selectedApps) { app in
                             HStack {
                                 appIcon(for: app.bundleID)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
+                                    .resizable().scaledToFit()
                                     .frame(width: 20, height: 20)
                                     .clipShape(RoundedRectangle(cornerRadius: 5))
 

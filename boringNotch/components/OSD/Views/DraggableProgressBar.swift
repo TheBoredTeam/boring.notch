@@ -10,8 +10,8 @@ import Defaults
 
 public struct DraggableProgressBar: View {
     @Binding public var value: CGFloat
-    public var onChange: ((CGFloat) -> Void)? = nil
-    public var accentColor: Color? = nil
+    public var onChange: ((CGFloat) -> Void)?
+    public var accentColor: Color?
     public var compact: Bool = false
 
     @State private var isDragging = false

@@ -163,7 +163,7 @@ static func present(
         let quickLookItem = NSMenuItem(title: Strings.quickLook, action: nil, keyEquivalent: "")
         quickLookItem.representedObject = ContextMenuAction.quickLook.rawValue
         menu.addItem(quickLookItem)
-        
+
         // Add Slideshow as alternate menu item (shown when Option key is held)
         let slideshowItem = NSMenuItem(title: Strings.quickLook, action: nil, keyEquivalent: "")
         slideshowItem.representedObject = ContextMenuAction.quickLook.rawValue
@@ -174,7 +174,7 @@ static func present(
 
     menu.addItem(NSMenuItem.separator())
     addMenuItem(title: Strings.share, contextAction: .share)
-    
+
     // Add image processing options for image files grouped under "Image Actions"
     let imageURLs = selectedFileURLs.filter { ImageProcessingService.shared.isImageFile($0) }
     if !imageURLs.isEmpty {
@@ -214,7 +214,7 @@ static func present(
         menu.addItem(compressItem)
     }
 
-    if selectedItems.count == 1, case .file(_) = item.kind { addMenuItem(title: Strings.rename, contextAction: .rename) }
+    if selectedItems.count == 1, case .file = item.kind { addMenuItem(title: Strings.rename, contextAction: .rename) }
 
     // Always show "Copy" for all item types
     addMenuItem(title: Strings.copy, contextAction: .copy)
@@ -290,7 +290,6 @@ func defaultAppURL(for item: ShelfItem) -> URL? {
     return nil
 }
 
-
 private final class MenuActionTarget: NSObject {
     private static var copiedURLs: [URL] = []
     let item: ShelfItem
@@ -320,7 +319,7 @@ private final class MenuActionTarget: NSObject {
 
         if let appURL = sender.representedObject as? URL {
             let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-            
+
             Task {
                     var allSelectedURLs: [URL] = []
 
@@ -408,13 +407,13 @@ private final class MenuActionTarget: NSObject {
         case .copy?:
             let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
             let pb = NSPasteboard.general
-            
+
             // Stop accessing previously copied URLs
             for url in MenuActionTarget.copiedURLs {
                 url.stopAccessingSecurityScopedResource()
             }
             MenuActionTarget.copiedURLs.removeAll()
-            
+
             pb.clearContents()
             Task {
                 let fileURLs = await selected.asyncCompactMap { item -> URL? in
@@ -427,7 +426,7 @@ private final class MenuActionTarget: NSObject {
                     // Start security-scoped access for all URLs and keep them active
                     MenuActionTarget.copiedURLs = fileURLs.filter { $0.startAccessingSecurityScopedResource() }
                     NSLog("🔐 Started security-scoped access for \(MenuActionTarget.copiedURLs.count) copied files")
-                    
+
                     // Write to pasteboard
                     pb.writeObjects(fileURLs as [NSURL])
                 } else {
@@ -441,16 +440,16 @@ private final class MenuActionTarget: NSObject {
         case .remove?:
             let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
             for it in selected { ShelfActionService.remove(it) }
-            
+
         case .removeBackground?:
             handleRemoveBackground()
-            
+
         case .convertImage?:
             showConvertImageDialog()
-            
+
         case .createPDF?:
             handleCreatePDF()
-        
+
         case .compress?:
             let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
             let fileURLs = selected.compactMap { $0.fileURL }
@@ -470,7 +469,7 @@ private final class MenuActionTarget: NSObject {
                     }
                 }
             }
-            
+
         case .none:
             break
         }
@@ -481,7 +480,7 @@ private final class MenuActionTarget: NSObject {
         // Support both file items and link items
         let targetURL: URL?
         let needsSecurityScope: Bool
-        
+
         if let fileURL = item.fileURL {
             targetURL = fileURL
             needsSecurityScope = true
@@ -524,7 +523,7 @@ private final class MenuActionTarget: NSObject {
             var mode: Mode = .recommended
             let recommended: Set<URL>
             init(recommended: Set<URL>) { self.recommended = recommended }
-            
+
             func panel(_ sender: Any, shouldEnable url: URL) -> Bool {
                 let ext = url.pathExtension.lowercased()
                 if ext == "app" {
@@ -542,7 +541,7 @@ private final class MenuActionTarget: NSObject {
                 if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory), isDirectory.boolValue {
                     return true
                 }
-                
+
                 return false
             }
         }
@@ -554,15 +553,15 @@ private final class MenuActionTarget: NSObject {
         enableLabel.font = .systemFont(ofSize: NSFont.systemFontSize)
         enableLabel.alignment = .natural
         enableLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        
+
         let popup = NSPopUpButton(frame: .zero, pullsDown: false)
         popup.addItems(withTitles: [String(localized: "Recommended Applications"), String(localized: "All Applications")])
         popup.font = .systemFont(ofSize: NSFont.systemFontSize)
         popup.selectItem(at: 0)
-        
+
         popup.setContentHuggingPriority(.defaultLow, for: .horizontal)
         popup.widthAnchor.constraint(greaterThanOrEqualToConstant: 200).isActive = true
-        
+
         let alwaysCheckbox = NSButton(checkboxWithTitle: String(localized: "Always Open With"), target: nil, action: nil)
         alwaysCheckbox.font = .systemFont(ofSize: NSFont.systemFontSize)
         alwaysCheckbox.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -572,14 +571,14 @@ private final class MenuActionTarget: NSObject {
         row.spacing = 8
         row.alignment = .centerY
         row.distribution = .fill
-        
+
         let column = NSStackView(views: [row, alwaysCheckbox])
         column.orientation = .vertical
         column.spacing = 12
         column.alignment = .centerX
         column.distribution = .fill
         column.edgeInsets = NSEdgeInsets(top: 16, left: 20, bottom: 16, right: 20)
-        
+
         panel.accessoryView = column
         panel.isAccessoryViewDisclosed = true
 
@@ -642,7 +641,7 @@ private final class MenuActionTarget: NSObject {
             _ = chooserDelegate
         }
     }
-    
+
     @MainActor
     private func showRenameDialog(for item: ShelfItem) {
         guard case let .file(bookmarkData) = item.kind else { return }
@@ -680,20 +679,20 @@ private final class MenuActionTarget: NSObject {
             }
         }
     }
-    
+
     @MainActor
     private func handleRemoveBackground() {
         let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
         let imageURLs = selected.compactMap { $0.fileURL }.filter { ImageProcessingService.shared.isImageFile($0) }
-        
+
         guard let imageURL = imageURLs.first else { return }
-        
+
         Task {
             do {
                 let resultURL = try await imageURL.accessSecurityScopedResource { url in
                     try await ImageProcessingService.shared.removeBackground(from: url)
                 }
-                
+
                 if let resultURL = resultURL {
                     // Create bookmark and add to shelf as temporary item
                     if let bookmark = try? Bookmark(url: resultURL) {
@@ -710,20 +709,20 @@ private final class MenuActionTarget: NSObject {
             }
         }
     }
-    
+
     @MainActor
     private func handleCreatePDF() {
         let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
         let imageURLs = selected.compactMap { $0.fileURL }.filter { ImageProcessingService.shared.isImageFile($0) }
-        
+
         guard !imageURLs.isEmpty else { return }
-        
+
         Task {
             do {
                 let resultURL = try await imageURLs.accessSecurityScopedResources { urls in
                     try await ImageProcessingService.shared.createPDF(from: urls)
                 }
-                
+
                 if let resultURL = resultURL {
                     // Create bookmark and add to shelf as temporary item
                     if let bookmark = try? Bookmark(url: resultURL) {
@@ -740,95 +739,95 @@ private final class MenuActionTarget: NSObject {
             }
         }
     }
-    
+
     @MainActor
     private func showConvertImageDialog() {
         let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
         let imageURLs = selected.compactMap { $0.fileURL }.filter { ImageProcessingService.shared.isImageFile($0) }
-        
+
         guard let imageURL = imageURLs.first else { return }
-        
+
         // Create and show conversion options dialog with better layout
         let alert = NSAlert()
         alert.messageText = String(localized: "Convert Image")
         alert.alertStyle = .informational
         alert.addButton(withTitle: String(localized: "Convert"))
         alert.addButton(withTitle: String(localized: "Cancel"))
-        
+
         // Create accessory view with better spacing and organization
         let accessoryView = NSView(frame: NSRect(x: 0, y: 0, width: 380, height: 180))
         accessoryView.wantsLayer = true
-        
+
         // MARK: Format Row
         let formatLabel = NSTextField(labelWithString: String(localized: "Format:"))
         formatLabel.frame = NSRect(x: 0, y: 145, width: 100, height: 20)
         formatLabel.font = .systemFont(ofSize: 12, weight: .medium)
         accessoryView.addSubview(formatLabel)
-        
+
         let formatPopup = NSPopUpButton(frame: NSRect(x: 120, y: 140, width: 250, height: 28))
         formatPopup.addItems(withTitles: ["PNG", "JPEG", "HEIC", "TIFF", "BMP"])
         formatPopup.selectItem(at: 0)
         formatPopup.font = .systemFont(ofSize: 12)
         accessoryView.addSubview(formatPopup)
-        
+
         // MARK: Image Size Row
         let imageSizeLabel = NSTextField(labelWithString: String(localized: "Image Size:"))
         imageSizeLabel.frame = NSRect(x: 0, y: 105, width: 100, height: 20)
         imageSizeLabel.font = .systemFont(ofSize: 12, weight: .medium)
         accessoryView.addSubview(imageSizeLabel)
-        
+
         let imageSizePopup = NSPopUpButton(frame: NSRect(x: 120, y: 100, width: 160, height: 28))
         imageSizePopup.addItems(withTitles: [String(localized: "Actual Size"), String(localized: "Large"), String(localized: "Medium"), String(localized: "Small"), String(localized: "Custom...")])
         imageSizePopup.selectItem(at: 0)
         imageSizePopup.font = .systemFont(ofSize: 12)
         accessoryView.addSubview(imageSizePopup)
-        
+
         // Custom size field (initially hidden)
         let customSizeField = NSTextField(frame: NSRect(x: 285, y: 103, width: 85, height: 22))
         customSizeField.placeholderString = String(localized: "e.g., 1920")
         customSizeField.font = .systemFont(ofSize: 12)
         customSizeField.isHidden = true
         accessoryView.addSubview(customSizeField)
-        
+
         // MARK: Preserve Metadata Checkbox
         let metadataCheckbox = NSButton(checkboxWithTitle: String(localized: "Preserve Metadata"), target: nil, action: nil)
         metadataCheckbox.frame = NSRect(x: 120, y: 65, width: 200, height: 20)
         metadataCheckbox.font = .systemFont(ofSize: 12)
         metadataCheckbox.state = .on
         accessoryView.addSubview(metadataCheckbox)
-        
+
         // MARK: Separator line
         let separatorLine = NSView(frame: NSRect(x: 0, y: 50, width: 380, height: 1))
         separatorLine.wantsLayer = true
         separatorLine.layer?.backgroundColor = NSColor.separatorColor.cgColor
         accessoryView.addSubview(separatorLine)
-        
+
         // MARK: Format-specific options (shown/hidden based on format selection)
         let qualityRow = NSView(frame: NSRect(x: 0, y: 15, width: 380, height: 30))
         qualityRow.wantsLayer = true
-        
+
         let qualityLabel = NSTextField(labelWithString: String(localized: "Compression:"))
         qualityLabel.frame = NSRect(x: 0, y: 7, width: 100, height: 20)
         qualityLabel.font = .systemFont(ofSize: 12, weight: .medium)
         qualityRow.addSubview(qualityLabel)
-        
+
         let qualitySlider = NSSlider(frame: NSRect(x: 120, y: 12, width: 200, height: 20))
         qualitySlider.minValue = 0.0
         qualitySlider.maxValue = 1.0
         qualitySlider.doubleValue = 0.85
         accessoryView.addSubview(qualitySlider)
-        
+
         let qualityValueLabel = NSTextField(labelWithString: 0.85.formatted(.percent.precision(.fractionLength(0))))
         qualityValueLabel.frame = NSRect(x: 325, y: 7, width: 55, height: 20)
         qualityValueLabel.font = .systemFont(ofSize: 12)
         qualityValueLabel.alignment = .natural
         accessoryView.addSubview(qualityValueLabel)
-        
+
         // Update quality label and hide/show compression row based on format
         let updateQualityLabel = {
             qualityValueLabel.stringValue = qualitySlider.doubleValue.formatted(.percent.precision(.fractionLength(0)))
         }
-        
+
         let updateCompressionVisibility = {
             let formatIndex = formatPopup.indexOfSelectedItem
             let showCompression = formatIndex == 1 || formatIndex == 2 // JPEG or HEIC
@@ -836,12 +835,12 @@ private final class MenuActionTarget: NSObject {
             qualityValueLabel.isHidden = !showCompression
             qualityLabel.isHidden = !showCompression
         }
-        
+
         let updateCustomSizeVisibility = {
             let sizeIndex = imageSizePopup.indexOfSelectedItem
             customSizeField.isHidden = sizeIndex != 4 // Show only for "Custom..."
         }
-        
+
         // Create a target object to handle slider value changes
         class SliderHandler: NSObject {
             let updateLabel: () -> Void
@@ -862,29 +861,29 @@ private final class MenuActionTarget: NSObject {
                 updateCustomSize()
             }
         }
-        
+
         let handler = SliderHandler(updateLabel: updateQualityLabel, updateVisibility: updateCompressionVisibility, updateCustomSize: updateCustomSizeVisibility)
         qualitySlider.target = handler
         qualitySlider.action = #selector(SliderHandler.sliderChanged(_:))
         qualitySlider.isContinuous = true
-        
+
         formatPopup.target = handler
         formatPopup.action = #selector(SliderHandler.formatChanged(_:))
-        
+
         imageSizePopup.target = handler
         imageSizePopup.action = #selector(SliderHandler.sizeChanged(_:))
-        
+
         updateCompressionVisibility()
         updateQualityLabel()
         updateCustomSizeVisibility()
-        
+
         // Keep the handler alive using the `AssociatedObject` helper instead of a magic string key
         MenuActionTarget.sliderHandlerAssoc[accessoryView] = handler
-        
+
         alert.accessoryView = accessoryView
-        
+
         let response = alert.runModal()
-        
+
         if response == .alertFirstButtonReturn {
             // Get selected options
             let formatIndex = formatPopup.indexOfSelectedItem
@@ -897,9 +896,9 @@ private final class MenuActionTarget: NSObject {
             case 4: format = .bmp
             default: format = .png
             }
-            
+
             let quality = qualitySlider.doubleValue
-            
+
             // Get max dimension based on image size selection
             let maxDimension: CGFloat? = {
                 let sizeIndex = imageSizePopup.indexOfSelectedItem
@@ -915,22 +914,22 @@ private final class MenuActionTarget: NSObject {
                 default: return nil
                 }
             }()
-            
+
             let removeMetadata = metadataCheckbox.state == .off // Note: we invert this
-            
+
             let options = ImageConversionOptions(
                 format: format,
                 compressionQuality: quality,
                 maxDimension: maxDimension,
                 removeMetadata: removeMetadata
             )
-            
+
             Task {
                 do {
                     let resultURL = try await imageURL.accessSecurityScopedResource { url in
                         try await ImageProcessingService.shared.convertImage(from: url, options: options)
                     }
-                    
+
                     if let resultURL = resultURL {
                         // Create bookmark and add to shelf as temporary item
                         if let bookmark = try? Bookmark(url: resultURL) {
@@ -948,7 +947,7 @@ private final class MenuActionTarget: NSObject {
             }
         }
     }
-    
+
     @MainActor
     private func showErrorAlert(title: String, message: String) {
         let alert = NSAlert()
@@ -959,7 +958,6 @@ private final class MenuActionTarget: NSObject {
         alert.runModal()
     }
 }
-
 
 fileprivate extension Sequence {
     func asyncCompactMap<T>(_ transform: (Element) async -> T?) async -> [T] {

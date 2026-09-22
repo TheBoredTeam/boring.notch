@@ -87,7 +87,7 @@ struct OSDSettings: View {
                             Image(systemName: AccessibilityPermission.systemImageName)
                                 .font(.title)
                                 .foregroundStyle(Color.effectiveAccent)
-                                
+
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("\(AccessibilityPermission.displayName) Required")
                                     .font(.headline)
@@ -144,7 +144,6 @@ struct OSDSettings: View {
                     HelpText("Define what happens when you hold the Option key while pressing media keys.")
                 }
             }
-
         }
         .formStyle(.grouped)
         .accentColor(.effectiveAccent)
@@ -169,7 +168,6 @@ struct OSDSettings: View {
                 menuBarBrightnessSupported = true
             }
         }
-
     }
 }
 

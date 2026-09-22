@@ -22,7 +22,7 @@ enum XPCHelperError: Error {
 final class XPCHelperClient: NSObject, ObservableObject {
     nonisolated static let shared = XPCHelperClient()
 
-    nonisolated private override init() {
+    override nonisolated private init() {
         super.init()
     }
 
@@ -34,7 +34,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
     /// flips back to true when a live connection is (re)established.
     @MainActor @Published private(set) var helperAvailable = true
     @MainActor private(set) var lastError: XPCHelperError?
-    
+
     private var remoteService: RemoteXPCService<BoringNotchXPCHelperProtocol>?
     private var connection: NSXPCConnection?
     /// Set by the interruption/invalidation hops, cleared when a fresh
@@ -44,7 +44,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
     private var lunarListener: BoringNotchXPCHelperLunarListener?
 
     // MARK: - Connection Management (Main Actor Isolated)
-    
+
     private func ensureRemoteService() -> RemoteXPCService<BoringNotchXPCHelperProtocol> {
         // Always reuse a live connection — never tear one down to attach a
         // listener. The exported object below serves *both* callback
@@ -90,14 +90,14 @@ final class XPCHelperClient: NSObject, ObservableObject {
                 self.lastError = .unavailable
             }
         }
-        
+
         conn.resume()
 
         let service = RemoteXPCService<BoringNotchXPCHelperProtocol>(
             connection: conn,
             remoteInterface: BoringNotchXPCHelperProtocol.self
         )
-        
+
         connection = conn
         remoteService = service
         helperAvailable = true
@@ -115,7 +115,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
         )
         return interface
     }
-    
+
     private func notifyAuthorizationChange(_ granted: Bool) {
         guard lastKnownAuthorization != granted else { return }
         lastKnownAuthorization = granted
@@ -150,9 +150,9 @@ final class XPCHelperClient: NSObject, ObservableObject {
         NotificationCenter.default.removeObserver(activationObserver)
         self.activationObserver = nil
     }
-    
+
     // MARK: - Accessibility
-    
+
     // Fire-and-forget: callers invoke this from non-isolated contexts, and the work
     // itself hops onto the main actor.
     nonisolated func requestAccessibilityAuthorization() {
@@ -167,7 +167,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
             }
         }
     }
-    
+
     func isAccessibilityAuthorized() async -> Bool {
         do {
             let service = ensureRemoteService()
@@ -183,7 +183,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
             return false
         }
     }
-    
+
     func ensureAccessibilityAuthorization(promptIfNeeded: Bool) async -> Bool {
         do {
             let service = ensureRemoteService()
@@ -199,9 +199,9 @@ final class XPCHelperClient: NSObject, ObservableObject {
             return false
         }
     }
-    
+
     // MARK: - Keyboard Brightness
-    
+
     func currentKeyboardBrightness() async -> Float? {
         do {
             let service = ensureRemoteService()
@@ -216,7 +216,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
             return nil
         }
     }
-    
+
     func setKeyboardBrightness(_ value: Float) async -> Bool {
         do {
             let service = ensureRemoteService()
@@ -230,9 +230,9 @@ final class XPCHelperClient: NSObject, ObservableObject {
             return false
         }
     }
-    
+
     // MARK: - Screen Brightness
-    
+
     func currentScreenBrightness() async -> Float? {
         do {
             let service = ensureRemoteService()
@@ -263,7 +263,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
             return nil
         }
     }
-    
+
     func setScreenBrightness(_ value: Float) async -> Bool {
         do {
             let service = ensureRemoteService()
@@ -394,7 +394,6 @@ final class NotificationXPCDelegate: NSObject, BoringNotchXPCAppDelegate {
             name: .systemNotificationDidAppear, object: nil, userInfo: payload
         )
     }
-
 }
 
 extension XPCHelperClient {
@@ -435,7 +434,6 @@ extension XPCHelperClient {
             }
         }
     }
-
 }
 
 extension Notification.Name {

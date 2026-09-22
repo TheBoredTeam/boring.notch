@@ -15,7 +15,7 @@ struct OpenNotchOSD: View {
     @Binding var icon: String
     @Binding var accent: Color?
     @Default(.showOpenNotchOSDPercentage) var showPercentage
-    
+
     var body: some View {
         HStack(spacing: 8) {
             // Icon
@@ -23,7 +23,7 @@ struct OpenNotchOSD: View {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(.white)
                 .frame(width: 20, alignment: .center)
-            
+
             // Slider or Status Text
             if type != .mic {
                  DraggableProgressBar(value: $value, onChange: { newVal in
@@ -36,7 +36,7 @@ struct OpenNotchOSD: View {
                     .foregroundStyle(.white)
                     .fixedSize()
             }
-            
+
             // Percentage Text
             if type != .mic && showPercentage {
                 Text(value, format: .percent.precision(.fractionLength(0)))
@@ -54,7 +54,7 @@ struct OpenNotchOSD: View {
                 .stroke(Color.white.opacity(0.1), lineWidth: 1)
         )
     }
-    
+
     func updateSystemValue(_ newVal: CGFloat) {
         switch type {
         case .volume:

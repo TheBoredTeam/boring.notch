@@ -68,7 +68,6 @@ struct BoringHeader: View {
                                 DispatchQueue.main.async {
                                     SettingsWindowController.shared.showWindow()
                                 }
-                                
                             }) {
                                 Capsule()
                                     .fill(.black)

@@ -53,7 +53,7 @@ struct ContentView: View {
         guard effectiveHeight > 0 else { return nil }
         return effectiveHeight / 38.0
     }
-    
+
     /// Compact mode gets a rounder opened shape (35 vs 19) — at its smaller
     /// size the standard radius reads square rather than pill-like.
     private var openedInsets: (top: CGFloat, bottom: CGFloat) {
@@ -188,8 +188,7 @@ struct ContentView: View {
         if shouldDisplayNowPlayingFallbackNotice {
             chinWidth = nowPlayingFallbackNoticeWidth
         } else if coordinator.expandingView.type == .battery && coordinator.expandingView.show
-            && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
-        {
+            && vm.notchState == .closed && Defaults[.showPowerStatusNotifications] {
             chinWidth = 640
         } else if vm.notchState == .closed, !vm.hideOnClosed, let activity = selectedActivity {
             // Sized for whichever activity is actually on top, not for
@@ -210,8 +209,7 @@ struct ContentView: View {
             }
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
-            && !vm.hideOnClosed
-        {
+            && !vm.hideOnClosed {
             chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20)
         }
 
@@ -251,7 +249,7 @@ struct ContentView: View {
             let scaleFactor = 1.0 + gestureProgress * 0.01
             return max(0.6, scaleFactor)
         }()
-        
+
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 let mainLayout = NotchLayout()
@@ -276,7 +274,7 @@ struct ContentView: View {
                     )
                     // Removed conditional bottom padding when using custom 0 notch to keep layout stable
                     .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
-                
+
                 mainLayout
                     // alignment: .top matters here — without it this frame
                     // defaults to centering, and shrinking the height for a
@@ -452,8 +450,7 @@ struct ContentView: View {
                         nowPlayingFallbackNotice(notice)
                             .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .top)))
                     } else if coordinator.expandingView.type == .battery && coordinator.expandingView.show
-                        && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
-                    {
+                        && vm.notchState == .closed && Defaults[.showPowerStatusNotifications] {
                         HStack(spacing: 0) {
                             HStack {
                                 Text(batteryModel.statusText)
@@ -499,7 +496,7 @@ struct ContentView: View {
                                       .frame(alignment: .center)
                               }
                           }
-                      } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
+                      } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed {
                           BoringFaceAnimation()
                        } else if showsHeader {
                            // No tab bar over a notification: it's a glance,
@@ -546,7 +543,7 @@ struct ContentView: View {
                                    HStack(alignment: .center) {
                                        Image(systemName: "music.note")
                                        GeometryReader { geo in
-                                           MarqueeText(musicManager.songTitle + " - " + musicManager.artistName,  color: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray, delayDuration: 1.0, frameWidth: geo.size.width)
+                                           MarqueeText(musicManager.songTitle + " - " + musicManager.artistName, color: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray, delayDuration: 1.0, frameWidth: geo.size.width)
                                        }
                                    }
                                    .foregroundStyle(.gray)
@@ -655,7 +652,7 @@ struct ContentView: View {
             notification: .announcementRequested,
             userInfo: [
                 .announcement: announcement,
-                .priority: NSAccessibilityPriorityLevel.high.rawValue,
+                .priority: NSAccessibilityPriorityLevel.high.rawValue
             ]
         )
     }
@@ -721,8 +718,7 @@ struct ContentView: View {
             }()
 
             Image(nsImage: musicManager.albumArt)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+                .resizable().scaledToFit()
                 .clipShape(
                     RoundedRectangle(
                         cornerRadius: closedCornerRadius)
@@ -741,8 +737,7 @@ struct ContentView: View {
                     // high against it.
                     HStack(alignment: .center) {
                         if coordinator.expandingView.show
-                            && coordinator.expandingView.type == .music
-                        {
+                            && coordinator.expandingView.type == .music {
                             MarqueeText(
                                 musicManager.songTitle,
                                 color: Defaults[.coloredSpectrogram]
@@ -838,7 +833,7 @@ struct ContentView: View {
     private func handleHover(_ hovering: Bool) {
         if coordinator.firstLaunch { return }
         hoverTask?.cancel()
-        
+
         if hovering {
             withAnimation(animationSpring) {
                 isHovering = true
@@ -856,22 +851,22 @@ struct ContentView: View {
             if vm.notchState == .closed && Defaults[.enableHaptics] {
                 haptics.toggle()
             }
-            
+
             guard vm.notchState == .closed,
                   !shouldDisplayNowPlayingFallbackNotice,
                   !coordinator.shouldShowSneakPeek(on: vm.screenUUID),
                   Defaults[.openNotchOnHover] else { return }
-            
+
             hoverTask = Task {
                 try? await Task.sleep(for: .seconds(Defaults[.minimumHoverDuration]))
                 guard !Task.isCancelled else { return }
-                
+
                 await MainActor.run {
                     guard self.vm.notchState == .closed,
                           self.isHovering,
                           !self.shouldDisplayNowPlayingFallbackNotice,
                           !self.coordinator.shouldShowSneakPeek(on: self.vm.screenUUID) else { return }
-                    
+
                     self.doOpen()
                 }
             }
@@ -879,7 +874,7 @@ struct ContentView: View {
             hoverTask = Task {
                 try? await Task.sleep(for: .milliseconds(100))
                 guard !Task.isCancelled else { return }
-                
+
                 await MainActor.run {
                     withAnimation(animationSpring) {
                         self.isHovering = false
@@ -938,7 +933,7 @@ struct ContentView: View {
             withAnimation(animationSpring) {
                 isHovering = false
             }
-            if !SharingStateManager.shared.preventNotchClose { 
+            if !SharingStateManager.shared.preventNotchClose {
                 gestureProgress = .zero
                 vm.close()
             }
@@ -1048,7 +1043,6 @@ struct FullScreenDropDelegate: DropDelegate {
         onDrop()
         return true
     }
-
 }
 
 struct GeneralDropTargetDelegate: DropDelegate {

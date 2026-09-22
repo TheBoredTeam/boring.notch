@@ -13,7 +13,7 @@ struct MusicControllerSelectionView: View {
 
     @ObservedObject private var musicManager = MusicManager.shared
     @State private var selectedMediaController = MusicManager.shared.preferredMediaController
-    
+
     var body: some View {
         VStack(spacing: 20) {
             Text("Choose a Music Source")
@@ -133,9 +133,8 @@ struct ControllerOptionView: View {
                 Text(controller.descriptionResource)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
-                
             }
-            
+
             Spacer()
         }
         .padding()
@@ -151,7 +150,6 @@ struct ControllerOptionView: View {
         .opacity(isEnabled ? 1 : 0.5)
     }
 }
-
 
 extension MediaControllerType {
     var descriptionResource: LocalizedStringResource {

@@ -13,7 +13,7 @@ struct AppearanceSettingsView: View {
     @Default(.useCustomAccentColor) var useCustomAccentColor
     @Default(.customAccentColorData) var customAccentColorData
     @State private var customAccentColor: Color = .accentColor
-    @State private var selectedPresetColor: PresetAccentColor? = nil
+    @State private var selectedPresetColor: PresetAccentColor?
 
     var body: some View {
         Form {

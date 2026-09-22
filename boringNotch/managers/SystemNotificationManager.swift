@@ -37,7 +37,7 @@ final class SystemNotificationManager: ObservableObject {
             ) { [weak self] note in
                 guard let payload = note.userInfo as? [String: String] else { return }
                 Task { @MainActor in self?.add(payload) }
-            },
+            }
         ]
     }
 

@@ -56,7 +56,7 @@ final class NotificationWatcher {
     private let observerNotifications = [
         kAXWindowCreatedNotification,
         kAXCreatedNotification,
-        kAXUIElementDestroyedNotification,
+        kAXUIElementDestroyedNotification
     ]
 
     var isRunning: Bool { pollTimer != nil }

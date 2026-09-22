@@ -52,7 +52,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             Task { await ph.close() }
         }
     }
-    
+
     @objc func isAccessibilityAuthorized(with reply: @escaping (Bool) -> Void) {
         reply(AXIsProcessTrusted())
     }
@@ -89,7 +89,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         }
         waitForAuthorization()
     }
-    
+
     // MARK: - Notification Center banners
 
     /// One watcher for the whole helper: `BoringNotchXPCHelper` is created per
@@ -257,7 +257,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         }
         reply(false)
     }
-    
+
     @objc func adjustScreenBrightness(by value: Float, with reply: @escaping (NSNumber?) -> Void) {
         let displayID = brightnessDisplayID()
         if displayServicesSetBrightnessSmooth(displayID: displayID, value: value) {
@@ -438,7 +438,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         let fn = unsafeBitCast(sym, to: Fn.self)
         return fn(displayID, value) == 0
     }
-    
+
     private func displayServicesSetBrightnessSmooth(displayID: CGDirectDisplayID, value: Float) -> Bool {
         guard let sym = dlsym(DisplayServicesHandle.handle, "DisplayServicesSetBrightnessSmooth") else { return false }
         typealias Fn = @convention(c) (CGDirectDisplayID, Float) -> Int32

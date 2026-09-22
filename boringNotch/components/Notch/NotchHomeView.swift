@@ -50,8 +50,7 @@ struct AlbumArtView: View {
 
     private var albumArtBackground: some View {
         Image(nsImage: musicManager.albumArt)
-            .resizable()
-            .aspectRatio(contentMode: .fit)
+            .resizable().scaledToFit()
             .clipShape(
                 RoundedRectangle(
                     cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.opened)
@@ -67,14 +66,14 @@ struct AlbumArtView: View {
             Button {
                 musicManager.openMusicApp()
             } label: {
-                ZStack(alignment:.bottomTrailing) {
+                ZStack(alignment: .bottomTrailing) {
                     albumArtImage
                     appIconOverlay
                 }
             }
             .buttonStyle(PlainButtonStyle())
             .scaleEffect(musicManager.isPlaying ? 1 : 0.85)
-            
+
             albumArtDarkOverlay
         }
     }
@@ -86,13 +85,11 @@ struct AlbumArtView: View {
             .blur(radius: 50)
             .allowsHitTesting(false)
     }
-                
 
     private var albumArtImage: some View {
         Image(nsImage: musicManager.albumArt)
             .interpolation(.high)
-            .resizable()
-            .aspectRatio(contentMode: .fit)
+            .resizable().scaledToFit()
             .clipShape(
                 RoundedRectangle(
                     cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.opened)
@@ -104,8 +101,7 @@ struct AlbumArtView: View {
     private var appIconOverlay: some View {
         if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
             appIcon(for: musicManager.bundleIdentifier ?? MediaAppBundleID.appleMusic)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+                .resizable().scaledToFit()
                 .frame(width: 30, height: 30)
                 .offset(x: 10, y: 10)
                 .transition(.scale.combined(with: .opacity))
@@ -226,7 +222,7 @@ struct MusicControlsView: View {
     private var slotToolbar: some View {
         let slots = activeSlots
         return HStack(spacing: 6) {
-            ForEach(Array(slots.enumerated()), id: \.offset) { index, slot in
+            ForEach(Array(slots.enumerated()), id: \.offset) { _, slot in
                 slotView(for: slot)
             }
         }
@@ -414,7 +410,7 @@ struct VolumeControlView: View {
     @State private var showVolumeSlider: Bool = false
     @State private var lastVolumeUpdateTime: Date = Date.distantPast
     private let volumeUpdateThrottle: TimeInterval = 0.1
-    
+
     var body: some View {
         HStack(spacing: 4) {
             Button(action: {

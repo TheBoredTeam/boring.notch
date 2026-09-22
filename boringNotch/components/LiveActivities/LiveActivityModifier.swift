@@ -17,14 +17,14 @@ struct LiveActivityModifier<Left: View, Right: View>: ViewModifier {
     let `for`: ActivityType
     let leftContent: () -> Left
     let rightContent: () -> Right
-    
+
     func body(content: Content) -> some View {
         content
             .overlay(
                 HStack {
                     leftContent()
                     Spacer()
-                        //.frame(minWidth: vm.closedNotchSize.width)
+                        // .frame(minWidth: vm.closedNotchSize.width)
                     rightContent()
                 }
                 .padding()

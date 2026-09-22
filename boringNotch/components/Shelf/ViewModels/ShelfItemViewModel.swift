@@ -144,20 +144,20 @@ final class ShelfItemViewModel: ObservableObject {
                     }
                 }
             }
-            
+
             guard !itemsToShare.isEmpty else { return }
-             
+
             stopSharingAccessingURLs()
             // Start security-scoped access for all file URLs and keep it active during sharing
             sharingAccessingURLs = fileURLs.filter { $0.startAccessingSecurityScopedResource() }
-            
+
             // Create and retain lifecycle delegate for the entire share operation
             let lifecycle = SharingStateManager.shared.makeDelegate { [weak self] in
                 self?.sharingLifecycle = nil
                 self?.stopSharingAccessingURLs()
             }
             self.sharingLifecycle = lifecycle
-            
+
             let picker = NSSharingServicePicker(items: itemsToShare)
             picker.delegate = lifecycle
             lifecycle.markPickerBegan()
@@ -166,7 +166,7 @@ final class ShelfItemViewModel: ObservableObject {
             }
         }
     }
-    
+
     private func stopSharingAccessingURLs() {
         for url in sharingAccessingURLs {
             url.stopAccessingSecurityScopedResource()

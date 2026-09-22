@@ -8,7 +8,7 @@ import SwiftUI
 
 struct AnimatedFace: View {
     @State private var isBlinking = false
-    @State private var blinkTask: Task<Void, Never>? = nil
+    @State private var blinkTask: Task<Void, Never>?
     var height: CGFloat = 24
     var width: CGFloat = 30
 
@@ -35,7 +35,7 @@ struct AnimatedFace: View {
         .onAppear(perform: startBlinking)
         .onDisappear(perform: stopBlinking)
     }
-    
+
     func startBlinking() {
         guard blinkTask == nil else { return }
         blinkTask = Task {

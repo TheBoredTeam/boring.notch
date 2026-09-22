@@ -1,4 +1,4 @@
-    //
+//
     //  SystemEventIndicatorModifier.swift
     //  boringNotch
     //

@@ -16,7 +16,7 @@ final class AppleMusicController: MediaControllerProtocol {
         bundleIdentifier: MediaAppBundleID.appleMusic,
         playbackRate: 1
     )
-    
+
     var playbackStatePublisher: AnyPublisher<PlaybackState, Never> {
         $playbackState.eraseToAnyPublisher()
     }
@@ -30,7 +30,7 @@ final class AppleMusicController: MediaControllerProtocol {
     }
 
     private var notificationTask: Task<Void, Never>?
-    
+
     // MARK: - Initialization
     init() {
         setupPlaybackStateChangeObserver()
@@ -40,7 +40,7 @@ final class AppleMusicController: MediaControllerProtocol {
             }
         }
     }
-    
+
     private func setupPlaybackStateChangeObserver() {
         notificationTask = Task { @Sendable [weak self] in
             for await _ in AppleScriptControllerSupport.playerInfoNotifications(named: "com.apple.Music.playerInfo") {
@@ -48,43 +48,43 @@ final class AppleMusicController: MediaControllerProtocol {
             }
         }
     }
-    
+
     deinit {
         notificationTask?.cancel()
     }
-    
+
     // MARK: - Protocol Implementation
     func play() async {
         await executeCommand("play")
     }
-    
+
     func pause() async {
         await executeCommand("pause")
     }
-    
+
     func togglePlay() async {
         await executeCommand("playpause")
     }
-    
+
     func nextTrack() async {
         await executeCommand("next track")
     }
-    
+
     func previousTrack() async {
         await executeCommand("previous track")
     }
-    
+
     func seek(to time: Double) async {
         await executeCommand("set player position to \(time)")
         await updatePlaybackInfo()
     }
-    
+
     func toggleShuffle() async {
         await executeCommand("set shuffle enabled to not shuffle enabled")
         try? await Task.sleep(for: .milliseconds(150))
         await updatePlaybackInfo()
     }
-    
+
     func toggleRepeat() async {
         await executeCommand("""
             if song repeat is off then
@@ -98,7 +98,7 @@ final class AppleMusicController: MediaControllerProtocol {
         try? await Task.sleep(for: .milliseconds(150))
         await updatePlaybackInfo()
     }
-    
+
     func setVolume(_ level: Double) async {
         let clampedLevel = max(0.0, min(1.0, level))
         let volumePercentage = Int(clampedLevel * 100)
@@ -106,7 +106,7 @@ final class AppleMusicController: MediaControllerProtocol {
         try? await Task.sleep(for: .milliseconds(150))
         await updatePlaybackInfo()
     }
-    
+
     func isActive() -> Bool {
         let runningApps = NSWorkspace.shared.runningApplications
         return runningApps.contains { $0.bundleIdentifier == MediaAppBundleID.appleMusic }
@@ -124,12 +124,12 @@ final class AppleMusicController: MediaControllerProtocol {
         try? await Task.sleep(for: .milliseconds(150))
         await updatePlaybackInfo()
     }
-    
+
     func updatePlaybackInfo() async {
         guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
         guard descriptor.numberOfItems >= 11 else { return }
         var updatedState = self.playbackState
-        
+
         updatedState.isPlaying = descriptor.atIndex(1)?.booleanValue ?? false
         updatedState.title = descriptor.atIndex(2)?.stringValue ?? "Unknown"
         updatedState.artist = descriptor.atIndex(3)?.stringValue ?? "Unknown"
@@ -147,13 +147,13 @@ final class AppleMusicController: MediaControllerProtocol {
         updatedState.lastUpdated = Date()
         self.playbackState = updatedState
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func executeCommand(_ command: String) async {
         await AppleScriptControllerSupport.executeCommand(command, appName: "Music")
     }
-    
+
     private func fetchPlaybackInfoAsync() async throws -> NSAppleEventDescriptor? {
         let script = """
         tell application "Music"
@@ -180,7 +180,7 @@ final class AppleMusicController: MediaControllerProtocol {
                 on error
                     set artData to ""
                 end try
-                
+
                 set currentVolume to sound volume
                 set favoriteState to favorited of current track
                 return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatValue, currentVolume, artData, favoriteState}
@@ -189,8 +189,7 @@ final class AppleMusicController: MediaControllerProtocol {
             end try
         end tell
         """
-        
+
         return try await AppleScriptHelper.execute(script)
     }
-    
 }

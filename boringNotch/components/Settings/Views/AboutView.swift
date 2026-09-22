@@ -53,8 +53,7 @@ struct AboutView: View {
                     } label: {
                         VStack(spacing: 5) {
                             Image("Github")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
+                                .resizable().scaledToFit()
                                 .frame(width: 18)
                             Text("GitHub")
                         }

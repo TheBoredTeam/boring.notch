@@ -131,7 +131,7 @@ struct OnboardingView: View {
                     }
                 )
                 .transition(.opacity)
-                
+
             case .accessibilityPermission:
                 PermissionsRequestView(
                     icon: Image(systemName: AccessibilityPermission.systemImageName),
@@ -150,7 +150,7 @@ struct OnboardingView: View {
                     }
                 )
                 .transition(.opacity)
-                
+
             case .musicPermission:
                 MusicControllerSelectionView(
                     onContinue: {
@@ -208,7 +208,6 @@ struct OnboardingView: View {
         }
         return .accessibilityPermission
     }
-    
 }
 
 struct SoftwareUpdatePermissionView: View {
