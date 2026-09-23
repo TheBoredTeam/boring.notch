@@ -46,9 +46,7 @@ struct ShelfSettingsView: View {
                     Text("Keep newer shelf items in front")
                 }
             } header: {
-                HStack {
-                    Text("General")
-                }
+                Text("General")
             }
 
             Section {
