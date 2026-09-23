@@ -178,8 +178,8 @@ jobs:
           <p>Source: <a href="https://github.com/TheBoredTeam/boring.notch/commit/${SOURCE_SHA}">View commit</a></p>
           HTML
 
-      - name: Build Sparkle generate_appcast from source
-        uses: ./.github/actions/build-generate-appcast
+      - name: Fetch Sparkle generate_appcast
+        uses: ./.github/actions/fetch-generate-appcast
 
       - name: Prepare single nightly appcast input
         env:

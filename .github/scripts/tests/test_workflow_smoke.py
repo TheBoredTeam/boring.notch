@@ -137,6 +137,23 @@ class WorkflowSmokeTests(unittest.TestCase):
         self.assertIn('mv "$APPCAST_OUTPUT" "updater/${APPCAST_FILE}"', self.nightly)
         self.assertNotIn("prune_appcast_channel.py", self.nightly)
 
+    def test_generate_appcast_comes_from_the_official_release_tarball(self) -> None:
+        action = (
+            REPOSITORY_ROOT / ".github" / "actions" / "fetch-generate-appcast" / "action.yml"
+        ).read_text(encoding="utf-8")
+        # Both pipelines use the shared fetch action.
+        for name, workflow in (("nightly.yml", self.nightly), ("release.yml", self.release)):
+            with self.subTest(workflow=name):
+                self.assertIn("uses: ./.github/actions/fetch-generate-appcast", workflow)
+                self.assertNotIn("build-generate-appcast", workflow)
+        # The tool is downloaded from the official release asset, never compiled.
+        self.assertIn("releases/download/$SPARKLE_TAG/Sparkle-$SPARKLE_TAG.tar.xz", action)
+        self.assertIn("bin/generate_appcast", action)
+        self.assertNotIn("xcodebuild", action)
+        # The tag must resolve to the exact revision pinned in Package.resolved.
+        self.assertIn("Package.resolved", action)
+        self.assertIn("resolves to ${TAG_SHA}, expected ${SPARKLE_REVISION}", action)
+
     def test_nightly_builds_the_live_branch_head(self) -> None:
         # Nightlies ship real commits: the pipeline must never create
         # reservation commits on dev before building. The head is read twice
