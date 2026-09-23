@@ -34,6 +34,7 @@ jobs:
       pr_number: ${{ steps.release_state.outputs.pr_number }}
       source_sha: ${{ steps.release_state.outputs.source_sha }}
       resume: ${{ steps.release_state.outputs.resume }}
+      build_number: ${{ steps.release_state.outputs.resume == 'false' && steps.build_number.outputs.build_number || '' }}
     steps:
       - name: Require protected release workflow
         env:
@@ -159,6 +160,43 @@ jobs:
             echo "pr_number=$PR_NUMBER"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Derive build number
+        id: build_number
+        if: steps.release_state.outputs.resume == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ steps.release_state.outputs.source_sha }}
+          VERSION: ${{ steps.extract_version.outputs.version }}
+          PBXPROJ_PATH: ${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj
+          APPCAST_PATHS: "updater/appcast-dev.xml updater/appcast.xml"
+        run: |
+          set -euo pipefail
+          # Same derivation as the nightly pipeline: one above the highest
+          # version already released through Sparkle, floored by the number
+          # committed in the Xcode project. Stable and beta items live in the
+          # main-branch appcast while nightly items live in the dev appcast,
+          # so the ceiling is the max across both and every channel outranks
+          # the last release on any channel. Both appcasts are readable from
+          # the built source ref; a missing/unreadable file contributes
+          # nothing, and if nothing is readable at all the derivation falls
+          # back to the project baseline.
+          RELEASED="$(for APPCAST in ${APPCAST_PATHS}; do
+            gh api "repos/${REPO}/contents/${APPCAST}?ref=${SOURCE_SHA}" \
+              --jq '.content' 2>/dev/null | base64 --decode \
+              | grep -Eo 'sparkle:version(="|>)[0-9]+' | grep -Eo '[0-9]+$'
+          done | sort -n | tail -1 || true)"
+          PBXPROJ="$RUNNER_TEMP/project.pbxproj"
+          gh api -H "Accept: application/vnd.github.raw+json" \
+            "repos/${REPO}/contents/${PBXPROJ_PATH}?ref=${SOURCE_SHA}" > "$PBXPROJ"
+          BASE_BUILD="$(grep -Eo 'CURRENT_PROJECT_VERSION = [0-9]+' "$PBXPROJ" \
+            | grep -Eo '[0-9]+$' | sort -n | tail -1)"
+          BASE_BUILD="${BASE_BUILD:-0}"
+          BUILD_NUMBER="$(( RELEASED > BASE_BUILD ? RELEASED + 1 : BASE_BUILD + 1 ))"
+          echo "v${VERSION} -> build ${BUILD_NUMBER} (appcast: ${RELEASED:-none}, project: ${BASE_BUILD})"
+
+          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+
       - name: Generate release notes
         id: release_notes
         env:
@@ -193,83 +231,17 @@ jobs:
             echo "${GH_NOTES_DELIM}"
           } >> "$GITHUB_OUTPUT"
 
-  reserve_build_number:
-    name: Reserve build number
-    if: ${{ needs.preparation.outputs.resume == 'false' }}
-    needs: preparation
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      build_number: ${{ steps.reserve.outputs.build_number }}
-      source_sha: ${{ steps.reserve.outputs.source_sha }}
-    steps:
-      - name: Create release app token
-        id: release_app_token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
-        with:
-          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
-          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
-          repositories: boring.notch
-          permission-contents: write
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ needs.preparation.outputs.source_sha }}
-          token: ${{ steps.release_app_token.outputs.token }}
-          persist-credentials: false
-
-      - name: Reserve next build number
-        id: reserve
-        env:
-          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
-          EXPECTED_SOURCE_SHA: ${{ needs.preparation.outputs.source_sha }}
-          VERSION: ${{ needs.preparation.outputs.version }}
-        run: |
-          set -euo pipefail
-          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
-          git -c http.extraheader="$AUTH_HEADER" fetch --no-tags origin "refs/heads/dev:refs/remotes/origin/dev"
-          CURRENT_HEAD="$(git rev-parse refs/remotes/origin/dev)"
-          if [[ "$CURRENT_HEAD" != "$EXPECTED_SOURCE_SHA" ]]; then
-            echo "::error::Release branch moved from ${EXPECTED_SOURCE_SHA} to ${CURRENT_HEAD}"
-            exit 1
-          fi
-
-          # The counter file is the durable state: consuming a number by
-          # committing the bump to the branch means a re-run always reads a
-          # fresh value, so no resume bookkeeping is needed.
-          COUNTER_FILE=".github/build-number"
-          BUILD_NUMBER="$(tr -d '[:space:]' < "$COUNTER_FILE")"
-          if [[ ! "$BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
-            echo "::error::Invalid build number in ${COUNTER_FILE}: ${BUILD_NUMBER}"
-            exit 1
-          fi
-          printf '%s\n' "$((BUILD_NUMBER + 1))" > "$COUNTER_FILE"
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "$COUNTER_FILE"
-          git commit -m "Prepare v${VERSION} build ${BUILD_NUMBER}"
-
-          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
-          git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/dev"
-
-          {
-            echo "build_number=$BUILD_NUMBER"
-            echo "source_sha=$(git rev-parse HEAD)"
-          } >> "$GITHUB_OUTPUT"
-
   build:
     name: Build and sign
     if: ${{ needs.preparation.outputs.resume == 'false' }}
-    needs: [preparation, reserve_build_number]
+    needs: preparation
     permissions:
       contents: read
     uses: ./.github/workflows/build_reusable.yml
     with:
-      source_sha: ${{ needs.reserve_build_number.outputs.source_sha }}
+      source_sha: ${{ needs.preparation.outputs.source_sha }}
       version: ${{ needs.preparation.outputs.version }}
-      build_number: ${{ needs.reserve_build_number.outputs.build_number }}
+      build_number: ${{ needs.preparation.outputs.build_number }}
       update_channel: ${{ needs.preparation.outputs.is_beta == 'true' && 'beta' || 'stable' }}
     secrets:
       BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
@@ -278,7 +250,7 @@ jobs:
 
   publish:
     name: Publish draft release and appcast
-    needs: [preparation, build, reserve_build_number]
+    needs: [preparation, build]
     if: ${{ !cancelled() && needs.preparation.result == 'success' && (needs.preparation.outputs.resume == 'true' || needs.build.result == 'success') }}
     runs-on: macos-latest
     permissions:
@@ -286,7 +258,7 @@ jobs:
     env:
       VERSION: ${{ needs.preparation.outputs.version }}
       IS_BETA: ${{ needs.preparation.outputs.is_beta }}
-      SOURCE_SHA: ${{ needs.reserve_build_number.outputs.source_sha || needs.preparation.outputs.source_sha }}
+      SOURCE_SHA: ${{ needs.preparation.outputs.source_sha }}
       RESUME: ${{ needs.preparation.outputs.resume }}
       TITLE: ${{ needs.preparation.outputs.title }}
       NOTES: ${{ needs.preparation.outputs.release_notes_github }}
@@ -383,7 +355,7 @@ jobs:
   merge_release:
     name: Merge release PR
     if: ${{ needs.preparation.outputs.is_beta == 'false' && needs.publish.result == 'success' }}
-    needs: [preparation, publish, reserve_build_number]
+    needs: [preparation, publish]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -401,7 +373,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
           REPO: ${{ github.repository }}
-          SOURCE_SHA: ${{ needs.reserve_build_number.outputs.source_sha || needs.preparation.outputs.source_sha }}
+          SOURCE_SHA: ${{ needs.preparation.outputs.source_sha }}
         run: |
           set -euo pipefail
           OWNER="${REPO%%/*}"
@@ -695,7 +667,7 @@ jobs:
   ending:
     name: Finalize
     if: ${{ always() && needs.preparation.result != 'skipped' }}
-    needs: [preparation, reserve_build_number, build, publish, merge_release, publish_stable, publish_beta, upgrade-brew]
+    needs: [preparation, build, publish, merge_release, publish_stable, publish_beta, upgrade-brew]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -704,7 +676,7 @@ jobs:
       RELEASE_SUCCEEDED: ${{ !contains(join(needs.*.result, ','), 'failure') && !contains(join(needs.*.result, ','), 'cancelled') }}
       IS_BETA: ${{ needs.preparation.outputs.is_beta }}
       VERSION: ${{ needs.preparation.outputs.version }}
-      BUILD_NUMBER: ${{ needs.reserve_build_number.outputs.build_number }}
+      BUILD_NUMBER: ${{ needs.preparation.outputs.build_number }}
     steps:
       - name: Summary
         shell: bash
