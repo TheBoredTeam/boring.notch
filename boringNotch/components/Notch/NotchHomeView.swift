@@ -394,7 +394,8 @@ struct MediaOutputSlotButton: View {
     }
 }
 
-private extension Array where Element == MusicControlButton {
+// Internal so the compact layout's slot row can share the padding rule.
+extension Array where Element == MusicControlButton {
     func padded(to length: Int, filler: MusicControlButton) -> [MusicControlButton] {
         if count >= length { return self }
         return self + Array(repeating: filler, count: length - count)
