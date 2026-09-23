@@ -131,7 +131,6 @@ jobs:
       source_sha: ${{ needs.prepare.outputs.source_sha }}
       version: ""
       build_number: ${{ needs.prepare.outputs.build_number }}
-      xcode_version: "16.4"
       code_sign_identity: "Apple Development"
       update_channel: dev
     secrets:
