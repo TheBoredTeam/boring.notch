@@ -27,20 +27,15 @@ body:
       description: A clear and concise description of what you expected to happen.
     validations:
       required: true
-  - type: dropdown
+  - type: input
     id: version
     attributes:
       label: Boring Notch Version
       description: >-
         What version of our software are you running? (Go to ✦ in the menu bar >
-        Settings > About)
-      options:
-        - Select a version
-        - v2.7.3
-        - v2.7.2
-        - v2.7.1
-        - v2.7-rc.3
-        - v2.7-rc.2
+        Settings > About). The "Report a Bug" button in the About pane prefills
+        the exact version, build number, and update channel.
+      placeholder: "v2.7.3 (build 274, beta channel)"
     validations:
       required: true
   - type: input
