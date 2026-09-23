@@ -128,13 +128,14 @@ class WorkflowSmokeTests(unittest.TestCase):
         self.assertIn('[[ "$RELATION" == "ahead" || "$RELATION" == "identical" ]]', self.nightly)
         self.assertNotIn('"$RELATION" == "behind"', self.nightly)
 
-    def test_nightly_prunes_the_appcast_to_the_current_item(self) -> None:
-        self.assertIn("prune_appcast_channel.py", self.nightly)
-        prune_script = (
-            REPOSITORY_ROOT / ".github" / "scripts" / "prune_appcast_channel.py"
-        ).read_text(encoding="utf-8")
-        self.assertIn("SPARKLE_CHANNEL = f\"{{{SPARKLE_NS}}}channel\"", prune_script)
-        self.assertIn("No {channel_name!r} channel item found", prune_script)
+    def test_nightly_generates_from_a_single_clean_appcast_input(self) -> None:
+        self.assertIn("Prepare single nightly appcast input", self.nightly)
+        self.assertIn("rm -rf \"$APPCAST_INPUT\"", self.nightly)
+        self.assertIn("cp \"Release/${ASSET_NAME}\" \"$APPCAST_INPUT/\"", self.nightly)
+        self.assertIn("cp \"Release/${ASSET_NAME%.dmg}.html\" \"$APPCAST_INPUT/\"", self.nightly)
+        self.assertIn('APPCAST_OUTPUT: ${{ runner.temp }}/${{ env.APPCAST_FILE }}', self.nightly)
+        self.assertIn('mv "$APPCAST_OUTPUT" "updater/${APPCAST_FILE}"', self.nightly)
+        self.assertNotIn("prune_appcast_channel.py", self.nightly)
 
     def test_nightly_builds_the_live_branch_head(self) -> None:
         # Nightlies ship real commits: the pipeline must never create
@@ -251,7 +252,7 @@ class WorkflowSmokeTests(unittest.TestCase):
         # workflow change; pin the pipeline-side channel contract here.
         self.assertIn("appcast-dev.xml", self.nightly)
         self.assertIn('--channel "${BRANCH_NAME}"', self.nightly)
-        self.assertIn("prune_appcast_channel.py", self.nightly)
+        self.assertIn("Prepare single nightly appcast input", self.nightly)
 
     def test_nightly_keeps_sparkle_channel_and_embedded_notes_and_key(self) -> None:
         self.assertIn("--channel \"${BRANCH_NAME}\"", self.nightly)
