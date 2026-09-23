@@ -10615,6 +10615,7 @@
       }
     },
     "Features" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
