@@ -1,6 +1,131 @@
-<?xml version="1.0" standalone="yes"?>
+<?xml version='1.0' encoding='utf-8'?>
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
+        <item>
+            <title>2.8-rc.0</title>
+            <pubDate>Wed, 23 Sep 2026 23:06:32 +0000</pubDate>
+            <link>https://github.com/TheBoredTeam/boring.notch/releases</link>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>278</sparkle:version>
+            <sparkle:shortVersionString>2.8-rc.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;✨ What's New&lt;/h2&gt;
+
+&lt;h3&gt;🎵 Music &amp;amp; Media&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Compact player&lt;/strong&gt; – Added a compact, player-focused layout for the opened notch with playback, shuffle, and media-output controls.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Remaining time&lt;/strong&gt; – Added an option to show remaining playback time instead of duration.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Now Playing reliability&lt;/strong&gt; – Improved availability detection, fallback behavior, connection recovery, and user-facing recovery notices when Now Playing is unavailable.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Artwork reliability&lt;/strong&gt; – Fixed artwork disappearing during lightweight Now Playing updates and stale artwork caused by Safari Private Browsing and browser helper processes. — @rogedev, @SpaceCypher&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;YouTube Music / Pear&lt;/strong&gt; – Improved observer persistence, WebSocket reconnection, connection-state handling, and authentication compatibility. — @cjuriartec&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Lyrics&lt;/strong&gt; – Synced lyrics now follow their actual playback timing for smoother line-by-line scrolling.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Real-time audio waveform&lt;/strong&gt; – Added a waveform visualizer option that uses real-time captured audio on supported macOS versions (14.2+), and significantly improved the performance of the original visualizer.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Dynamic audio output&lt;/strong&gt; – You can now control the active audio route, including speakers, wired headphones, AirPods, Bluetooth devices, and external outputs. — @colinchambachan&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Media gestures&lt;/strong&gt; – Added horizontal gestures for media controls and improved gesture behavior across the music area.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;📅 Calendar &amp;amp; Reminders&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Weekly calendar view&lt;/strong&gt; – Added an optional week-based calendar view with a configurable week start: System, Sunday, or Monday. — @TemujinCalidius&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Join meetings from events&lt;/strong&gt; – Calendar events can detect supported meeting links and open them directly from the notch. Supports Google Meet, Zoom, Microsoft Teams, Webex, Whereby, and Jitsi. — @Subhanshu20101&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Calendar navigation&lt;/strong&gt; – Added vertical scroll navigation for the date picker and improved week-based navigation behavior.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Reminder date reliability&lt;/strong&gt; – Improved all-day reminder handling across local time zones and daylight-saving boundaries so reminders retain their correct calendar date.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;🎛️ OSD (formerly HUD) &amp;amp; System Controls&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Renamed HUD to OSD&lt;/strong&gt; – Now uses the more appropriate term in English, which was already used in some localizations.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Smoother brightness control&lt;/strong&gt; – Brightness adjustments now use smoother stepping with reduced jumps and improved hold behavior. — @benjaminfrombe&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;BetterDisplay &amp;amp; Lunar&lt;/strong&gt; – Added and improved real-time brightness event streaming and control through external display providers.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Key reliability&lt;/strong&gt; – Improved key interception and recovery.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Audio and display routing&lt;/strong&gt; – Improved handling of built-in and external display/control sources and their availability.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;🔔 Notification Mirroring&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Notifications in the notch&lt;/strong&gt; – Mirrors visible notification banners in the notch with the sending application's icon.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;App filtering&lt;/strong&gt; – Choose whether to mirror notifications from all apps or only selected applications.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Notification queue&lt;/strong&gt; – Multiple incoming notifications can now be queued and browsed from the expanded notification.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Closed-notch indicator&lt;/strong&gt; – New notification activity feedback appears while the notch is closed.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Notification reliability&lt;/strong&gt; – Improved banner discovery, XPC delivery, focus handling, stale-banner handling, and Notification Center interaction.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Accessibility-aware mirroring&lt;/strong&gt; – Notification mirroring now checks Accessibility authorization in real time and provides a direct way to grant access when required.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;🔋 Battery&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Charging wattage&lt;/strong&gt; – Shows the connected power adapter's reported wattage in the battery popover. — @isaacau502&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Time until empty&lt;/strong&gt; – Added a battery discharge estimate alongside time to full charge. — @lasersushi&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Better charge formatting&lt;/strong&gt; – Charge estimates now use localized hour/minute formatting instead of a raw minute count. — @lasersushi&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Battery health&lt;/strong&gt; – Improved maximum-capacity detection and correctly handles cases where battery-health information is unavailable.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;📦 Shelf&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;More reliable Shelf interactions&lt;/strong&gt; – Improved selection, hit testing, multi-item dragging, context menus, double-click behavior, and Quick Look synchronization.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Reverse Shelf ordering&lt;/strong&gt; – Added an option to keep newer Shelf items at the front. — @yannip1234&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Shelf controls&lt;/strong&gt; – Added the ability to disable Shelf behavior entirely when it is not needed.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Sharing improvements&lt;/strong&gt; – Improved Quick Share provider discovery and application-icon handling.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;📷 Camera &amp;amp; Mirror&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Improved camera reliability&lt;/strong&gt; – Reworked the camera for increased reliability, particularly on multiple-display setups.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Camera recovery&lt;/strong&gt; – Improved permission handling, camera selection, disconnect/reconnect recovery, interruption handling, sleep/wake recovery, and display lifecycle management.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Camera selection&lt;/strong&gt; – Added camera selection for the Mirror feature, with an Automatic mode that prefers the built-in camera. — @ReubenCowell&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Mirror controls&lt;/strong&gt; – Added a setting to switch between mirrored and natural camera output. — @anmolmalhotra97&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;⚙️ Settings &amp;amp; Appearance&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Reworked Settings navigation&lt;/strong&gt; – Settings are now organized into dedicated sections for Notch, Appearance, Media, Calendar, Shelf, Mirror, Battery, OSD, Notifications, Shortcuts, and About.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Dedicated Notch settings&lt;/strong&gt; – Added a dedicated Notch section for sizing, hover behavior, gestures, animation, and window behavior.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Appearance controls&lt;/strong&gt; – Moved accent-color customization into Appearance and expanded custom accent-color options.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Animation control&lt;/strong&gt; – Added a setting to control the notch opening-animation speed. — @Amorfx&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Language selection&lt;/strong&gt; – Added an in-app language selector with a restart prompt when required.&lt;/li&gt;
+        &lt;li&gt;&lt;strong&gt;Bug report button&lt;/strong&gt; – Added an in-app bug report button in the About section which opens the GitHub Issue form page with app version and os version pre-filled&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;🔄 Software Updates&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Update channels&lt;/strong&gt; – Added channel-aware update support for Stable, Beta, and Nightly builds, with the available channels determined by the current build. — @notluquis&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Safer updates&lt;/strong&gt; – Improved the updater with additional installer security improvements.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;🚀 Accessibility &amp;amp; Onboarding&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;macOS 27 compatibility&lt;/strong&gt; – Accessibility permission references now use the current macOS terminology (Device Control and Data Access) and localization, with a fallback for compatibility.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Improved permission checks&lt;/strong&gt; – Accessibility-dependent features now properly check authorization instead of sometimes relying on stale permission state.&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Improved onboarding&lt;/strong&gt; – Refined permission handling and onboarding flows, including audio-capture permission setup.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;🛠️ Fixes &amp;amp; Improvements&lt;/h2&gt;
+&lt;ul&gt;
+    &lt;li&gt;Fixed Shelf files being dragged into WhatsApp as text paths instead of actual file attachments. — @ShehanCes&lt;/li&gt;
+    &lt;li&gt;Fixed inconsistent Home ↔ Shelf tab-switch animations. — @ShehanCes&lt;/li&gt;
+    &lt;li&gt;Fixed album art alignment in the live activity view&lt;/li&gt;
+    &lt;li&gt;Fixed calendar month/year alignment and expanded the clickable area for calendar dates. — @mlbonniec&lt;/li&gt;
+    &lt;li&gt;Fixed Apple Music favorite actions. — @karadoganyi&lt;/li&gt;
+    &lt;li&gt;Normalized notch gesture direction when macOS Natural Scrolling is disabled. — @karadoganyi&lt;/li&gt;
+    &lt;li&gt;Fixed long Quick Share provider names not being centered correctly. — @daemonsloth&lt;/li&gt;
+    &lt;li&gt;Fixed notch content being vertically offset on some displays. — @KoukeNeko&lt;/li&gt;
+    &lt;li&gt;Fixed the DMG background lookup and clarified the copy-to-Applications installation flow.&lt;/li&gt;
+    &lt;li&gt;Removed the deprecated Homebrew quarantine-installation flag and updated related installation guidance. — @ftery0&lt;/li&gt;
+    &lt;li&gt;Improved locale-aware formatting across settings, battery, OSD, progress indicators, and accessibility labels.&lt;/li&gt;
+    &lt;li&gt;Improved localization coverage for media controls, Shelf actions, native dialogs, and settings.&lt;/li&gt;
+    &lt;li&gt;Improved concurrency safety, lifecycle management, and internal architecture to reduce races, retain cycles, and unnecessary background work. — @Dbhardwaj99&lt;/li&gt;
+    &lt;li&gt;Updated dependencies used by the project.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr&gt;
+&lt;h2&gt;👋 New Contributors&lt;/h2&gt;
+&lt;p&gt;@adam-dziuk · @karadoganyi · @benjaminfrombe · @daemonsloth · @mlbonniec · @KoukeNeko · @Amorfx · @ftery0 · @anmolmalhotra97 · @colinchambachan · @ReubenCowell · @cjuriartec · @lasersushi · @Etzeo · @yannip1234 · @TemujinCalidius · @ShehanCes · @isaacau502 · @SpaceCypher · @morriisan · @Dbhardwaj99 · @rogedev · @Subhanshu20101 · @notluquis&lt;/p&gt;
+
+&lt;p&gt;Thank you to everyone who contributed code, translations, testing, bug reports, and feedback to this release!&lt;/p&gt;
+
+&lt;h3&gt;📄 Full Changelog&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.7.3...v2.8-rc.0"&gt;Compare v2.7.3 → v2.8-rc.0&lt;/a&gt;&lt;/p&gt;</description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.8-rc.0/boringNotch.dmg" length="10583820" type="application/octet-stream" sparkle:edSignature="3pIV67RJ7Og8xaeLv58n/VUeHYu87iVtpECRIft00Orw4OpC6CfJGGZLvNaMyAltprj9SZD1R+3CQP5tmu+hDA==" />
+        </item>
         <item>
             <title>2.7.3</title>
             <pubDate>Mon, 24 Nov 2025 08:07:37 +0000</pubDate>
@@ -8,97 +133,97 @@
             <sparkle:version>271</sparkle:version>
             <sparkle:shortVersionString>2.7.3</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<h2>🚀 v2.7.3— Flying Rabbit 🐇🪽</h2>
-<h3> Fixes: </h3>
-<ul>
-    <li><strong>Fixed regression in album artwork view<strong></li>
-    <li><strong>Fixed HUD for older versions of macOS<strong></li>
-    <li><strong>Added volume feedback for HUD when enabled in macOS settings<strong></li>
-    <li><strong>Added option to display percentages for HUDs<strong></li>
-    <li><strong>Created a new custom HUD for when the notch is open<strong></li>
-    <li><strong>Fixed NowPlaying controller launching Apple Music by itself<strong></li>
-    <li><strong>Improved responsiveness of volume slider<strong></li>
-    <li><strong>Improved onboarding experience<strong></li>
-</ul>
+            <description>&lt;h2&gt;🚀 v2.7.3— Flying Rabbit 🐇🪽&lt;/h2&gt;
+&lt;h3&gt; Fixes: &lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Fixed regression in album artwork view&lt;strong&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Fixed HUD for older versions of macOS&lt;strong&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Added volume feedback for HUD when enabled in macOS settings&lt;strong&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Added option to display percentages for HUDs&lt;strong&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Created a new custom HUD for when the notch is open&lt;strong&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Fixed NowPlaying controller launching Apple Music by itself&lt;strong&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Improved responsiveness of volume slider&lt;strong&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Improved onboarding experience&lt;strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
 
-<h2>🚀 v2.7 — Flying Rabbit 🐇🪽</h2>
-<h3>Shelf 2.0</h3>
-<p>Major update with improved stability, enhanced functionality, and a refreshed UI.</p>
-<ul>
-    <li><strong>New Context Menu</strong> – Right-click in the notch to access various file actions</li>
-    <li><strong>Multi-Item Selection</strong> – Hold <kbd>⇧</kbd> for consecutive or <kbd>⌘</kbd> for non-consecutive
-        selections</li>
-    <li><strong>Double-Click to Open</strong> – Double-click on selected files to open them</li>
-    <li><strong>Move by Default</strong> – Dragging files now moves them; hold <kbd>⌥</kbd> to copy</li>
-    <li><strong>Simplified Removal</strong> – Files can be removed after dragging (configurable in Settings)</li>
-    <li><strong>Expanded Drag Detection</strong> – The shelf opens when files are dragged into the notch area</li>
-    <li><strong>Expanded Sharing</strong> – More sharing services available in Settings</li>
-</ul>
-<h3>Complete HUD Replacement</h3>
-<p>Full support for macOS system controls:</p>
-<ul>
-    <li><strong>Screen Brightness</strong>, <strong>Keyboard Brightness</strong>, and <strong>System Volume</strong>
-    </li>
-    <li><strong>Keyboard Brightness Controls:</strong> <kbd>⌘ + Brightness Down/Up</kbd></li>
-    <li><strong>Option (<kbd>⌥</kbd>)</strong> – Triggers alternate action configured in Settings</li>
-    <li><strong>Option + Shift (<kbd>⌥</kbd> <kbd>⇧</kbd>)</strong> – Adjustments in smaller increments</li>
-</ul>
-<h3>Music Enhancements</h3>
-<ul>
-    <li><strong>YouTube Music Support Rewritten</strong> – Now powered by WebSocket for better accuracy and performance
-    </li>
-</ul>
-<blockquote>
-    <p><strong>Note:</strong> Requires version <strong>3.11+</strong> of <a
-            href="https://github.com/pear-devs/pear-desktop">YouTube Music/Pear Desktop</a>. Updating is strongly
-        recommended.</p>
-</blockquote>
-<ul>
-    <li><strong>Redesigned Music Controls</strong> – Fully customizable:
-        <ul>
-            <li>Skip backward/forward by 15 seconds</li>
-            <li>Adjust music app volume</li>
-            <li>Mark favorite songs  (Apple Music &amp;
-        YouTube MusiZ</li>
-            <li>Rearrange or remove existing controls</li>
-        </ul>
-    </li>
-    <li><strong>Optimized Spotify Artwork Cache</strong> – Significantly reduced storage usage with automatic cleanup
-    </li>
-    <li><strong>Lyrics (Beta)</strong> – View synchronized lyrics for currently playing songs</li>
-</ul>
-<h3>Calendar Improvements</h3>
-<ul>
-    <li>New setting to hide all-day events</li>
-    <li>New setting to auto-scroll to next current or upcoming event</li>
-    <li>New setting to prevent truncation of long event names</li>
-</ul>
-<h3>Improved Window Behavior</h3>
-<ul>
-    <li><strong>Enhanced Fullscreen Detection</strong> – Significantly more reliable</li>
-    <li><strong>Better Edge Handling</strong> – Fixed top edge cursor issues</li>
-    <li><strong>Reduced Title Bar Interference</strong> – Less intrusive during fullscreen</li>
-    <li><strong>Lock Screen Support</strong> – Notch now appears on lock screen</li>
-    <li><strong>Screenshot Privacy</strong> – Hide notch from screenshots and recordings</li>
-</ul>
-<h3>Advanced Settings</h3>
-<ul>
-    <li>Cleaner interface with lesser-used settings moved to Advanced</li>
-    <li>Accent color override reintroduced</li>
-</ul>
-<h3>General Enhancements</h3>
-<ul>
-    <li>Numerous UI fixes and polish</li>
-    <li>Localization updates across all supported languages</li>
-</ul>
-<hr>
-<h2>👋 New Contributors</h2>
-<p>@azhao4227 · @bueckerlars · @TheMalenia · @Corentin132 · @SupKittyMeow · @M7T5M3P · @charshith · @Decryptu ·
-    @EnesCinr · @lambegraham</p>
-<hr>
-<h3>📄 Full Changelog</h3>
-<p><a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.7-rc.3...v2.7">Compare v2.7-rc.3 → v2.7</a></p>]]></description>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7.3/boringNotch.dmg" length="9727030" type="application/octet-stream" sparkle:edSignature="gl1LSheePaR/h57sppaFMnIPGyX2AC3jITvMZzmYc95wiuuDAKLdSSjKAiUqDSvHqW8hx/fgCbS7878yUH3JCQ=="/>
+&lt;h2&gt;🚀 v2.7 — Flying Rabbit 🐇🪽&lt;/h2&gt;
+&lt;h3&gt;Shelf 2.0&lt;/h3&gt;
+&lt;p&gt;Major update with improved stability, enhanced functionality, and a refreshed UI.&lt;/p&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;New Context Menu&lt;/strong&gt; – Right-click in the notch to access various file actions&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Multi-Item Selection&lt;/strong&gt; – Hold &lt;kbd&gt;⇧&lt;/kbd&gt; for consecutive or &lt;kbd&gt;⌘&lt;/kbd&gt; for non-consecutive
+        selections&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Double-Click to Open&lt;/strong&gt; – Double-click on selected files to open them&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Move by Default&lt;/strong&gt; – Dragging files now moves them; hold &lt;kbd&gt;⌥&lt;/kbd&gt; to copy&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Simplified Removal&lt;/strong&gt; – Files can be removed after dragging (configurable in Settings)&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Expanded Drag Detection&lt;/strong&gt; – The shelf opens when files are dragged into the notch area&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Expanded Sharing&lt;/strong&gt; – More sharing services available in Settings&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Complete HUD Replacement&lt;/h3&gt;
+&lt;p&gt;Full support for macOS system controls:&lt;/p&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Screen Brightness&lt;/strong&gt;, &lt;strong&gt;Keyboard Brightness&lt;/strong&gt;, and &lt;strong&gt;System Volume&lt;/strong&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Keyboard Brightness Controls:&lt;/strong&gt; &lt;kbd&gt;⌘ + Brightness Down/Up&lt;/kbd&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Option (&lt;kbd&gt;⌥&lt;/kbd&gt;)&lt;/strong&gt; – Triggers alternate action configured in Settings&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Option + Shift (&lt;kbd&gt;⌥&lt;/kbd&gt; &lt;kbd&gt;⇧&lt;/kbd&gt;)&lt;/strong&gt; – Adjustments in smaller increments&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Music Enhancements&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;YouTube Music Support Rewritten&lt;/strong&gt; – Now powered by WebSocket for better accuracy and performance
+    &lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+    &lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; Requires version &lt;strong&gt;3.11+&lt;/strong&gt; of &lt;a
+            href="https://github.com/pear-devs/pear-desktop"&gt;YouTube Music/Pear Desktop&lt;/a&gt;. Updating is strongly
+        recommended.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Redesigned Music Controls&lt;/strong&gt; – Fully customizable:
+        &lt;ul&gt;
+            &lt;li&gt;Skip backward/forward by 15 seconds&lt;/li&gt;
+            &lt;li&gt;Adjust music app volume&lt;/li&gt;
+            &lt;li&gt;Mark favorite songs  (Apple Music &amp;amp;
+        YouTube MusiZ&lt;/li&gt;
+            &lt;li&gt;Rearrange or remove existing controls&lt;/li&gt;
+        &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Optimized Spotify Artwork Cache&lt;/strong&gt; – Significantly reduced storage usage with automatic cleanup
+    &lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Lyrics (Beta)&lt;/strong&gt; – View synchronized lyrics for currently playing songs&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Calendar Improvements&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;New setting to hide all-day events&lt;/li&gt;
+    &lt;li&gt;New setting to auto-scroll to next current or upcoming event&lt;/li&gt;
+    &lt;li&gt;New setting to prevent truncation of long event names&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Improved Window Behavior&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Enhanced Fullscreen Detection&lt;/strong&gt; – Significantly more reliable&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Better Edge Handling&lt;/strong&gt; – Fixed top edge cursor issues&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Reduced Title Bar Interference&lt;/strong&gt; – Less intrusive during fullscreen&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Lock Screen Support&lt;/strong&gt; – Notch now appears on lock screen&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Screenshot Privacy&lt;/strong&gt; – Hide notch from screenshots and recordings&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Advanced Settings&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;Cleaner interface with lesser-used settings moved to Advanced&lt;/li&gt;
+    &lt;li&gt;Accent color override reintroduced&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;General Enhancements&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;Numerous UI fixes and polish&lt;/li&gt;
+    &lt;li&gt;Localization updates across all supported languages&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2&gt;👋 New Contributors&lt;/h2&gt;
+&lt;p&gt;@azhao4227 · @bueckerlars · @TheMalenia · @Corentin132 · @SupKittyMeow · @M7T5M3P · @charshith · @Decryptu ·
+    @EnesCinr · @lambegraham&lt;/p&gt;
+&lt;hr&gt;
+&lt;h3&gt;📄 Full Changelog&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.7-rc.3...v2.7"&gt;Compare v2.7-rc.3 → v2.7&lt;/a&gt;&lt;/p&gt;</description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7.3/boringNotch.dmg" length="9727030" type="application/octet-stream" sparkle:edSignature="gl1LSheePaR/h57sppaFMnIPGyX2AC3jITvMZzmYc95wiuuDAKLdSSjKAiUqDSvHqW8hx/fgCbS7878yUH3JCQ==" />
         </item>
         <item>
             <title>2.7.2</title>
@@ -107,99 +232,99 @@
             <sparkle:version>262</sparkle:version>
             <sparkle:shortVersionString>2.7.2</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<h2>🚀 v2.7.2— Flying Rabbit 🐇🪽</h2>
-<h3> Fixes: </h3>
-<ul>
-    <li><strong>Fixed default sneak peak<strong></li>
-</ul>
-<h2>🚀 v2.7.1 — Flying Rabbit 🐇🪽</h2>
-<h3> Fixes: </h3>
-<ul>
-    <li><strong>Fixed update signing</strong></li>
-    <li><strong>Improved animations</strong></li>
-     <li><strong>Fixed shadow clipping</strong></li>
-     <h3>📄 Full Changelog</h3>
-      <p><a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.7...v2.7.1">Compare v2.7 → v2.7.1</a></p>
-</ul>
+            <description>&lt;h2&gt;🚀 v2.7.2— Flying Rabbit 🐇🪽&lt;/h2&gt;
+&lt;h3&gt; Fixes: &lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Fixed default sneak peak&lt;strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;🚀 v2.7.1 — Flying Rabbit 🐇🪽&lt;/h2&gt;
+&lt;h3&gt; Fixes: &lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Fixed update signing&lt;/strong&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Improved animations&lt;/strong&gt;&lt;/li&gt;
+     &lt;li&gt;&lt;strong&gt;Fixed shadow clipping&lt;/strong&gt;&lt;/li&gt;
+     &lt;h3&gt;📄 Full Changelog&lt;/h3&gt;
+      &lt;p&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.7...v2.7.1"&gt;Compare v2.7 → v2.7.1&lt;/a&gt;&lt;/p&gt;
+&lt;/ul&gt;
 
-<h2>🚀 v2.7 — Flying Rabbit 🐇🪽</h2>
-<h3>Shelf 2.0</h3>
-<p>Major update with improved stability, enhanced functionality, and a refreshed UI.</p>
-<ul>
-    <li><strong>New Context Menu</strong> – Right-click in the notch to access various file actions</li>
-    <li><strong>Multi-Item Selection</strong> – Hold <kbd>⇧</kbd> for consecutive or <kbd>⌘</kbd> for non-consecutive
-        selections</li>
-    <li><strong>Double-Click to Open</strong> – Double-click on selected files to open them</li>
-    <li><strong>Move by Default</strong> – Dragging files now moves them; hold <kbd>⌥</kbd> to copy</li>
-    <li><strong>Simplified Removal</strong> – Files can be removed after dragging (configurable in Settings)</li>
-    <li><strong>Expanded Drag Detection</strong> – The shelf opens when files are dragged into the notch area</li>
-    <li><strong>Expanded Sharing</strong> – More sharing services available in Settings</li>
-</ul>
-<h3>Complete HUD Replacement</h3>
-<p>Full support for macOS system controls:</p>
-<ul>
-    <li><strong>Screen Brightness</strong>, <strong>Keyboard Brightness</strong>, and <strong>System Volume</strong>
-    </li>
-    <li><strong>Keyboard Brightness Controls:</strong> <kbd>⌘ + Brightness Down/Up</kbd></li>
-    <li><strong>Option (<kbd>⌥</kbd>)</strong> – Triggers alternate action configured in Settings</li>
-    <li><strong>Option + Shift (<kbd>⌥</kbd> <kbd>⇧</kbd>)</strong> – Adjustments in smaller increments</li>
-</ul>
-<h3>Music Enhancements</h3>
-<ul>
-    <li><strong>YouTube Music Support Rewritten</strong> – Now powered by WebSocket for better accuracy and performance
-    </li>
-</ul>
-<blockquote>
-    <p><strong>Note:</strong> Requires version <strong>3.11+</strong> of <a
-            href="https://github.com/pear-devs/pear-desktop">YouTube Music/Pear Desktop</a>. Updating is strongly
-        recommended.</p>
-</blockquote>
-<ul>
-    <li><strong>Redesigned Music Controls</strong> – Fully customizable:
-        <ul>
-            <li>Skip backward/forward by 15 seconds</li>
-            <li>Adjust music app volume</li>
-            <li>Mark favorite songs  (Apple Music &amp;
-        YouTube MusiZ</li>
-            <li>Rearrange or remove existing controls</li>
-        </ul>
-    </li>
-    <li><strong>Optimized Spotify Artwork Cache</strong> – Significantly reduced storage usage with automatic cleanup
-    </li>
-    <li><strong>Lyrics (Beta)</strong> – View synchronized lyrics for currently playing songs</li>
-</ul>
-<h3>Calendar Improvements</h3>
-<ul>
-    <li>New setting to hide all-day events</li>
-    <li>New setting to auto-scroll to next current or upcoming event</li>
-    <li>New setting to prevent truncation of long event names</li>
-</ul>
-<h3>Improved Window Behavior</h3>
-<ul>
-    <li><strong>Enhanced Fullscreen Detection</strong> – Significantly more reliable</li>
-    <li><strong>Better Edge Handling</strong> – Fixed top edge cursor issues</li>
-    <li><strong>Reduced Title Bar Interference</strong> – Less intrusive during fullscreen</li>
-    <li><strong>Lock Screen Support</strong> – Notch now appears on lock screen</li>
-    <li><strong>Screenshot Privacy</strong> – Hide notch from screenshots and recordings</li>
-</ul>
-<h3>Advanced Settings</h3>
-<ul>
-    <li>Cleaner interface with lesser-used settings moved to Advanced</li>
-    <li>Accent color override reintroduced</li>
-</ul>
-<h3>General Enhancements</h3>
-<ul>
-    <li>Numerous UI fixes and polish</li>
-    <li>Localization updates across all supported languages</li>
-</ul>
-<hr>
-<h2>👋 New Contributors</h2>
-<p>@azhao4227 · @bueckerlars · @TheMalenia · @Corentin132 · @SupKittyMeow · @M7T5M3P · @charshith · @Decryptu ·
-    @EnesCinr · @lambegraham</p>
-<hr>
-<h3>📄 Full Changelog</h3>
-<p><a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.7-rc.3...v2.7">Compare v2.7-rc.3 → v2.7</a></p>]]></description>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7.2/boringNotch.dmg" length="9684618" type="application/octet-stream" sparkle:edSignature="8fWrEF4oezQcnF/iM9X0B4bGIe4zPnJSzpEuwq3OfyZ5TphlXf85DmRL21PWDIYuUIGuX6DaUyzv7NOB9Fk9Cg=="/>
+&lt;h2&gt;🚀 v2.7 — Flying Rabbit 🐇🪽&lt;/h2&gt;
+&lt;h3&gt;Shelf 2.0&lt;/h3&gt;
+&lt;p&gt;Major update with improved stability, enhanced functionality, and a refreshed UI.&lt;/p&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;New Context Menu&lt;/strong&gt; – Right-click in the notch to access various file actions&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Multi-Item Selection&lt;/strong&gt; – Hold &lt;kbd&gt;⇧&lt;/kbd&gt; for consecutive or &lt;kbd&gt;⌘&lt;/kbd&gt; for non-consecutive
+        selections&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Double-Click to Open&lt;/strong&gt; – Double-click on selected files to open them&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Move by Default&lt;/strong&gt; – Dragging files now moves them; hold &lt;kbd&gt;⌥&lt;/kbd&gt; to copy&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Simplified Removal&lt;/strong&gt; – Files can be removed after dragging (configurable in Settings)&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Expanded Drag Detection&lt;/strong&gt; – The shelf opens when files are dragged into the notch area&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Expanded Sharing&lt;/strong&gt; – More sharing services available in Settings&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Complete HUD Replacement&lt;/h3&gt;
+&lt;p&gt;Full support for macOS system controls:&lt;/p&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Screen Brightness&lt;/strong&gt;, &lt;strong&gt;Keyboard Brightness&lt;/strong&gt;, and &lt;strong&gt;System Volume&lt;/strong&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Keyboard Brightness Controls:&lt;/strong&gt; &lt;kbd&gt;⌘ + Brightness Down/Up&lt;/kbd&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Option (&lt;kbd&gt;⌥&lt;/kbd&gt;)&lt;/strong&gt; – Triggers alternate action configured in Settings&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Option + Shift (&lt;kbd&gt;⌥&lt;/kbd&gt; &lt;kbd&gt;⇧&lt;/kbd&gt;)&lt;/strong&gt; – Adjustments in smaller increments&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Music Enhancements&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;YouTube Music Support Rewritten&lt;/strong&gt; – Now powered by WebSocket for better accuracy and performance
+    &lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+    &lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; Requires version &lt;strong&gt;3.11+&lt;/strong&gt; of &lt;a
+            href="https://github.com/pear-devs/pear-desktop"&gt;YouTube Music/Pear Desktop&lt;/a&gt;. Updating is strongly
+        recommended.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Redesigned Music Controls&lt;/strong&gt; – Fully customizable:
+        &lt;ul&gt;
+            &lt;li&gt;Skip backward/forward by 15 seconds&lt;/li&gt;
+            &lt;li&gt;Adjust music app volume&lt;/li&gt;
+            &lt;li&gt;Mark favorite songs  (Apple Music &amp;amp;
+        YouTube MusiZ&lt;/li&gt;
+            &lt;li&gt;Rearrange or remove existing controls&lt;/li&gt;
+        &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Optimized Spotify Artwork Cache&lt;/strong&gt; – Significantly reduced storage usage with automatic cleanup
+    &lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Lyrics (Beta)&lt;/strong&gt; – View synchronized lyrics for currently playing songs&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Calendar Improvements&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;New setting to hide all-day events&lt;/li&gt;
+    &lt;li&gt;New setting to auto-scroll to next current or upcoming event&lt;/li&gt;
+    &lt;li&gt;New setting to prevent truncation of long event names&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Improved Window Behavior&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Enhanced Fullscreen Detection&lt;/strong&gt; – Significantly more reliable&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Better Edge Handling&lt;/strong&gt; – Fixed top edge cursor issues&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Reduced Title Bar Interference&lt;/strong&gt; – Less intrusive during fullscreen&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Lock Screen Support&lt;/strong&gt; – Notch now appears on lock screen&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Screenshot Privacy&lt;/strong&gt; – Hide notch from screenshots and recordings&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Advanced Settings&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;Cleaner interface with lesser-used settings moved to Advanced&lt;/li&gt;
+    &lt;li&gt;Accent color override reintroduced&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;General Enhancements&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;Numerous UI fixes and polish&lt;/li&gt;
+    &lt;li&gt;Localization updates across all supported languages&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2&gt;👋 New Contributors&lt;/h2&gt;
+&lt;p&gt;@azhao4227 · @bueckerlars · @TheMalenia · @Corentin132 · @SupKittyMeow · @M7T5M3P · @charshith · @Decryptu ·
+    @EnesCinr · @lambegraham&lt;/p&gt;
+&lt;hr&gt;
+&lt;h3&gt;📄 Full Changelog&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.7-rc.3...v2.7"&gt;Compare v2.7-rc.3 → v2.7&lt;/a&gt;&lt;/p&gt;</description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7.2/boringNotch.dmg" length="9684618" type="application/octet-stream" sparkle:edSignature="8fWrEF4oezQcnF/iM9X0B4bGIe4zPnJSzpEuwq3OfyZ5TphlXf85DmRL21PWDIYuUIGuX6DaUyzv7NOB9Fk9Cg==" />
         </item>
         <item>
             <title>2.7.1</title>
@@ -208,94 +333,94 @@
             <sparkle:version>260</sparkle:version>
             <sparkle:shortVersionString>2.7.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<h2>🚀 v2.7.1 — Flying Rabbit 🐇🪽</h2>
-<h3> Fixes: </h3>
-<ul>
-    <li><strong>Fixed update signing</strong></li>
-    <li><strong>Improved animations</strong></li>
-     <li><strong>Fixed shadow clipping</strong></li>
-     <h3>📄 Full Changelog</h3>
-      <p><a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.7...v2.7.1">Compare v2.7 → v2.7.1</a></p>
-</ul>
+            <description>&lt;h2&gt;🚀 v2.7.1 — Flying Rabbit 🐇🪽&lt;/h2&gt;
+&lt;h3&gt; Fixes: &lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Fixed update signing&lt;/strong&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Improved animations&lt;/strong&gt;&lt;/li&gt;
+     &lt;li&gt;&lt;strong&gt;Fixed shadow clipping&lt;/strong&gt;&lt;/li&gt;
+     &lt;h3&gt;📄 Full Changelog&lt;/h3&gt;
+      &lt;p&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.7...v2.7.1"&gt;Compare v2.7 → v2.7.1&lt;/a&gt;&lt;/p&gt;
+&lt;/ul&gt;
 
-<h2>🚀 v2.7 — Flying Rabbit 🐇🪽</h2>
-<h3>Shelf 2.0</h3>
-<p>Major update with improved stability, enhanced functionality, and a refreshed UI.</p>
-<ul>
-    <li><strong>New Context Menu</strong> – Right-click in the notch to access various file actions</li>
-    <li><strong>Multi-Item Selection</strong> – Hold <kbd>⇧</kbd> for consecutive or <kbd>⌘</kbd> for non-consecutive
-        selections</li>
-    <li><strong>Double-Click to Open</strong> – Double-click on selected files to open them</li>
-    <li><strong>Move by Default</strong> – Dragging files now moves them; hold <kbd>⌥</kbd> to copy</li>
-    <li><strong>Simplified Removal</strong> – Files can be removed after dragging (configurable in Settings)</li>
-    <li><strong>Expanded Drag Detection</strong> – The shelf opens when files are dragged into the notch area</li>
-    <li><strong>Expanded Sharing</strong> – More sharing services available in Settings</li>
-</ul>
-<h3>Complete HUD Replacement</h3>
-<p>Full support for macOS system controls:</p>
-<ul>
-    <li><strong>Screen Brightness</strong>, <strong>Keyboard Brightness</strong>, and <strong>System Volume</strong>
-    </li>
-    <li><strong>Keyboard Brightness Controls:</strong> <kbd>⌘ + Brightness Down/Up</kbd></li>
-    <li><strong>Option (<kbd>⌥</kbd>)</strong> – Triggers alternate action configured in Settings</li>
-    <li><strong>Option + Shift (<kbd>⌥</kbd> <kbd>⇧</kbd>)</strong> – Adjustments in smaller increments</li>
-</ul>
-<h3>Music Enhancements</h3>
-<ul>
-    <li><strong>YouTube Music Support Rewritten</strong> – Now powered by WebSocket for better accuracy and performance
-    </li>
-</ul>
-<blockquote>
-    <p><strong>Note:</strong> Requires version <strong>3.11+</strong> of <a
-            href="https://github.com/pear-devs/pear-desktop">YouTube Music/Pear Desktop</a>. Updating is strongly
-        recommended.</p>
-</blockquote>
-<ul>
-    <li><strong>Redesigned Music Controls</strong> – Fully customizable:
-        <ul>
-            <li>Skip backward/forward by 15 seconds</li>
-            <li>Adjust music app volume</li>
-            <li>Mark favorite songs  (Apple Music &amp;
-        YouTube MusiZ</li>
-            <li>Rearrange or remove existing controls</li>
-        </ul>
-    </li>
-    <li><strong>Optimized Spotify Artwork Cache</strong> – Significantly reduced storage usage with automatic cleanup
-    </li>
-    <li><strong>Lyrics (Beta)</strong> – View synchronized lyrics for currently playing songs</li>
-</ul>
-<h3>Calendar Improvements</h3>
-<ul>
-    <li>New setting to hide all-day events</li>
-    <li>New setting to auto-scroll to next current or upcoming event</li>
-    <li>New setting to prevent truncation of long event names</li>
-</ul>
-<h3>Improved Window Behavior</h3>
-<ul>
-    <li><strong>Enhanced Fullscreen Detection</strong> – Significantly more reliable</li>
-    <li><strong>Better Edge Handling</strong> – Fixed top edge cursor issues</li>
-    <li><strong>Reduced Title Bar Interference</strong> – Less intrusive during fullscreen</li>
-    <li><strong>Lock Screen Support</strong> – Notch now appears on lock screen</li>
-    <li><strong>Screenshot Privacy</strong> – Hide notch from screenshots and recordings</li>
-</ul>
-<h3>Advanced Settings</h3>
-<ul>
-    <li>Cleaner interface with lesser-used settings moved to Advanced</li>
-    <li>Accent color override reintroduced</li>
-</ul>
-<h3>General Enhancements</h3>
-<ul>
-    <li>Numerous UI fixes and polish</li>
-    <li>Localization updates across all supported languages</li>
-</ul>
-<hr>
-<h2>👋 New Contributors</h2>
-<p>@azhao4227 · @bueckerlars · @TheMalenia · @Corentin132 · @SupKittyMeow · @M7T5M3P · @charshith · @Decryptu ·
-    @EnesCinr · @lambegraham</p>
-<hr>
-<h3>📄 Full Changelog</h3>
-<p><a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.7-rc.3...v2.7">Compare v2.7-rc.3 → v2.7</a></p>]]></description>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7.1/boringNotch.dmg" length="9684624" type="application/octet-stream" sparkle:edSignature="d+5NbhE7/CjLdcwOyPmxKSC7r3BAFG1Fe6t9voGwT/w6yUfaTMn6d30pUFhPqWihWFhT4cwtPOPztzEV35XBAQ=="/>
+&lt;h2&gt;🚀 v2.7 — Flying Rabbit 🐇🪽&lt;/h2&gt;
+&lt;h3&gt;Shelf 2.0&lt;/h3&gt;
+&lt;p&gt;Major update with improved stability, enhanced functionality, and a refreshed UI.&lt;/p&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;New Context Menu&lt;/strong&gt; – Right-click in the notch to access various file actions&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Multi-Item Selection&lt;/strong&gt; – Hold &lt;kbd&gt;⇧&lt;/kbd&gt; for consecutive or &lt;kbd&gt;⌘&lt;/kbd&gt; for non-consecutive
+        selections&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Double-Click to Open&lt;/strong&gt; – Double-click on selected files to open them&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Move by Default&lt;/strong&gt; – Dragging files now moves them; hold &lt;kbd&gt;⌥&lt;/kbd&gt; to copy&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Simplified Removal&lt;/strong&gt; – Files can be removed after dragging (configurable in Settings)&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Expanded Drag Detection&lt;/strong&gt; – The shelf opens when files are dragged into the notch area&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Expanded Sharing&lt;/strong&gt; – More sharing services available in Settings&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Complete HUD Replacement&lt;/h3&gt;
+&lt;p&gt;Full support for macOS system controls:&lt;/p&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Screen Brightness&lt;/strong&gt;, &lt;strong&gt;Keyboard Brightness&lt;/strong&gt;, and &lt;strong&gt;System Volume&lt;/strong&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Keyboard Brightness Controls:&lt;/strong&gt; &lt;kbd&gt;⌘ + Brightness Down/Up&lt;/kbd&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Option (&lt;kbd&gt;⌥&lt;/kbd&gt;)&lt;/strong&gt; – Triggers alternate action configured in Settings&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Option + Shift (&lt;kbd&gt;⌥&lt;/kbd&gt; &lt;kbd&gt;⇧&lt;/kbd&gt;)&lt;/strong&gt; – Adjustments in smaller increments&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Music Enhancements&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;YouTube Music Support Rewritten&lt;/strong&gt; – Now powered by WebSocket for better accuracy and performance
+    &lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+    &lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; Requires version &lt;strong&gt;3.11+&lt;/strong&gt; of &lt;a
+            href="https://github.com/pear-devs/pear-desktop"&gt;YouTube Music/Pear Desktop&lt;/a&gt;. Updating is strongly
+        recommended.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Redesigned Music Controls&lt;/strong&gt; – Fully customizable:
+        &lt;ul&gt;
+            &lt;li&gt;Skip backward/forward by 15 seconds&lt;/li&gt;
+            &lt;li&gt;Adjust music app volume&lt;/li&gt;
+            &lt;li&gt;Mark favorite songs  (Apple Music &amp;amp;
+        YouTube MusiZ&lt;/li&gt;
+            &lt;li&gt;Rearrange or remove existing controls&lt;/li&gt;
+        &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Optimized Spotify Artwork Cache&lt;/strong&gt; – Significantly reduced storage usage with automatic cleanup
+    &lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Lyrics (Beta)&lt;/strong&gt; – View synchronized lyrics for currently playing songs&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Calendar Improvements&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;New setting to hide all-day events&lt;/li&gt;
+    &lt;li&gt;New setting to auto-scroll to next current or upcoming event&lt;/li&gt;
+    &lt;li&gt;New setting to prevent truncation of long event names&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Improved Window Behavior&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Enhanced Fullscreen Detection&lt;/strong&gt; – Significantly more reliable&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Better Edge Handling&lt;/strong&gt; – Fixed top edge cursor issues&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Reduced Title Bar Interference&lt;/strong&gt; – Less intrusive during fullscreen&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Lock Screen Support&lt;/strong&gt; – Notch now appears on lock screen&lt;/li&gt;
+    &lt;li&gt;&lt;strong&gt;Screenshot Privacy&lt;/strong&gt; – Hide notch from screenshots and recordings&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Advanced Settings&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;Cleaner interface with lesser-used settings moved to Advanced&lt;/li&gt;
+    &lt;li&gt;Accent color override reintroduced&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;General Enhancements&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;Numerous UI fixes and polish&lt;/li&gt;
+    &lt;li&gt;Localization updates across all supported languages&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2&gt;👋 New Contributors&lt;/h2&gt;
+&lt;p&gt;@azhao4227 · @bueckerlars · @TheMalenia · @Corentin132 · @SupKittyMeow · @M7T5M3P · @charshith · @Decryptu ·
+    @EnesCinr · @lambegraham&lt;/p&gt;
+&lt;hr&gt;
+&lt;h3&gt;📄 Full Changelog&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.7-rc.3...v2.7"&gt;Compare v2.7-rc.3 → v2.7&lt;/a&gt;&lt;/p&gt;</description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7.1/boringNotch.dmg" length="9684624" type="application/octet-stream" sparkle:edSignature="d+5NbhE7/CjLdcwOyPmxKSC7r3BAFG1Fe6t9voGwT/w6yUfaTMn6d30pUFhPqWihWFhT4cwtPOPztzEV35XBAQ==" />
         </item>
         <item>
             <title>2.7-rc.1 Flying Rabbit 🐇🪽</title>
@@ -303,31 +428,31 @@
             <sparkle:version>2.7-rc.1+3</sparkle:version>
             <sparkle:shortVersionString>2.7-rc.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
-            <description><![CDATA[
-                    <div>
-                        <h1>🐇 boring.notch v2.7 – Flying Rabbit RC 1</h1>
-                        <p>Release Candidate - July 27, 2025</p>
-                            <h2>✨ What's New & Improved</h2>
-                            <ul>
-                            <li><b>🛠️ Fixed hanging issues:</b> Resolved stability concerns by addressing test instability. (by @Alexander5015)</li>
-                            <li><b>📅 Calendar Settings Resolved:</b> Calendar settings now update correctly with authorization; proper show/hide.</li>
-                            <li><b>🎵 YouTube Music Controller:</b>
-                                <ul>
-                                <li>Improved shuffle and repeat UX, beta features for shuffle/repeat now available.</li>
-                                <li>Fixed seek control bugs and added forced polling.</li>
-                                </ul>
-                                (by @pranav1st & @Alexander5015)
-                            </li>
-                            <li><b>🔲 MediaRemoteAdapter.Framework updated</b></li>
-                            <li><b>🔃 Button order and repeat toggle improved:</b> Better player button logic and new repeat toggle.</li>
-                            <li><b>🐞 Now Playing Controller Beta:</b> Beta enhancements and settings (known bugs remain for testing).</li>
-                            <li><b>♻️ Shuffle is now always enabled.</b></li>
-                            <li><b>💡 Refactored Shuffle & Repeat:</b> toggleShuffle/toggleRepeat refactored for improved experience.</li>
-                            </ul>
-                        <p>— The Boring Team</p>
-                    </div>
-                ]]></description>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.1/Flying_Rabbit.dmg" length="9033202" type="application/octet-stream" sparkle:edSignature="z1SbQHDCg1D+6m811f4ubdinUiXvoYF4Ra2xlzS3NSAlUqmmIpdzCp1MHMv5J9ddlxTws3rG48OCJfZRAXHHAw=="/>
+            <description>
+                    &lt;div&gt;
+                        &lt;h1&gt;🐇 boring.notch v2.7 – Flying Rabbit RC 1&lt;/h1&gt;
+                        &lt;p&gt;Release Candidate - July 27, 2025&lt;/p&gt;
+                            &lt;h2&gt;✨ What's New &amp; Improved&lt;/h2&gt;
+                            &lt;ul&gt;
+                            &lt;li&gt;&lt;b&gt;🛠️ Fixed hanging issues:&lt;/b&gt; Resolved stability concerns by addressing test instability. (by @Alexander5015)&lt;/li&gt;
+                            &lt;li&gt;&lt;b&gt;📅 Calendar Settings Resolved:&lt;/b&gt; Calendar settings now update correctly with authorization; proper show/hide.&lt;/li&gt;
+                            &lt;li&gt;&lt;b&gt;🎵 YouTube Music Controller:&lt;/b&gt;
+                                &lt;ul&gt;
+                                &lt;li&gt;Improved shuffle and repeat UX, beta features for shuffle/repeat now available.&lt;/li&gt;
+                                &lt;li&gt;Fixed seek control bugs and added forced polling.&lt;/li&gt;
+                                &lt;/ul&gt;
+                                (by @pranav1st &amp; @Alexander5015)
+                            &lt;/li&gt;
+                            &lt;li&gt;&lt;b&gt;🔲 MediaRemoteAdapter.Framework updated&lt;/b&gt;&lt;/li&gt;
+                            &lt;li&gt;&lt;b&gt;🔃 Button order and repeat toggle improved:&lt;/b&gt; Better player button logic and new repeat toggle.&lt;/li&gt;
+                            &lt;li&gt;&lt;b&gt;🐞 Now Playing Controller Beta:&lt;/b&gt; Beta enhancements and settings (known bugs remain for testing).&lt;/li&gt;
+                            &lt;li&gt;&lt;b&gt;♻️ Shuffle is now always enabled.&lt;/b&gt;&lt;/li&gt;
+                            &lt;li&gt;&lt;b&gt;💡 Refactored Shuffle &amp; Repeat:&lt;/b&gt; toggleShuffle/toggleRepeat refactored for improved experience.&lt;/li&gt;
+                            &lt;/ul&gt;
+                        &lt;p&gt;— The Boring Team&lt;/p&gt;
+                    &lt;/div&gt;
+                </description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.1/Flying_Rabbit.dmg" length="9033202" type="application/octet-stream" sparkle:edSignature="z1SbQHDCg1D+6m811f4ubdinUiXvoYF4Ra2xlzS3NSAlUqmmIpdzCp1MHMv5J9ddlxTws3rG48OCJfZRAXHHAw==" />
         </item>
         <item>
             <title>2.7-rc.0 Flying Rabbit 🐇🪽</title>
@@ -335,133 +460,133 @@
             <sparkle:version>2.7-rc.0+1</sparkle:version>
             <sparkle:shortVersionString>2.7-rc.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
-            <description><![CDATA[
-                    <h1 id="-release-v2-7-flying-rabbit-rc-0-boring-notch">🎉 Release v2.7 Flying Rabbit RC 0 — Boring Notch</h1>
-                    <p>We're thrilled to announce <strong>Boring Notch v2.7: Flying Rabbit RC 0</strong>, packed with powerful new features, polish, and community contributions!</p>
-                    <h2 id="-highlights">🚀 Highlights</h2>
-                    <ul>
-                    <li><strong>🔋 Enhanced Battery Status \&amp; Charging Experience</strong>
-                    Thanks to @AlexLemus-Dev<ul>
-                    <li>More informative battery menu: percentage, max capacity, charging, low power, and status icons</li>
-                    <li>Configurable battery indicators, notifications, and display options</li>
-                    <li>Interactive battery icon with detailed info and instant System Preferences access</li>
-                    <li>Visual alignment and consistent styling (macOS-like bolt/plug icons, dark mode, etc.)</li>
-                    <li>Optimized and documented code, robust error handling, and improved performance</li>
-                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/437">Details \&amp; Demo</a></li>
-                    </ul>
-                    </li>
-                    <li><strong>🖥️ Fullscreen Detection \&amp; Playback Management Fixes</strong>
-                    @Alexander5015 improved reliability of media controls during fullscreen transitions<ul>
-                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/449">PR #449</a></li>
-                    </ul>
-                    </li>
-                    <li><strong>🦷 Allow 0 Height Notch</strong>
-                    Now supports notches with zero height for enhanced layout flexibility<ul>
-                    <li>Thanks, @yaxarat! <a href="https://github.com/TheBoredTeam/boring.notch/pull/397">PR #397</a></li>
-                    </ul>
-                    </li>
-                    <li><strong>🎛️ Multiple Media Controllers</strong>
-                    Control and display several media controllers at once<ul>
-                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/460">PR #460</a></li>
-                    </ul>
-                    </li>
-                    <li><strong>👀 Sneak Peek \&amp; Jiggle Fixes</strong>
-                    Re-added sneak peek and improved animation stability<ul>
-                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/409">PR #409</a></li>
-                    </ul>
-                    </li>
-                    <li><strong>🗓️ New Calendar Service</strong>
-                    Seamlessly integrates your calendar into Boring Notch<ul>
-                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/589">PR #589</a></li>
-                    </ul>
-                    </li>
-                    <li><strong>📄 Updated LICENSE</strong>
-                    Keeping compliance and clarity up to date<ul>
-                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/590">PR #590</a></li>
-                    </ul>
-                    </li>
-                    <li><strong>🆕 Onboarding \&amp; Better Settings Window</strong>
-                    Streamlined onboarding and redesigned settings for easy configuration<ul>
-                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/600">PR #600</a></li>
-                    </ul>
-                    </li>
-                    <li><strong>📸 Camera Toggle Feature</strong>
-                    New camera quick toggle, privacy-first!<ul>
-                    <li>Added by @Steve-sy <a href="https://github.com/TheBoredTeam/boring.notch/pull/598">PR #598</a></li>
-                    </ul>
-                    </li>
-                    <li><strong>🎵 MediaRemote Adapter Support</strong>
-                    Improved compatibility with MediaRemote devices<ul>
-                    <li><a href="https://github.com/TheBoredTeam/boring.notch/pull/631">PR #631</a></li>
-                    </ul>
-                    </li>
-                    </ul>
-                    <h2 id="-welcoming-first-time-contributors-">🆕 Welcoming First-Time Contributors!</h2>
-                    <table>
-                    <thead>
-                    <tr>
-                    <th style="text-align:left">Contributor</th>
-                    <th style="text-align:left">PR Link</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                    <td style="text-align:left">@sancho1952007</td>
-                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/431">https://github.com/TheBoredTeam/boring.notch/pull/431</a>)</td>
-                    </tr>
-                    <tr>
-                    <td style="text-align:left">@Ein-Tim</td>
-                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/405">https://github.com/TheBoredTeam/boring.notch/pull/405</a>)</td>
-                    </tr>
-                    <tr>
-                    <td style="text-align:left">@AlexLemus-Dev</td>
-                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/437">https://github.com/TheBoredTeam/boring.notch/pull/437</a>)</td>
-                    </tr>
-                    <tr>
-                    <td style="text-align:left">@yaxarat</td>
-                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/397">https://github.com/TheBoredTeam/boring.notch/pull/397</a>)</td>
-                    </tr>
-                    <tr>
-                    <td style="text-align:left">@ShirakawaMio</td>
-                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/399">https://github.com/TheBoredTeam/boring.notch/pull/399</a>)</td>
-                    </tr>
-                    <tr>
-                    <td style="text-align:left">@divyanshu0469</td>
-                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/454">https://github.com/TheBoredTeam/boring.notch/pull/454</a>)</td>
-                    </tr>
-                    <tr>
-                    <td style="text-align:left">@oorischubert</td>
-                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/409">https://github.com/TheBoredTeam/boring.notch/pull/409</a>)</td>
-                    </tr>
-                    <tr>
-                    <td style="text-align:left">@Al3Gr</td>
-                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/493">https://github.com/TheBoredTeam/boring.notch/pull/493</a>)</td>
-                    </tr>
-                    <tr>
-                    <td style="text-align:left">@ChemicalChaos-Fabian42</td>
-                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/509">https://github.com/TheBoredTeam/boring.notch/pull/509</a>)</td>
-                    </tr>
-                    <tr>
-                    <td style="text-align:left">@Davetheword</td>
-                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/501">https://github.com/TheBoredTeam/boring.notch/pull/501</a>)</td>
-                    </tr>
-                    <tr>
-                    <td style="text-align:left">@Steve-sy</td>
-                    <td style="text-align:left">(<a href="https://github.com/TheBoredTeam/boring.notch/pull/598">https://github.com/TheBoredTeam/boring.notch/pull/598</a>)</td>
-                    </tr>
-                    </tbody>
-                    </table>
-                    <h2 id="-other-improvements">🛠️ Other Improvements</h2>
-                    <ul>
-                    <li>Visual and animation refinements for battery/media indicators</li>
-                    <li>Enhanced error handling, code reorganization, and extensive documentation</li>
-                    <li>Optimizations for consistent performance across all system conditions</li>
-                    </ul>
-                    <p>Thank you 🌟 to everyone—new and returning—for their effort in making this release feature-rich, steady, and super fun!</p>
-                    <p><strong>Try Boring Notch v2.7 — Flying Rabbit RC 0 and let us know what you think!</strong></p>
-                    <p><em>— The Boring Notch Team</em></p>
-                ]]></description>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.0/Flying_Rabbit.dmg" length="9000118" type="application/octet-stream" sparkle:edSignature="G5D2zsLFBR0Ua9b1EkLD8jjdkpMA10P1C9KmEL2Drg1WNwCnNAY+lGmljx1UQ+qDyqpjjMrOoGClevHd/276BQ=="/>
+            <description>
+                    &lt;h1 id="-release-v2-7-flying-rabbit-rc-0-boring-notch"&gt;🎉 Release v2.7 Flying Rabbit RC 0 — Boring Notch&lt;/h1&gt;
+                    &lt;p&gt;We're thrilled to announce &lt;strong&gt;Boring Notch v2.7: Flying Rabbit RC 0&lt;/strong&gt;, packed with powerful new features, polish, and community contributions!&lt;/p&gt;
+                    &lt;h2 id="-highlights"&gt;🚀 Highlights&lt;/h2&gt;
+                    &lt;ul&gt;
+                    &lt;li&gt;&lt;strong&gt;🔋 Enhanced Battery Status \&amp;amp; Charging Experience&lt;/strong&gt;
+                    Thanks to @AlexLemus-Dev&lt;ul&gt;
+                    &lt;li&gt;More informative battery menu: percentage, max capacity, charging, low power, and status icons&lt;/li&gt;
+                    &lt;li&gt;Configurable battery indicators, notifications, and display options&lt;/li&gt;
+                    &lt;li&gt;Interactive battery icon with detailed info and instant System Preferences access&lt;/li&gt;
+                    &lt;li&gt;Visual alignment and consistent styling (macOS-like bolt/plug icons, dark mode, etc.)&lt;/li&gt;
+                    &lt;li&gt;Optimized and documented code, robust error handling, and improved performance&lt;/li&gt;
+                    &lt;li&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/437"&gt;Details \&amp;amp; Demo&lt;/a&gt;&lt;/li&gt;
+                    &lt;/ul&gt;
+                    &lt;/li&gt;
+                    &lt;li&gt;&lt;strong&gt;🖥️ Fullscreen Detection \&amp;amp; Playback Management Fixes&lt;/strong&gt;
+                    @Alexander5015 improved reliability of media controls during fullscreen transitions&lt;ul&gt;
+                    &lt;li&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/449"&gt;PR #449&lt;/a&gt;&lt;/li&gt;
+                    &lt;/ul&gt;
+                    &lt;/li&gt;
+                    &lt;li&gt;&lt;strong&gt;🦷 Allow 0 Height Notch&lt;/strong&gt;
+                    Now supports notches with zero height for enhanced layout flexibility&lt;ul&gt;
+                    &lt;li&gt;Thanks, @yaxarat! &lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/397"&gt;PR #397&lt;/a&gt;&lt;/li&gt;
+                    &lt;/ul&gt;
+                    &lt;/li&gt;
+                    &lt;li&gt;&lt;strong&gt;🎛️ Multiple Media Controllers&lt;/strong&gt;
+                    Control and display several media controllers at once&lt;ul&gt;
+                    &lt;li&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/460"&gt;PR #460&lt;/a&gt;&lt;/li&gt;
+                    &lt;/ul&gt;
+                    &lt;/li&gt;
+                    &lt;li&gt;&lt;strong&gt;👀 Sneak Peek \&amp;amp; Jiggle Fixes&lt;/strong&gt;
+                    Re-added sneak peek and improved animation stability&lt;ul&gt;
+                    &lt;li&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/409"&gt;PR #409&lt;/a&gt;&lt;/li&gt;
+                    &lt;/ul&gt;
+                    &lt;/li&gt;
+                    &lt;li&gt;&lt;strong&gt;🗓️ New Calendar Service&lt;/strong&gt;
+                    Seamlessly integrates your calendar into Boring Notch&lt;ul&gt;
+                    &lt;li&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/589"&gt;PR #589&lt;/a&gt;&lt;/li&gt;
+                    &lt;/ul&gt;
+                    &lt;/li&gt;
+                    &lt;li&gt;&lt;strong&gt;📄 Updated LICENSE&lt;/strong&gt;
+                    Keeping compliance and clarity up to date&lt;ul&gt;
+                    &lt;li&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/590"&gt;PR #590&lt;/a&gt;&lt;/li&gt;
+                    &lt;/ul&gt;
+                    &lt;/li&gt;
+                    &lt;li&gt;&lt;strong&gt;🆕 Onboarding \&amp;amp; Better Settings Window&lt;/strong&gt;
+                    Streamlined onboarding and redesigned settings for easy configuration&lt;ul&gt;
+                    &lt;li&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/600"&gt;PR #600&lt;/a&gt;&lt;/li&gt;
+                    &lt;/ul&gt;
+                    &lt;/li&gt;
+                    &lt;li&gt;&lt;strong&gt;📸 Camera Toggle Feature&lt;/strong&gt;
+                    New camera quick toggle, privacy-first!&lt;ul&gt;
+                    &lt;li&gt;Added by @Steve-sy &lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/598"&gt;PR #598&lt;/a&gt;&lt;/li&gt;
+                    &lt;/ul&gt;
+                    &lt;/li&gt;
+                    &lt;li&gt;&lt;strong&gt;🎵 MediaRemote Adapter Support&lt;/strong&gt;
+                    Improved compatibility with MediaRemote devices&lt;ul&gt;
+                    &lt;li&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/631"&gt;PR #631&lt;/a&gt;&lt;/li&gt;
+                    &lt;/ul&gt;
+                    &lt;/li&gt;
+                    &lt;/ul&gt;
+                    &lt;h2 id="-welcoming-first-time-contributors-"&gt;🆕 Welcoming First-Time Contributors!&lt;/h2&gt;
+                    &lt;table&gt;
+                    &lt;thead&gt;
+                    &lt;tr&gt;
+                    &lt;th style="text-align:left"&gt;Contributor&lt;/th&gt;
+                    &lt;th style="text-align:left"&gt;PR Link&lt;/th&gt;
+                    &lt;/tr&gt;
+                    &lt;/thead&gt;
+                    &lt;tbody&gt;
+                    &lt;tr&gt;
+                    &lt;td style="text-align:left"&gt;@sancho1952007&lt;/td&gt;
+                    &lt;td style="text-align:left"&gt;(&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/431"&gt;https://github.com/TheBoredTeam/boring.notch/pull/431&lt;/a&gt;)&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                    &lt;td style="text-align:left"&gt;@Ein-Tim&lt;/td&gt;
+                    &lt;td style="text-align:left"&gt;(&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/405"&gt;https://github.com/TheBoredTeam/boring.notch/pull/405&lt;/a&gt;)&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                    &lt;td style="text-align:left"&gt;@AlexLemus-Dev&lt;/td&gt;
+                    &lt;td style="text-align:left"&gt;(&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/437"&gt;https://github.com/TheBoredTeam/boring.notch/pull/437&lt;/a&gt;)&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                    &lt;td style="text-align:left"&gt;@yaxarat&lt;/td&gt;
+                    &lt;td style="text-align:left"&gt;(&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/397"&gt;https://github.com/TheBoredTeam/boring.notch/pull/397&lt;/a&gt;)&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                    &lt;td style="text-align:left"&gt;@ShirakawaMio&lt;/td&gt;
+                    &lt;td style="text-align:left"&gt;(&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/399"&gt;https://github.com/TheBoredTeam/boring.notch/pull/399&lt;/a&gt;)&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                    &lt;td style="text-align:left"&gt;@divyanshu0469&lt;/td&gt;
+                    &lt;td style="text-align:left"&gt;(&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/454"&gt;https://github.com/TheBoredTeam/boring.notch/pull/454&lt;/a&gt;)&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                    &lt;td style="text-align:left"&gt;@oorischubert&lt;/td&gt;
+                    &lt;td style="text-align:left"&gt;(&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/409"&gt;https://github.com/TheBoredTeam/boring.notch/pull/409&lt;/a&gt;)&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                    &lt;td style="text-align:left"&gt;@Al3Gr&lt;/td&gt;
+                    &lt;td style="text-align:left"&gt;(&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/493"&gt;https://github.com/TheBoredTeam/boring.notch/pull/493&lt;/a&gt;)&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                    &lt;td style="text-align:left"&gt;@ChemicalChaos-Fabian42&lt;/td&gt;
+                    &lt;td style="text-align:left"&gt;(&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/509"&gt;https://github.com/TheBoredTeam/boring.notch/pull/509&lt;/a&gt;)&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                    &lt;td style="text-align:left"&gt;@Davetheword&lt;/td&gt;
+                    &lt;td style="text-align:left"&gt;(&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/501"&gt;https://github.com/TheBoredTeam/boring.notch/pull/501&lt;/a&gt;)&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr&gt;
+                    &lt;td style="text-align:left"&gt;@Steve-sy&lt;/td&gt;
+                    &lt;td style="text-align:left"&gt;(&lt;a href="https://github.com/TheBoredTeam/boring.notch/pull/598"&gt;https://github.com/TheBoredTeam/boring.notch/pull/598&lt;/a&gt;)&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;/tbody&gt;
+                    &lt;/table&gt;
+                    &lt;h2 id="-other-improvements"&gt;🛠️ Other Improvements&lt;/h2&gt;
+                    &lt;ul&gt;
+                    &lt;li&gt;Visual and animation refinements for battery/media indicators&lt;/li&gt;
+                    &lt;li&gt;Enhanced error handling, code reorganization, and extensive documentation&lt;/li&gt;
+                    &lt;li&gt;Optimizations for consistent performance across all system conditions&lt;/li&gt;
+                    &lt;/ul&gt;
+                    &lt;p&gt;Thank you 🌟 to everyone—new and returning—for their effort in making this release feature-rich, steady, and super fun!&lt;/p&gt;
+                    &lt;p&gt;&lt;strong&gt;Try Boring Notch v2.7 — Flying Rabbit RC 0 and let us know what you think!&lt;/strong&gt;&lt;/p&gt;
+                    &lt;p&gt;&lt;em&gt;— The Boring Notch Team&lt;/em&gt;&lt;/p&gt;
+                </description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.7-rc.0/Flying_Rabbit.dmg" length="9000118" type="application/octet-stream" sparkle:edSignature="G5D2zsLFBR0Ua9b1EkLD8jjdkpMA10P1C9KmEL2Drg1WNwCnNAY+lGmljx1UQ+qDyqpjjMrOoGClevHd/276BQ==" />
         </item>
         <item>
             <title>2.6 🎉 Wolf Painting 🐺</title>
@@ -469,27 +594,27 @@
             <sparkle:version>2.6+1</sparkle:version>
             <sparkle:shortVersionString>2.6</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.2</sparkle:minimumSystemVersion>
-            <description><![CDATA[
-                <h1>🎉 v2.6 🚀 Wolf Painting 🐺</h1>
-                <p>We're thrilled to announce the release of Wolf Painting version 2.6! 🎊 This major update brings numerous improvements and new features that will make your experience even more enjoyable.</p><br />
-                <a href="https://github.com/TheBoredTeam/boring.notch/releases/download/wolf.painting/WolfPainting.dmg"><h1>Download from here</h1></a>
-                <h2>🤔 What's Changed? 🤓</h2>
-                <ul>
-                <li>🧠 Improved memory management and thread safety across the app</li>
-                <li>🎥 Enhanced webcam handling with better session lifecycle management</li>
-                <li>🎨 Added option to choose between classic and modern notch animations</li>
-                <li>⚡️ Improved fullscreen detection with Finder exclusion</li>
-                <li>🔄 Better hover state handling and reduced animation flicker</li>
-                <li>🔋 Enhanced power status notifications and battery indicators</li>
-                <li>⚙️ Improved screen lock and display change handling</li>
-                <li>🎵 Better music playback state tracking and elapsed time accuracy</li>
-                <li>✨ Added "Buy us a coffee" option in Welcome screen</li>
-                <li>⚠️ Added warning badges for unsupported extensions</li>
-                <li>🐛 Various bug fixes and stability improvements</li>
-                <li>For more details, check out <a href="https://theboring.name">our website</a></li>
-                </ul>
-            ]]></description>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/wolf.painting/WolfPainting.dmg" length="8722621" type="application/octet-stream" sparkle:edSignature="j2Wp9e23UvN7yx2NztYfGbUiKfCU4qc2xpsPwBPx/ERUz01pJTfJlf8oN0Wri8gcho42/xfcfnWNwChfMPzrCQ=="/>
+            <description>
+                &lt;h1&gt;🎉 v2.6 🚀 Wolf Painting 🐺&lt;/h1&gt;
+                &lt;p&gt;We're thrilled to announce the release of Wolf Painting version 2.6! 🎊 This major update brings numerous improvements and new features that will make your experience even more enjoyable.&lt;/p&gt;&lt;br /&gt;
+                &lt;a href="https://github.com/TheBoredTeam/boring.notch/releases/download/wolf.painting/WolfPainting.dmg"&gt;&lt;h1&gt;Download from here&lt;/h1&gt;&lt;/a&gt;
+                &lt;h2&gt;🤔 What's Changed? 🤓&lt;/h2&gt;
+                &lt;ul&gt;
+                &lt;li&gt;🧠 Improved memory management and thread safety across the app&lt;/li&gt;
+                &lt;li&gt;🎥 Enhanced webcam handling with better session lifecycle management&lt;/li&gt;
+                &lt;li&gt;🎨 Added option to choose between classic and modern notch animations&lt;/li&gt;
+                &lt;li&gt;⚡️ Improved fullscreen detection with Finder exclusion&lt;/li&gt;
+                &lt;li&gt;🔄 Better hover state handling and reduced animation flicker&lt;/li&gt;
+                &lt;li&gt;🔋 Enhanced power status notifications and battery indicators&lt;/li&gt;
+                &lt;li&gt;⚙️ Improved screen lock and display change handling&lt;/li&gt;
+                &lt;li&gt;🎵 Better music playback state tracking and elapsed time accuracy&lt;/li&gt;
+                &lt;li&gt;✨ Added "Buy us a coffee" option in Welcome screen&lt;/li&gt;
+                &lt;li&gt;⚠️ Added warning badges for unsupported extensions&lt;/li&gt;
+                &lt;li&gt;🐛 Various bug fixes and stability improvements&lt;/li&gt;
+                &lt;li&gt;For more details, check out &lt;a href="https://theboring.name"&gt;our website&lt;/a&gt;&lt;/li&gt;
+                &lt;/ul&gt;
+            </description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/wolf.painting/WolfPainting.dmg" length="8722621" type="application/octet-stream" sparkle:edSignature="j2Wp9e23UvN7yx2NztYfGbUiKfCU4qc2xpsPwBPx/ERUz01pJTfJlf8oN0Wri8gcho42/xfcfnWNwChfMPzrCQ==" />
         </item>
     </channel>
 </rss>
