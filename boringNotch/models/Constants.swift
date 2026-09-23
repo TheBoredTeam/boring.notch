@@ -263,9 +263,9 @@ enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     var localizedString: String {
         switch self {
         case .standard:
-            return NSLocalizedString("sneak_peek_standard", comment: "Sneak Peek style: Default")
+            return String(localized: "Default", comment: "Sneak Peek style: Default")
         case .inline:
-            return NSLocalizedString("sneak_peek_inline", comment: "Sneak Peek style: Inline")
+            return String(localized: "Inline", comment: "Sneak Peek style: Inline")
         }
     }
 }
@@ -290,11 +290,11 @@ enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable 
     var localizedString: String {
         switch self {
         case .openSettings:
-            return NSLocalizedString("option_key_open_system_settings", comment: "Option (⌥) key behavior: Open System Settings")
+            return String(localized: "Open System Settings", comment: "Option (⌥) key behavior: Open System Settings")
         case .showOSD:
-            return NSLocalizedString("option_key_show_osd", comment: "Option (⌥) key behavior: Show OSD")
+            return String(localized: "Show OSD", comment: "Option (⌥) key behavior: Show OSD")
         case .none:
-            return NSLocalizedString("option_key_no_action", comment: "Option (⌥) key behavior: No action")
+            return String(localized: "No action", comment: "Option (⌥) key behavior: No action")
         }
     }
 }
@@ -310,7 +310,7 @@ enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable
     var localizedString: String {
         switch self {
         case .builtin:
-            return NSLocalizedString("osd_sources_built_in", comment: "OSD Sources: Built-in")
+            return String(localized: "Built-in", comment: "OSD Sources: Built-in")
         case .betterDisplay:
             return "BetterDisplay"
         case .lunar:

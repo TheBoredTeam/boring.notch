@@ -18,22 +18,22 @@ import ObjectiveC
 
 // MARK: - Localization helpers
 struct Strings {
-    static let open = NSLocalizedString("Shelf.ContextMenu.Open", comment: "Context menu item: Open")
-    static let openWith = NSLocalizedString("Shelf.ContextMenu.OpenWith", comment: "Context menu item: Open With")
-    static let noCompatibleApps = NSLocalizedString("Shelf.ContextMenu.NoCompatibleAppsFound", comment: "Context menu item: No Compatible Apps Found")
-    static let other = NSLocalizedString("Shelf.ContextMenu.Other", comment: "Context menu item: Other…")
-    static let showInFinder = NSLocalizedString("Shelf.ContextMenu.ShowInFinder", comment: "Context menu item: Show in Finder")
-    static let quickLook = NSLocalizedString("Shelf.ContextMenu.QuickLook", comment: "Context menu item: Quick Look")
-    static let share = NSLocalizedString("Shelf.ContextMenu.Share", comment: "Context menu item: Share…")
-    static let imageActions = NSLocalizedString("Shelf.ContextMenu.ImageActions", comment: "Context menu item: Image Actions")
-    static let removeBackground = NSLocalizedString("Shelf.ContextMenu.RemoveBackground", comment: "Context menu item: Remove Background")
-    static let convertImage = NSLocalizedString("Shelf.ContextMenu.ConvertImage", comment: "Context menu item: Convert Image…")
-    static let createPDF = NSLocalizedString("Shelf.ContextMenu.CreatePDF", comment: "Context menu item: Create PDF")
-    static let compress = NSLocalizedString("Shelf.ContextMenu.Compress", comment: "Context menu item: Compress")
-    static let rename = NSLocalizedString("Shelf.ContextMenu.Rename", comment: "Context menu item: Rename")
-    static let copy = NSLocalizedString("Shelf.ContextMenu.Copy", comment: "Context menu item: Copy")
-    static let copyPath = NSLocalizedString("Shelf.ContextMenu.CopyPath", comment: "Context menu item: Copy Path")
-    static let remove = NSLocalizedString("Shelf.ContextMenu.Remove", comment: "Context menu item: Remove")
+    static let open = String(localized: "Open", comment: "Context menu item: Open")
+    static let openWith = String(localized: "Open With", comment: "Context menu item: Open With")
+    static let noCompatibleApps = String(localized: "No Compatible Apps Found", comment: "Context menu item: No Compatible Apps Found")
+    static let other = String(localized: "Other…", comment: "Context menu item: Other…")
+    static let showInFinder = String(localized: "Show in Finder", comment: "Context menu item: Show in Finder")
+    static let quickLook = String(localized: "Quick Look", comment: "Context menu item: Quick Look")
+    static let share = String(localized: "Share…", comment: "Context menu item: Share…")
+    static let imageActions = String(localized: "Image Actions", comment: "Context menu item: Image Actions")
+    static let removeBackground = String(localized: "Remove Background", comment: "Context menu item: Remove Background")
+    static let convertImage = String(localized: "Convert Image…", comment: "Context menu item: Convert Image…")
+    static let createPDF = String(localized: "Create PDF", comment: "Context menu item: Create PDF")
+    static let compress = String(localized: "Compress", comment: "Context menu item: Compress")
+    static let rename = String(localized: "Rename", comment: "Context menu item: Rename")
+    static let copy = String(localized: "Copy", comment: "Context menu item: Copy")
+    static let copyPath = String(localized: "Copy Path", comment: "Context menu item: Copy Path")
+    static let remove = String(localized: "Remove", comment: "Context menu item: Remove")
 }
 
 enum ContextMenuAction: String {
@@ -777,7 +777,7 @@ private final class MenuActionTarget: NSObject {
         accessoryView.addSubview(imageSizeLabel)
 
         let imageSizePopup = NSPopUpButton(frame: NSRect(x: 120, y: 100, width: 160, height: 28))
-        imageSizePopup.addItems(withTitles: [String(localized: "Actual Size"), String(localized: "Large"), String(localized: "Medium"), String(localized: "Small"), String(localized: "Custom...")])
+        imageSizePopup.addItems(withTitles: [String(localized: "Actual Size"), String(localized: "Large"), String(localized: "Medium"), String(localized: "Small"), String(localized: "Custom…")])
         imageSizePopup.selectItem(at: 0)
         imageSizePopup.font = .systemFont(ofSize: 12)
         accessoryView.addSubview(imageSizePopup)
