@@ -18,6 +18,19 @@ let temporaryDirectory: URL = FileManager.default.urls(for: .cachesDirectory, in
     ?? URL(fileURLWithPath: NSTemporaryDirectory())
 let spacing: CGFloat = 16
 
+extension Defaults.Keys {
+    static let enableTerminalFeature = Key<Bool>("enableTerminalFeature", default: false)
+    static let terminalShellPath = Key<String>("terminalShellPath", default: "/bin/zsh")
+    static let terminalFontFamily = Key<String>("terminalFontFamily", default: "")
+    static let terminalFontSize = Key<Double>("terminalFontSize", default: 12)
+    static let terminalScrollbackLines = Key<Int>("terminalScrollbackLines", default: 1000)
+    static let terminalOptionAsMeta = Key<Bool>("terminalOptionAsMeta", default: true)
+    static let terminalMouseReporting = Key<Bool>("terminalMouseReporting", default: true)
+    static let terminalBoldAsBright = Key<Bool>("terminalBoldAsBright", default: true)
+    static let terminalMaxHeightFraction = Key<Double>("terminalMaxHeightFraction", default: 0.42)
+    static let terminalStickyMode = Key<Bool>("terminalStickyMode", default: false)
+}
+
 enum CalendarSelectionState: Codable, Defaults.Serializable {
     case all
     case selected(Set<String>)

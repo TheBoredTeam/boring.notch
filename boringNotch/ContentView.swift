@@ -27,6 +27,7 @@ struct ContentView: View {
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
+    @State private var terminalOutsideClickMonitor: Any?
 
     @State private var gestureProgress: CGFloat = .zero
     @State private var horizontalMediaGestureTriggered = false
@@ -38,6 +39,8 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.terminalMaxHeightFraction) private var terminalMaxHeightFraction
+    @Default(.terminalStickyMode) private var terminalStickyMode
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -387,7 +390,11 @@ struct ContentView: View {
             }
         }
         .padding(.bottom, 8)
-        .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
+        .frame(
+            maxWidth: max(windowSize.width, vm.notchSize.width),
+            maxHeight: max(windowSize.height, vm.notchSize.height + shadowPadding),
+            alignment: .top
+        )
         .ignoresSafeArea(.all)
         .compositingGroup()
         .scaleEffect(
@@ -399,6 +406,22 @@ struct ContentView: View {
         .background(dragDetector)
         .preferredColorScheme(.dark)
         .environmentObject(vm)
+        .onChange(of: coordinator.currentView) { _, _ in
+            vm.refreshOpenSize()
+            updateTerminalOutsideClickMonitor()
+        }
+        .onChange(of: vm.notchState) { _, _ in
+            updateTerminalOutsideClickMonitor()
+        }
+        .onChange(of: terminalMaxHeightFraction) { _, _ in
+            vm.refreshOpenSize()
+        }
+        .onChange(of: terminalStickyMode) { _, _ in
+            updateTerminalOutsideClickMonitor()
+        }
+        .onDisappear {
+            removeTerminalOutsideClickMonitor()
+        }
         .onChange(of: dropInteraction.anyDropZoneTargeting) { _, isTargeted in
             anyDropDebounceTask?.cancel()
 
@@ -595,6 +618,10 @@ struct ContentView: View {
                             ShelfView(
                                 dropInteraction: vm.dropInteraction,
                                 animation: vm.animation
+                            )
+                        case .terminal:
+                            NotchTerminalView(
+                                manager: TerminalSessionManager.session(for: vm.screenUUID)
                             )
                         }
                     }
@@ -840,6 +867,11 @@ extension ContentView {
 
     private func handleHover(_ hovering: Bool) {
         if coordinator.firstLaunch { return }
+
+        if !hovering, shouldRetainHoverAtScreenTopEdge() {
+            return
+        }
+
         hoverTask?.cancel()
 
         if hovering {
@@ -884,6 +916,10 @@ extension ContentView {
                 guard !Task.isCancelled else { return }
 
                 await MainActor.run {
+                    if self.shouldRetainHoverAtScreenTopEdge() || self.vm.isMouseHovering() {
+                        return
+                    }
+
                     withAnimation(animationSpring) {
                         self.isHovering = false
                     }
@@ -891,12 +927,48 @@ extension ContentView {
                     // Pointer left — let the notification age out again.
                     self.notificationManager.resumeDismiss()
 
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive
+                        && !SharingStateManager.shared.preventNotchClose
+                        && !(self.coordinator.currentView == .terminal && self.terminalStickyMode) {
                         self.vm.close()
                     }
                 }
             }
         }
+    }
+
+    private func shouldRetainHoverAtScreenTopEdge(
+        _ location: NSPoint = NSEvent.mouseLocation
+    ) -> Bool {
+        guard let screenFrame = getScreenFrame(vm.screenUUID),
+              isHovering || vm.notchState == .open,
+              location.y >= screenFrame.maxY - 1.5
+        else {
+            return false
+        }
+        return vm.isMouseHovering(position: location)
+    }
+
+    private func updateTerminalOutsideClickMonitor() {
+        guard vm.notchState == .open && coordinator.currentView == .terminal else {
+            removeTerminalOutsideClickMonitor()
+            return
+        }
+        guard terminalOutsideClickMonitor == nil else { return }
+        terminalOutsideClickMonitor = NSEvent.addGlobalMonitorForEvents(
+            matching: [.leftMouseDown, .rightMouseDown]
+        ) { [weak vm] _ in
+            Task { @MainActor in
+                guard BoringViewCoordinator.shared.currentView == .terminal else { return }
+                vm?.close()
+            }
+        }
+    }
+
+    private func removeTerminalOutsideClickMonitor() {
+        guard let terminalOutsideClickMonitor else { return }
+        NSEvent.removeMonitor(terminalOutsideClickMonitor)
+        self.terminalOutsideClickMonitor = nil
     }
 
     // MARK: - Gesture Handling
@@ -925,7 +997,8 @@ extension ContentView {
     }
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
+        guard vm.notchState == .open && !vm.isHoveringCalendar,
+              coordinator.currentView != .terminal else { return }
 
         withAnimation(animationSpring) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
