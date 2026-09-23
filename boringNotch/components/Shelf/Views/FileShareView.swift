@@ -20,7 +20,7 @@ struct FileShareView: View {
     @State private var isProcessing = false
 
     private var selectedProvider: QuickShareProvider {
-        quickShare.availableProviders.first(where: { $0.id == quickShareProvider }) ?? .systemShareMenu
+        quickShare.provider(forStoredID: quickShareProvider)
     }
 
     var body: some View {
@@ -28,7 +28,8 @@ struct FileShareView: View {
 
         dropArea
             .background(NSViewHost(view: $hostView))
-            .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data, .image], isTargeted: $interaction.dropZoneTargeting) { providers in
+            .onDrop(of: ShelfTransferTypes.acceptedTypes, isTargeted: $interaction.dropZoneTargeting) { providers in
+                guard ShelfTransferTypes.supports(providers) else { return false }
                 interactionNonce = .init()
                 interaction.dropEvent = true
                 Task { await handleDrop(providers) }
@@ -84,10 +85,22 @@ struct FileShareView: View {
                         .animation(.spring(response: 0.36, dampingFraction: 0.7), value: dropInteraction.dropZoneTargeting)
                 }
 
-                Text(selectedProvider.id)
+                Text(selectedProvider.displayName)
                     .font(.system(.headline, design: .rounded))
                     .foregroundColor(.white.opacity(0.8))
                     .multilineTextAlignment(.center)
+
+                if !selectedProvider.isAvailable {
+                    Text("Unavailable")
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                } else if let error = quickShare.lastShareError {
+                    Text(error)
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                        .multilineTextAlignment(.center)
+                }
+
             }
             .padding(18)
 

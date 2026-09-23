@@ -12,6 +12,7 @@ struct ShelfItemView: View {
     let quickLookService: QuickLookService
     let dropInteraction: DropInteractionState
     @StateObject private var viewModel: ShelfItemViewModel
+    @ObservedObject private var shelfState = ShelfStateViewModel.shared
     @State private var selectionState: ShelfItemSelectionState
     @State private var debouncedDropTarget = false
 
@@ -62,7 +63,8 @@ struct ShelfItemView: View {
             guard !Task.isCancelled else { return }
             debouncedDropTarget = targeted
         }
-        .task(id: item.id) {
+        .task(id: item) {
+            await viewModel.synchronize(with: item)
             await viewModel.loadThumbnail()
         }
         .onAppear {
@@ -92,8 +94,8 @@ struct ShelfItemView: View {
                 viewModel: viewModel,
                 dragPreview: {
                     DragPreviewView(
-                        thumbnail: viewModel.thumbnail ?? item.icon,
-                        displayName: item.displayName
+                        thumbnail: viewModel.presentationIcon,
+                        displayName: viewModel.displayName
                     )
                 },
                 onPrimaryClick: viewModel.handleClick,
@@ -103,17 +105,22 @@ struct ShelfItemView: View {
     }
 
     private var iconView: some View {
-        Image(nsImage: viewModel.thumbnail ?? item.icon)
-            .resizable().scaledToFit()
+        Image(nsImage: viewModel.presentationIcon)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
             .frame(width: 56, height: 56)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 2)
     }
 
     private var textView: some View {
-        Text(item.displayName)
+        Text(viewModel.displayName)
             .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(.primary)
+            .foregroundStyle(
+                viewModel.resolvedFileURL == nil && viewModel.fileResolutionPhase != nil
+                    ? Color.secondary
+                    : Color.primary
+            )
             .lineLimit(2)
             .truncationMode(.middle)
             .multilineTextAlignment(.center)

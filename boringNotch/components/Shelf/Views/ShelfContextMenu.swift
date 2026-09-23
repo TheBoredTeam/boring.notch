@@ -6,7 +6,7 @@
 //
 //  AppKit context-menu construction and action dispatch for shelf items.
 //  Extracted from ShelfItemViewModel: the VM keeps item state and routes
-//  clicks here. Behavior preserved verbatim.
+//  clicks here.
 //
 
 import Foundation
@@ -59,7 +59,72 @@ static func present(
 ) {
     let selection = ShelfSelectionModel.shared
     if !selection.isSelected(item.id) { selection.selectSingle(item) }
+    let menu = makeMenu(item: item, in: view,
+                        selectedItems: selection.selectedItems(in: ShelfStateViewModel.shared.items),
+                        onShare: onShare, onQuickLook: onQuickLook)
+    NSMenu.popUpContextMenu(menu, with: event, for: view)
+}
+
+struct OpenWithApplication: Sendable {
+    let url: URL
+    let title: String
+    let isDefault: Bool
+    let iconData: Data?
+}
+
+static func openWithTarget(
+    for clickedItem: ShelfItem, selectedItems: [ShelfItem], shelfState: ShelfStateViewModel
+) async -> (item: ShelfItem, url: URL)? {
+    let candidates = [clickedItem] + selectedItems.filter { $0.id != clickedItem.id }
+    for candidate in candidates {
+        guard !Task.isCancelled else { return nil }
+        guard let current = shelfState.items.first(where: { $0.id == candidate.id }) else { continue }
+        switch current.kind {
+        case .file:
+            guard let file = await shelfState.resolveFile(
+                for: current, intent: .userInitiated, refresh: true
+            ), !file.isDirectory,
+               let resolvedItem = shelfState.items.first(where: { $0.id == current.id }) else { continue }
+            return (resolvedItem, file.url)
+        case .link(let url): return (current, url)
+        case .text: continue
+        }
+    }
+    return nil
+}
+
+static func openWithApplications(for url: URL) async -> [OpenWithApplication] {
+    return await ShelfBookmarkResolutionExecutor.shared.execute {
+        let accessing = url.startAccessingSecurityScopedResource()
+        defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+        let workspace = NSWorkspace.shared
+        var applications = workspace.urlsForApplications(toOpen: url)
+        if applications.isEmpty, url.isFileURL,
+           let type = try? url.resourceValues(forKeys: [.contentTypeKey]).contentType {
+            applications = workspace.urlsForApplications(toOpen: type)
+        }
+        let defaultURL = workspace.urlForApplication(toOpen: url)
+        if let defaultURL { applications.insert(defaultURL, at: 0) }
+        var seen: Set<URL> = []
+        return applications.filter { seen.insert($0).inserted }.map { app in
+            let title = (try? app.resourceValues(forKeys: [.localizedNameKey]).localizedName)
+                ?? app.deletingPathExtension().lastPathComponent
+            let icon = workspace.icon(forFile: app.path)
+            icon.size = NSSize(width: 16, height: 16)
+            return OpenWithApplication(url: app, title: title,
+                                       isDefault: app == defaultURL, iconData: icon.tiffRepresentation)
+        }
+    }
+}
+
+static func makeMenu(
+    item: ShelfItem, in view: NSView, selectedItems: [ShelfItem],
+    onShare: @escaping (NSView?) -> Void, onQuickLook: @escaping ([URL]) -> Void,
+    shelfState: ShelfStateViewModel = .shared,
+    discoverApplications: ((URL) async -> [OpenWithApplication])? = nil
+) -> NSMenu {
     let menu = NSMenu()
+    var openWithSubmenu: NSMenu?
 
     func addMenuItem(title: String, contextAction: ContextMenuAction? = nil) {
         let mi = NSMenuItem(title: title, action: nil, keyEquivalent: "")
@@ -69,85 +134,38 @@ static func present(
         menu.addItem(mi)
     }
 
-    let selectedItems = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-    let selectedFileURLs = selectedItems.compactMap { $0.fileURL }
+    let resolvedFiles = selectedItems.compactMap {
+        shelfState.resolvedFile(for: $0)
+    }
+    let hasSelectedFiles = selectedItems.contains { item in
+        if case .file = item.kind { return true }
+        return false
+    }
     let selectedLinkURLs: [URL] = selectedItems.compactMap { itm in
         if case .link(let url) = itm.kind { return url }
         return nil
     }
-    let selectedFolderURLs = selectedFileURLs.filter { isDirectory($0) }
-    // URLs valid for Open/Open With (exclude folders)
-    let selectedOpenableURLs = selectedItems.compactMap { itm -> URL? in
-        if let u = itm.fileURL { return isDirectory(u) ? nil : u }
-        if case .link(let url) = itm.kind { return url }
-        return nil
+    let hasOpenableItems = selectedItems.contains { selectedItem in
+        if case .link = selectedItem.kind { return true }
+        if case .file = selectedItem.kind {
+            return shelfState.resolvedFile(for: selectedItem)?.isDirectory != true
+        }
+        return false
     }
 
-    if !selectedOpenableURLs.isEmpty {
+    if hasOpenableItems {
         addMenuItem(title: Strings.open, contextAction: .open)
     }
 
-    if !selectedOpenableURLs.isEmpty {
+    if hasOpenableItems {
         let openWith = NSMenuItem(title: Strings.openWith, action: nil, keyEquivalent: "")
         let submenu = NSMenu()
 
-        // Choose a representative URL to compute apps (prefer current item if not a folder)
-        let baseURLForApps: URL? = {
-            if let u = item.fileURL, !isDirectory(u) { return u }
-            if case .link(let u) = item.kind { return u }
-            return selectedOpenableURLs.first
-        }()
-
-        let openWithApps: [URL] = {
-            guard let u = baseURLForApps else { return [] }
-            if u.isFileURL {
-                var results = NSWorkspace.shared.urlsForApplications(toOpen: u)
-                if results.isEmpty, let uti = try? u.resourceValues(forKeys: [.contentTypeKey]).contentType {
-                    results = NSWorkspace.shared.urlsForApplications(toOpen: uti)
-                }
-                return Array(Set(results))
-            } else {
-                return Array(Set(NSWorkspace.shared.urlsForApplications(toOpen: u)))
-            }
-        }()
-        let defaultApp = defaultAppURL(for: item)
-
-        if openWithApps.isEmpty {
-            let noApps = NSMenuItem(title: Strings.noCompatibleApps, action: nil, keyEquivalent: "")
-            noApps.isEnabled = false
-            submenu.addItem(noApps)
-        } else {
-            if let defaultApp = defaultApp {
-                let appName = appDisplayName(for: defaultApp)
-                let def = NSMenuItem(title: appName, action: nil, keyEquivalent: "")
-                def.representedObject = defaultApp
-                def.image = nsAppIcon(for: defaultApp, size: 16)
-
-                let title = NSMutableAttributedString(string: appName, attributes: [
-                    .font: NSFont.menuFont(ofSize: 0),
-                    .foregroundColor: NSColor.labelColor
-                ])
-                let defaultPart = NSAttributedString(string: String(localized: " (default)"), attributes: [
-                    .font: NSFont.menuFont(ofSize: 0),
-                    .foregroundColor: NSColor.secondaryLabelColor
-                ])
-                title.append(defaultPart)
-                def.attributedTitle = title
-                submenu.addItem(def)
-
-                if openWithApps.count > 1 || !openWithApps.contains(defaultApp) {
-                    submenu.addItem(NSMenuItem.separator())
-                }
-            }
-            for appURL in openWithApps where appURL != defaultApp {
-                let mi = NSMenuItem(title: appDisplayName(for: appURL), action: nil, keyEquivalent: "")
-                mi.representedObject = appURL
-                mi.image = nsAppIcon(for: appURL, size: 16)
-                submenu.addItem(mi)
-            }
-        }
-
-        submenu.addItem(NSMenuItem.separator())
+        let loading = NSMenuItem(title: String(localized: "Loading…"), action: nil, keyEquivalent: "")
+        loading.isEnabled = false
+        submenu.addItem(loading)
+        submenu.addItem(.separator())
+        openWithSubmenu = submenu
         let other = NSMenuItem(title: Strings.other, action: nil, keyEquivalent: "")
         other.representedObject = "__OTHER__"
         submenu.addItem(other)
@@ -156,9 +174,9 @@ static func present(
         menu.addItem(openWith)
     }
 
-    if !selectedFileURLs.isEmpty { addMenuItem(title: Strings.showInFinder, contextAction: .showInFinder) }
+    if hasSelectedFiles { addMenuItem(title: Strings.showInFinder, contextAction: .showInFinder) }
     // Allow Quick Look for files and link URLs
-    if !selectedFileURLs.isEmpty || !selectedLinkURLs.isEmpty {
+    if hasSelectedFiles || !selectedLinkURLs.isEmpty {
         // Add Quick Look menu item
         let quickLookItem = NSMenuItem(title: Strings.quickLook, action: nil, keyEquivalent: "")
         quickLookItem.representedObject = ContextMenuAction.quickLook.rawValue
@@ -176,7 +194,9 @@ static func present(
     addMenuItem(title: Strings.share, contextAction: .share)
 
     // Add image processing options for image files grouped under "Image Actions"
-    let imageURLs = selectedFileURLs.filter { ImageProcessingService.shared.isImageFile($0) }
+    let imageURLs = resolvedFiles.filter {
+        $0.contentTypeIdentifier.flatMap(UTType.init)?.conforms(to: .image) == true
+    }.map { $0.url }
     if !imageURLs.isEmpty {
         menu.addItem(NSMenuItem.separator())
 
@@ -208,7 +228,7 @@ static func present(
     }
 
     // Add compression option for files/folders (single or multiple)
-    if !selectedFileURLs.isEmpty {
+    if hasSelectedFiles {
         let compressItem = NSMenuItem(title: Strings.compress, action: nil, keyEquivalent: "")
         compressItem.representedObject = ContextMenuAction.compress.rawValue
         menu.addItem(compressItem)
@@ -219,7 +239,7 @@ static func present(
     // Always show "Copy" for all item types
     addMenuItem(title: Strings.copy, contextAction: .copy)
     // If there are file URLs, add "Copy Path" as an alternate menu item (Option key)
-    if !selectedFileURLs.isEmpty {
+    if hasSelectedFiles {
         let copyPathItem = NSMenuItem(title: Strings.copyPath, action: nil, keyEquivalent: "")
         copyPathItem.representedObject = ContextMenuAction.copyPath.rawValue
         copyPathItem.isAlternate = true
@@ -230,7 +250,7 @@ static func present(
     menu.addItem(NSMenuItem.separator())
     addMenuItem(title: Strings.remove, contextAction: .remove)
 
-    let actionTarget = MenuActionTarget(item: item, view: view, onShare: onShare, onQuickLook: onQuickLook)
+    let actionTarget = MenuActionTarget(item: item, selectedItems: selectedItems, shelfState: shelfState, view: view, onShare: onShare, onQuickLook: onQuickLook)
 
     for menuItem in menu.items {
         if menuItem.isSeparatorItem { continue }
@@ -239,7 +259,7 @@ static func present(
 
         if let submenu = menuItem.submenu {
             for subItem in submenu.items {
-                if !subItem.isSeparatorItem {
+                if !subItem.isSeparatorItem && subItem.isEnabled {
                     subItem.target = actionTarget
                     subItem.action = #selector(MenuActionTarget.handle(_:))
                 }
@@ -248,51 +268,54 @@ static func present(
     }
 
     menu.retainActionTarget(actionTarget)
-
-    NSMenu.popUpContextMenu(menu, with: event, for: view)
+    menu.delegate = actionTarget
+    if let submenu = openWithSubmenu {
+        actionTarget.discoveryTask = Task { [weak actionTarget, weak submenu] in
+            let target = await openWithTarget(for: item, selectedItems: selectedItems, shelfState: shelfState)
+            guard !Task.isCancelled else { return }
+            let applications: [OpenWithApplication]
+            if let target {
+                applications = await (discoverApplications ?? openWithApplications)(target.url)
+                guard shelfState.containsCurrentVersion(of: target.item) else { return }
+            } else {
+                applications = []
+            }
+            guard !Task.isCancelled, let actionTarget, let submenu else { return }
+            submenu.removeItem(at: 0)
+            if applications.isEmpty {
+                let unavailable = NSMenuItem(title: Strings.noCompatibleApps, action: nil, keyEquivalent: "")
+                unavailable.isEnabled = false
+                submenu.insertItem(unavailable, at: 0)
+            }
+            for (index, application) in applications.enumerated() {
+                let entry = NSMenuItem(title: application.title,
+                                       action: #selector(MenuActionTarget.handle(_:)), keyEquivalent: "")
+                entry.state = application.isDefault ? .on : .off
+                entry.representedObject = application.url
+                entry.image = application.iconData.flatMap(NSImage.init(data:))
+                entry.target = actionTarget
+                submenu.insertItem(entry, at: index)
+            }
+        }
     }
-}
 
-private func isDirectory(_ url: URL) -> Bool {
-    url.accessSecurityScopedResource { scoped in
-        (try? scoped.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
+    return menu
     }
-}
-
-func appDisplayName(for appURL: URL) -> String {
-    (try? appURL.resourceValues(forKeys: [.localizedNameKey]).localizedName) ?? appURL.lastPathComponent
-}
-
-func nsAppIcon(for appURL: URL, size: CGFloat) -> NSImage? {
-    let baseIcon = NSWorkspace.shared.icon(forFile: appURL.path)
-    baseIcon.isTemplate = false
-
-    let targetSize = NSSize(width: size, height: size)
-    let rendered = NSImage(size: targetSize, flipped: false) { rect in
-        NSGraphicsContext.current?.imageInterpolation = .high
-        baseIcon.draw(in: rect, from: .zero, operation: .sourceOver, fraction: 1.0, respectFlipped: true, hints: [
-            .interpolation: NSImageInterpolation.high.rawValue
-        ])
-        return true
-    }
-
-    rendered.size = targetSize
-    return rendered
 }
 
 @MainActor
-func defaultAppURL(for item: ShelfItem) -> URL? {
-    if let fileURL = item.fileURL {
-        return NSWorkspace.shared.urlForApplication(toOpen: fileURL)
-    } else if case .link(let url) = item.kind {
-        return NSWorkspace.shared.urlForApplication(toOpen: url)
-    }
-    return nil
-}
+private final class MenuActionTarget: NSObject, NSMenuDelegate {
+    var discoveryTask: Task<Void, Never>?
 
-private final class MenuActionTarget: NSObject {
+    func menuDidClose(_ menu: NSMenu) {
+        discoveryTask?.cancel()
+        discoveryTask = nil
+    }
+
     private static var copiedURLs: [URL] = []
     let item: ShelfItem
+    let selectedItems: [ShelfItem]
+    let shelfState: ShelfStateViewModel
     weak var view: NSView?
     let onShare: (NSView?) -> Void
     let onQuickLook: ([URL]) -> Void
@@ -300,8 +323,10 @@ private final class MenuActionTarget: NSObject {
     // Keep associated objects (like accessory view handlers) without magic keys
     private static var sliderHandlerAssoc = AssociatedObject<AnyObject>()
 
-    init(item: ShelfItem, view: NSView, onShare: @escaping (NSView?) -> Void, onQuickLook: @escaping ([URL]) -> Void) {
+    init(item: ShelfItem, selectedItems: [ShelfItem], shelfState: ShelfStateViewModel, view: NSView, onShare: @escaping (NSView?) -> Void, onQuickLook: @escaping ([URL]) -> Void) {
         self.item = item
+        self.selectedItems = selectedItems
+        self.shelfState = shelfState
         self.view = view
         self.onShare = onShare
         self.onQuickLook = onQuickLook
@@ -318,18 +343,12 @@ private final class MenuActionTarget: NSObject {
         let action = actionRaw.flatMap { ContextMenuAction(rawValue: $0) }
 
         if let appURL = sender.representedObject as? URL {
-            let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
+            let selected = selectedItems
 
             Task {
                     var allSelectedURLs: [URL] = []
 
-                    for itm in selected {
-                        if let fileURL = itm.fileURL {
-                            allSelectedURLs.append(fileURL)
-                        } else if case .link(let url) = itm.kind {
-                            allSelectedURLs.append(url)
-                        }
-                    }
+                    allSelectedURLs = await resolveURLs(for: selected)
 
                     guard !allSelectedURLs.isEmpty else { return }
 
@@ -355,17 +374,11 @@ private final class MenuActionTarget: NSObject {
         case .quickLook?:
             // Handle all selected items for Quick Look, not just the clicked item
             let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-            let urls: [URL] = selected.compactMap { item in
-                if let fileURL = item.fileURL {
-                    return fileURL
+            Task {
+                let urls = await resolveURLs(for: selected)
+                if !urls.isEmpty {
+                    onQuickLook(urls)
                 }
-                if case .link(let url) = item.kind {
-                    return url
-                }
-                return nil
-            }
-            if !urls.isEmpty {
-                onQuickLook(urls)
             }
 
         case .open?:
@@ -384,8 +397,7 @@ private final class MenuActionTarget: NSObject {
             Task {
                 let urls = await selected.asyncCompactMap { item -> URL? in
                     if case .file = item.kind {
-                        // Use immediate update for user-initiated menu action
-                        return ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item)
+                        return await ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item)
                     }
                     return nil
                 }
@@ -398,10 +410,12 @@ private final class MenuActionTarget: NSObject {
 
         case .copyPath?:
             let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-            let paths = selected.compactMap { $0.fileURL?.path }
-            if !paths.isEmpty {
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(paths.joined(separator: "\n"), forType: .string)
+            Task {
+                let paths = await resolveFileURLs(for: selected).map(\.path)
+                if !paths.isEmpty {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(paths.joined(separator: "\n"), forType: .string)
+                }
             }
 
         case .copy?:
@@ -418,7 +432,7 @@ private final class MenuActionTarget: NSObject {
             Task {
                 let fileURLs = await selected.asyncCompactMap { item -> URL? in
                     if case .file = item.kind {
-                        return ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item)
+                        return await ShelfStateViewModel.shared.resolveAndUpdateBookmark(for: item)
                     }
                     return nil
                 }
@@ -452,10 +466,9 @@ private final class MenuActionTarget: NSObject {
 
         case .compress?:
             let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-            let fileURLs = selected.compactMap { $0.fileURL }
-            guard !fileURLs.isEmpty else { break }
-
             Task {
+                let fileURLs = await resolveFileURLs(for: selected)
+                guard !fileURLs.isEmpty else { return }
                 // Create ZIP in a temporary location while holding access to selected resources
                 if let zipTempURL = await fileURLs.accessSecurityScopedResources(accessor: { urls in
                     await TemporaryFileStorageService.shared.createZip(from: urls)
@@ -476,26 +489,86 @@ private final class MenuActionTarget: NSObject {
     }
 
     @MainActor
+    private func resolveFileURLs(for items: [ShelfItem]) async -> [URL] {
+        await ShelfStateViewModel.shared.resolveFileURLs(for: items)
+    }
+
+    @MainActor
+    private func resolveURLs(for items: [ShelfItem]) async -> [URL] {
+        var urls: [URL] = []
+        for item in items {
+            guard let selectedItem = shelfState.items.first(where: { $0.id == item.id }) else { continue }
+            switch selectedItem.kind {
+            case .file:
+                if let file = await shelfState.resolveFile(
+                    for: selectedItem,
+                    intent: .userInitiated,
+                    refresh: true
+                ) {
+                    urls.append(file.url)
+                }
+            case .link(let url):
+                urls.append(url)
+            case .text:
+                break
+            }
+        }
+        return urls
+    }
+
+    @MainActor
+    private func resolveImageURLs(for items: [ShelfItem]) async -> [URL] {
+        var urls: [URL] = []
+        for selectedItem in items {
+            guard case .file = selectedItem.kind,
+                  let file = await ShelfStateViewModel.shared.resolveFile(
+                      for: selectedItem,
+                      intent: .userInitiated,
+                      refresh: true
+                  ),
+                  file.contentTypeIdentifier.flatMap(UTType.init)?.conforms(to: .image) == true else {
+                continue
+            }
+            urls.append(file.url)
+        }
+        return urls
+    }
+
+    @MainActor
     private func openWithPanel() {
+        Task { await showOpenWithPanel() }
+    }
+
+    @MainActor
+    private func showOpenWithPanel() async {
         // Support both file items and link items
         let targetURL: URL?
         let needsSecurityScope: Bool
+        let contentType: UTType?
 
-        if let fileURL = item.fileURL {
-            targetURL = fileURL
+        if case .file = item.kind {
+            let file = await ShelfStateViewModel.shared.resolveFile(
+                for: item,
+                intent: .userInitiated,
+                refresh: true
+            )
+            targetURL = file?.url
             needsSecurityScope = true
+            contentType = file?.contentTypeIdentifier.flatMap(UTType.init)
         } else if case .link(let url) = item.kind {
             targetURL = url
             needsSecurityScope = false
+            contentType = nil
         } else {
             targetURL = nil
             needsSecurityScope = false
+            contentType = nil
         }
         guard let fileURL = targetURL else { return }
 
         let panel = NSOpenPanel()
         panel.title = String(localized: "Choose Application")
-        panel.message = String(localized: "Choose an application to open the document \"\(item.displayName)\".")
+        panel.message = String(format: String(localized: "Choose an application to open the document \"%@\"."), item.displayName)
         panel.prompt = String(localized: "Open")
         panel.allowsMultipleSelection = false
         panel.canChooseFiles = true
@@ -507,15 +580,15 @@ private final class MenuActionTarget: NSObject {
         panel.directoryURL = URL(fileURLWithPath: "/Applications")
 
         // Compute recommended applications for the selected target
-        let recommendedApps: Set<URL> = {
-            let apps: [URL]
-            if let uti = (try? fileURL.resourceValues(forKeys: [.contentTypeKey]))?.contentType {
-                apps = NSWorkspace.shared.urlsForApplications(toOpen: uti)
+        let recommendedApps = await Task.detached(priority: .userInitiated) {
+            let applications: [URL]
+            if let contentType {
+                applications = NSWorkspace.shared.urlsForApplications(toOpen: contentType)
             } else {
-                apps = NSWorkspace.shared.urlsForApplications(toOpen: fileURL)
+                applications = NSWorkspace.shared.urlsForApplications(toOpen: fileURL)
             }
-            return Set(apps.map { $0.standardizedFileURL })
-        }()
+            return Set(applications.map(\.standardizedFileURL))
+        }.value
 
         // Delegate to filter entries when in "Recommended Applications" mode
         final class AppChooserDelegate: NSObject, NSOpenSavePanelDelegate {
@@ -615,7 +688,7 @@ private final class MenuActionTarget: NSObject {
                     do {
                         let config = NSWorkspace.OpenConfiguration()
                         if alwaysCheckbox.state == .on, let bundleID = Bundle(url: appURL)?.bundleIdentifier {
-                            if let contentType = (try? fileURL.resourceValues(forKeys: [.contentTypeKey]))?.contentType {
+                            if let contentType {
                                 let status = LSSetDefaultRoleHandlerForContentType(contentType.identifier as CFString, LSRolesMask.all, bundleID as CFString)
                                 if status != noErr { Log.shelf.error("Failed to set default handler for \(contentType.identifier): \(status)") }
                             } else if let scheme = fileURL.scheme {
@@ -644,36 +717,38 @@ private final class MenuActionTarget: NSObject {
 
     @MainActor
     private func showRenameDialog(for item: ShelfItem) {
-        guard case let .file(bookmarkData) = item.kind else { return }
+        guard case .file = item.kind else { return }
         Task {
-            let bookmark = Bookmark(data: bookmarkData)
-            if let fileURL = bookmark.resolvedURL {
-                // Start security-scoped access and keep it active until rename completes.
-                let didStart = fileURL.startAccessingSecurityScopedResource()
-
-                let savePanel = NSSavePanel()
-                savePanel.title = String(localized: "Rename File")
-                savePanel.prompt = String(localized: "Rename")
-                savePanel.nameFieldStringValue = fileURL.lastPathComponent
-                savePanel.directoryURL = fileURL.deletingLastPathComponent()
-                savePanel.begin { response in
-                    if response == .OK, let newURL = savePanel.url {
-                        Task {
-                            do {
-                                NSLog("🔐 Rename: moving from \(fileURL.path) to \(newURL.path) (securityScope=\(didStart))")
-
-                                try FileManager.default.moveItem(at: fileURL, to: newURL)
-
-                                if let newBookmark = try? Bookmark(url: newURL) {
-                                    ShelfStateViewModel.shared.updateBookmark(for: item, bookmark: newBookmark.data)
-                                }
-                            } catch {
-                                Log.shelf.error("❌ Failed to rename file: \(error.localizedDescription)")
-                            }
+            guard let file = await ShelfStateViewModel.shared.resolveFile(
+                for: item,
+                intent: .userInitiated,
+                refresh: true
+            ) else { return }
+            let fileURL = file.url
+            let savePanel = NSSavePanel()
+            savePanel.title = String(localized: "Rename File")
+            savePanel.prompt = String(localized: "Rename")
+            savePanel.nameFieldStringValue = fileURL.lastPathComponent
+            savePanel.directoryURL = fileURL.deletingLastPathComponent()
+            savePanel.begin { response in
+                guard response == .OK, let newURL = savePanel.url else { return }
+                Task {
+                    let result = await Task.detached(priority: .userInitiated) { () -> (Data?, String?) in
+                        let didStart = fileURL.startAccessingSecurityScopedResource()
+                        defer {
                             if didStart { fileURL.stopAccessingSecurityScopedResource() }
                         }
-                    } else {
-                        if didStart { fileURL.stopAccessingSecurityScopedResource() }
+                        do {
+                            try FileManager.default.moveItem(at: fileURL, to: newURL)
+                            return ((try? Bookmark(url: newURL).data), nil)
+                        } catch {
+                            return (nil, error.localizedDescription)
+                        }
+                    }.value
+                    if let bookmarkData = result.0 {
+                        ShelfStateViewModel.shared.updateBookmark(for: item, bookmark: bookmarkData)
+                    } else if let message = result.1 {
+                        Log.shelf.error("❌ Failed to rename file: \(message)")
                     }
                 }
             }
@@ -683,11 +758,8 @@ private final class MenuActionTarget: NSObject {
     @MainActor
     private func handleRemoveBackground() {
         let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-        let imageURLs = selected.compactMap { $0.fileURL }.filter { ImageProcessingService.shared.isImageFile($0) }
-
-        guard let imageURL = imageURLs.first else { return }
-
         Task {
+            guard let imageURL = await resolveImageURLs(for: selected).first else { return }
             do {
                 let resultURL = try await imageURL.accessSecurityScopedResource { url in
                     try await ImageProcessingService.shared.removeBackground(from: url)
@@ -713,11 +785,9 @@ private final class MenuActionTarget: NSObject {
     @MainActor
     private func handleCreatePDF() {
         let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-        let imageURLs = selected.compactMap { $0.fileURL }.filter { ImageProcessingService.shared.isImageFile($0) }
-
-        guard !imageURLs.isEmpty else { return }
-
         Task {
+            let imageURLs = await resolveImageURLs(for: selected)
+            guard !imageURLs.isEmpty else { return }
             do {
                 let resultURL = try await imageURLs.accessSecurityScopedResources { urls in
                     try await ImageProcessingService.shared.createPDF(from: urls)
@@ -743,10 +813,15 @@ private final class MenuActionTarget: NSObject {
     @MainActor
     private func showConvertImageDialog() {
         let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
-        let imageURLs = selected.compactMap { $0.fileURL }.filter { ImageProcessingService.shared.isImageFile($0) }
+        Task {
+            guard let imageURL = await resolveImageURLs(for: selected).first else { return }
+            presentConvertImageDialog(for: imageURL)
+        }
+    }
 
-        guard let imageURL = imageURLs.first else { return }
-
+    @MainActor
+    private func presentConvertImageDialog(for imageURL: URL) {
+        
         // Create and show conversion options dialog with better layout
         let alert = NSAlert()
         alert.messageText = String(localized: "Convert Image")

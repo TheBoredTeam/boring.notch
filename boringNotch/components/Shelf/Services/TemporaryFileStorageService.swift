@@ -15,9 +15,15 @@ enum TempFileType {
     case url(URL)
 }
 
-final class TemporaryFileStorageService {
+final class TemporaryFileStorageService: @unchecked Sendable {
     static let shared = TemporaryFileStorageService()
 
+    private let baseDirectory: URL
+
+    init(baseDirectory: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)) {
+        self.baseDirectory = baseDirectory
+    }
+    
     // MARK: - Public Interface
 
     /// Creates a temporary file and tracks it for manual cleanup
@@ -29,18 +35,18 @@ final class TemporaryFileStorageService {
     }
 
     func removeTemporaryFileIfNeeded(at url: URL) {
-        let tempDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
-
-        guard url.path.hasPrefix(tempDirectory.path) else {
+        let standardizedURL = url.standardizedFileURL
+        let standardizedBase = baseDirectory.standardizedFileURL
+        guard standardizedURL.pathComponents.starts(with: standardizedBase.pathComponents) else {
             Log.shelf.debug("Attempted to remove temporary file outside temp directory: \(url.path)")
             return
         }
 
-        let folderURL = url.deletingLastPathComponent()
+        let folderURL = standardizedURL.deletingLastPathComponent()
 
         do {
-            try FileManager.default.removeItem(at: url)
-            Log.shelf.debug("Deleted file: \(url.path)")
+            try FileManager.default.removeItem(at: standardizedURL)
+            Log.shelf.debug("Deleted file: \(standardizedURL.path)")
 
             let contents = try FileManager.default.contentsOfDirectory(atPath: folderURL.path)
             if contents.isEmpty {
@@ -54,16 +60,39 @@ final class TemporaryFileStorageService {
         }
     }
 
+    /// Copies a callback-scoped provider representation into storage owned by the app.
+    /// The copy is synchronous so the source is never used after the provider callback returns.
+    func copyProviderFile(at sourceURL: URL, suggestedName: String?) -> URL? {
+        let directoryURL = makeUniqueDirectory()
+        let filename = safeFilename(
+            suggestedName,
+            fallback: sourceURL.lastPathComponent
+        )
+        let destinationURL = directoryURL.appendingPathComponent(filename, isDirectory: false)
+
+        do {
+            try FileManager.default.createDirectory(
+                at: directoryURL,
+                withIntermediateDirectories: true
+            )
+            try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
+            return destinationURL
+        } catch {
+            try? FileManager.default.removeItem(at: directoryURL)
+            Log.shelf.error("Failed to copy provider file: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
     // MARK: - Private Implementation
 
     private func createTempFile(for type: TempFileType) -> URL? {
-        let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
         let uuid = UUID().uuidString
 
         switch type {
         case .data(let data, let suggestedName):
-            let filename = suggestedName ?? ".dat"
-            let dirURL = tempDir.appendingPathComponent(uuid, isDirectory: true)
+            let filename = safeFilename(suggestedName, fallback: "Untitled.dat")
+            let dirURL = makeUniqueDirectory()
             let fileURL = dirURL.appendingPathComponent(filename)
 
             do {
@@ -77,7 +106,7 @@ final class TemporaryFileStorageService {
 
         case .text(let string):
             let filename = "\(uuid).txt"
-            let dirURL = tempDir.appendingPathComponent(uuid, isDirectory: true)
+            let dirURL = makeUniqueDirectory()
             let fileURL = dirURL.appendingPathComponent(filename)
 
             guard let data = string.data(using: .utf8) else {
@@ -96,7 +125,7 @@ final class TemporaryFileStorageService {
 
         case .url(let url):
             let filename = "\(url.host ?? uuid).webloc"
-            let dirURL = tempDir.appendingPathComponent(uuid, isDirectory: true)
+            let dirURL = makeUniqueDirectory()
             let fileURL = dirURL.appendingPathComponent(filename)
 
             let weblocContent = createWeblocContent(for: url)
@@ -126,9 +155,8 @@ final class TemporaryFileStorageService {
         }
     }
     func createZip(from urls: [URL], suggestedName: String? = nil) async -> URL? {
-        let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
         let uuid = UUID().uuidString
-        let workingDir = tempDir.appendingPathComponent("zip_\(uuid)", isDirectory: true)
+        let workingDir = baseDirectory.appendingPathComponent("zip_\(uuid)", isDirectory: true)
 
         do {
             try FileManager.default.createDirectory(at: workingDir, withIntermediateDirectories: true)
@@ -227,6 +255,23 @@ final class TemporaryFileStorageService {
 
     // MARK: - Content Creation Helpers
 
+    private func makeUniqueDirectory() -> URL {
+        baseDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+    }
+
+    private func safeFilename(_ suggestedName: String?, fallback: String) -> String {
+        for candidate in [suggestedName, fallback] {
+            guard let candidate else { continue }
+            let name = URL(fileURLWithPath: candidate).lastPathComponent
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if !name.isEmpty, name != ".", name != ".." {
+                return name
+            }
+        }
+        return "Untitled"
+    }
+    
+    
     private func createWeblocContent(for url: URL) -> String {
         return """
         <?xml version="1.0" encoding="UTF-8"?>

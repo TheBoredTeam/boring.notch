@@ -15,7 +15,11 @@ struct ShelfSettingsView: View {
     @StateObject private var quickShareService = QuickShareService.shared
 
     private var selectedProvider: QuickShareProvider? {
-        quickShareService.availableProviders.first(where: { $0.id == quickShareProvider })
+        quickShareService.provider(forStoredID: quickShareProvider)
+    }
+
+    private var providerOptions: [QuickShareProvider] {
+        quickShareService.providerOptions(including: quickShareProvider)
     }
 
     var body: some View {
@@ -53,7 +57,7 @@ struct ShelfSettingsView: View {
 
             Section {
                 Picker("Quick Share Service", selection: $quickShareProvider) {
-                    ForEach(quickShareService.availableProviders, id: \.id) { provider in
+                    ForEach(providerOptions, id: \.id) { provider in
                         HStack {
                             Group {
                                 if let icon = quickShareService.icon(for: provider.id, size: 16) {
@@ -65,7 +69,11 @@ struct ShelfSettingsView: View {
                             }
                             .frame(width: 16, height: 16)
                             .foregroundColor(.accentColor)
-                            Text(provider.id)
+                            Text(provider.displayName)
+                            if !provider.isAvailable {
+                                Text("Unavailable")
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                         .tag(provider.id)
                     }
@@ -85,9 +93,14 @@ struct ShelfSettingsView: View {
                         .frame(width: 16, height: 16)
                         .foregroundColor(.accentColor)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Currently selected: \(selectedProvider.id)")
+                            Text("Currently selected: \(selectedProvider.displayName)")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
+                            if !selectedProvider.isAvailable {
+                                Text("This sharing service is unavailable.")
+                                    .font(.caption2)
+                                    .foregroundStyle(.orange)
+                            }
                             Text("Files dropped on the shelf will be shared via this service")
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
