@@ -327,6 +327,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        ClaudeApprovalBridge.shared.updateEnabled()
+
         // Sync notch height with real value on app launch if mode is matchRealNotchSize
         syncNotchHeightIfNeeded()
 

@@ -9,6 +9,7 @@ import AppKit
 import SwiftUI
 
 struct NotchAISessionsView: View {
+    @ObservedObject private var approvalBridge = ClaudeApprovalBridge.shared
     @State private var sessions: [AISessionRecord] = []
     @State private var isLoading = true
 
@@ -32,7 +33,12 @@ struct NotchAISessionsView: View {
             }
             .padding(.horizontal, 14)
 
-            if sessions.isEmpty {
+            if let approval = approvalBridge.pending.first {
+                approvalCard(approval)
+                    .padding(.horizontal, 12)
+            }
+
+            if sessions.isEmpty && approvalBridge.pending.isEmpty {
                 ContentUnavailableView(
                     isLoading ? "Loading sessions" : "No recent sessions",
                     systemImage: "sparkles",
@@ -59,6 +65,34 @@ struct NotchAISessionsView: View {
                 try? await Task.sleep(for: .seconds(10))
             }
         }
+    }
+
+    private func approvalCard(_ request: ClaudeApprovalRequest) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Permission requested · \(request.projectName)")
+                .font(.system(size: 11, weight: .semibold))
+            Text(request.toolName)
+                .font(.system(size: 10, weight: .medium))
+            ScrollView {
+                Text(request.detail)
+                    .font(.system(size: 10, design: .monospaced))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(height: 90)
+            HStack {
+                Button("Allow once") {
+                    approvalBridge.respond(to: request.id, allow: true)
+                }
+                Button("Deny") {
+                    approvalBridge.respond(to: request.id, allow: false)
+                }
+            }
+            .font(.system(size: 10, weight: .medium))
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.orange.opacity(0.14), in: RoundedRectangle(cornerRadius: 10))
     }
 
     private func sessionCard(_ session: AISessionRecord) -> some View {
