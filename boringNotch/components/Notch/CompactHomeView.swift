@@ -35,6 +35,8 @@ struct CompactHomeView: View {
     @State private var lastDragged: Date = .distantPast
 
     @Default(.coloredSpectrogram) private var coloredSpectrogram
+    @Default(.musicControlSlots) private var slotConfig
+    @Default(.musicControlSlotLimit) private var slotLimit
     @Default(.playerColorTinting) private var playerColorTinting
     @Default(.showRemainingTime) private var showRemainingTime
 
@@ -163,11 +165,18 @@ struct CompactHomeView: View {
 
     // MARK: - Transport
 
-    /// The standard layout's fixed five, rendered through the same
-    /// MusicControlSlotButton the expanded view uses — so sizing, glyphs and
-    /// the swipe-to-skip bounce match exactly.
+    /// The user's configured control slots, clamped like the standard
+    /// layout's activeSlots, rendered through the same MusicControlSlotButton
+    /// — so sizing, glyphs and the swipe-to-skip bounce match exactly.
     private var displayedSlots: [MusicControlButton] {
-        MusicControlButton.defaultLayout
+        let sanitizedLimit = min(
+            max(slotLimit, MusicControlButton.minSlotCount),
+            MusicControlButton.maxSlotCount
+        )
+        return slotConfig
+            .padded(to: sanitizedLimit, filler: .none)
+            .prefix(sanitizedLimit)
+            .map { $0 }
     }
 
     private var transport: some View {
