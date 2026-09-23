@@ -298,8 +298,8 @@ jobs:
       - name: Create embedded release notes
         run: printf '%s' "$RELEASE_NOTES" > Release/boringNotch.html
 
-      - name: Build Sparkle generate_appcast from source
-        uses: ./.github/actions/build-generate-appcast
+      - name: Fetch Sparkle generate_appcast
+        uses: ./.github/actions/fetch-generate-appcast
 
       - name: Generate signed appcast
         env:

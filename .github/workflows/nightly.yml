@@ -178,28 +178,45 @@ jobs:
           <p>Source: <a href="https://github.com/TheBoredTeam/boring.notch/commit/${SOURCE_SHA}">View commit</a></p>
           HTML
 
-      - name: Build Sparkle generate_appcast from source
-        uses: ./.github/actions/build-generate-appcast
+      - name: Fetch Sparkle generate_appcast
+        uses: ./.github/actions/fetch-generate-appcast
+
+      - name: Prepare single nightly appcast input
+        env:
+          APPCAST_INPUT: ${{ runner.temp }}/nightly-appcast-input
+        run: |
+          set -euo pipefail
+          rm -rf "$APPCAST_INPUT"
+          mkdir -p "$APPCAST_INPUT"
+          cp "Release/${ASSET_NAME}" "$APPCAST_INPUT/"
+          cp "Release/${ASSET_NAME%.dmg}.html" "$APPCAST_INPUT/"
 
       - name: Generate signed nightly appcast
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
+          APPCAST_INPUT: ${{ runner.temp }}/nightly-appcast-input
+          APPCAST_OUTPUT: ${{ runner.temp }}/${{ env.APPCAST_FILE }}
         run: |
           set -euo pipefail
           test -x "$RUNNER_TEMP/generate_appcast" || {
             echo "::error::$RUNNER_TEMP/generate_appcast missing or not executable"; exit 1;
           }
+          test -f "$APPCAST_INPUT/${ASSET_NAME}" || {
+            echo "::error::Nightly appcast input is missing ${ASSET_NAME}"; exit 1;
+          }
+          test -f "$APPCAST_INPUT/${ASSET_NAME%.dmg}.html" || {
+            echo "::error::Nightly appcast input is missing embedded release notes"; exit 1;
+          }
+          rm -f "$APPCAST_OUTPUT"
           printf '%s' "$SPARKLE_PRIVATE_KEY" | "$RUNNER_TEMP/generate_appcast" \
             --ed-key-file - \
             --link "https://github.com/TheBoredTeam/boring.notch/commits/${BRANCH_NAME}" \
             --download-url-prefix "https://github.com/TheBoredTeam/boring.notch/releases/download/${TAG}/" \
             --embed-release-notes \
             --channel "${BRANCH_NAME}" \
-            -o "updater/${APPCAST_FILE}" \
-            Release/
-
-      - name: Keep only the current nightly appcast item
-        run: python3 .github/scripts/prune_appcast_channel.py "updater/${APPCAST_FILE}" "${BRANCH_NAME}"
+            -o "$APPCAST_OUTPUT" \
+            "$APPCAST_INPUT"
+          mv "$APPCAST_OUTPUT" "updater/${APPCAST_FILE}"
 
       - name: Point the nightly tag at the built source
         env:

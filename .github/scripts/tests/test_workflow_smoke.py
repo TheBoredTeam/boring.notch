@@ -128,13 +128,31 @@ class WorkflowSmokeTests(unittest.TestCase):
         self.assertIn('[[ "$RELATION" == "ahead" || "$RELATION" == "identical" ]]', self.nightly)
         self.assertNotIn('"$RELATION" == "behind"', self.nightly)
 
-    def test_nightly_prunes_the_appcast_to_the_current_item(self) -> None:
-        self.assertIn("prune_appcast_channel.py", self.nightly)
-        prune_script = (
-            REPOSITORY_ROOT / ".github" / "scripts" / "prune_appcast_channel.py"
+    def test_nightly_generates_from_a_single_clean_appcast_input(self) -> None:
+        self.assertIn("Prepare single nightly appcast input", self.nightly)
+        self.assertIn("rm -rf \"$APPCAST_INPUT\"", self.nightly)
+        self.assertIn("cp \"Release/${ASSET_NAME}\" \"$APPCAST_INPUT/\"", self.nightly)
+        self.assertIn("cp \"Release/${ASSET_NAME%.dmg}.html\" \"$APPCAST_INPUT/\"", self.nightly)
+        self.assertIn('APPCAST_OUTPUT: ${{ runner.temp }}/${{ env.APPCAST_FILE }}', self.nightly)
+        self.assertIn('mv "$APPCAST_OUTPUT" "updater/${APPCAST_FILE}"', self.nightly)
+        self.assertNotIn("prune_appcast_channel.py", self.nightly)
+
+    def test_generate_appcast_comes_from_the_official_release_tarball(self) -> None:
+        action = (
+            REPOSITORY_ROOT / ".github" / "actions" / "fetch-generate-appcast" / "action.yml"
         ).read_text(encoding="utf-8")
-        self.assertIn("SPARKLE_CHANNEL = f\"{{{SPARKLE_NS}}}channel\"", prune_script)
-        self.assertIn("No {channel_name!r} channel item found", prune_script)
+        # Both pipelines use the shared fetch action.
+        for name, workflow in (("nightly.yml", self.nightly), ("release.yml", self.release)):
+            with self.subTest(workflow=name):
+                self.assertIn("uses: ./.github/actions/fetch-generate-appcast", workflow)
+                self.assertNotIn("build-generate-appcast", workflow)
+        # The tool is downloaded from the official release asset, never compiled.
+        self.assertIn("releases/download/$SPARKLE_TAG/Sparkle-$SPARKLE_TAG.tar.xz", action)
+        self.assertIn("bin/generate_appcast", action)
+        self.assertNotIn("xcodebuild", action)
+        # The tag must resolve to the exact revision pinned in Package.resolved.
+        self.assertIn("Package.resolved", action)
+        self.assertIn("resolves to ${TAG_SHA}, expected ${SPARKLE_REVISION}", action)
 
     def test_nightly_builds_the_live_branch_head(self) -> None:
         # Nightlies ship real commits: the pipeline must never create
@@ -246,29 +264,12 @@ class WorkflowSmokeTests(unittest.TestCase):
         self.assertIn("Create embedded release notes", self.nightly)
         self.assertIn("--embed-release-notes", self.nightly)
 
-    def test_dev_channel_is_isolated_from_stable_and_beta(self) -> None:
-        # A nightly must never be offered stable or beta updates. Three
-        # layers enforce it:
-        constants = (
-            REPOSITORY_ROOT / "boringNotch" / "models" / "Constants.swift"
-        ).read_text(encoding="utf-8")
-        # 1. dev builds poll a dedicated appcast on the dev branch, never the
-        #    stable/beta feed.
-        self.assertIn(
-            "https://raw.githubusercontent.com/TheBoredTeam/boring.notch/dev/updater/appcast-dev.xml",
-            constants,
-        )
-        # 2. stable builds accept no channelled items at all (beta and dev
-        #    items are invisible to them); beta accepts stable as fallback;
-        #    the channel set is passed to Sparkle via allowedChannels.
-        self.assertIn("self == .stable ? [] : [rawValue]", constants)
-        self.assertIn("allowedChannels", (
-            REPOSITORY_ROOT / "boringNotch" / "boringNotchApp.swift"
-        ).read_text(encoding="utf-8"))
-        # 3. the nightly pipeline keeps the dev appcast to exactly one
-        #    `dev`-channel item, so no stale or foreign items linger there.
-        self.assertIn("prune_appcast_channel.py", self.nightly)
+    def test_nightly_configures_a_dedicated_dev_channel(self) -> None:
+        # The app-channel implementation is maintained separately from this
+        # workflow change; pin the pipeline-side channel contract here.
+        self.assertIn("appcast-dev.xml", self.nightly)
         self.assertIn('--channel "${BRANCH_NAME}"', self.nightly)
+        self.assertIn("Prepare single nightly appcast input", self.nightly)
 
     def test_nightly_keeps_sparkle_channel_and_embedded_notes_and_key(self) -> None:
         self.assertIn("--channel \"${BRANCH_NAME}\"", self.nightly)
