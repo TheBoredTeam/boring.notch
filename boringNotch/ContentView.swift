@@ -1025,6 +1025,9 @@ extension ContentView {
             return coordinator.musicLiveActivityEnabled && (musicManager.isPlaying || !musicManager.isPlayerIdle)
 
         case .open:
+            if Defaults[.compactMode] {
+                return !musicManager.isPlayerIdle && isHoveringMusicArea
+            }
             return coordinator.currentView == .home && !musicManager.isPlayerIdle && isHoveringMusicArea
         }
     }
