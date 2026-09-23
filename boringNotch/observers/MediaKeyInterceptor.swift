@@ -206,16 +206,30 @@ final class MediaKeyInterceptor {
             break
         }
 
-        // Handle option key action (without shift)
-        if option && !shift {
-            if handleOptionAction(for: keyType, command: command) {
-                return nil
-            }
-        }
+        let consumed = Self.dispatchKey(
+            keyCode: keyCode, option: option, shift: shift, command: command,
+            brightnessSupported: MainActor.assumeIsolated {
+                BrightnessManager.shared.canAdjustBrightness
+            },
+            optionAction: { handleOptionAction(for: keyType, command: command) },
+            normalAction: {
+                handleKeyPress(keyType: keyType, option: option, shift: shift, command: command)
+            })
+        return consumed ? nil : Unmanaged.passUnretained(cgEvent)
+    }
 
-        // Handle normal key press
-        handleKeyPress(keyType: keyType, option: option, shift: shift, command: command)
-        return nil
+    /// The same disposition path used by the event tap, with actions injected
+    /// so unsupported/discovering targets can be tested without installing it.
+    static func dispatchKey(
+        keyCode: Int, option: Bool, shift: Bool, command: Bool,
+        brightnessSupported: Bool, optionAction: () -> Bool, normalAction: () -> Void
+    ) -> Bool {
+        if option && !shift && optionAction() { return true }
+        let isDisplayBrightness = keyCode == NXKeyType.brightnessUp.rawValue
+            || keyCode == NXKeyType.brightnessDown.rawValue
+        guard !isDisplayBrightness || command || brightnessSupported else { return false }
+        normalAction()
+        return true
     }
 
     private func handleOptionAction(for keyType: NXKeyType, command: Bool) -> Bool {

@@ -153,19 +153,22 @@ final class BetterDisplayManager {
                 NotchUIEventBus.events.send(.sneakPeek(
                     type: .brightness,
                     value: CGFloat(rawValue / maxVal),
-                    targetScreenUUID: targetScreenUUID
+                    targetScreenUUID: targetScreenUUID,
+                    provider: .betterDisplay
                 ))
             }
 
         case .volume:
             let normalized = maxVal > 0 ? Float(rawValue / maxVal) : Float(rawValue)
             await MainActor.run {
-                NotchUIEventBus.events.send(.sneakPeek(type: .volume, value: CGFloat(normalized)))
+                NotchUIEventBus.events.send(
+                    .sneakPeek(type: .volume, value: CGFloat(normalized), provider: .betterDisplay))
             }
 
         case .mute:
             await MainActor.run {
-                NotchUIEventBus.events.send(.sneakPeek(type: .volume, value: CGFloat(rawValue)))
+                NotchUIEventBus.events.send(
+                    .sneakPeek(type: .volume, value: CGFloat(rawValue), provider: .betterDisplay))
             }
 
         case .other:

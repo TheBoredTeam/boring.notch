@@ -43,10 +43,19 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     func ensureAccessibilityAuthorization(_ promptIfNeeded: Bool, with reply: @escaping (Bool) -> Void)
     func currentKeyboardBrightness(with reply: @escaping (NSNumber?) -> Void)
     func setKeyboardBrightness(_ value: Float, with reply: @escaping (Bool) -> Void)
+    // Screen brightness access (performed by the helper)
+    // Probes read/write capability with a same-value write; call only when control is enabled.
     func displayIDForBrightness(with reply: @escaping (NSNumber?) -> Void)
-    func currentScreenBrightness(with reply: @escaping (NSNumber?) -> Void)
-    func setScreenBrightness(_ value: Float, with reply: @escaping (Bool) -> Void)
-    func adjustScreenBrightness(by value: Float, with reply: @escaping (NSNumber?) -> Void)
+    func currentScreenBrightness(
+        forDisplayID displayID: NSNumber, with reply: @escaping (NSNumber?, NSNumber?) -> Void)
+    func setScreenBrightness(
+        _ value: Float, forDisplayID displayID: NSNumber,
+        with reply: @escaping (NSNumber?, NSNumber?) -> Void)
+    /// Replies the display ID and authoritative resulting brightness.
+    func adjustScreenBrightness(
+        by value: Float, forDisplayID displayID: NSNumber,
+        with reply: @escaping (NSNumber?, NSNumber?) -> Void)
+    // Lunar brightness events (performed by the helper)
     func isLunarAvailable(with reply: @escaping (Bool) -> Void)
     func startLunarEventStream(with reply: @escaping (Bool) -> Void)
     func stopLunarEventStream()
