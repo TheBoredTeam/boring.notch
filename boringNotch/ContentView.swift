@@ -371,7 +371,11 @@ struct ContentView: View {
             }
         }
         .padding(.bottom, 8)
-        .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
+        .frame(
+            maxWidth: max(windowSize.width, vm.notchSize.width),
+            maxHeight: max(windowSize.height, vm.notchSize.height + shadowPadding),
+            alignment: .top
+        )
         .ignoresSafeArea(.all)
         .compositingGroup()
         .scaleEffect(
@@ -383,6 +387,9 @@ struct ContentView: View {
         .background(dragDetector)
         .preferredColorScheme(.dark)
         .environmentObject(vm)
+        .onChange(of: coordinator.currentView) { _, _ in
+            vm.refreshOpenSize()
+        }
         .onChange(of: dropInteraction.anyDropZoneTargeting) { _, isTargeted in
             anyDropDebounceTask?.cancel()
 
@@ -580,6 +587,8 @@ struct ContentView: View {
                                 dropInteraction: vm.dropInteraction,
                                 animation: vm.animation
                             )
+                        case .aiSessions:
+                            NotchAISessionsView()
                         }
                     }
                 }
@@ -932,7 +941,8 @@ extension ContentView {
     }
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
+        guard vm.notchState == .open && !vm.isHoveringCalendar,
+              coordinator.currentView != .aiSessions else { return }
 
         withAnimation(animationSpring) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20

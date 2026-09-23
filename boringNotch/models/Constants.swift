@@ -18,6 +18,9 @@ let temporaryDirectory: URL = FileManager.default.urls(for: .cachesDirectory, in
     ?? URL(fileURLWithPath: NSTemporaryDirectory())
 let spacing: CGFloat = 16
 
+extension Defaults.Keys {
+    static let enableAISessionFeature = Key<Bool>("enableAISessionFeature", default: false)
+}
 enum CalendarSelectionState: Codable, Defaults.Serializable {
     case all
     case selected(Set<String>)
