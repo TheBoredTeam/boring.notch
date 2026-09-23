@@ -37,7 +37,7 @@ public struct DraggableProgressBar: View {
             .contentShape(Rectangle())
             .gesture(dragGesture(in: geo))
             .accessibilityElement()
-            .accessibilityLabel(Text(NSLocalizedString("OSD.ValueLabel", comment: "Label for OSD value slider")))
+            .accessibilityLabel(Text(String(localized: "Value", comment: "Label for OSD value slider")))
             .accessibilityValue(
                 Text(value, format: .percent.precision(.fractionLength(0)))
             )

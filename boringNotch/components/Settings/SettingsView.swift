@@ -30,7 +30,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
 
     var id: Self { self }
 
-    var title: String {
+    var title: LocalizedStringKey {
         switch self {
         case .general: "General"
         case .notch: "Notch"
