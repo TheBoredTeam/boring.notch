@@ -10587,22 +10587,6 @@
         }
       }
     },
-    "Feature toggles" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Feature toggles"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alternar recursos"
-          }
-        }
-      }
-    },
     "Features" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -20594,17 +20578,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "快傳服務服務"
-          }
-        }
-      }
-    },
-    "Quickly enable or disable features. Each has more options in its own settings page." : {
-      "comment" : "A description of the features that can be enabled or disabled in the settings.",
-      "localizations" : {
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ativar ou desativar rapidamente recursos. Cada um tem mais opções em sua própria página de configurações."
           }
         }
       }
