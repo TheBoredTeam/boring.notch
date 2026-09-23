@@ -708,6 +708,9 @@ struct ContentView: View {
                 }
                 return baseArtSize
             }()
+            // The art's top/bottom gap to the pill; the leading offset below
+            // trims the row's edge slack down to this same inset.
+            let artVerticalInset = (displayClosedNotchHeight - scaledArtSize) / 2
 
             let closedCornerRadius: CGFloat = {
                 let base = MusicPlayerImageSizes.cornerRadiusInset.closed
@@ -728,6 +731,7 @@ struct ContentView: View {
                     width: scaledArtSize,
                     height: scaledArtSize
                 )
+                .offset(x: artVerticalInset - liveActivityEdgeMargin)
 
             Rectangle()
                 .fill(.black)
