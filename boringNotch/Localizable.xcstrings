@@ -851,7 +851,15 @@
       }
     },
     "Add Application…" : {
-      "comment" : "A button that adds an application to the list of allowed notifications."
+      "comment" : "A button that adds an application to the list of allowed notifications.",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adicionar Aplicativo"
+          }
+        }
+      }
     },
     "Add manually" : {
       "extractionState" : "stale",
@@ -1815,6 +1823,12 @@
     "App" : {
       "localizations" : {
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App"
+          }
+        },
+        "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "App"
@@ -3268,6 +3282,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Behavior"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comportamento"
           }
         }
       }
@@ -8304,6 +8324,12 @@
             "state" : "translated",
             "value" : "Displays"
           }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Telas"
+          }
         }
       }
     },
@@ -10579,6 +10605,12 @@
             "state" : "translated",
             "value" : "Feature toggles"
           }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alternar recursos"
+          }
         }
       }
     },
@@ -10588,6 +10620,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Features"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recursos"
           }
         }
       }
@@ -11502,6 +11540,12 @@
             "state" : "translated",
             "value" : "Gestures"
           }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestos"
+          }
         }
       }
     },
@@ -11853,7 +11897,15 @@
       }
     },
     "Grant %@ to mirror notification banners." : {
-      "comment" : "A description of the necessity of granting accessibility permissions for the notification view."
+      "comment" : "A description of the necessity of granting accessibility permissions for the notification view.",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conceder %@ aos banners de notificação do espelhamento."
+          }
+        }
+      }
     },
     "Grant Access" : {
       "localizations" : {
@@ -13073,6 +13125,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Idle state"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estado inativo"
           }
         }
       }
@@ -16841,7 +16899,15 @@
       }
     },
     "No apps selected" : {
-      "comment" : "A message displayed when no apps are selected in the notification settings."
+      "comment" : "A message displayed when no apps are selected in the notification settings.",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhum aplicativo selecionado"
+          }
+        }
+      }
     },
     "No events" : {
       "localizations" : {
@@ -17498,6 +17564,12 @@
             "state" : "translated",
             "value" : "Notch"
           }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entalhe"
+          }
         }
       }
     },
@@ -17708,6 +17780,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Notch chrome"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entalhe chrome"
           }
         }
       }
@@ -18257,7 +18335,15 @@
       }
     },
     "Only selected apps are mirrored. Add applications from your Mac; no preset app list is used." : {
-      "comment" : "A description of the notification settings."
+      "comment" : "A description of the notification settings.",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apenas apps selecionados são espelhados. Adicione aplicativos do seu Mac; nenhuma lista de aplicativos predefinidos é usada."
+          }
+        }
+      }
     },
     "Only these apps show a live activity in the notch. Turn on \"From all apps\" to mirror everything instead." : {
       "extractionState" : "stale",
@@ -19921,6 +20007,12 @@
             "state" : "translated",
             "value" : "Player appearance"
           }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aparência do Player"
+          }
         }
       }
     },
@@ -20640,7 +20732,15 @@
       }
     },
     "Quickly enable or disable features. Each has more options in its own settings page." : {
-      "comment" : "A description of the features that can be enabled or disabled in the settings."
+      "comment" : "A description of the features that can be enabled or disabled in the settings.",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ativar ou desativar rapidamente recursos. Cada um tem mais opções em sua própria página de configurações."
+          }
+        }
+      }
     },
     "Quit" : {
       "localizations" : {
@@ -21444,7 +21544,15 @@
       }
     },
     "Remove" : {
-      "comment" : "A button that removes an app from the list of allowed apps for notifications."
+      "comment" : "A button that removes an app from the list of allowed apps for notifications.",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remover"
+          }
+        }
+      }
     },
     "Remove from Favorites" : {
       "localizations" : {
@@ -21881,7 +21989,15 @@
       }
     },
     "Requires %@. Only visible banners are mirrored." : {
-      "comment" : "A note that explains that the notification settings require Accessibility to function."
+      "comment" : "A note that explains that the notification settings require Accessibility to function.",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requer %@. Somente banners visíveis são espelhados."
+          }
+        }
+      }
     },
     "Requires a third-party client with API plugin enabled." : {
       "comment" : "Onboarding description of the YouTube Music source.",
@@ -26921,7 +27037,15 @@
       }
     },
     "Show remaining time instead of duration" : {
-      "comment" : "A toggle to show the remaining time instead of the duration of a song."
+      "comment" : "A toggle to show the remaining time instead of the duration of a song.",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar tempo restante ao invés da duração"
+          }
+        }
+      }
     },
     "Show settings icon in notch" : {
       "localizations" : {
@@ -27273,6 +27397,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sizing"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimensionamento"
           }
         }
       }
@@ -31718,6 +31848,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Window"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Janela"
           }
         }
       }
