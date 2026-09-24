@@ -196,6 +196,7 @@ enum DailyWorkflowPresentationPolicy {
 final class DailyWorkflowPreferencesStore {
     private enum Key {
         static let preferences = "dailyWorkflow.preferences.v1"
+        static let conclusionPreferences = "dailyWorkflow.conclusionPreferences.v1"
         static let completionState = "dailyWorkflow.completionState.v1"
     }
 
@@ -213,6 +214,14 @@ final class DailyWorkflowPreferencesStore {
 
     func savePreferences(_ preferences: DailyWorkflowPreferences) throws {
         try encode(preferences, forKey: Key.preferences)
+    }
+
+    func loadConclusionPreferences() -> DailyConclusionPreferences {
+        decode(DailyConclusionPreferences.self, forKey: Key.conclusionPreferences) ?? .init()
+    }
+
+    func saveConclusionPreferences(_ preferences: DailyConclusionPreferences) throws {
+        try encode(preferences, forKey: Key.conclusionPreferences)
     }
 
     func loadCompletionState() -> DailyWorkflowCompletionState {

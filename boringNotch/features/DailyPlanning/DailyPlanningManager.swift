@@ -31,6 +31,10 @@ struct DailyReminderTransition: Equatable {
     var phase: DailyReminderTransitionPhase
 }
 
+enum DailyConclusionPhase: Equatable {
+    case review, writing, saving, filing
+}
+
 @MainActor
 final class DailyPlanningManager: ObservableObject {
     static let shared = DailyPlanningManager()
@@ -42,6 +46,19 @@ final class DailyPlanningManager: ObservableObject {
     @Published private(set) var contentState: DailyPlanningContentState = .idle
     @Published private(set) var updatingReminderIDs: Set<String> = []
     @Published private(set) var reminderTransitions: [String: DailyReminderTransition] = [:]
+
+    @Published private(set) var conclusionPreferences: DailyConclusionPreferences
+    @Published private(set) var conclusionPhase: DailyConclusionPhase = .review
+    @Published var conclusionText = ""
+    @Published private(set) var conclusionError: String?
+    @Published private(set) var conclusionSettingsError: String?
+    @Published private(set) var savedConclusionURL: URL?
+    private var conclusionTask: Task<Void, Never>?
+
+    var isConclusionActive: Bool { conclusionPhase != .review }
+    var offersConclusion: Bool {
+        activeSession?.kind == .eveningReview && conclusionPreferences.isEnabled
+    }
 
     var isPresenting: Bool { activeSession != nil }
     var isAwaitingPresentation: Bool { pendingSession != nil }
@@ -67,6 +84,7 @@ final class DailyPlanningManager: ObservableObject {
         self.store = store
         self.reminderService = reminderService ?? EventKitDailyReminderService()
         preferences = store.loadPreferences()
+        conclusionPreferences = store.loadConclusionPreferences()
         completionState = store.loadCompletionState()
     }
 
@@ -144,7 +162,7 @@ final class DailyPlanningManager: ObservableObject {
     }
 
     func returnActiveSessionToPrompt() {
-        guard let activeSession, !isFinishingSession else { return }
+        guard let activeSession, !isFinishingSession, !isConclusionActive else { return }
 
         pendingSession = activeSession
         self.activeSession = nil
@@ -188,8 +206,95 @@ final class DailyPlanningManager: ObservableObject {
         ) ?? calendar.startOfDay(for: date)
     }
 
+    func setConclusionEnabled(_ enabled: Bool) {
+        var updated = conclusionPreferences
+        updated.isEnabled = enabled
+        saveConclusionPreferences(updated)
+    }
+
+    func setConclusionDirectory(_ url: URL) {
+        var updated = conclusionPreferences
+        do {
+            let accessing = url.startAccessingSecurityScopedResource()
+            defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+            updated.directoryBookmark = try url.bookmarkData(
+                options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
+            updated.directoryPath = url.path
+            saveConclusionPreferences(updated)
+        } catch {
+            conclusionSettingsError = "Folder access could not be saved. Please choose the folder again."
+        }
+    }
+
+    private func saveConclusionPreferences(_ updated: DailyConclusionPreferences) {
+        do {
+            try store.saveConclusionPreferences(updated)
+            conclusionPreferences = updated
+            conclusionSettingsError = nil
+        } catch {
+            conclusionSettingsError = "Settings could not be saved. Please try again."
+        }
+    }
+
+    func advanceToConclusion() {
+        guard offersConclusion, conclusionPhase == .review, !isFinishingSession else { return }
+        conclusionPhase = .writing
+    }
+
+    func returnToReview() {
+        guard conclusionPhase == .writing else { return }
+        conclusionPhase = .review
+        conclusionError = nil
+    }
+
+    func saveConclusion(reduceMotion: Bool) {
+        guard let session = activeSession, session.kind == .eveningReview,
+              conclusionPhase == .writing else { return }
+        if savedConclusionURL != nil {
+            beginFinishingActiveSession()
+            return
+        }
+        if conclusionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            beginFinishingActiveSession()
+            return
+        }
+        guard let bookmark = conclusionPreferences.directoryBookmark else {
+            conclusionError = "Choose a diary folder in Settings → Planning & Review, then try again."
+            return
+        }
+        let text = conclusionText
+        conclusionError = nil
+        conclusionPhase = .saving
+        conclusionTask = Task { [weak self] in
+            do {
+                let url = try await Task.detached(priority: .userInitiated) {
+                    var stale = false
+                    let directory = try URL(resolvingBookmarkData: bookmark,
+                        options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &stale)
+                    guard !stale else { throw CocoaError(.fileReadNoPermission) }
+                    let accessing = directory.startAccessingSecurityScopedResource()
+                    defer { if accessing { directory.stopAccessingSecurityScopedResource() } }
+                    return try DailyConclusionStore().save(text: text, date: session.date, directory: directory)
+                }.value
+                guard let self, self.activeSession == session else { return }
+                self.savedConclusionURL = url
+                self.conclusionPhase = .filing
+                try await Task.sleep(for: .seconds(reduceMotion ? 0.3 : 2.95))
+                guard !Task.isCancelled, self.activeSession == session else { return }
+                self.beginFinishingActiveSession()
+            } catch {
+                guard let self, self.activeSession == session else { return }
+                self.conclusionPhase = .writing
+                self.conclusionError = "Couldn’t save your diary. Check the folder in Settings → Planning & Review, then try again. Your text is still here."
+            }
+        }
+    }
+
     func beginFinishingActiveSession() {
         guard let activeSession, finishingSession == nil else { return }
+        guard !offersConclusion || savedConclusionURL != nil
+            || (conclusionPhase == .writing && conclusionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        else { return }
         finishingSession = activeSession
     }
 
@@ -204,6 +309,10 @@ final class DailyPlanningManager: ObservableObject {
         } catch {
             contentState = .failure("Your completion could not be saved. Please try again.")
             finishingSession = nil
+            if savedConclusionURL != nil {
+                conclusionPhase = .writing
+                conclusionError = "Your diary was saved, but the review could not be completed. Try finishing again."
+            }
             return
         }
 
@@ -217,6 +326,11 @@ final class DailyPlanningManager: ObservableObject {
         guard finishingSession != nil else { return }
 
         finishingSession = nil
+        conclusionPhase = .review
+        conclusionText = ""
+        conclusionError = nil
+        savedConclusionURL = nil
+        conclusionTask = nil
         evaluate()
     }
 

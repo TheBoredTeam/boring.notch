@@ -1,14 +1,22 @@
 import AppKit
 import SwiftUI
 
+@MainActor
 struct DailyPlanningView: View {
-    @ObservedObject private var manager = DailyPlanningManager.shared
+    @ObservedObject private var manager: DailyPlanningManager
+
+    init(manager: DailyPlanningManager? = nil) {
+        self.manager = manager ?? .shared
+    }
 
     var body: some View {
         ZStack {
             if manager.isFinishingSession {
                 DailyWorkflowCompletionView(kind: sessionKind)
                     .transition(.opacity.combined(with: .scale(scale: 0.9)))
+            } else if manager.isConclusionActive {
+                DailyConclusionView(manager: manager)
+                    .transition(.opacity)
             } else {
                 VStack(spacing: 8) {
                     header
@@ -44,8 +52,19 @@ struct DailyPlanningView: View {
                 }
             }
             Spacer()
-            DailyWorkflowFinishButton(kind: sessionKind) {
-                manager.beginFinishingActiveSession()
+            if manager.offersConclusion {
+                Button { manager.advanceToConclusion() } label: {
+                    Label("Next", systemImage: "arrow.right")
+                }
+                .buttonStyle(.plain)
+                .font(.caption.bold())
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(.white.opacity(0.12), in: Capsule())
+            } else {
+                DailyWorkflowFinishButton(kind: sessionKind) {
+                    manager.beginFinishingActiveSession()
+                }
             }
         }
     }
@@ -656,55 +675,6 @@ private extension DailyWorkflowKind {
     }
 }
 
-struct DailyPlanningSettingsSection: View {
-    @ObservedObject private var manager = DailyPlanningManager.shared
-
-    var body: some View {
-        Section(header: Text("Daily Planning & Review")) {
-            Toggle(
-                "Morning planning",
-                isOn: enabledBinding(for: .morningPlanning)
-            )
-            DatePicker(
-                "Planning time",
-                selection: timeBinding(for: .morningPlanning),
-                displayedComponents: .hourAndMinute
-            )
-            .disabled(!manager.preferences.morningPlanningEnabled)
-
-            Toggle(
-                "Evening review",
-                isOn: enabledBinding(for: .eveningReview)
-            )
-            DatePicker(
-                "Review time",
-                selection: timeBinding(for: .eveningReview),
-                displayedComponents: .hourAndMinute
-            )
-            .disabled(!manager.preferences.eveningReviewEnabled)
-
-            Text(
-                "Sessions notify you in the notch, open when you hover, and stay until you finish. Times are stored on this Mac."
-            )
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        }
-    }
-
-    private func enabledBinding(for kind: DailyWorkflowKind) -> Binding<Bool> {
-        Binding(
-            get: { manager.preferences.isEnabled(kind) },
-            set: { manager.setEnabled($0, for: kind) }
-        )
-    }
-
-    private func timeBinding(for kind: DailyWorkflowKind) -> Binding<Date> {
-        Binding(
-            get: { manager.configuredTime(for: kind) },
-            set: { manager.setTime($0, for: kind) }
-        )
-    }
-}
 
 #Preview {
     DailyPlanningView()

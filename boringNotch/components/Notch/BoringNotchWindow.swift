@@ -8,6 +8,7 @@
 import Cocoa
 
 class BoringNotchWindow: NSPanel {
+    weak var keyboardInputOwner: NSTextView?
     override init(
         contentRect: NSRect,
         styleMask: NSWindow.StyleMask,
@@ -41,7 +42,7 @@ class BoringNotchWindow: NSPanel {
     }
     
     override var canBecomeKey: Bool {
-        false
+        keyboardInputOwner != nil
     }
     
     override var canBecomeMain: Bool {
