@@ -56,7 +56,6 @@ jobs:
           REPO: ${{ github.repository }}
           BRANCH_NAME: ${{ env.NIGHTLY_BRANCH }}
           PBXPROJ_PATH: ${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj
-          APPCAST_PATHS: "updater/${{ env.APPCAST_FILE }} updater/appcast.xml"
         run: |
           set -euo pipefail
           # Build the live branch head directly: no reservation commit, so what
@@ -66,6 +65,12 @@ jobs:
             echo "::error::Resolved ${BRANCH_NAME} head is not a 40-character SHA: '${SOURCE_SHA}'"; exit 1;
           }
 
+          # The dev appcast belongs to the exact source snapshot. Stable and
+          # beta releases are recorded in the main-branch appcast, which can
+          # be newer than the source commit; read that one from live main so a
+          # nightly cannot reuse a just-published beta build number.
+          APPCAST_SOURCES="updater/${APPCAST_FILE}@${SOURCE_SHA} updater/appcast.xml@main"
+
           # Build number: one above the highest version already published on
           # any channel, so Sparkle always sees a monotonic update. Stable and
           # beta releases are recorded in the main-branch appcast while this
@@ -73,8 +78,10 @@ jobs:
           # across both. A missing/unreadable file simply contributes nothing;
           # if nothing is readable at all, fall back to the number committed in
           # the Xcode project (no worse than that baseline).
-          RELEASED="$(for APPCAST in ${APPCAST_PATHS}; do
-            gh api "repos/${REPO}/contents/${APPCAST}?ref=${SOURCE_SHA}" \
+          RELEASED="$(for APPCAST_SOURCE in ${APPCAST_SOURCES}; do
+            APPCAST="${APPCAST_SOURCE%@*}"
+            APPCAST_REF="${APPCAST_SOURCE##*@}"
+            gh api "repos/${REPO}/contents/${APPCAST}?ref=${APPCAST_REF}" \
               --jq '.content' 2>/dev/null | base64 --decode \
               | grep -Eo 'sparkle:version(="|>)[0-9]+' | grep -Eo '[0-9]+$'
           done | sort -n | tail -1 || true)"
