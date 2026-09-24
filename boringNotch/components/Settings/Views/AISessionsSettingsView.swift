@@ -18,7 +18,7 @@ struct AISessionsSettingsView: View {
         Form {
             Section {
                 Toggle("Show local AI sessions in the notch", isOn: $isEnabled)
-                Text("Reads recent Codex and Claude Code session files on this Mac. Session messages are shown only in the notch and are not uploaded by this feature.")
+                Text("Reads recent local session files from Codex, Claude Code, and OpenClaw. Session messages are shown only in the notch and are not uploaded by this feature.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } header: {

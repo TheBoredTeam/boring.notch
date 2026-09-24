@@ -56,4 +56,26 @@ final class AISessionScannerTests: XCTestCase {
         XCTAssertEqual(completed.status, .idle)
         XCTAssertEqual(completed.latestMessage, "Finished")
     }
+
+    func testOpenClawToolCallIsWorkingAndAssistantReplyIsIdle() throws {
+        let lines = [
+            #"{"type":"session","id":"session-3","cwd":"/tmp/workspace"}"#,
+            #"{"type":"message","message":{"role":"user","content":[{"type":"text","text":"Help"}]}}"#,
+            #"{"type":"message","message":{"role":"assistant","content":[{"type":"thinking","thinking":"private"},{"type":"toolCall","name":"read"}]}}"#,
+        ]
+        let file = URL(fileURLWithPath: "/tmp/agents/main/sessions/session-3.jsonl")
+        let working = try XCTUnwrap(AISessionScanner.parseOpenClaw(lines: lines, file: file, modifiedAt: Date()))
+        XCTAssertEqual(working.id, "openclaw:session-3")
+        XCTAssertEqual(working.projectName, "workspace")
+        XCTAssertEqual(working.status, .working)
+        XCTAssertNil(working.latestMessage)
+
+        let completed = try XCTUnwrap(AISessionScanner.parseOpenClaw(
+            lines: lines + [#"{"type":"message","message":{"role":"assistant","content":[{"type":"text","text":"Finished"}]}}"#],
+            file: file,
+            modifiedAt: Date()
+        ))
+        XCTAssertEqual(completed.status, .idle)
+        XCTAssertEqual(completed.latestMessage, "Finished")
+    }
 }
