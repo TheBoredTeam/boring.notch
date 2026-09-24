@@ -170,18 +170,22 @@ class WorkflowSmokeTests(unittest.TestCase):
 
     def test_nightly_build_number_is_derived_not_reserved(self) -> None:
         # The counter file and its signed reservation commit are gone: the
-        # build number is one above the last released sparkle:version on the
-        # dev channel, floored by the number committed in the Xcode project.
+        # build number is one above the highest released sparkle:version across
+        # every channel, floored by the number committed in the Xcode project.
         self.assertNotIn(".github/build-number", self.nightly)
         self.assertNotIn("group: release-build-number", self.nightly)
         self.assertIn("sparkle:version", self.nightly)
-        # The ceiling is the max sparkle:version across every channel appcast:
-        # the dev channel's own appcast plus the stable/beta appcast on main.
+        # The dev appcast is read from the source being built; stable/beta is
+        # read from live main so a beta published after the source snapshot is
+        # still part of the ceiling.
         self.assertIn(
-            'APPCAST_PATHS: "updater/${{ env.APPCAST_FILE }} updater/appcast.xml"',
+            'APPCAST_SOURCES="updater/${APPCAST_FILE}@${SOURCE_SHA} updater/appcast.xml@main"',
             self.nightly,
         )
-        self.assertIn("for APPCAST in ${APPCAST_PATHS}", self.nightly)
+        self.assertIn("for APPCAST_SOURCE in ${APPCAST_SOURCES}", self.nightly)
+        self.assertIn('APPCAST="${APPCAST_SOURCE%@*}"', self.nightly)
+        self.assertIn('APPCAST_REF="${APPCAST_SOURCE##*@}"', self.nightly)
+        self.assertIn('?ref=${APPCAST_REF}"', self.nightly)
         # Both Sparkle serializations: generate_appcast writes the element
         # form (<sparkle:version>274</sparkle:version>); accept the attribute
         # form too so hand-edited appcasts still count.
@@ -211,11 +215,15 @@ class WorkflowSmokeTests(unittest.TestCase):
         self.assertIn('grep -Eo \'sparkle:version(="|>)[0-9]+\'', self.release)
         self.assertIn("CURRENT_PROJECT_VERSION", self.release)
         # Identical cross-channel ceiling: max sparkle:version across the dev
-        # appcast and the stable/beta appcast.
+        # appcast at the built source and the stable/beta appcast at live main.
         self.assertIn(
-            'APPCAST_PATHS: "updater/appcast-dev.xml updater/appcast.xml"', self.release
+            'APPCAST_SOURCES="updater/appcast-dev.xml@${SOURCE_SHA} updater/appcast.xml@main"',
+            self.release,
         )
-        self.assertIn("for APPCAST in ${APPCAST_PATHS}", self.release)
+        self.assertIn("for APPCAST_SOURCE in ${APPCAST_SOURCES}", self.release)
+        self.assertIn('APPCAST="${APPCAST_SOURCE%@*}"', self.release)
+        self.assertIn('APPCAST_REF="${APPCAST_SOURCE##*@}"', self.release)
+        self.assertIn('?ref=${APPCAST_REF}"', self.release)
         # The derivation runs only for fresh releases; resume runs publish an
         # already-stamped draft and must not re-derive a build number.
         derive_block = self.release.split("Derive build number", 1)[1].split("- name:", 1)[0]
@@ -228,6 +236,25 @@ class WorkflowSmokeTests(unittest.TestCase):
             )
         self.assertIn('echo "build_number=$BUILD_NUMBER"', self.release)
         self.assertIn("build_number: ${{ needs.preparation.outputs.build_number }}", self.release)
+
+    def test_build_number_uses_live_main_beta_and_cannot_reuse_its_build(self) -> None:
+        # Regression for the nightly/beta collision: the source snapshot has
+        # nightly 277, while main has already published beta 278.
+        source_appcast_builds = [277]
+        main_appcast_builds = [271, 278]
+        project_build = 271
+        released = max(source_appcast_builds + main_appcast_builds)
+        build_number = (
+            released + 1 if released > project_build else project_build + 1
+        )
+
+        self.assertEqual(released, 278)
+        self.assertEqual(build_number, 279)
+        for workflow in (self.nightly, self.release):
+            with self.subTest(workflow="branch-aware appcasts"):
+                self.assertIn("@${SOURCE_SHA} updater/appcast.xml@main", workflow)
+                self.assertIn("?ref=${APPCAST_REF}", workflow)
+                self.assertIn("BUILD_NUMBER=\"$(( RELEASED > BASE_BUILD ?", workflow)
 
     def test_nightly_gates_manual_runs_with_the_shared_admin_action(self) -> None:
         action = (
@@ -294,6 +321,37 @@ class WorkflowSmokeTests(unittest.TestCase):
         self.assertNotIn("actions/attest", self.release)
         self.assertNotIn("artifact-metadata", self.release)
         self.assertNotIn('startswith("nightly-")', self.release)
+
+    def test_release_never_probes_releases_by_tag_for_draft_state(self) -> None:
+        # The /releases/tags REST endpoint 404s for draft releases even with
+        # write access, so release-state decisions must never call it.
+        # (Comments may mention the endpoint; call sites may not.)
+        # gh release view resolves drafts via the list API instead.
+        self.assertNotRegex(self.release, r'gh api "repos/[^"]*/releases/tags')
+        # Five call sites: resume probe, two notes reads, stable publish, beta publish.
+        self.assertEqual(self.release.count('gh release view "'), 5)
+        stable_block = self.release.split("  publish_stable:", 1)[1].split("  publish_beta:", 1)[0]
+        beta_block = self.release.split("  publish_beta:", 1)[1].split("  upgrade-brew:", 1)[0]
+        for job, block in (("publish_stable", stable_block), ("publish_beta", beta_block)):
+            self.assertIn('gh release view "$TAG"', block, job)
+            self.assertIn("--json isDraft", block, job)
+            self.assertIn("is already published", block, job)
+            self.assertIn("does not exist; expected the draft", block, job)
+
+    def test_release_resume_reads_the_draft_target_commitish(self) -> None:
+        # Resuming from a draft must recover its source commit; the
+        # list-backed gh release view exposes it as targetCommitish.
+        self.assertIn('gh release view "$TAG" --repo "$REPO" --json isDraft,targetCommitish', self.release)
+        self.assertIn("jq -r '.isDraft'", self.release)
+        self.assertIn("jq -r '.targetCommitish'", self.release)
+        self.assertIn('grep -q \'release not found\'', self.release)
+
+    def test_release_resume_notes_come_from_the_draft_release(self) -> None:
+        # Resume regenerates release notes from the existing draft; probing
+        # it must work while the release is still a draft.
+        resume_block = self.release.split("Generate release notes", 1)[1].split("- name:", 1)[0]
+        self.assertIn('gh release view "v${VERSION}" --repo "$REPO" --json name', resume_block)
+        self.assertIn('gh release view "v${VERSION}" --repo "$REPO" --json body', resume_block)
 
 
 if __name__ == "__main__":
