@@ -37,7 +37,7 @@ struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
     private func renderDragPreview() -> NSImage {
         let renderer = ImageRenderer(content: dragPreview())
         renderer.scale = NSScreen.main?.backingScaleFactor ?? 2
-        return renderer.nsImage ?? viewModel.thumbnail ?? item.icon
+        return renderer.nsImage ?? viewModel.thumbnail ?? viewModel.icon
     }
 
     final class InteractionView: NSView, NSDraggingSource, ShelfItemInteractionSurface {

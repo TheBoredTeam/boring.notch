@@ -1,21 +1,29 @@
 import Foundation
 import IOKit
 import IOKit.ps
+import os.lock
 
 /// Manages and monitors battery status changes on the device
 /// - Note: This class uses the IOKit framework to monitor battery status
-final class BatteryActivityManager {
+final class BatteryActivityManager: @unchecked Sendable {
     static let shared = BatteryActivityManager()
 
+    // The IOKit run loop source fires on whichever run loop `startMonitoring` ran
+    // on, while observers are added from the main actor: every mutable field below
+    // lives behind this one lock.
+    private struct State: Sendable {
+        // Stable token per observer: array indices shifted on removal and
+        // silently invalidated every later caller's handle.
+        var observers: [Int: @Sendable (BatteryEvent) -> Void] = [:]
+        var nextObserverId: Int = 0
+        var previousBatteryInfo: BatteryInfo?
+        // Health capacity means an IORegistry property-dictionary copy; it moves on the
+        // order of weeks, so refresh every 30 minutes or on a plug/unplug transition.
+        var cachedHealthCapacity: (value: Float?, date: Date, isPluggedIn: Bool)?
+    }
+
+    private let state = OSAllocatedUnfairLock(initialState: State())
     private var batterySource: CFRunLoopSource?
-    // Stable token per observer: array indices shifted on removal and
-    // silently invalidated every later caller's handle.
-    private var observers: [Int: (BatteryEvent) -> Void] = [:]
-    private var nextObserverId: Int = 0
-    private var previousBatteryInfo: BatteryInfo?
-    // Health capacity means an IORegistry property-dictionary copy; it moves on the
-    // order of weeks, so refresh every 30 minutes or on a plug/unplug transition.
-    private var cachedHealthCapacity: (value: Float?, date: Date, isPluggedIn: Bool)?
     // actor-based queue to serialize notification delivery
     private let notificationQueueActor = NotificationQueue()
 
@@ -102,13 +110,15 @@ final class BatteryActivityManager {
             return
         }
         batterySource = powerSource
-        CFRunLoopAddSource(CFRunLoopGetCurrent(), powerSource, .defaultMode)
+        // Pinned to main: this runs from the lazy singleton init, so the current
+        // run loop is whichever thread touched `shared` first and may never be serviced.
+        CFRunLoopAddSource(CFRunLoopGetMain(), powerSource, .defaultMode)
     }
 
     /// Stops monitoring battery changes
     private func stopMonitoring() {
         if let powerSource = batterySource {
-            CFRunLoopRemoveSource(CFRunLoopGetCurrent(), powerSource, .defaultMode)
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), powerSource, .defaultMode)
             batterySource = nil
         }
     }
@@ -128,9 +138,13 @@ final class BatteryActivityManager {
     /// Checks for changes in battery status and notifies observers
     private func notifyBatteryChanges() {
         let batteryInfo = getBatteryInfo()
+        let previous = state.withLock { s -> BatteryInfo? in
+            defer { s.previousBatteryInfo = batteryInfo }
+            return s.previousBatteryInfo
+        }
 
         // Check for changes
-        if let previousInfo = previousBatteryInfo {
+        if let previousInfo = previous {
             // Usar la función auxiliar para cada propiedad
             checkAndNotify(
                 previous: previousInfo.isPluggedIn,
@@ -190,9 +204,6 @@ final class BatteryActivityManager {
             enqueueNotification(.maxCapacityChanged(capacity: batteryInfo.maxCapacity))
             enqueueNotification(.adapterWattageChanged(watts: batteryInfo.maxAdapterWatts))
         }
-
-        // Update previous battery info
-        previousBatteryInfo = batteryInfo
     }
 
     /// Enqueues a notification to be processed using the concurrency-based queue actor.
@@ -207,18 +218,8 @@ final class BatteryActivityManager {
     /// Initializes the battery information when the manager starts
     /// - Returns: Current battery information
     func initializeBatteryInfo() -> BatteryInfo {
-        previousBatteryInfo = getBatteryInfo()
-        guard let batteryInfo = previousBatteryInfo else {
-            return BatteryInfo(
-                isPluggedIn: false,
-                isCharging: false,
-                currentCapacity: 0,
-                maxCapacity: nil,
-                isInLowPowerMode: false,
-                timeToFullCharge: 0,
-                timeToDischarge: 0
-            )
-        }
+        let batteryInfo = getBatteryInfo()
+        state.withLock { $0.previousBatteryInfo = batteryInfo }
         return batteryInfo
     }
 
@@ -299,13 +300,14 @@ final class BatteryActivityManager {
 
     /// Memoized health capacity; see `cachedHealthCapacity` for the refresh cadence.
     private func healthCapacity(isPluggedIn: Bool) -> Float? {
-        if let cached = cachedHealthCapacity,
+        let cached = state.withLock { $0.cachedHealthCapacity }
+        if let cached,
            cached.isPluggedIn == isPluggedIn,
            Date().timeIntervalSince(cached.date) < 1800 {
             return cached.value
         }
         let value = getBatteryHealthCapacity()
-        cachedHealthCapacity = (value, Date(), isPluggedIn)
+        state.withLock { $0.cachedHealthCapacity = (value, Date(), isPluggedIn) }
         return value
     }
 
@@ -349,17 +351,19 @@ final class BatteryActivityManager {
     /// Adds an observer to listen to battery changes
     /// - Parameter observer: The observer closure to be called on battery events
     /// - Returns: The ID of the observer for later removal
-    func addObserver(_ observer: @escaping (BatteryEvent) -> Void) -> Int {
-        let id = nextObserverId
-        nextObserverId += 1
-        observers[id] = observer
-        return id
+    func addObserver(_ observer: @escaping @Sendable (BatteryEvent) -> Void) -> Int {
+        state.withLock { s -> Int in
+            let id = s.nextObserverId
+            s.nextObserverId += 1
+            s.observers[id] = observer
+            return id
+        }
     }
 
     /// Removes an observer by its ID
     /// - Parameter id: The ID of the observer to be removed
     func removeObserver(byId id: Int) {
-        observers.removeValue(forKey: id)
+        state.withLock { _ = $0.observers.removeValue(forKey: id) }
     }
 
     /// Notifies all observers of a battery event
@@ -367,7 +371,10 @@ final class BatteryActivityManager {
     private func notifyObservers(event: BatteryEvent) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            for observer in self.observers.values {
+            // Copy the handlers out before calling them: an observer that adds
+            // or removes one would otherwise re-enter the lock.
+            let observers = self.state.withLock { Array($0.observers.values) }
+            for observer in observers {
                 observer(event)
             }
         }

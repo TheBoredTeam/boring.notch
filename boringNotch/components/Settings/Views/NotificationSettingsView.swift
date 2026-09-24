@@ -19,7 +19,7 @@ struct NotificationSettingsView: View {
     @Default(.notificationAllowedApps) private var allowedApps
     @State private var isAccessibilityAuthorized = true
 
-    private var selectedApps: [NotificationApp] {
+    @MainActor private var selectedApps: [NotificationApp] {
         allowedApps
             .map { NotificationApp(bundleID: $0, name: displayName(for: $0)) }
             .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
@@ -145,13 +145,16 @@ struct NotificationSettingsView: View {
             }
         }
     }
+}
 
-    private func displayName(for bundleID: String) -> String {
-        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID),
-              let name = Bundle(url: url)?.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
-        else {
-            return bundleID
-        }
-        return name
-    }
+/// LaunchServices + `Bundle(url:)` are too slow to repeat for every app on every render.
+@MainActor private var displayNameCache: [String: String] = [:]
+
+@MainActor private func displayName(for bundleID: String) -> String {
+    if let cached = displayNameCache[bundleID] { return cached }
+    let name = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID)
+        .flatMap { Bundle(url: $0)?.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String }
+        ?? bundleID
+    displayNameCache[bundleID] = name
+    return name
 }

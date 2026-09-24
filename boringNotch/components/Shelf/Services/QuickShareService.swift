@@ -103,7 +103,7 @@ final class QuickShareService: ObservableObject {
     @Published var isPickerOpen = false
     private var cachedApplicationURLsByName: [String: URL]?
     private var cachedServices: [String: NSSharingService] = [:]
-    private var cachedIcons: [String: NSImage] = [:]
+    private var cachedIcons: [String: NSImage?] = [:]
     private let applicationIconIndex = ApplicationIconIndex()
     private var isApplicationIconCacheLoading = false
     // Hold security-scoped URLs during sharing
@@ -120,12 +120,20 @@ final class QuickShareService: ObservableObject {
 
     @MainActor
     func icon(for providerId: String, size: CGFloat) -> NSImage? {
-        if let cachedIcon = cachedIcons[providerId] {
-            return resizedIcon(cachedIcon, to: size)
+        let cacheKey = "\(providerId)@\(size)"
+        if let cachedIcon = cachedIcons[cacheKey] {
+            return cachedIcon
         }
 
+        // Misses are cached too; the whole cache is dropped once the application index loads.
+        let icon = resolveIcon(for: providerId, size: size)
+        cachedIcons[cacheKey] = icon
+        return icon
+    }
+
+    @MainActor
+    private func resolveIcon(for providerId: String, size: CGFloat) -> NSImage? {
         if let providerIcon = applicationIcon(for: providerId) {
-            cachedIcons[providerId] = providerIcon
             return resizedIcon(providerIcon, to: size)
         }
 
@@ -158,6 +166,7 @@ final class QuickShareService: ObservableObject {
 
         Task(priority: .utility) { @MainActor in
             cachedApplicationURLsByName = await applicationIconIndex.urlsByName()
+            cachedIcons.removeAll()
             isApplicationIconCacheLoading = false
         }
     }

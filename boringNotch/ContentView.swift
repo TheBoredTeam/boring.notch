@@ -12,6 +12,7 @@ import Defaults
 import KeyboardShortcuts
 import SwiftUI
 import SwiftUIIntrospect
+import UniformTypeIdentifiers
 
 @MainActor
 struct ContentView: View {
@@ -46,6 +47,9 @@ struct ContentView: View {
     private let zeroHeightHoverPadding: CGFloat = 10
     private let nowPlayingFallbackNoticeWidth: CGFloat = 330
 
+    /// Constant across every pass; rebuilding the array per body was pure churn.
+    private static let dropContentTypes: [UTType] = [.fileURL, .url, .utf8PlainText, .plainText, .data]
+
     // MARK: - Corner Radius Scaling
     private var cornerRadiusScaleFactor: CGFloat? {
         guard Defaults[.cornerRadiusScaling] else { return nil }
@@ -60,7 +64,7 @@ struct ContentView: View {
         Defaults[.compactMode] ? compactCornerRadiusInsets.opened : cornerRadiusInsets.opened
     }
 
-    private var topCornerRadius: CGFloat {
+    private func topCornerRadius(scaledBy scaleFactor: CGFloat?) -> CGFloat {
         // If the notch is open, return the opened radius.
         if vm.notchState == .open {
             return openedInsets.top
@@ -68,27 +72,32 @@ struct ContentView: View {
 
         // For the closed notch, scale if enabled
         let baseClosedTop = cornerRadiusInsets.closed.top
-        guard let scaleFactor = cornerRadiusScaleFactor else {
+        guard let scaleFactor else {
             return displayClosedNotchHeight > 0 ? baseClosedTop : 0
         }
         return max(0, baseClosedTop * scaleFactor)
     }
 
+    private var topCornerRadius: CGFloat {
+        topCornerRadius(scaledBy: cornerRadiusScaleFactor)
+    }
+
     private var currentNotchShape: NotchShape {
         // Scale bottom corner radius for closed notch shape when scaling is enabled.
+        let scaleFactor = cornerRadiusScaleFactor
         let baseClosedBottom = cornerRadiusInsets.closed.bottom
         let bottomCorner: CGFloat
 
         if vm.notchState == .open {
             bottomCorner = openedInsets.bottom
-        } else if let scaleFactor = cornerRadiusScaleFactor {
+        } else if let scaleFactor {
             bottomCorner = max(0, baseClosedBottom * scaleFactor)
         } else {
             bottomCorner = displayClosedNotchHeight > 0 ? baseClosedBottom : 0
         }
 
         return NotchShape(
-            topCornerRadius: topCornerRadius,
+            topCornerRadius: topCornerRadius(scaledBy: scaleFactor),
             bottomCornerRadius: bottomCorner
         )
     }
@@ -169,8 +178,9 @@ struct ContentView: View {
         if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
             return .osd(coordinator.sneakPeekState(for: vm.screenUUID).type)
         }
-        if !liveActivities.isEmpty, !vm.hideOnClosed {
-            return .activities(liveActivities)
+        let activities = liveActivities
+        if !activities.isEmpty, !vm.hideOnClosed {
+            return .activities(activities)
         }
         if !coordinator.expandingView.show,
            !musicManager.isPlaying,
@@ -238,7 +248,12 @@ struct ContentView: View {
     // instead of fully hiding it. This preserves layout while avoiding visual artifacts.
     private var isNotchHeightZero: Bool { vm.effectiveClosedNotchHeight == 0 }
 
-    private var displayClosedNotchHeight: CGFloat { isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight }
+    private var displayClosedNotchHeight: CGFloat {
+        // Read once: effectiveClosedNotchHeight does a screen lookup, and this
+        // property is hit a dozen-plus times per body pass.
+        let height = vm.effectiveClosedNotchHeight
+        return height == 0 ? 10 : height
+    }
 
     var body: some View {
         @Bindable var dropInteraction = vm.dropInteraction
@@ -249,6 +264,9 @@ struct ContentView: View {
             let scaleFactor = 1.0 + gestureProgress * 0.01
             return max(0.6, scaleFactor)
         }()
+
+        let gesturesEnabled = Defaults[.enableGestures]
+        let fallbackNoticeShown = shouldDisplayNowPlayingFallbackNotice
 
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
@@ -304,19 +322,19 @@ struct ContentView: View {
                             doOpen()
                         }
                     }
-                    .conditionalModifier(Defaults[.enableGestures] && !shouldDisplayNowPlayingFallbackNotice) { view in
+                    .conditionalModifier(gesturesEnabled && !fallbackNoticeShown) { view in
                         view
                             .panGesture(direction: .down) { translation, phase in
                                 handleDownGesture(translation: translation, phase: phase)
                             }
                     }
-                    .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures] && !shouldDisplayNowPlayingFallbackNotice) { view in
+                    .conditionalModifier(Defaults[.closeGestureEnabled] && gesturesEnabled && !fallbackNoticeShown) { view in
                         view
                             .panGesture(direction: .up) { translation, phase in
                                 handleUpGesture(translation: translation, phase: phase)
                             }
                     }
-                    .conditionalModifier(Defaults[.enableHorizontalMediaGestures] && Defaults[.enableGestures] && !shouldDisplayNowPlayingFallbackNotice) { view in
+                    .conditionalModifier(Defaults[.enableHorizontalMediaGestures] && gesturesEnabled && !fallbackNoticeShown) { view in
                         view
                             .panGesture(direction: .left) { translation, phase in
                                 handleNextTrackGesture(translation: translation, phase: phase)
@@ -431,6 +449,12 @@ struct ContentView: View {
     @ViewBuilder
     func NotchLayout() -> some View {
         @Bindable var dropInteraction = vm.dropInteraction
+        let sneakPeekShowing = coordinator.shouldShowSneakPeek(on: vm.screenUUID)
+        let sneakPeekType = coordinator.sneakPeekState(for: vm.screenUUID).type
+        let sneakPeekBinding = coordinator.binding(for: vm.screenUUID)
+        let sneakPeekStyle = Defaults[.sneakPeekStyles]
+        let inlineOSD = Defaults[.inlineOSD]
+        let activities = liveActivities
 
         VStack(alignment: .leading) {
             VStack(alignment: .leading) {
@@ -476,18 +500,18 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: displayClosedNotchHeight, alignment: .center)
-                        } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
+                        } else if sneakPeekShowing && inlineOSD && (sneakPeekType != .music) && (sneakPeekType != .battery) && vm.notchState == .closed {
                            InlineOSD(
-                              type: coordinator.binding(for: vm.screenUUID).type,
-                              value: coordinator.binding(for: vm.screenUUID).value,
-                              icon: coordinator.binding(for: vm.screenUUID).icon,
-                              accent: coordinator.binding(for: vm.screenUUID).accent,
+                              type: sneakPeekBinding.type,
+                              value: sneakPeekBinding.value,
+                              icon: sneakPeekBinding.icon,
+                              accent: sneakPeekBinding.accent,
                               hoverAnimation: $isHovering,
                               gestureProgress: $gestureProgress
                           )
                               .transition(.opacity)
-                      } else if !liveActivities.isEmpty && vm.notchState == .closed && !vm.hideOnClosed {
-                          LiveActivityStack(items: liveActivities, index: $activityIndex) { item in
+                      } else if !activities.isEmpty && vm.notchState == .closed && !vm.hideOnClosed {
+                          LiveActivityStack(items: activities, index: $activityIndex) { item in
                               switch item {
                               case .notification(let notification):
                                   NotificationLiveActivity(notification: notification)
@@ -515,13 +539,13 @@ struct ContentView: View {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        }
 
-                        if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
-                           if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
+                        if sneakPeekShowing {
+                           if (sneakPeekType != .music) && (sneakPeekType != .battery) && !inlineOSD && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
-                                  eventType: coordinator.binding(for: vm.screenUUID).type,
-                                  value: coordinator.binding(for: vm.screenUUID).value,
-                                  icon: coordinator.binding(for: vm.screenUUID).icon,
-                                  accent: coordinator.binding(for: vm.screenUUID).accent,
+                                  eventType: sneakPeekBinding.type,
+                                  value: sneakPeekBinding.value,
+                                  icon: sneakPeekBinding.icon,
+                                  accent: sneakPeekBinding.accent,
                                   sendEventBack: { newVal in
                                       switch coordinator.sneakPeekState(for: vm.screenUUID).type {
                                       case .volume:
@@ -538,8 +562,8 @@ struct ContentView: View {
                               .padding(.trailing, 8)
                           }
                            // Old sneak peek music
-                           else if coordinator.sneakPeekState(for: vm.screenUUID).type == .music {
-                               if vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard {
+                           else if sneakPeekType == .music {
+                               if vm.notchState == .closed && !vm.hideOnClosed && sneakPeekStyle == .standard {
                                    HStack(alignment: .center) {
                                        Image(systemName: "music.note")
                                        GeometryReader { geo in
@@ -553,7 +577,7 @@ struct ContentView: View {
                        }
                         }
                       }
-                      .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (vm.notchState == .closed))) { view in
+                      .conditionalModifier((sneakPeekShowing && (sneakPeekType == .music) && vm.notchState == .closed && !vm.hideOnClosed && sneakPeekStyle == .standard) || (sneakPeekShowing && (sneakPeekType != .music) && (vm.notchState == .closed))) { view in
                           view
                               .fixedSize()
                       }
@@ -609,7 +633,7 @@ struct ContentView: View {
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
         }
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))
+        .onDrop(of: Self.dropContentTypes, delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))
     }
 
     private func nowPlayingFallbackNotice(_ notice: NowPlayingFallbackNotice) -> some View {
@@ -699,22 +723,27 @@ struct ContentView: View {
 
     @ViewBuilder
     func MusicLiveActivity() -> some View {
+        let notchHeight = displayClosedNotchHeight
+        let radiusScale = cornerRadiusScaleFactor
+        let coloredSpectrogram = Defaults[.coloredSpectrogram]
+        let inlineSneakPeekStyle = Defaults[.sneakPeekStyles] == .inline
+
         HStack(spacing: 0) {
             // Closed-mode album art: scale padding and corner radius according to cornerRadiusScaleFactor
-            let baseArtSize = displayClosedNotchHeight - 12
+            let baseArtSize = notchHeight - 12
             let scaledArtSize: CGFloat = {
-                if let scale = cornerRadiusScaleFactor {
-                    return displayClosedNotchHeight - 12 * scale
+                if let scale = radiusScale {
+                    return notchHeight - 12 * scale
                 }
                 return baseArtSize
             }()
             // The art's top/bottom gap to the pill; the leading offset below
             // trims the row's edge slack down to this same inset.
-            let artVerticalInset = (displayClosedNotchHeight - scaledArtSize) / 2
+            let artVerticalInset = (notchHeight - scaledArtSize) / 2
 
             let closedCornerRadius: CGFloat = {
                 let base = MusicPlayerImageSizes.cornerRadiusInset.closed
-                if let scale = cornerRadiusScaleFactor {
+                if let scale = radiusScale {
                     return max(0, base * scale)
                 }
                 return base
@@ -744,14 +773,14 @@ struct ContentView: View {
                             && coordinator.expandingView.type == .music {
                             MarqueeText(
                                 musicManager.songTitle,
-                                color: Defaults[.coloredSpectrogram]
+                                color: coloredSpectrogram
                                     ? Color(nsColor: musicManager.avgColor) : Color.gray,
                                 delayDuration: 0.4,
                                 frameWidth: inlineMusicPeekLabelWidth
                             )
                             .opacity(
                                 (coordinator.expandingView.show
-                                    && Defaults[.sneakPeekStyles] == .inline)
+                                    && inlineSneakPeekStyle)
                                     ? 1 : 0
                             )
                             Spacer(minLength: vm.closedNotchSize.width)
@@ -761,14 +790,14 @@ struct ContentView: View {
                                 .truncationMode(.tail)
                                 .frame(width: inlineMusicPeekLabelWidth, alignment: .trailing)
                                 .foregroundStyle(
-                                    Defaults[.coloredSpectrogram]
+                                    coloredSpectrogram
                                         ? Color(nsColor: musicManager.avgColor)
                                         : Color.gray
                                 )
                                 .opacity(
                                     (coordinator.expandingView.show
                                         && coordinator.expandingView.type == .music
-                                        && Defaults[.sneakPeekStyles] == .inline)
+                                        && inlineSneakPeekStyle)
                                         ? 1 : 0
                                 )
                         }
@@ -780,7 +809,7 @@ struct ContentView: View {
             HStack {
                 MusicVisualizer(
                     isPlaying: musicManager.isPlaying,
-                    tintColor: Defaults[.coloredSpectrogram]
+                    tintColor: coloredSpectrogram
                     ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
                     : Color.gray
                 )
@@ -789,18 +818,18 @@ struct ContentView: View {
             .frame(
                 width: max(
                     0,
-                    displayClosedNotchHeight - 12
+                    notchHeight - 12
                         + gestureProgress / 2
                 ),
                 height: max(
                     0,
-                    displayClosedNotchHeight - 12
+                    notchHeight - 12
                 ),
                 alignment: .center
             )
         }
         .frame(
-            height: displayClosedNotchHeight,
+            height: notchHeight,
             alignment: .center
         )
     }
@@ -813,7 +842,7 @@ struct ContentView: View {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
+        .onDrop(of: Self.dropContentTypes, isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
             dropInteraction.dropEvent = true
             ShelfStateViewModel.shared.load(providers)
             return true

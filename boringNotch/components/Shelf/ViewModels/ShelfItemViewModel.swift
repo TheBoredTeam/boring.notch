@@ -15,20 +15,35 @@ import ObjectiveC
 @MainActor
 final class ShelfItemViewModel: ObservableObject {
     @Published private(set) var item: ShelfItem
+    /// Cached because deriving these resolves a security-scoped bookmark (and may read the file).
+    @Published private(set) var displayName: String
+    private var cachedIcon: NSImage?
 
     @Published var thumbnail: NSImage?
     @Published var isDropTargeted: Bool = false
-    @Published var isRenaming: Bool = false
-    @Published var draftTitle: String = ""
     private var sharingLifecycle: SharingLifecycleDelegate?
-    private var quickShareLifecycle: SharingLifecycleDelegate?
     private var sharingAccessingURLs: [URL] = []
 
     private let selection = ShelfSelectionModel.shared
 
     init(item: ShelfItem) {
         self.item = item
-        self.draftTitle = item.displayName
+        self.displayName = item.displayName
+    }
+
+    /// Re-derives the cached name/icon only when the underlying item actually changed.
+    func update(item: ShelfItem) {
+        guard item != self.item else { return }
+        self.item = item
+        self.displayName = item.displayName
+        self.cachedIcon = nil
+    }
+
+    var icon: NSImage {
+        if let cachedIcon { return cachedIcon }
+        let image = item.icon
+        cachedIcon = image
+        return image
     }
 
     func loadThumbnail() async {

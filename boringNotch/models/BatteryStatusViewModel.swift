@@ -5,11 +5,8 @@ import IOKit.ps
 import SwiftUI
 
 /// A view model that manages and monitors the battery status of the device
+@MainActor
 final class BatteryStatusViewModel: ObservableObject {
-    private var wasCharging: Bool = false
-    private var powerSourceChangedCallback: IOPowerSourceCallbackType?
-    private var runLoopSource: Unmanaged<CFRunLoopSource>?
-
     @Published private(set) var levelBattery: Float = 0.0
     @Published private(set) var maxCapacity: Float?
     @Published private(set) var isPluggedIn: Bool = false
@@ -66,8 +63,9 @@ final class BatteryStatusViewModel: ObservableObject {
     /// Sets up the monitor to observe battery events
     private func setupMonitor() {
         managerBatteryId = managerBattery.addObserver { [weak self] event in
-            guard let self = self else { return }
-            self.handleBatteryEvent(event)
+            // `notifyObservers` always delivers on the main queue, so this is a
+            // static hop rather than a dispatch — it keeps delivery synchronous.
+            MainActor.assumeIsolated { self?.handleBatteryEvent(event) }
         }
     }
 

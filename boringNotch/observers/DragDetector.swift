@@ -6,6 +6,7 @@
 //
 
 import Cocoa
+import Defaults
 import UniformTypeIdentifiers
 
 final class DragDetector {
@@ -23,6 +24,7 @@ final class DragDetector {
     private var mouseUpMonitor: Any?
 
     private var pasteboardChangeCount: Int = -1
+    private var evaluatedChangeCount: Int = -1
     private var isDragging: Bool = false
     private var isContentDragging: Bool = false
     private var hasEnteredNotchRegion: Bool = false
@@ -58,6 +60,7 @@ final class DragDetector {
         mouseDownMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown]) { [weak self] _ in
             guard let self = self else { return }
             self.pasteboardChangeCount = self.dragPasteboard.changeCount
+            self.evaluatedChangeCount = -1
             self.isDragging = true
             self.isContentDragging = false
             self.hasEnteredNotchRegion = false
@@ -66,13 +69,14 @@ final class DragDetector {
         // Track drag movement and notch region intersection
         mouseDraggedMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDragged]) { [weak self] _ in
             guard let self = self else { return }
-            guard self.isDragging else { return }
+            guard self.isDragging, Defaults[.boringShelf] else { return }
 
-            let newContent = self.dragPasteboard.changeCount != self.pasteboardChangeCount
-
-            // Detect if actual content is being dragged AND it's valid content
-            if newContent && !self.isContentDragging && self.hasValidDragContent() {
-                self.isContentDragging = true
+            let changeCount = self.dragPasteboard.changeCount
+            // Inspect the pasteboard once per change count; later events of the
+            // same drag reuse the verdict instead of hitting the pasteboard server.
+            if changeCount != self.pasteboardChangeCount, changeCount != self.evaluatedChangeCount {
+                self.evaluatedChangeCount = changeCount
+                self.isContentDragging = self.hasValidDragContent()
             }
 
             // Only process position when content is being dragged
@@ -100,6 +104,7 @@ final class DragDetector {
             self.isContentDragging = false
             self.hasEnteredNotchRegion = false
             self.pasteboardChangeCount = -1
+            self.evaluatedChangeCount = -1
         }
     }
 
