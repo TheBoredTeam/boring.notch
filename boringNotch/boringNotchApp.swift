@@ -474,6 +474,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             manager.onDidFinish = { [weak self] in
                 self?.dismissDailyWorkflow()
             }
+            manager.onOpenSettings = { [weak self] in
+                self?.vm.close()
+                self?.viewModels.values.forEach { $0.close() }
+                SettingsWindowController.shared.showWindow(tab: .dailyPlanning)
+            }
             manager.start()
         }
 

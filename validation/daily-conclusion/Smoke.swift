@@ -93,6 +93,13 @@ struct DiarySmoke {
         manager.saveConclusion()
         precondition(manager.conclusionPhase == .writing && manager.conclusionError != nil)
         precondition(manager.conclusionText.hasPrefix("# A small win"), "Failed save must retain text")
+        var openedSettings = false
+        manager.onOpenSettings = { openedSettings = true }
+        manager.openConclusionSettings()
+        precondition(openedSettings && manager.activeSession == nil && manager.pendingSession != nil)
+        precondition(manager.conclusionText.hasPrefix("# A small win"), "Opening settings must retain the draft")
+        precondition(manager.activatePendingSession(requestPresentation: false))
+        precondition(manager.conclusionPhase == .writing)
         manager.setConclusionDirectory(directory)
         precondition(manager.conclusionPreferences.directoryBookmark != nil)
         try await Task.sleep(for: .milliseconds(350))

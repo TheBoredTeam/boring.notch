@@ -66,7 +66,8 @@ class SettingsWindowController: NSWindowController {
         window.delegate = self
     }
     
-    func showWindow() {
+    func showWindow(tab: SettingsTab? = nil) {
+        if let tab { SettingsNavigation.shared.selectedTab = tab }
         // Set app to regular mode first
         NSApp.setActivationPolicy(.regular)
         

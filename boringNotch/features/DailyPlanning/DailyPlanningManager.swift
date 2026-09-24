@@ -67,6 +67,7 @@ final class DailyPlanningManager: ObservableObject {
 
     var onNeedsPresentation: (() -> Void)?
     var onDidFinish: (() -> Void)?
+    var onOpenSettings: (() -> Void)?
 
     private let store: DailyWorkflowPreferencesStore
     private let reminderService: DailyReminderProviding
@@ -250,6 +251,12 @@ final class DailyPlanningManager: ObservableObject {
     func advanceToConclusion() {
         guard offersConclusion, conclusionPhase == .review, !isFinishingSession else { return }
         conclusionPhase = .writing
+    }
+
+    func openConclusionSettings() {
+        guard conclusionPhase == .writing else { return }
+        returnActiveSessionToPrompt()
+        onOpenSettings?()
     }
 
     func returnToReview() {

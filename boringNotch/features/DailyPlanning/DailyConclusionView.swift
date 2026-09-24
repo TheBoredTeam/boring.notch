@@ -52,11 +52,17 @@ struct DailyConclusionView: View {
                     }
                     .frame(maxHeight: .infinity)
                     if let error = manager.conclusionError {
-                        Text(error)
-                            .font(.caption2)
-                            .foregroundStyle(.orange)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityLabel("Save error: \(error)")
+                        HStack(alignment: .firstTextBaseline, spacing: 12) {
+                            Text(error)
+                                .font(.caption2)
+                                .foregroundStyle(.orange)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityLabel("Save error: \(error)")
+                            Spacer(minLength: 0)
+                            Button("Open Settings", action: manager.openConclusionSettings)
+                                .buttonStyle(.plain)
+                                .foregroundStyle(Color.effectiveAccent)
+                        }
                     }
                 }
                 .padding(.top, 12)
