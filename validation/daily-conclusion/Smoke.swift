@@ -90,22 +90,25 @@ struct DiarySmoke {
         manager.returnToReview()
         precondition(manager.conclusionText.hasPrefix("# A small win"))
         manager.advanceToConclusion()
-        manager.saveConclusion(reduceMotion: false)
+        manager.saveConclusion()
         precondition(manager.conclusionPhase == .writing && manager.conclusionError != nil)
         precondition(manager.conclusionText.hasPrefix("# A small win"), "Failed save must retain text")
         manager.setConclusionDirectory(directory)
         precondition(manager.conclusionPreferences.directoryBookmark != nil)
         try await Task.sleep(for: .milliseconds(350))
         capture(view, name: "writing")
-        manager.saveConclusion(reduceMotion: false)
-        manager.saveConclusion(reduceMotion: false) // Double clicks must not duplicate files.
+        manager.saveConclusion()
+        manager.saveConclusion() // Double clicks must not duplicate files.
         try await Task.sleep(for: .milliseconds(900))
         precondition(manager.conclusionPhase == .filing && !manager.isFinishingSession)
         precondition(window.keyboardInputOwner == nil)
         capture(view, name: "card")
         try await Task.sleep(for: .milliseconds(1000))
         capture(view, name: "folder")
-        try await Task.sleep(for: .milliseconds(1350))
+        try await Task.sleep(for: .milliseconds(850))
+        precondition(!manager.isFinishingSession, "The farewell must wait for the folder to exit")
+        capture(view, name: "folder-exit")
+        try await Task.sleep(for: .milliseconds(500))
         precondition(manager.isFinishingSession)
         capture(view, name: "farewell")
         let files = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
@@ -136,7 +139,7 @@ struct DiarySmoke {
             if kind == .eveningReview && diaryEnabled {
                 fresh.advanceToConclusion()
                 fresh.conclusionText = " \n\t "
-                fresh.saveConclusion(reduceMotion: true)
+                fresh.saveConclusion()
                 precondition(fresh.savedConclusionURL == nil)
             } else {
                 precondition(!fresh.offersConclusion)

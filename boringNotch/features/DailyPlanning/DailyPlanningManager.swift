@@ -258,7 +258,7 @@ final class DailyPlanningManager: ObservableObject {
         conclusionError = nil
     }
 
-    func saveConclusion(reduceMotion: Bool) {
+    func saveConclusion() {
         guard let session = activeSession, session.kind == .eveningReview,
               conclusionPhase == .writing else { return }
         if savedConclusionURL != nil {
@@ -290,15 +290,17 @@ final class DailyPlanningManager: ObservableObject {
                 guard let self, self.activeSession == session else { return }
                 self.savedConclusionURL = url
                 self.conclusionPhase = .filing
-                try await Task.sleep(for: .seconds(reduceMotion ? 0.3 : 2.95))
-                guard !Task.isCancelled, self.activeSession == session else { return }
-                self.beginFinishingActiveSession()
             } catch {
                 guard let self, self.activeSession == session else { return }
                 self.conclusionPhase = .writing
                 self.conclusionError = "Couldn’t save your diary. Check the folder in Settings → Planning & Review, then try again. Your text is still here."
             }
         }
+    }
+
+    func completeConclusionAnimation() {
+        guard conclusionPhase == .filing, savedConclusionURL != nil else { return }
+        beginFinishingActiveSession()
     }
 
     func beginFinishingActiveSession() {

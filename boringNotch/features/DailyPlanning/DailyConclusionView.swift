@@ -31,7 +31,7 @@ struct DailyConclusionView: View {
                             .foregroundStyle(.white.opacity(0.8))
                             .frame(maxWidth: .infinity, alignment: .leading)
                         DailyWorkflowActionButton(title: isBusy ? String(localized: "Saving…") : String(localized: "End Review")) {
-                            manager.saveConclusion(reduceMotion: reduceMotion)
+                            manager.saveConclusion()
                         }
                         .disabled(isBusy)
                     }
@@ -76,8 +76,15 @@ struct DailyConclusionView: View {
             filed = false
             settled = false
             dismissed = false
-            if reduceMotion { folded = true; filed = true; settled = true; return }
             do {
+                if reduceMotion {
+                    folded = true
+                    filed = true
+                    settled = true
+                    try await Task.sleep(for: .milliseconds(300))
+                    manager.completeConclusionAnimation()
+                    return
+                }
                 try await Task.sleep(for: .milliseconds(30))
                 withAnimation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.75)) { folded = true }
                 try await Task.sleep(for: .milliseconds(900))
@@ -85,7 +92,17 @@ struct DailyConclusionView: View {
                 try await Task.sleep(for: .milliseconds(650))
                 withAnimation(.easeOut(duration: 0.25)) { settled = true }
                 try await Task.sleep(for: .milliseconds(850))
-                withAnimation(.timingCurve(0.45, 0, 0.8, 0.4, duration: 0.5)) { dismissed = true }
+                let sessionID = manager.activeSession?.id
+                withAnimation(
+                    .timingCurve(0.45, 0, 0.8, 0.4, duration: 0.5),
+                    completionCriteria: .removed
+                ) {
+                    dismissed = true
+                } completion: {
+                    // The folder is outside the clip before the farewell can fade in.
+                    guard manager.activeSession?.id == sessionID else { return }
+                    manager.completeConclusionAnimation()
+                }
             } catch { return }
         }
         .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: isFiling)
@@ -146,6 +163,7 @@ struct DailyConclusionView: View {
                     .opacity(folded ? 1 : 0)
             }
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
+            .compositingGroup()
             .offset(y: dismissed ? geometry.size.height : 0)
         }
         .accessibilityElement(children: .ignore)

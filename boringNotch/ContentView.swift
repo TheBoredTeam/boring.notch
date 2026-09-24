@@ -190,7 +190,7 @@ struct ContentView: View {
                     )
                 
                 mainLayout
-                    .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
+                    .frame(height: vm.notchState == .open ? vm.notchSize.height : nil, alignment: .top)
                     .conditionalModifier(true) { view in
                         return view
                             .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchState)
@@ -384,11 +384,7 @@ struct ContentView: View {
                               notchWidth: vm.hasNotch ? vm.closedNotchSize.width + 10 : 0,
                               height: max(32, displayClosedNotchHeight)
                           )
-                          .transition(
-                              .opacity
-                                  .combined(with: .scale(scale: 0.94, anchor: .top))
-                                  .combined(with: .move(edge: .top))
-                          )
+                          .transition(.opacity)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
@@ -474,9 +470,12 @@ struct ContentView: View {
                     }
                 }
                 .transition(
-                    .scale(scale: 0.8, anchor: .top)
-                    .combined(with: .opacity)
-                    .animation(.smooth(duration: 0.35))
+                    dailyPlanningManager.isPresenting || dailyPlanningManager.isAwaitingPresentation
+                        || dailyPlanningManager.isFinishingSession
+                        ? .opacity
+                        : .scale(scale: 0.8, anchor: .top)
+                            .combined(with: .opacity)
+                            .animation(.smooth(duration: 0.35))
                 )
                 .zIndex(1)
                 .allowsHitTesting(vm.notchState == .open)
