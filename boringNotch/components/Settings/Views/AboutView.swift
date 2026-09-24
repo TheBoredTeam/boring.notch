@@ -9,7 +9,7 @@ import Defaults
 import Sparkle
 import SwiftUI
 
-struct About: View {
+struct AboutView: View {
     @State private var showBuildNumber: Bool = false
     let updaterController: SPUStandardUpdaterController
     @Environment(\.openWindow) var openWindow
@@ -53,8 +53,7 @@ struct About: View {
                     } label: {
                         VStack(spacing: 5) {
                             Image("Github")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
+                                .resizable().scaledToFit()
                                 .frame(width: 18)
                             Text("GitHub")
                         }

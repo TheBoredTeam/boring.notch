@@ -161,7 +161,7 @@ final class QuickShareService: ObservableObject {
             isApplicationIconCacheLoading = false
         }
     }
-    
+
     private func resizedIcon(_ image: NSImage, to size: CGFloat) -> NSImage {
         let targetSize = NSSize(width: size, height: size)
         return NSImage(size: targetSize, flipped: false) { rect in
@@ -173,13 +173,13 @@ final class QuickShareService: ObservableObject {
         }
     }
     // MARK: - Provider Discovery
-    
+
     @MainActor
     func discoverAvailableProviders() async {
         let finder = ShareServiceFinder()
 
         let testItems: [Any] = [
-            URL(string:"http://example.com")!,
+            URL(string: "http://example.com")!,
             "Test" as NSString
         ]
 
@@ -196,7 +196,7 @@ final class QuickShareService: ObservableObject {
                 cachedServices[title] = svc
             }
         }
-        
+
         if let idx = providers.firstIndex(where: { $0.id == QuickShareProvider.airDropId }) {
             let ad = providers.remove(at: idx)
             providers.insert(ad, at: 0)
@@ -208,14 +208,13 @@ final class QuickShareService: ObservableObject {
 
         availableProviders = providers
         warmApplicationIconCacheIfNeeded()
-
     }
-    
+
     // MARK: - File Picker
     @MainActor
     func showFilePicker(for provider: QuickShareProvider, from view: NSView?) async {
         guard !isPickerOpen else {
-            print("⚠️ QuickShareService: File picker already open")
+            Log.shelf.error("⚠️ QuickShareService: File picker already open")
             return
         }
 
@@ -245,7 +244,7 @@ final class QuickShareService: ObservableObject {
         let response = panel.runModal()
         completion(response)
     }
-    
+
     // MARK: - Sharing
     @MainActor
     func shareFilesOrText(_ items: [Any], using provider: QuickShareProvider, from view: NSView?) async {
@@ -287,7 +286,7 @@ final class QuickShareService: ObservableObject {
 // MARK: - SharingServiceDelegate
 
 private class SharingServiceDelegate: NSObject {}
-    
+
     func shareDroppedFiles(_ providers: [NSItemProvider], using shareProvider: QuickShareProvider, from view: NSView?) async {
         var itemsToShare: [Any] = []
         var foundText: String?
@@ -330,7 +329,7 @@ private class SharingServiceDelegate: NSObject {}
                 }
             }
         }
-        print("❌ Failed to resolve bookmark for shelf item")
+        Log.shelf.error("❌ Failed to resolve bookmark for shelf item")
         return nil
     }
 }
