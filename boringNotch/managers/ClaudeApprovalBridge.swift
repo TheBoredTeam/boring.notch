@@ -57,6 +57,47 @@ final class ClaudeApprovalBridge: ObservableObject {
 
     private init() {}
 
+    func installHooks() throws -> Bool {
+        let directory = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".claude", isDirectory: true)
+        let settings = directory.appendingPathComponent("settings.json")
+        let settingsExists = FileManager.default.fileExists(atPath: settings.path)
+        let original = settingsExists ? try Data(contentsOf: settings) : Data("{}".utf8)
+        guard let object = try JSONSerialization.jsonObject(with: original) as? [String: Any],
+              object["hooks"] == nil || object["hooks"] is [String: Any] else {
+            throw HookInstallError.invalidSettings
+        }
+        let hooks = object["hooks"] as? [String: Any] ?? [:]
+        let existingToken = Self.token(in: hooks)
+        let generatedToken = UUID().uuidString.replacingOccurrences(of: "-", with: "")
+            + UUID().uuidString.replacingOccurrences(of: "-", with: "")
+        let selectedToken = existingToken ?? generatedToken
+        if Self.hasHook(hooks, event: "PermissionRequest", url: Self.hookURL,
+                        token: selectedToken, timeout: 25, matcher: ""),
+           Self.hasHook(hooks, event: "PreToolUse", url: Self.questionHookURL,
+                        token: selectedToken, timeout: 300, matcher: "AskUserQuestion") {
+            return false
+        }
+        let updated = try Self.settingsWithHooks(object, token: selectedToken)
+        let replacement = try JSONSerialization.data(
+            withJSONObject: updated, options: [.prettyPrinted, .sortedKeys]
+        ) + Data("\n".utf8)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        if settingsExists {
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime]
+            let timestamp = formatter.string(from: Date()).replacingOccurrences(of: ":", with: "-")
+            let backup = directory.appendingPathComponent("settings.json.backup-(timestamp)-boring-notch")
+            guard !FileManager.default.fileExists(atPath: backup.path) else {
+                throw HookInstallError.backupAlreadyExists
+            }
+            try Self.writePrivateSettings(original, to: backup)
+        }
+        try Self.writePrivateSettings(replacement, to: settings)
+        updateEnabled()
+        return true
+    }
+
     func updateEnabled() {
         guard Defaults[.enableAISessionFeature], Defaults[.enableClaudeApprovalBridge] else {
             stop()
@@ -318,18 +359,126 @@ final class ClaudeApprovalBridge: ObservableObject {
             .appendingPathComponent(".claude/settings.json")
         guard let data = try? Data(contentsOf: settings),
               let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let hooks = object["hooks"] as? [String: Any],
-              let requests = hooks["PermissionRequest"] as? [[String: Any]] else { return nil }
+              let hooks = object["hooks"] as? [String: Any] else { return nil }
+        return token(in: hooks)
+    }
+
+    nonisolated static func token(in hooks: [String: Any]) -> String? {
+        guard let requests = hooks["PermissionRequest"] as? [[String: Any]] else { return nil }
         for group in requests {
             guard let entries = group["hooks"] as? [[String: Any]] else { continue }
             for entry in entries where entry["url"] as? String == hookURL {
                 guard let headers = entry["headers"] as? [String: String],
                       let authorization = headers["Authorization"],
                       authorization.hasPrefix("Bearer ") else { continue }
-                return String(authorization.dropFirst("Bearer ".count))
+                let token = String(authorization.dropFirst("Bearer ".count))
+                guard token.utf8.count >= 32,
+                      token.utf8.allSatisfy({ ($0 >= 48 && $0 <= 57)
+                          || ($0 >= 65 && $0 <= 90) || ($0 >= 97 && $0 <= 122)
+                          || $0 == 45 || $0 == 95 }) else { continue }
+                return token
             }
         }
         return nil
+    }
+
+    nonisolated static func settingsWithHooks(
+        _ root: [String: Any], token: String
+    ) throws -> [String: Any] {
+        guard root["hooks"] == nil || root["hooks"] is [String: Any] else {
+            throw HookInstallError.invalidSettings
+        }
+        var hooks = root["hooks"] as? [String: Any] ?? [:]
+        guard
+              hooks["PermissionRequest"] == nil || hooks["PermissionRequest"] is [[String: Any]],
+              hooks["PreToolUse"] == nil || hooks["PreToolUse"] is [[String: Any]] else {
+            throw HookInstallError.invalidSettings
+        }
+        func withoutOurHook(_ groups: [[String: Any]], url: String) -> [[String: Any]] {
+            groups.compactMap { group in
+                guard let entries = group["hooks"] as? [[String: Any]] else { return group }
+                let retained = entries.filter { ($0["url"] as? String) != url }
+                guard !retained.isEmpty else { return nil }
+                var copy = group
+                copy["hooks"] = retained
+                return copy
+            }
+        }
+        func httpHook(_ url: String, timeout: Int) -> [String: Any] {
+            ["type": "http", "url": url, "timeout": timeout,
+             "headers": ["Authorization": "Bearer \(token)"]]
+        }
+        var approvals = withoutOurHook(
+            hooks["PermissionRequest"] as? [[String: Any]] ?? [], url: hookURL
+        )
+        approvals.append(["matcher": "", "hooks": [httpHook(hookURL, timeout: 25)]])
+        hooks["PermissionRequest"] = approvals
+        var questions = withoutOurHook(
+            hooks["PreToolUse"] as? [[String: Any]] ?? [], url: questionHookURL
+        )
+        questions.append([
+            "matcher": "AskUserQuestion",
+            "hooks": [httpHook(questionHookURL, timeout: 300)],
+        ])
+        hooks["PreToolUse"] = questions
+        var result = root
+        result["hooks"] = hooks
+        return result
+    }
+
+    nonisolated static func hasHook(
+        _ hooks: [String: Any], event: String, url: String,
+        token: String, timeout: Int, matcher: String
+    ) -> Bool {
+        guard let groups = hooks[event] as? [[String: Any]] else { return false }
+        return groups.contains { group in
+            guard group["matcher"] as? String == matcher,
+                  let entries = group["hooks"] as? [[String: Any]] else { return false }
+            return entries.contains { entry in
+                entry["type"] as? String == "http"
+                    && entry["url"] as? String == url
+                    && entry["timeout"] as? Int == timeout
+                    && (entry["headers"] as? [String: String])?["Authorization"] == "Bearer \(token)"
+            }
+        }
+    }
+
+    private nonisolated static func writePrivateSettings(_ data: Data, to url: URL) throws {
+        let temporary = url.appendingPathExtension("temporary-\(UUID().uuidString)")
+        let descriptor = Darwin.open(temporary.path, O_WRONLY | O_CREAT | O_EXCL, mode_t(0o600))
+        guard descriptor >= 0 else { throw HookInstallError.writeFailed }
+        defer {
+            Darwin.close(descriptor)
+            Darwin.unlink(temporary.path)
+        }
+        let written = data.withUnsafeBytes { bytes -> Bool in
+            guard let base = bytes.baseAddress else { return false }
+            var offset = 0
+            while offset < bytes.count {
+                let count = Darwin.write(descriptor, base.advanced(by: offset), bytes.count - offset)
+                guard count > 0 else { return false }
+                offset += count
+            }
+            return true
+        }
+        guard written, Darwin.fsync(descriptor) == 0,
+              Darwin.rename(temporary.path, url.path) == 0 else {
+            throw HookInstallError.writeFailed
+        }
+    }
+
+    enum HookInstallError: LocalizedError {
+        case invalidSettings
+        case backupAlreadyExists
+        case writeFailed
+
+        var errorDescription: String? {
+            switch self {
+            case .invalidSettings: "Claude Code settings could not be parsed safely."
+            case .backupAlreadyExists: "A backup with this timestamp already exists. Try again shortly."
+            case .writeFailed: "Claude Code settings could not be written."
+            }
+        }
     }
 
     struct HTTPRequest: Sendable {

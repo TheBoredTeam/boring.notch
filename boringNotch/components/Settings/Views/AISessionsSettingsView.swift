@@ -12,6 +12,7 @@ struct AISessionsSettingsView: View {
     @Default(.enableAISessionFeature) private var isEnabled
     @Default(.enableClaudeApprovalBridge) private var approvalBridgeEnabled
     @ObservedObject private var approvalBridge = ClaudeApprovalBridge.shared
+    @State private var hookInstallResult: String?
 
     var body: some View {
         Form {
@@ -29,6 +30,21 @@ struct AISessionsSettingsView: View {
                 Text("Requires the local permission and question hooks in Claude Code settings. If Boring Notch is closed or a request times out, Claude Code keeps its native prompt.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                Button("Install local Claude Code hooks") {
+                    do {
+                        let changed = try approvalBridge.installHooks()
+                        hookInstallResult = changed
+                            ? "Hooks installed. A backup of the previous settings was saved."
+                            : "Hooks are already installed."
+                    } catch {
+                        hookInstallResult = error.localizedDescription
+                    }
+                }
+                if let hookInstallResult {
+                    Text(hookInstallResult)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
                 if let errorMessage = approvalBridge.errorMessage {
                     Text(errorMessage)
                         .foregroundStyle(.orange)
