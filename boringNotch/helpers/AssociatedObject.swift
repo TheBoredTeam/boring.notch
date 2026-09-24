@@ -8,7 +8,6 @@
 import Foundation
 import ObjectiveC
 
-
 /// Lightweight helper for Objective-C associated objects.
 public struct AssociatedObject<Value: AnyObject> {
     private let key: UnsafeRawPointer

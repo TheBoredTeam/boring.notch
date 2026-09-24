@@ -18,16 +18,6 @@ func proFeatureBadge() -> some View {
                 Color(red: 0.545, green: 0.196, blue: 0.98), lineWidth: 1))
 }
 
-func comingSoonBadge() -> some View {
-    Text("Coming soon")
-        .foregroundStyle(.secondary)
-        .font(.footnote.bold())
-        .padding(.vertical, 3)
-        .padding(.horizontal, 6)
-        .background(Color(nsColor: .secondarySystemFill))
-        .clipShape(.capsule)
-}
-
 func customBadge(text: String) -> some View {
     Text(text)
         .foregroundStyle(.secondary)
@@ -55,10 +45,8 @@ func warningBadge(_ text: String, _ description: String) -> some View {
     }
 }
 
-
 func HelpText(_ text: String) -> some View {
     Text(text)
         .font(.caption)
         .foregroundStyle(.secondary)
 }
-

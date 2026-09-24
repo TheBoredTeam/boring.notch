@@ -9,7 +9,6 @@ import AppKit
 import Combine
 import Foundation
 
-
 @MainActor
 final class SharingStateManager: ObservableObject {
 	static let shared = SharingStateManager()
@@ -31,7 +30,7 @@ final class SharingStateManager: ObservableObject {
 	private var activeDelegates: [UUID: SharingLifecycleDelegate] = [:]
 
 	private init() {}
-	
+
 	func requestCloseIfReady() {
 		if !preventNotchClose {
 			NotificationCenter.default.post(name: .sharingDidFinish, object: nil)
@@ -82,7 +81,7 @@ final class SharingLifecycleDelegate: NSObject, NSSharingServiceDelegate, NSShar
 		self.onBegin = onBegin
 		self.onFinish = onFinish
 	}
-	
+
 	deinit {
 		timeoutTask?.cancel()
 	}
@@ -99,7 +98,7 @@ final class SharingLifecycleDelegate: NSObject, NSSharingServiceDelegate, NSShar
 		onBegin()
 		startTimeoutFallback()
 	}
-	
+
 	private func startTimeoutFallback() {
 		timeoutTask?.cancel()
 		timeoutTask = Task { @MainActor [weak self] in
@@ -151,4 +150,3 @@ final class SharingLifecycleDelegate: NSObject, NSSharingServiceDelegate, NSShar
 		finishIfNeeded()
 	}
 }
-

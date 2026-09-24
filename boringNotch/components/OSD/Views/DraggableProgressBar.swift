@@ -10,8 +10,8 @@ import Defaults
 
 public struct DraggableProgressBar: View {
     @Binding public var value: CGFloat
-    public var onChange: ((CGFloat) -> Void)? = nil
-    public var accentColor: Color? = nil
+    public var onChange: ((CGFloat) -> Void)?
+    public var accentColor: Color?
     public var compact: Bool = false
 
     @State private var isDragging = false
@@ -38,7 +38,9 @@ public struct DraggableProgressBar: View {
             .gesture(dragGesture(in: geo))
             .accessibilityElement()
             .accessibilityLabel(Text(NSLocalizedString("OSD.ValueLabel", comment: "Label for OSD value slider")))
-            .accessibilityValue(Text("\(Int(value * 100))%"))
+            .accessibilityValue(
+                Text(value, format: .percent.precision(.fractionLength(0)))
+            )
             .accessibilityAdjustableAction { direction in
                 let step: CGFloat = 0.05
                 switch direction {

@@ -9,7 +9,6 @@ import Cocoa
 import UniformTypeIdentifiers
 
 final class DragDetector {
-
     // MARK: - Callbacks
 
     typealias VoidCallback = () -> Void
@@ -18,7 +17,6 @@ final class DragDetector {
     var onDragEntersNotchRegion: VoidCallback?
     var onDragExitsNotchRegion: VoidCallback?
     var onDragMove: PositionCallback?
-
 
     private var mouseDownMonitor: Any?
     private var mouseDraggedMonitor: Any?
@@ -37,18 +35,20 @@ final class DragDetector {
     }
 
     // MARK: - Private Helpers
-    
+
     /// Checks if the drag pasteboard contains valid content types that can be dropped on the shelf
     private func hasValidDragContent() -> Bool {
+        guard let items = dragPasteboard.pasteboardItems, !items.isEmpty else { return false }
+
         let validTypes: [NSPasteboard.PasteboardType] = [
             .fileURL,
             NSPasteboard.PasteboardType(UTType.url.identifier),
             .string
         ]
-        let isValid = dragPasteboard.pasteboardItems?.allSatisfy { item in
-            item.types.allSatisfy { validTypes.contains($0) }
+        return items.allSatisfy { item in
+            // An item can advertise auxiliary formats alongside its supported content.
+            item.types.contains { validTypes.contains($0) }
         }
-        return isValid ?? false
     }
 
     func startMonitoring() {
@@ -64,12 +64,12 @@ final class DragDetector {
         }
 
         // Track drag movement and notch region intersection
-        mouseDraggedMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDragged]) { [weak self] event in
+        mouseDraggedMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDragged]) { [weak self] _ in
             guard let self = self else { return }
             guard self.isDragging else { return }
 
             let newContent = self.dragPasteboard.changeCount != self.pasteboardChangeCount
-            
+
             // Detect if actual content is being dragged AND it's valid content
             if newContent && !self.isContentDragging && self.hasValidDragContent() {
                 self.isContentDragging = true
@@ -79,7 +79,7 @@ final class DragDetector {
             if self.isContentDragging {
                 let mouseLocation = NSEvent.mouseLocation
                 self.onDragMove?(mouseLocation)
-                
+
                 // Track notch region entry/exit
                 let containsMouse = self.notchRegion.contains(mouseLocation)
                 if containsMouse && !self.hasEnteredNotchRegion {
@@ -95,7 +95,7 @@ final class DragDetector {
         mouseUpMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] _ in
             guard let self = self else { return }
             guard self.isDragging else { return }
-            
+
             self.isDragging = false
             self.isContentDragging = false
             self.hasEnteredNotchRegion = false
