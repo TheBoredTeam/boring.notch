@@ -172,7 +172,6 @@ jobs:
           SOURCE_SHA: ${{ steps.release_state.outputs.source_sha }}
           VERSION: ${{ steps.extract_version.outputs.version }}
           PBXPROJ_PATH: ${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj
-          APPCAST_PATHS: "updater/appcast-dev.xml updater/appcast.xml"
         run: |
           set -euo pipefail
           # Same derivation as the nightly pipeline: one above the highest
@@ -180,12 +179,14 @@ jobs:
           # committed in the Xcode project. Stable and beta items live in the
           # main-branch appcast while nightly items live in the dev appcast,
           # so the ceiling is the max across both and every channel outranks
-          # the last release on any channel. Both appcasts are readable from
-          # the built source ref; a missing/unreadable file contributes
-          # nothing, and if nothing is readable at all the derivation falls
-          # back to the project baseline.
-          RELEASED="$(for APPCAST in ${APPCAST_PATHS}; do
-            gh api "repos/${REPO}/contents/${APPCAST}?ref=${SOURCE_SHA}" \
+          # the last release on any channel. The dev appcast belongs to the
+          # built source snapshot, but stable/beta must be read from live main:
+          # the release source is a dev PR head and can predate a beta commit.
+          APPCAST_SOURCES="updater/appcast-dev.xml@${SOURCE_SHA} updater/appcast.xml@main"
+          RELEASED="$(for APPCAST_SOURCE in ${APPCAST_SOURCES}; do
+            APPCAST="${APPCAST_SOURCE%@*}"
+            APPCAST_REF="${APPCAST_SOURCE##*@}"
+            gh api "repos/${REPO}/contents/${APPCAST}?ref=${APPCAST_REF}" \
               --jq '.content' 2>/dev/null | base64 --decode \
               | grep -Eo 'sparkle:version(="|>)[0-9]+' | grep -Eo '[0-9]+$'
           done | sort -n | tail -1 || true)"
