@@ -96,13 +96,16 @@ jobs:
 
           # A published release for this version means the workflow already ran
           # to completion; re-running it is not a recovery path.
-          if gh api "repos/${REPO}/releases/tags/${TAG}" > "$RUNNER_TEMP/release.json" 2>"$LOOKUP_ERROR"; then
-            IS_DRAFT="$(jq -r '.draft' "$RUNNER_TEMP/release.json")"
+          # Draft releases are invisible to the /releases/tags REST endpoint
+          # (it 404s for drafts even with write access), so the probe goes
+          # through gh release view, which resolves drafts via the list API.
+          if RELEASE_JSON="$(gh release view "$TAG" --repo "$REPO" --json isDraft,targetCommitish 2>"$LOOKUP_ERROR")"; then
+            IS_DRAFT="$(jq -r '.isDraft' <<< "$RELEASE_JSON")"
             if [[ "$IS_DRAFT" != "true" ]]; then
               echo "::error::Version v${VERSION} is already published"
               exit 1
             fi
-            SOURCE_SHA="$(jq -r '.target_commitish' "$RUNNER_TEMP/release.json")"
+            SOURCE_SHA="$(jq -r '.targetCommitish' <<< "$RELEASE_JSON")"
             if [[ ! "$SOURCE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
               echo "::error::Draft release for v${VERSION} has an invalid target commit"
               exit 1
@@ -116,7 +119,7 @@ jobs:
             exit 0
           fi
 
-          if ! grep -q '(HTTP 404)' "$LOOKUP_ERROR"; then
+          if ! grep -q 'release not found' "$LOOKUP_ERROR"; then
             cat "$LOOKUP_ERROR" >&2
             echo "::error::Could not determine whether v${VERSION} already exists"
             exit 1
@@ -210,8 +213,10 @@ jobs:
             TITLE=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.title // "Release"')
             BODY=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.body // "- No release notes provided"')
           else
-            TITLE=$(gh api "repos/${REPO}/releases/tags/v${VERSION}" --jq '.name // "Release"')
-            BODY=$(gh api "repos/${REPO}/releases/tags/v${VERSION}" --jq '.body // "- No release notes provided"')
+            # The resume path must read a draft release, which the
+            # /releases/tags endpoint cannot see; gh release view can.
+            TITLE=$(gh release view "v${VERSION}" --repo "$REPO" --json name --jq '.name // "Release"')
+            BODY=$(gh release view "v${VERSION}" --repo "$REPO" --json body --jq '.body // "- No release notes provided"')
           fi
 
           BODY_GITHUB=$(printf '%s' "$BODY" | sed '/^# /d' | perl -pe 's#<h1[^>]*>.*?</h1>##gi')
@@ -461,7 +466,13 @@ jobs:
         run: |
           set -euo pipefail
           TAG="v${VERSION}"
-          IS_DRAFT="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.draft')"
+          # Draft releases are invisible to the /releases/tags REST endpoint
+          # (it 404s for drafts even with write access); probe with
+          # gh release view instead.
+          if ! IS_DRAFT="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft' 2>/dev/null)"; then
+            echo "::error::Release ${TAG} does not exist; expected the draft created by the publish job"
+            exit 1
+          fi
           if [[ "$IS_DRAFT" != "true" ]]; then
             echo "Stable release ${TAG} is already published."
             exit 0
@@ -533,7 +544,13 @@ jobs:
         run: |
           set -euo pipefail
           TAG="v${VERSION}"
-          IS_DRAFT="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.draft')"
+          # Draft releases are invisible to the /releases/tags REST endpoint
+          # (it 404s for drafts even with write access); probe with
+          # gh release view instead.
+          if ! IS_DRAFT="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft' 2>/dev/null)"; then
+            echo "::error::Release ${TAG} does not exist; expected the draft created by the publish job"
+            exit 1
+          fi
           if [[ "$IS_DRAFT" != "true" ]]; then
             echo "Beta release ${TAG} is already published."
             exit 0
