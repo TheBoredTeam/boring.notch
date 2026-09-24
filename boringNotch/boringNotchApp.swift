@@ -275,6 +275,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        KeyboardShortcuts.onKeyDown(for: .toggleTerminalTab) { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self, Defaults[.enableTerminalFeature] else { return }
+                let mouseLocation = NSEvent.mouseLocation
+                let model = NSScreen.screens
+                    .first(where: { $0.frame.contains(mouseLocation) })?
+                    .displayUUID
+                    .flatMap { self.viewModels[$0] } ?? self.vm
+
+                self.closeNotchTask?.cancel()
+                self.closeNotchTask = nil
+
+                if model.notchState == .open && self.coordinator.currentView == .terminal {
+                    model.close()
+                } else {
+                    self.coordinator.currentView = .terminal
+                    if model.notchState == .closed {
+                        _ = model.open()
+                    } else {
+                        model.refreshOpenSize()
+                    }
+                }
+            }
+        }
+
         // Sync notch height with real value on app launch if mode is matchRealNotchSize
         syncNotchHeightIfNeeded()
 

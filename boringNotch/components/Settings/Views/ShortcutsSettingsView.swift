@@ -6,6 +6,7 @@
 //
 
 import KeyboardShortcuts
+import Defaults
 import SwiftUI
 
 struct ShortcutsSettingsView: View {
@@ -13,6 +14,8 @@ struct ShortcutsSettingsView: View {
         Form {
             Section {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
+                KeyboardShortcuts.Recorder("Toggle Terminal:", name: .toggleTerminalTab)
+                    .disabled(!Defaults[.enableTerminalFeature])
             } header: {
                 Text("Notch")
             }
