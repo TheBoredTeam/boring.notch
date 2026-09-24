@@ -687,7 +687,7 @@ struct ContentView: View {
                         !self.vm.isBatteryPopoverActive,
                         !SharingStateManager.shared.preventNotchClose,
                         !self.dailyPlanningManager.isFinishingSession,
-                        !self.dailyPlanningManager.isConclusionActive
+                        !self.dailyPlanningManager.isSavingConclusion
                     {
                         self.dailyPlanningManager.returnActiveSessionToPrompt()
                         self.vm.close()

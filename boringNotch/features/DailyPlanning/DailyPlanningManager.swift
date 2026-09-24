@@ -56,6 +56,7 @@ final class DailyPlanningManager: ObservableObject {
     private var conclusionTask: Task<Void, Never>?
 
     var isConclusionActive: Bool { conclusionPhase != .review }
+    var isSavingConclusion: Bool { conclusionPhase == .saving || conclusionPhase == .filing }
     var offersConclusion: Bool {
         activeSession?.kind == .eveningReview && conclusionPreferences.isEnabled
     }
@@ -172,7 +173,7 @@ final class DailyPlanningManager: ObservableObject {
     }
 
     func returnActiveSessionToPrompt() {
-        guard let activeSession, !isFinishingSession, !isConclusionActive else { return }
+        guard let activeSession, !isFinishingSession, !isSavingConclusion else { return }
 
         pendingSession = activeSession
         self.activeSession = nil

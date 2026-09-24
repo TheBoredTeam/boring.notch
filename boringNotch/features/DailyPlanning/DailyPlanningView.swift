@@ -53,16 +53,11 @@ struct DailyPlanningView: View {
             }
             Spacer()
             if manager.offersConclusion {
-                Button { manager.advanceToConclusion() } label: {
-                    Label("Next", systemImage: "arrow.right")
+                DailyWorkflowActionButton(title: String(localized: "Next")) {
+                    manager.advanceToConclusion()
                 }
-                .buttonStyle(.plain)
-                .font(.caption.bold())
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(.white.opacity(0.12), in: Capsule())
             } else {
-                DailyWorkflowFinishButton(kind: sessionKind) {
+                DailyWorkflowActionButton(title: sessionKind.actionTitle) {
                     manager.beginFinishingActiveSession()
                 }
             }
@@ -414,8 +409,8 @@ struct DailyWorkflowNotificationView: View {
     }
 }
 
-private struct DailyWorkflowFinishButton: View {
-    let kind: DailyWorkflowKind
+struct DailyWorkflowActionButton: View {
+    let title: String
     let action: () -> Void
 
     @State private var isHovering = false
@@ -423,7 +418,7 @@ private struct DailyWorkflowFinishButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
-                Text(kind.actionTitle)
+                Text(title)
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
 
                 Image(systemName: "arrow.right")
@@ -440,7 +435,7 @@ private struct DailyWorkflowFinishButton: View {
                 isHovering = hovering
             }
         }
-        .accessibilityLabel(kind.actionTitle)
+        .accessibilityLabel(title)
     }
 }
 

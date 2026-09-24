@@ -31,7 +31,8 @@ extension SkyLightOperator {
     }
 }
 
-class BoringNotchSkyLightWindow: NSPanel {
+class BoringNotchSkyLightWindow: NSPanel, NotchTextInputHosting {
+    weak var keyboardInputOwner: NSTextView?
     private var isSkyLightEnabled: Bool = false
     
     override init(
@@ -146,6 +147,6 @@ class BoringNotchSkyLightWindow: NSPanel {
         }
     }
     
-    override var canBecomeKey: Bool { false }
+    override var canBecomeKey: Bool { keyboardInputOwner != nil }
     override var canBecomeMain: Bool { false }
 }

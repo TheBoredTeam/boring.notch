@@ -7,7 +7,11 @@
 
 import Cocoa
 
-class BoringNotchWindow: NSPanel {
+protocol NotchTextInputHosting: AnyObject {
+    var keyboardInputOwner: NSTextView? { get set }
+}
+
+class BoringNotchWindow: NSPanel, NotchTextInputHosting {
     weak var keyboardInputOwner: NSTextView?
     override init(
         contentRect: NSRect,

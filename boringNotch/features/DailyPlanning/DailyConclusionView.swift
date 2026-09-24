@@ -30,13 +30,9 @@ struct DailyConclusionView: View {
                             .font(.system(size: 12, weight: .medium))
                             .foregroundStyle(.white.opacity(0.8))
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        Button(isBusy ? "Saving…" : "End Review") {
+                        DailyWorkflowActionButton(title: isBusy ? String(localized: "Saving…") : String(localized: "End Review")) {
                             manager.saveConclusion(reduceMotion: reduceMotion)
                         }
-                        .font(.caption.bold())
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(.white.opacity(0.12), in: Capsule())
                         .disabled(isBusy)
                     }
                     .buttonStyle(.plain)
@@ -237,7 +233,7 @@ private struct DailyConclusionEditor: NSViewRepresentable {
 }
 
 private final class ConclusionTextView: NSTextView {
-    private weak var inputWindow: BoringNotchWindow?
+    private weak var inputWindow: (NSWindow & NotchTextInputHosting)?
 
     func releaseKeyboardFocus() {
         guard let inputWindow, inputWindow.keyboardInputOwner === self else { return }
@@ -259,7 +255,7 @@ private final class ConclusionTextView: NSTextView {
         guard let window else { return }
         DispatchQueue.main.async { [weak self, weak window] in
             guard let self, let window, self.window === window, self.isEditable else { return }
-            self.inputWindow = window as? BoringNotchWindow
+            self.inputWindow = window as? (NSWindow & NotchTextInputHosting)
             self.inputWindow?.keyboardInputOwner = self
             window.makeKey()
             window.makeFirstResponder(self)

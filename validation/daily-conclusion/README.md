@@ -8,16 +8,16 @@ Entries preserve the exact Markdown source in `YYYY-MM-DD.md`. Additional entrie
 
 ```sh
 swift test
-bash validation/daily-conclusion/run.sh
+DIARY_BUILD_PRODUCTS=/tmp/boring-diary-build/Build/Products/Debug bash validation/daily-conclusion/run.sh
 ```
 
-The second command compiles the production views and manager into a temporary AppKit executable. It uses synthetic reminders, isolated UserDefaults suites, and a temporary diary directory. It checks keyboard focus, hover-dismissal protection, back-navigation draft retention, missing-permission errors, duplicate submission, saving, filing/farewell sequencing, cleanup, empty entries, and morning planning. Temporary preferences, files, and executable are removed on completion. It does not change the installed app or user reminder data.
+Build the Debug app first and point `DIARY_BUILD_PRODUCTS` at its products directory. The second command compiles the production SkyLight window, views, and manager into a temporary AppKit executable. It uses synthetic reminders, isolated UserDefaults suites, and a temporary diary directory. It checks keyboard focus, hover dismissal and draft restoration, back-navigation draft retention, missing-permission errors, duplicate submission, saving, filing/farewell sequencing, cleanup, empty entries, and morning planning. Temporary preferences, files, and executable are removed on completion. It does not change the installed app or user reminder data.
 
 Optional native captures (synthetic content only):
 
 ```sh
 mkdir -p /tmp/diary-native-captures
-DIARY_SMOKE_CAPTURES=/tmp/diary-native-captures bash validation/daily-conclusion/run.sh
+DIARY_SMOKE_CAPTURES=/tmp/diary-native-captures DIARY_BUILD_PRODUCTS=/tmp/boring-diary-build/Build/Products/Debug bash validation/daily-conclusion/run.sh
 ```
 
 ## Sandboxed app check
@@ -28,7 +28,7 @@ with the diary enabled in memory, without changing the stored schedule or diary 
 Completing this review still records the normal evening completion.
 
 1. Open Planning & Review. Enable conclusions and allow the default diary folder. Confirm Calendar no longer contains workflow settings.
-2. Open evening review. Check the existing reminder layout and completion toggles. Choose Next, type Markdown, paste multiple paragraphs, scroll, undo, and use an input method if available. Moving the pointer out must not close the editor.
+2. Open evening review. Check the existing reminder layout and completion toggles. Choose Next, type Markdown, paste multiple paragraphs, scroll, undo, and use an input method if available. Moving the pointer out must fold the window; hovering again must restore the editor and draft.
 3. Return to review and choose Next again; the draft should remain. End Review: observe the monochrome card enter the folder, the folder slide below the window, then the existing farewell and close. Check the Markdown file matches the input.
 4. Relaunch the app and save another entry without granting the folder again. Check changing the folder works and existing files are preserved.
 5. Try blank and whitespace-only drafts: no new file and no folder animation. Disable conclusions: evening review finishes directly. Morning planning remains unchanged.

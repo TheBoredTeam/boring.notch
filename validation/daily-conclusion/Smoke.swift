@@ -1,5 +1,12 @@
 import AppKit
 import SwiftUI
+import Defaults
+
+private let windowDefaults = UserDefaults(suiteName: "DiarySmoke.Window")!
+extension Defaults.Keys {
+    static let hideFromScreenRecording = Key<Bool>("hideFromScreenRecording", default: false, suite: windowDefaults)
+    static let hideNonNotchedFromMissionControl = Key<Bool>("hideNonNotchedFromMissionControl", default: false, suite: windowDefaults)
+}
 
 // A synthetic reminder source keeps validation away from the user's calendar and reminders.
 @MainActor
@@ -31,6 +38,7 @@ struct DiarySmoke {
     }
 
     @MainActor static func run() async throws {
+        defer { windowDefaults.removePersistentDomain(forName: "DiarySmoke.Window") }
         let suite = "DiarySmoke.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
@@ -47,7 +55,7 @@ struct DiarySmoke {
         manager.start()
         try await Task.sleep(for: .milliseconds(100))
         precondition(manager.activatePendingSession())
-        let window = BoringNotchWindow(contentRect: NSRect(x: 0, y: 0, width: 640, height: 160), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        let window = BoringNotchSkyLightWindow(contentRect: NSRect(x: 0, y: 0, width: 640, height: 160), styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow], backing: .buffered, defer: false)
         let view = NSHostingView(rootView: DailyPlanningView(manager: manager).frame(width: 640, height: 160).background(.black).preferredColorScheme(.dark))
         window.contentView = view
         window.orderFront(nil)
@@ -59,9 +67,23 @@ struct DiarySmoke {
         try await Task.sleep(for: .milliseconds(250))
         precondition(window.keyboardInputOwner != nil)
         precondition(window.firstResponder is NSTextView)
-        manager.conclusionText = "# A small win\n\n- [x] Finished the draft\n\n**Tomorrow:** make time for a walk."
+        precondition(window.isKeyWindow, "The production window must receive keyboard events")
+        let editor = window.firstResponder as! NSTextView
+        editor.insertText("# A small win\n\n- [x] Finished the draft\n\n**Tomorrow:** make time for a walk.", replacementRange: NSRange(location: NSNotFound, length: 0))
+        precondition(manager.conclusionText.hasPrefix("# A small win"), "Native input must reach the draft binding")
+        let key = NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0,
+            windowNumber: window.windowNumber, context: nil, characters: "!", charactersIgnoringModifiers: "!", isARepeat: false, keyCode: 18)!
+        window.sendEvent(key)
+        precondition(manager.conclusionText.hasSuffix("!"), "Key events must update the draft")
         manager.returnActiveSessionToPrompt()
-        precondition(manager.activeSession != nil, "Typing must prevent hover dismissal")
+        precondition(manager.activeSession == nil && manager.pendingSession != nil, "Pointer exit must fold back to the prompt")
+        window.contentView = nil
+        try await Task.sleep(for: .milliseconds(100))
+        precondition(window.keyboardInputOwner == nil)
+        precondition(manager.activatePendingSession())
+        window.contentView = view
+        try await Task.sleep(for: .milliseconds(200))
+        precondition(manager.conclusionPhase == .writing && manager.conclusionText.hasPrefix("# A small win"))
         manager.returnToReview()
         precondition(manager.conclusionText.hasPrefix("# A small win"))
         manager.advanceToConclusion()
