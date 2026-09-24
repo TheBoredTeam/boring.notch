@@ -1,6 +1,7 @@
 name: Feature Request
 description: Suggest a new idea or enhancement for Boring Notch
 title: "[FEATURE] "
+type: Feature
 labels: []
 
 body:

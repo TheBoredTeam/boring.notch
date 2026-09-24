@@ -22,7 +22,6 @@ struct MusicPlayerView: View {
         HStack {
             AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).frame(width: 120).padding(.all, 5 * (vm.notchSize.height / 190))
             MusicControlsView(horizontalMediaGestureFeedback: horizontalMediaGestureFeedback)
-                .drawingGroup()
                 .compositingGroup()
         }
         .contentShape(Rectangle())
@@ -51,8 +50,7 @@ struct AlbumArtView: View {
 
     private var albumArtBackground: some View {
         Image(nsImage: musicManager.albumArt)
-            .resizable()
-            .aspectRatio(contentMode: .fit)
+            .resizable().scaledToFit()
             .clipShape(
                 RoundedRectangle(
                     cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.opened)
@@ -68,14 +66,14 @@ struct AlbumArtView: View {
             Button {
                 musicManager.openMusicApp()
             } label: {
-                ZStack(alignment:.bottomTrailing) {
+                ZStack(alignment: .bottomTrailing) {
                     albumArtImage
                     appIconOverlay
                 }
             }
             .buttonStyle(PlainButtonStyle())
             .scaleEffect(musicManager.isPlaying ? 1 : 0.85)
-            
+
             albumArtDarkOverlay
         }
     }
@@ -87,13 +85,11 @@ struct AlbumArtView: View {
             .blur(radius: 50)
             .allowsHitTesting(false)
     }
-                
 
     private var albumArtImage: some View {
         Image(nsImage: musicManager.albumArt)
             .interpolation(.high)
-            .resizable()
-            .aspectRatio(contentMode: .fit)
+            .resizable().scaledToFit()
             .clipShape(
                 RoundedRectangle(
                     cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.opened)
@@ -104,9 +100,8 @@ struct AlbumArtView: View {
     @ViewBuilder
     private var appIconOverlay: some View {
         if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
-            AppIcon(for: musicManager.bundleIdentifier ?? "com.apple.Music")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+            appIcon(for: musicManager.bundleIdentifier ?? MediaAppBundleID.appleMusic)
+                .resizable().scaledToFit()
                 .frame(width: 30, height: 30)
                 .offset(x: 10, y: 10)
                 .transition(.scale.combined(with: .opacity))
@@ -118,13 +113,13 @@ struct AlbumArtView: View {
 struct MusicControlsView: View {
     @ObservedObject var musicManager = MusicManager.shared
     @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject var webcamManager = WebcamManager.shared
     let horizontalMediaGestureFeedback: CGFloat
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
     @Default(.musicControlSlots) private var slotConfig
     @Default(.musicControlSlotLimit) private var slotLimit
+    @Default(.showRemainingTime) private var showRemainingTime
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -202,21 +197,23 @@ struct MusicControlsView: View {
     }
 
     private var musicSlider: some View {
-        TimelineView(.animation(minimumInterval: musicManager.playbackRate > 0 ? 0.1 : nil)) { timeline in
+        MusicPlaybackTimeline(playbackRate: musicManager.playbackRate) { date in
             MusicSliderView(
                 sliderValue: $sliderValue,
                 duration: $musicManager.songDuration,
                 lastDragged: $lastDragged,
                 color: musicManager.avgColor,
                 dragging: $dragging,
-                currentDate: timeline.date,
+                currentDate: date,
                 timestampDate: musicManager.timestampDate,
                 elapsedTime: musicManager.elapsedTime,
                 playbackRate: musicManager.playbackRate,
-                isPlaying: musicManager.isPlaying
-            ) { newValue in
-                MusicManager.shared.seek(to: newValue)
-            }
+                isPlaying: musicManager.isPlaying,
+                onValueChange: { newValue in
+                    MusicManager.shared.seek(to: newValue)
+                },
+                trailingLabel: showRemainingTime ? .remaining : .duration
+            )
             .padding(.top, 5)
             .frame(height: 36)
         }
@@ -225,9 +222,8 @@ struct MusicControlsView: View {
     private var slotToolbar: some View {
         let slots = activeSlots
         return HStack(spacing: 6) {
-            ForEach(Array(slots.enumerated()), id: \.offset) { index, slot in
+            ForEach(Array(slots.enumerated()), id: \.offset) { _, slot in
                 slotView(for: slot)
-                    .frame(alignment: .center)
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
@@ -241,7 +237,7 @@ struct MusicControlsView: View {
         let padded = slotConfig.padded(to: sanitizedLimit, filler: .none)
         let result = Array(padded.prefix(sanitizedLimit))
         // If calendar and camera are both visible alongside music, hide the edge slots
-        let shouldHideEdges = Defaults[.showCalendar] && Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
+        let shouldHideEdges = Defaults[.showCalendar] && Defaults[.showMirror] && vm.camera.cameraAvailable && vm.camera.isSessionRunning
         if shouldHideEdges && result.count >= 5 {
             return Array(result.dropFirst().dropLast())
         }
@@ -249,48 +245,70 @@ struct MusicControlsView: View {
         return result
     }
 
-    @ViewBuilder
     private func slotView(for slot: MusicControlButton) -> some View {
-        switch slot {
-        case .shuffle:
-            HoverButton(icon: "shuffle", iconColor: musicManager.isShuffled ? .red : .primary, scale: .medium) {
-                MusicManager.shared.toggleShuffle()
+        MusicControlSlotButton(
+            slot: slot,
+            horizontalMediaGestureFeedback: horizontalMediaGestureFeedback
+        )
+    }
+}
+
+/// A single transport button, shared by the standard and compact layouts so
+/// both render the exact same controls — sizing, glyphs, swipe-to-skip
+/// bounce — and can't drift apart.
+struct MusicControlSlotButton: View {
+    @ObservedObject var musicManager = MusicManager.shared
+    let slot: MusicControlButton
+    let horizontalMediaGestureFeedback: CGFloat
+
+    var body: some View {
+        Group {
+            switch slot {
+            case .shuffle:
+                HoverButton(icon: "shuffle", iconColor: musicManager.isShuffled ? .red : .primary, scale: .medium) {
+                    MusicManager.shared.toggleShuffle()
+                }
+            case .previous:
+                HoverButton(icon: "backward.fill", scale: .medium) {
+                    MusicManager.shared.previousTrack()
+                }
+                .scaleEffect(horizontalMediaGestureFeedback > 0 ? 1.12 : 1)
+                .animation(.interactiveSpring(response: 0.18, dampingFraction: 0.62), value: horizontalMediaGestureFeedback)
+            case .playPause:
+                HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill", scale: .large) {
+                    MusicManager.shared.togglePlay()
+                }
+            case .next:
+                HoverButton(icon: "forward.fill", scale: .medium) {
+                    MusicManager.shared.nextTrack()
+                }
+                .scaleEffect(horizontalMediaGestureFeedback < 0 ? 1.12 : 1)
+                .animation(.interactiveSpring(response: 0.18, dampingFraction: 0.62), value: horizontalMediaGestureFeedback)
+            case .repeatMode:
+                HoverButton(icon: repeatIcon, iconColor: repeatIconColor, scale: .medium) {
+                    MusicManager.shared.toggleRepeat()
+                }
+            case .mediaOutput:
+                MediaOutputSlotButton()
+            case .volume:
+                VolumeControlView()
+            case .favorite:
+                FavoriteControlButton()
+            case .goBackward:
+                HoverButton(icon: "gobackward.15", scale: .medium) {
+                    MusicManager.shared.skip(seconds: -15)
+                }
+            case .goForward:
+                HoverButton(icon: "goforward.15", scale: .medium) {
+                    MusicManager.shared.skip(seconds: 15)
+                }
+            case .none:
+                Color.clear.frame(height: 1)
             }
-        case .previous:
-            HoverButton(icon: "backward.fill", scale: .medium) {
-                MusicManager.shared.previousTrack()
-            }
-            .scaleEffect(horizontalMediaGestureFeedback > 0 ? 1.12 : 1)
-            .animation(.interactiveSpring(response: 0.18, dampingFraction: 0.62), value: horizontalMediaGestureFeedback)
-        case .playPause:
-            HoverButton(icon: musicManager.isPlaying ? "pause.fill" : "play.fill", scale: .large) {
-                MusicManager.shared.togglePlay()
-            }
-        case .next:
-            HoverButton(icon: "forward.fill", scale: .medium) {
-                MusicManager.shared.nextTrack()
-            }
-            .scaleEffect(horizontalMediaGestureFeedback < 0 ? 1.12 : 1)
-            .animation(.interactiveSpring(response: 0.18, dampingFraction: 0.62), value: horizontalMediaGestureFeedback)
-        case .repeatMode:
-            HoverButton(icon: repeatIcon, iconColor: repeatIconColor, scale: .medium) {
-                MusicManager.shared.toggleRepeat()
-            }
-        case .volume:
-            VolumeControlView()
-        case .favorite:
-            FavoriteControlButton()
-        case .goBackward:
-            HoverButton(icon: "gobackward.15", scale: .medium) {
-                MusicManager.shared.skip(seconds: -15)
-            }
-        case .goForward:
-            HoverButton(icon: "goforward.15", scale: .medium) {
-                MusicManager.shared.skip(seconds: 15)
-            }
-        case .none:
-            Color.clear.frame(height: 1)
         }
+        .help(slot.actionLabel(isPlaying: musicManager.isPlaying, isFavorite: musicManager.isFavoriteTrack))
+        .accessibilityLabel(slot.actionLabel(isPlaying: musicManager.isPlaying, isFavorite: musicManager.isFavoriteTrack))
+        .accessibilityHidden(slot == .none)
     }
 
     private var repeatIcon: String {
@@ -314,6 +332,19 @@ struct MusicControlsView: View {
     }
 }
 
+struct MusicPlaybackTimeline<Content: View>: View {
+    let playbackRate: Double
+    @ViewBuilder let content: (Date) -> Content
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: playbackRate > 0 ? musicPlaybackTickInterval : nil)) { context in
+            content(context.date)
+        }
+    }
+}
+
+private let musicPlaybackTickInterval: TimeInterval = 0.2
+
 struct FavoriteControlButton: View {
     @ObservedObject var musicManager = MusicManager.shared
 
@@ -334,7 +365,37 @@ struct FavoriteControlButton: View {
     }
 }
 
-private extension Array where Element == MusicControlButton {
+/// Audio-output slot for a control row. Shows where audio is going and
+/// switches it, via a popover device picker. Both layouts use this through
+/// MusicControlSlotButton.
+struct MediaOutputSlotButton: View {
+    @ObservedObject private var routeManager = AudioRouteManager.shared
+    @State private var showingPicker = false
+
+    var body: some View {
+        HoverButton(icon: routeSymbol, scale: .medium) {
+            // Enumerate on open rather than polling: devices come and go
+            // (AirPods connecting, a display waking) and a list built at
+            // launch would be stale by the time anyone opened it.
+            routeManager.refreshDevices()
+            showingPicker.toggle()
+        }
+        .popover(isPresented: $showingPicker, arrowEdge: .bottom) {
+            AudioOutputPicker(routeManager: routeManager) {
+                showingPicker = false
+            }
+        }
+    }
+
+    /// Prefer the live device's own icon; fall back to the resolver's
+    /// classification before the first enumeration has run.
+    private var routeSymbol: String {
+        routeManager.activeDevice?.iconName ?? AudioOutputRouteResolver.shared.outputRouteSymbol()
+    }
+}
+
+// Internal so the compact layout's slot row can share the padding rule.
+extension Array where Element == MusicControlButton {
     func padded(to length: Int, filler: MusicControlButton) -> [MusicControlButton] {
         if count >= length { return self }
         return self + Array(repeating: filler, count: length - count)
@@ -350,7 +411,7 @@ struct VolumeControlView: View {
     @State private var showVolumeSlider: Bool = false
     @State private var lastVolumeUpdateTime: Date = Date.distantPast
     private let volumeUpdateThrottle: TimeInterval = 0.1
-    
+
     var body: some View {
         HStack(spacing: 4) {
             Button(action: {
@@ -360,13 +421,15 @@ struct VolumeControlView: View {
                     }
                 }
             }) {
-                Image(systemName: musicManager.volumeControlSupported ? AudioOutputRouteResolver.shared.volumeSymbol(for: CGFloat(volumeSliderValue)) : "speaker.slash")
+                Image(systemName: volumeIcon)
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(musicManager.volumeControlSupported ? .white : .gray)
             }
             .buttonStyle(PlainButtonStyle())
             .disabled(!musicManager.volumeControlSupported)
             .frame(width: 24)
+            .help(MusicControlButton.volume.label)
+            .accessibilityLabel(MusicControlButton.volume.label)
 
             if showVolumeSlider && musicManager.volumeControlSupported {
                 CustomSlider(
@@ -387,6 +450,7 @@ struct VolumeControlView: View {
                     }
                 )
                 .frame(width: 48, height: 8)
+                .accessibilityLabel(MusicControlButton.volume.label)
                 .transition(.scale.combined(with: .opacity))
             }
         }
@@ -415,13 +479,30 @@ struct VolumeControlView: View {
             // volumeUpdateTask?.cancel() // No longer needed
         }
     }
+
+    /// Level-reactive speaker waves (v2.7.3 behavior). The route-device
+    /// glyphs (AirPods, headphones, …) that replaced these belong to the
+    /// media-output button beside this slot — duplicating them here made
+    /// volume and output indistinguishable and static while dragging.
+    private var volumeIcon: String {
+        if !musicManager.volumeControlSupported {
+            return "speaker.slash"
+        } else if volumeSliderValue == 0 {
+            return "speaker.slash.fill"
+        } else if volumeSliderValue < 0.33 {
+            return "speaker.1.fill"
+        } else if volumeSliderValue < 0.66 {
+            return "speaker.2.fill"
+        } else {
+            return "speaker.3.fill"
+        }
+    }
 }
 
 // MARK: - Main View
 
 struct NotchHomeView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject var webcamManager = WebcamManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
@@ -430,12 +511,11 @@ struct NotchHomeView: View {
 
     var body: some View {
         mainContent
-            // simplified: use a straightforward opacity transition
             .transition(.opacity)
     }
 
     private var shouldShowCamera: Bool {
-        Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
+        Defaults[.showMirror] && vm.camera.cameraAvailable && vm.camera.isSessionRunning
     }
 
     private var mainContent: some View {
@@ -457,14 +537,14 @@ struct NotchHomeView: View {
             }
 
             if shouldShowCamera {
-                CameraPreviewView(webcamManager: webcamManager)
+                CameraPreviewView(camera: vm.camera)
                     .scaledToFit()
                     .opacity(vm.notchState == .closed ? 0 : 1)
                     .blur(radius: vm.notchState == .closed ? 20 : 0)
                     .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
             }
         }
-        .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))
+        .transition(.opacity)
         .blur(radius: vm.notchState == .closed ? 30 : 0)
     }
 }
@@ -482,37 +562,65 @@ struct MusicSliderView: View {
     let isPlaying: Bool
     var onValueChange: (Double) -> Void
 
+    // Ported from Atoll (GPL-3.0, itself a boring.notch fork) so the
+    // trailing timestamp can count down instead of showing the duration.
+    var trailingLabel: TrailingLabel = .duration
+
+    enum TrailingLabel {
+        case duration
+        /// Counts down: "-2:56".
+        case remaining
+    }
 
     var body: some View {
         VStack {
-            CustomSlider(
-                value: $sliderValue,
-                range: 0...duration,
-                color: Defaults[.sliderColor] == SliderColorEnum.albumArt
-                    ? Color(nsColor: color).ensureMinimumBrightness(factor: 0.8)
-                    : Defaults[.sliderColor] == SliderColorEnum.accent ? .effectiveAccent : .white,
-                dragging: $dragging,
-                lastDragged: $lastDragged,
-                onValueChange: onValueChange
-            )
-            .frame(height: 10, alignment: .center)
+            sliderCore
+                .frame(height: sliderFrameHeight, alignment: .center)
 
             HStack {
                 Text(timeString(from: sliderValue))
                 Spacer()
-                Text(timeString(from: duration))
+                Text(trailingTimeText)
             }
             .fontWeight(.medium)
-            .foregroundColor(
-                Defaults[.playerColorTinting]
-                    ? Color(nsColor: color).ensureMinimumBrightness(factor: 0.6) : .gray
-            )
+            .foregroundColor(timeLabelColor)
             .font(.caption)
         }
         .onChange(of: currentDate) {
            guard !dragging, timestampDate.timeIntervalSince(lastDragged) > -1 else { return }
             sliderValue = MusicManager.shared.estimatedPlaybackPosition(at: currentDate)
         }
+    }
+
+    private var sliderCore: some View {
+        CustomSlider(
+            value: $sliderValue,
+            range: 0...duration,
+            color: Defaults[.sliderColor] == SliderColorEnum.albumArt
+                ? Color(nsColor: color).ensureMinimumBrightness(factor: 0.8)
+                : Defaults[.sliderColor] == SliderColorEnum.accent ? .effectiveAccent : .white,
+            dragging: $dragging,
+            lastDragged: $lastDragged,
+            onValueChange: onValueChange
+        )
+    }
+
+    private var timeLabelColor: Color {
+        Defaults[.playerColorTinting]
+            ? Color(nsColor: color).ensureMinimumBrightness(factor: 0.6) : .gray
+    }
+
+    private var trailingTimeText: String {
+        switch trailingLabel {
+        case .duration:
+            return timeString(from: duration)
+        case .remaining:
+            return "-" + timeString(from: max(duration - sliderValue, 0))
+        }
+    }
+
+    private var sliderFrameHeight: CGFloat {
+        10
     }
 
     func timeString(from seconds: Double) -> String {

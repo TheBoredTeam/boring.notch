@@ -5,7 +5,6 @@
 //  Created by Alexander on 2026-02-07.
 //
 
-
 import SwiftUI
 import Defaults
 
@@ -16,7 +15,7 @@ struct OSDIconView: View {
     var accent: Color?
 
     var body: some View {
-        switch (eventType) {
+        switch eventType {
         case .volume:
             Image(systemName: icon.isEmpty ? AudioOutputRouteResolver.shared.volumeSymbol(for: value) : icon)
                 .contentTransition(.interpolate)
@@ -24,7 +23,7 @@ struct OSDIconView: View {
                 .scaleEffect(value.isZero ? 0.85 : 1)
                 .frame(width: 20, height: 15, alignment: .leading)
         case .brightness:
-            let symbol = icon.isEmpty ? BrightnessSymbolString(value) : icon
+            let symbol = icon.isEmpty ? brightnessSymbolName(value) : icon
             Image(systemName: symbol)
                 .contentTransition(.interpolate)
                 .frame(width: 20, height: 15)
@@ -45,7 +44,7 @@ struct OSDIconView: View {
         }
     }
 
-private func BrightnessSymbolString(_ value: CGFloat) -> String {
+private func brightnessSymbolName(_ value: CGFloat) -> String {
          return value < 0.3 ? "sun.min.fill" : "sun.max.fill"
     }
 }
