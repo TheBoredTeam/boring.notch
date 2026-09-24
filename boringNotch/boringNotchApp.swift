@@ -213,12 +213,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if Defaults[.sneakPeekStyles] == .inline {
                 let newStatus = !self.coordinator.expandingView.show
                 self.coordinator.toggleExpandingView(status: newStatus, type: .music)
-                KeyboardShortcuts.onKeyUp(for: .toggleSneakPeek) {
-                    self.coordinator.toggleSneakPeek(
-                        status: !self.coordinator.isAnySneakPeekShowing,
-                        type: .music
-                    )
-                }
             } else {
                 self.coordinator.toggleSneakPeek(
                     status: !self.coordinator.isAnySneakPeekShowing,
@@ -226,6 +220,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     duration: 3.0
                 )
             }
+        }
+
+        // Registered once at launch: KeyboardShortcuts appends handlers, so registering
+        // inside the key-down handler would stack a new toggle on every keypress.
+        KeyboardShortcuts.onKeyUp(for: .toggleSneakPeek) { [weak self] in
+            guard let self = self, Defaults[.sneakPeekStyles] == .inline else { return }
+            self.coordinator.toggleSneakPeek(
+                status: !self.coordinator.isAnySneakPeekShowing,
+                type: .music
+            )
         }
 
         KeyboardShortcuts.onKeyDown(for: .toggleNotchOpen) { [weak self] in

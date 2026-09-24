@@ -42,21 +42,25 @@ final class BetterDisplayManager {
 
     private let visibleDuration: TimeInterval = 1.2
     private var observers: [NSObjectProtocol] = []
+    private var terminationObserver: NSObjectProtocol?
 
     private init() {
         checkBetterDisplayAvailability()
 
-        let terminationObserver = NotificationCenter.default.addObserver(
+        terminationObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.willTerminateNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
             self?.configureBetterDisplayIntegration(enabled: false)
         }
-        observers.append(terminationObserver)
     }
 
-    deinit { stopObserving() }
+    deinit {
+        // registered on NotificationCenter.default, so it cannot be removed in stopObserving()
+        if let terminationObserver { NotificationCenter.default.removeObserver(terminationObserver) }
+        stopObserving()
+    }
 
     var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
 
@@ -73,7 +77,8 @@ final class BetterDisplayManager {
     // MARK: - Notification Observing
 
     func startObserving() {
-        stopObserving()
+        // already observing: skip the teardown/availability-scan/re-register cycle
+        guard observers.isEmpty else { return }
         checkBetterDisplayAvailability()
         configureBetterDisplayIntegration(enabled: true)
 

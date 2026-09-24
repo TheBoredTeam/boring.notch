@@ -13,12 +13,14 @@ struct YouTubeMusicConfiguration: Sendable {
     let bundleIdentifier: String
     let reconnectDelay: ClosedRange<TimeInterval>
     let updateInterval: TimeInterval
+    let idleUpdateInterval: TimeInterval
 
     static let `default` = YouTubeMusicConfiguration(
         baseURL: "http://localhost:26538",
         bundleIdentifier: MediaAppBundleID.youTubeMusic,
         reconnectDelay: 1...60,
-        updateInterval: 2.0
+        updateInterval: 2.0,
+        idleUpdateInterval: 10.0
     )
 }
 

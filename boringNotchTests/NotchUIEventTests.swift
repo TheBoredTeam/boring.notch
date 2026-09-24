@@ -84,12 +84,23 @@ final class PlaybackStateTests: XCTestCase {
 
         var b = a
         // Volatile/monitor-side fields that must not defeat `==`:
-        // volume, playbackRate and lastUpdated are intentionally excluded.
-        b.volume = 0.9
+        // playbackRate and lastUpdated are intentionally excluded.
         b.playbackRate = 0.75
         b.lastUpdated = Date()
 
         XCTAssertEqual(a, b)
+    }
+
+    func testEquatableTracksVolume() {
+        // Volume is user-visible state, not monitor noise. Controllers that gate
+        // their publish on `!=` swallow volume changes entirely if it is excluded.
+        var a = PlaybackState(bundleIdentifier: MediaAppBundleID.spotify, isPlaying: true)
+        a.volume = 0.4
+
+        var b = a
+        b.volume = 0.9
+
+        XCTAssertNotEqual(a, b)
     }
 
     func testEquatableTracksUserVisibleFields() {

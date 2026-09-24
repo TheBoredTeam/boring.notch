@@ -60,6 +60,7 @@ final class MusicManager: ObservableObject {
     static let shared = MusicManager()
     private static let noticeDuration: Duration = .seconds(6)
     private static let runtimeRecoveryDelay: Duration = .seconds(1)
+    private static let maxRuntimeRecoveryDelay: Duration = .seconds(60)
 
     private var controllerCancellables = Set<AnyCancellable>()
     private var averageColorTask: Task<Void, Never>?
@@ -67,6 +68,7 @@ final class MusicManager: ObservableObject {
     private var availabilityTask: Task<Void, Never>?
     private var runtimeFailureTask: Task<Void, Never>?
     private var runtimeRecoveryTask: Task<Void, Never>?
+    private var runtimeRecoveryAttempts = 0
     private var noticeDismissalTask: Task<Void, Never>?
     private var isDestroyed = false
     private var lastNoticedFailure: NowPlayingFailure?
@@ -170,11 +172,13 @@ final class MusicManager: ObservableObject {
         availabilityTask = nil
         runtimeFailureTask = nil
         runtimeRecoveryTask = nil
+        runtimeRecoveryAttempts = 0
         noticeDismissalTask = nil
         controllerCancellables.removeAll()
         flipWorkItem?.cancel()
         transitionWorkItem?.cancel()
         (activeController as? any NowPlayingRuntimeControlling)?.stopRuntimeStream()
+        (activeController as? YouTubeMusicController)?.stopPeriodicUpdates()
 
         activeController = nil
         effectiveMediaController = nil
@@ -355,6 +359,7 @@ final class MusicManager: ObservableObject {
         runtimeFailureTask?.cancel()
         runtimeFailureTask = nil
         (activeController as? any NowPlayingRuntimeControlling)?.stopRuntimeStream()
+        (activeController as? YouTubeMusicController)?.stopPeriodicUpdates()
         controllerCancellables.removeAll()
 
         flipWorkItem?.cancel()
@@ -374,6 +379,10 @@ final class MusicManager: ObservableObject {
                       state.lastUpdated != .distantPast
                 else {
                     return
+                }
+                if controller is any NowPlayingRuntimeControlling {
+                    // A real playback update means the stream is alive, so recovery starts fresh next time.
+                    self.runtimeRecoveryAttempts = 0
                 }
                 self.updateFromPlaybackState(state)
             }
@@ -440,10 +449,19 @@ final class MusicManager: ObservableObject {
     }
 
     private func scheduleRuntimeRecovery() {
-        cancelRuntimeRecovery()
+        runtimeRecoveryTask?.cancel()
+
+        // Back off 1s, 2s, 4s… capped at 60s so a stream that dies immediately cannot respawn processes every second.
+        let delay = min(
+            Self.runtimeRecoveryDelay * (1 << min(runtimeRecoveryAttempts, 6)),
+            Self.maxRuntimeRecoveryDelay
+        )
+        runtimeRecoveryAttempts += 1
+        NSLog("Scheduling Now Playing runtime recovery in \(delay) (attempt \(runtimeRecoveryAttempts))")
+
         runtimeRecoveryTask = Task { @MainActor [weak self] in
             do {
-                try await Task.sleep(for: Self.runtimeRecoveryDelay)
+                try await Task.sleep(for: delay)
             } catch {
                 return
             }
@@ -463,6 +481,7 @@ final class MusicManager: ObservableObject {
     private func cancelRuntimeRecovery() {
         runtimeRecoveryTask?.cancel()
         runtimeRecoveryTask = nil
+        runtimeRecoveryAttempts = 0
     }
 
     // MARK: - Update Methods

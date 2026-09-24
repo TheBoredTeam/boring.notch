@@ -59,6 +59,7 @@ extension PlaybackState: Equatable {
             && lhs.duration == rhs.duration
             && lhs.isShuffled == rhs.isShuffled
             && lhs.repeatMode == rhs.repeatMode
+            && lhs.volume == rhs.volume
             && lhs.artwork == rhs.artwork
             && lhs.isFavorite == rhs.isFavorite
     }
