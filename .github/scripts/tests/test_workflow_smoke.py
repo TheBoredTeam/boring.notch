@@ -295,6 +295,37 @@ class WorkflowSmokeTests(unittest.TestCase):
         self.assertNotIn("artifact-metadata", self.release)
         self.assertNotIn('startswith("nightly-")', self.release)
 
+    def test_release_never_probes_releases_by_tag_for_draft_state(self) -> None:
+        # The /releases/tags REST endpoint 404s for draft releases even with
+        # write access, so release-state decisions must never call it.
+        # (Comments may mention the endpoint; call sites may not.)
+        # gh release view resolves drafts via the list API instead.
+        self.assertNotRegex(self.release, r'gh api "repos/[^"]*/releases/tags')
+        # Five call sites: resume probe, two notes reads, stable publish, beta publish.
+        self.assertEqual(self.release.count('gh release view "'), 5)
+        stable_block = self.release.split("  publish_stable:", 1)[1].split("  publish_beta:", 1)[0]
+        beta_block = self.release.split("  publish_beta:", 1)[1].split("  upgrade-brew:", 1)[0]
+        for job, block in (("publish_stable", stable_block), ("publish_beta", beta_block)):
+            self.assertIn('gh release view "$TAG"', block, job)
+            self.assertIn("--json isDraft", block, job)
+            self.assertIn("is already published", block, job)
+            self.assertIn("does not exist; expected the draft", block, job)
+
+    def test_release_resume_reads_the_draft_target_commitish(self) -> None:
+        # Resuming from a draft must recover its source commit; the
+        # list-backed gh release view exposes it as targetCommitish.
+        self.assertIn('gh release view "$TAG" --repo "$REPO" --json isDraft,targetCommitish', self.release)
+        self.assertIn("jq -r '.isDraft'", self.release)
+        self.assertIn("jq -r '.targetCommitish'", self.release)
+        self.assertIn('grep -q \'release not found\'', self.release)
+
+    def test_release_resume_notes_come_from_the_draft_release(self) -> None:
+        # Resume regenerates release notes from the existing draft; probing
+        # it must work while the release is still a draft.
+        resume_block = self.release.split("Generate release notes", 1)[1].split("- name:", 1)[0]
+        self.assertIn('gh release view "v${VERSION}" --repo "$REPO" --json name', resume_block)
+        self.assertIn('gh release view "v${VERSION}" --repo "$REPO" --json body', resume_block)
+
 
 if __name__ == "__main__":
     unittest.main()
