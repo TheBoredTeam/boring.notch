@@ -3237,6 +3237,12 @@
             "state" : "translated",
             "value" : "BetterDisplay n'est pas installé ou n'est pas en cours d'exécution"
           }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BetterDisplay não está instalado ou não está em execução"
+          }
         }
       }
     },
@@ -8545,6 +8551,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Définissez ce qui se passe lorsque vous maintenez la touche Option enfoncée tout en appuyant sur les touches multimédia."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Defina o que acontece quando você segura a tecla Opção enquanto pressiona as teclas de mídia."
           }
         }
       }
@@ -14250,6 +14262,12 @@
             "state" : "translated",
             "value" : "La fonction de réglage de rétro-éclairage du clavier ne prend actuellement en charge que la source intégrée."
           }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O brilho do teclado atualmente suporta apenas a fonte embutida."
+          }
         }
       }
     },
@@ -14986,6 +15004,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lunar n'est pas installé ou n'est pas accessible"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lunar não está instalado ou não está acessível"
           }
         }
       }
@@ -18931,6 +18955,12 @@
             "state" : "translated",
             "value" : "Seuls les écrans Apple sont pris en charge.\nDans les configurations à plusieurs écrans, l'OSD de luminosité apparaît sur l'écran actif, où se trouve le pointeur de la souris."
           }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Somente Apple displays são suportadas. Em configurações de multi-exibição, o OSD de brilho aparece na tela ativa se suportado ou em outra tela suportada."
+          }
         }
       }
     },
@@ -19077,6 +19107,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ouvrir un rapport de bug avec votre version remplie automatiquement"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir um relatório de erro com a sua versão preenchida automaticamente"
           }
         }
       }
@@ -22792,6 +22828,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Signaler un bug"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reportar um erro"
           }
         }
       }
