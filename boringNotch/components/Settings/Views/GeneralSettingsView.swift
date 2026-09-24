@@ -79,27 +79,6 @@ struct GeneralSettings: View {
             } header: {
                 Text("Displays")
             }
-
-            Section {
-                Defaults.Toggle(key: .showCalendar) {
-                    Text("Show calendar")
-                }
-                Defaults.Toggle(key: .showMirror) {
-                    Text("Enable boring mirror")
-                }
-                Defaults.Toggle(key: .boringShelf) {
-                    Text("Enable shelf")
-                }
-                Defaults.Toggle(key: .showBatteryIndicator) {
-                    Text("Show battery indicator")
-                }
-            } header: {
-                Text("Feature toggles")
-            } footer: {
-                Text("Quickly enable or disable features. Each has more options in its own settings page.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
         }
         .toolbar {
             Button("Quit app") {

@@ -122,8 +122,8 @@ private enum PrivacyPane {
 /// An access-denied explanation with a shortcut to the relevant pane of
 /// System Settings → Privacy & Security.
 private struct PermissionDeniedNotice: View {
-    let message: String
-    let buttonTitle: String
+    let message: LocalizedStringKey
+    let buttonTitle: LocalizedStringKey
     let privacyPane: PrivacyPane
 
     var body: some View {
