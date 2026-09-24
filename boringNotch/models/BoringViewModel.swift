@@ -198,6 +198,17 @@ class BoringViewModel: NSObject, ObservableObject {
     func open() -> Bool {
         guard !coordinator.firstLaunch else { return false }
 
+        // Every opening route belongs to the pending/active workflow, regardless
+        // of which part of the notch was entered or which tab closing selected.
+        let workflow = DailyPlanningManager.shared
+        if workflow.isAwaitingPresentation {
+            if let screenUUID { coordinator.selectedScreenUUID = screenUUID }
+            workflow.activatePendingSession(requestPresentation: false)
+        }
+        if workflow.isPresenting || workflow.isFinishingSession {
+            coordinator.currentView = .dailyPlanning
+        }
+
         self.notchSize = openNotchSize
         self.notchState = .open
         

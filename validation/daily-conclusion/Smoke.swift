@@ -54,7 +54,10 @@ struct DiarySmoke {
         manager.setConclusionEnabled(true)
         manager.start()
         try await Task.sleep(for: .milliseconds(100))
-        precondition(manager.activatePendingSession())
+        var requestedPresentation = false
+        manager.onNeedsPresentation = { requestedPresentation = true }
+        precondition(manager.activatePendingSession(requestPresentation: false))
+        precondition(!requestedPresentation, "Opening a pending workflow must not recursively reopen the window")
         let window = BoringNotchSkyLightWindow(contentRect: NSRect(x: 0, y: 0, width: 640, height: 160), styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow], backing: .buffered, defer: false)
         let view = NSHostingView(rootView: DailyPlanningView(manager: manager).frame(width: 640, height: 160).background(.black).preferredColorScheme(.dark))
         window.contentView = view

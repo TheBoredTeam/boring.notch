@@ -158,13 +158,13 @@ final class DailyPlanningManager: ObservableObject {
     }
 
     @discardableResult
-    func activatePendingSession() -> Bool {
+    func activatePendingSession(requestPresentation: Bool = true) -> Bool {
         guard activeSession == nil, let pendingSession else { return false }
 
         self.pendingSession = nil
         activeSession = pendingSession
         contentState = .loading
-        onNeedsPresentation?()
+        if requestPresentation { onNeedsPresentation?() }
 
         Task { [weak self] in
             await self?.reloadActiveSession()

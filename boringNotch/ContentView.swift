@@ -201,7 +201,7 @@ struct ContentView: View {
                         handleHover(hovering)
                     }
                     .onTapGesture {
-                        doOpen(activatingPendingWorkflow: true)
+                        doOpen()
                     }
                     .conditionalModifier(Defaults[.enableGestures]) { view in
                         view
@@ -456,17 +456,21 @@ struct ContentView: View {
               .zIndex(1)
             if vm.notchState == .open {
                 VStack {
-                    switch coordinator.currentView {
-                    case .home:
-                        NotchHomeView(
-                            albumArtNamespace: albumArtNamespace,
-                            horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
-                            isHoveringMusicArea: $isHoveringMusicArea
-                        )
-                    case .shelf:
-                        ShelfView()
-                    case .dailyPlanning:
+                    if dailyPlanningManager.isPresenting || dailyPlanningManager.isFinishingSession {
                         DailyPlanningView()
+                    } else {
+                        switch coordinator.currentView {
+                        case .home:
+                            NotchHomeView(
+                                albumArtNamespace: albumArtNamespace,
+                                horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+                                isHoveringMusicArea: $isHoveringMusicArea
+                            )
+                        case .shelf:
+                            ShelfView()
+                        case .dailyPlanning:
+                            DailyPlanningView()
+                        }
                     }
                 }
                 .transition(
@@ -620,18 +624,9 @@ struct ContentView: View {
     }
 
     @discardableResult
-    private func doOpen(activatingPendingWorkflow: Bool = false) -> Bool {
+    private func doOpen() -> Bool {
         var didOpen = false
         withAnimation(animationSpring) {
-            if activatingPendingWorkflow,
-                isShowingPendingWorkflowNotification,
-                let screenUUID = vm.screenUUID
-            {
-                coordinator.selectedScreenUUID = screenUUID
-                if dailyPlanningManager.activatePendingSession() {
-                    coordinator.currentView = .dailyPlanning
-                }
-            }
             didOpen = vm.open()
         }
         return didOpen
@@ -652,7 +647,7 @@ struct ContentView: View {
                 haptics.toggle()
             }
             
-            let hasPendingWorkflow = isShowingPendingWorkflowNotification
+            let hasPendingWorkflow = dailyPlanningManager.isAwaitingPresentation || dailyPlanningManager.isPresenting
             guard vm.notchState == .closed,
                 hasPendingWorkflow
                     || (!coordinator.shouldShowSneakPeek(on: vm.screenUUID)
@@ -666,11 +661,12 @@ struct ContentView: View {
                 await MainActor.run {
                     guard self.vm.notchState == .closed,
                         self.isHovering,
-                        self.isShowingPendingWorkflowNotification
+                        self.dailyPlanningManager.isAwaitingPresentation
+                            || self.dailyPlanningManager.isPresenting
                             || !self.coordinator.shouldShowSneakPeek(on: self.vm.screenUUID)
                     else { return }
                     
-                    self.doOpen(activatingPendingWorkflow: true)
+                    self.doOpen()
                 }
             }
         } else {
@@ -718,7 +714,7 @@ struct ContentView: View {
             withAnimation(animationSpring) {
                 gestureProgress = .zero
             }
-            doOpen(activatingPendingWorkflow: true)
+            doOpen()
         }
     }
 

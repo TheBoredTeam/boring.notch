@@ -28,7 +28,7 @@ with the diary enabled in memory, without changing the stored schedule or diary 
 Completing this review still records the normal evening completion.
 
 1. Open Planning & Review. Enable conclusions and allow the default diary folder. Confirm Calendar no longer contains workflow settings.
-2. Open evening review. Check the existing reminder layout and completion toggles. Choose Next, type Markdown, paste multiple paragraphs, scroll, undo, and use an input method if available. Moving the pointer out must fold the window; hovering again must restore the editor and draft.
+2. Hover the upper notch and then the lower reminder area; both must open evening review, including after folding it and while another OSD briefly covers the prompt. Open evening review. Check the existing reminder layout and completion toggles. Choose Next, type Markdown, paste multiple paragraphs, scroll, undo, and use an input method if available. Moving the pointer out must fold the window; hovering again must restore the editor and draft.
 3. Return to review and choose Next again; the draft should remain. End Review: observe the monochrome card enter the folder, the folder slide below the window, then the existing farewell and close. Check the Markdown file matches the input.
 4. Relaunch the app and save another entry without granting the folder again. Check changing the folder works and existing files are preserved.
 5. Try blank and whitespace-only drafts: no new file and no folder animation. Disable conclusions: evening review finishes directly. Morning planning remains unchanged.
