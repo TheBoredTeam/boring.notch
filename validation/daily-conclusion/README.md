@@ -23,6 +23,9 @@ DIARY_SMOKE_CAPTURES=/tmp/diary-native-captures bash validation/daily-conclusion
 ## Sandboxed app check
 
 Use a signed Debug app for the macOS folder-grant checks; the standalone smoke executable is not sandboxed.
+Launch the Debug app with `--preview-evening-review` to immediately open evening review
+with the diary enabled in memory, without changing the stored schedule or diary toggle.
+Completing this review still records the normal evening completion.
 
 1. Open Planning & Review. Enable conclusions and allow the default diary folder. Confirm Calendar no longer contains workflow settings.
 2. Open evening review. Check the existing reminder layout and completion toggles. Choose Next, type Markdown, paste multiple paragraphs, scroll, undo, and use an input method if available. Moving the pointer out must not close the editor.

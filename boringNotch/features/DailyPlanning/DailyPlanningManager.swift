@@ -138,6 +138,16 @@ final class DailyPlanningManager: ObservableObject {
                 self?.evaluate()
             }
         }
+        #if DEBUG
+        if CommandLine.arguments.contains("--preview-evening-review") {
+            conclusionPreferences.isEnabled = true
+            activeSession = DailyWorkflowSession(kind: .eveningReview, date: Date())
+            contentState = .loading
+            onNeedsPresentation?()
+            Task { [weak self] in await self?.reloadActiveSession() }
+            return
+        }
+        #endif
         evaluate()
     }
 
