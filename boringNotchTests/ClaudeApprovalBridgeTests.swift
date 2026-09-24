@@ -36,4 +36,54 @@ final class ClaudeApprovalBridgeTests: XCTestCase {
             XCTAssertNil(decision?["updatedPermissions"])
         }
     }
+
+    func testParsesMultipleQuestionsAndRejectsMalformedInput() throws {
+        let input: [String: Any] = [
+            "questions": [
+                ["question": "Framework?", "header": "Framework", "options": [
+                    ["label": "SwiftUI", "description": "Native"],
+                    ["label": "AppKit"],
+                ], "multiSelect": false],
+                ["question": "Targets?", "header": "Targets", "options": [
+                    ["label": "macOS"], ["label": "iOS"],
+                ], "multiSelect": true],
+            ],
+        ]
+        let questions = try XCTUnwrap(ClaudeApprovalBridge.parseQuestions(input))
+        XCTAssertEqual(questions.count, 2)
+        XCTAssertEqual(questions[0].options[0].detail, "Native")
+        XCTAssertFalse(questions[0].multiSelect)
+        XCTAssertTrue(questions[1].multiSelect)
+        XCTAssertNil(ClaudeApprovalBridge.parseQuestions(["questions": []]))
+        XCTAssertNil(ClaudeApprovalBridge.parseQuestions(["questions": [
+            ["question": "Broken", "options": [["description": "Missing label"]]],
+        ]]))
+        XCTAssertNil(ClaudeApprovalBridge.parseQuestions(["questions": [
+            ["question": "Duplicate?", "options": [["label": "Yes"]]],
+            ["question": "Duplicate?", "options": [["label": "No"]]],
+        ]]))
+        XCTAssertNil(ClaudeApprovalBridge.parseQuestions(["questions": [
+            ["question": "Choice?", "options": [["label": "Same"], ["label": "Same"]]],
+        ]]))
+    }
+
+    func testQuestionDecisionPreservesInputAndAddsAnswers() throws {
+        let questions: [[String: Any]] = [[
+            "question": "Framework?", "header": "Framework",
+            "options": [["label": "SwiftUI"], ["label": "AppKit"]],
+            "multiSelect": false,
+        ]]
+        let payload = ClaudeApprovalBridge.questionDecision(
+            input: ["questions": questions, "metadata": "keep"],
+            answers: ["Framework?": "SwiftUI"]
+        )
+        let output = try XCTUnwrap(payload["hookSpecificOutput"] as? [String: Any])
+        let updated = try XCTUnwrap(output["updatedInput"] as? [String: Any])
+        XCTAssertEqual(output["hookEventName"] as? String, "PreToolUse")
+        XCTAssertEqual(output["permissionDecision"] as? String, "allow")
+        XCTAssertEqual(updated["metadata"] as? String, "keep")
+        XCTAssertEqual((updated["questions"] as? [[String: Any]])?.count, 1)
+        XCTAssertEqual((updated["answers"] as? [String: String])?["Framework?"], "SwiftUI")
+        XCTAssertNoThrow(try JSONSerialization.data(withJSONObject: payload))
+    }
 }
