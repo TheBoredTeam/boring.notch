@@ -5,13 +5,10 @@ import IOKit.ps
 import SwiftUI
 
 /// A view model that manages and monitors the battery status of the device
-class BatteryStatusViewModel: ObservableObject {
-
+final class BatteryStatusViewModel: ObservableObject {
     private var wasCharging: Bool = false
     private var powerSourceChangedCallback: IOPowerSourceCallbackType?
     private var runLoopSource: Unmanaged<CFRunLoopSource>?
-
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
 
     @Published private(set) var levelBattery: Float = 0.0
     @Published private(set) var maxCapacity: Float?
@@ -21,6 +18,7 @@ class BatteryStatusViewModel: ObservableObject {
     @Published private(set) var isInitial: Bool = false
     @Published private(set) var timeToFullCharge: Int = 0
     @Published private(set) var timeToDischarge: Int = 0
+    @Published private(set) var maxAdapterWatts: Int = 0
     @Published private(set) var lastStatus: LastStatus = .plugged(false)
 
     enum LastStatus: Equatable {
@@ -78,7 +76,7 @@ class BatteryStatusViewModel: ObservableObject {
     private func handleBatteryEvent(_ event: BatteryActivityManager.BatteryEvent) {
         switch event {
         case .powerSourceChanged(let isPluggedIn):
-            print("🔌 Power source: \(isPluggedIn ? "Connected" : "Disconnected")")
+            Log.battery.debug("🔌 Power source: \(isPluggedIn ? "Connected" : "Disconnected")")
             withAnimation {
                 self.isPluggedIn = isPluggedIn
                 // remember the last battery-related message so the computed
@@ -88,13 +86,13 @@ class BatteryStatusViewModel: ObservableObject {
             }
 
         case .batteryLevelChanged(let level):
-            print("🔋 Battery level: \(Int(level))%")
+            Log.battery.debug("🔋 Battery level: \(Int(level))%")
             withAnimation {
                 self.levelBattery = level
             }
 
         case .lowPowerModeChanged(let isEnabled):
-            print("⚡ Low power mode: \(isEnabled ? "Enabled" : "Disabled")")
+            Log.battery.debug("⚡ Low power mode: \(isEnabled ? "Enabled" : "Disabled")")
             self.notifyImportanChangeStatus()
             withAnimation {
                 self.isInLowPowerMode = isEnabled
@@ -102,9 +100,9 @@ class BatteryStatusViewModel: ObservableObject {
             }
 
         case .isChargingChanged(let isCharging):
-            print("🔌 Charging: \(isCharging ? "Yes" : "No")")
-            print("maxCapacity: \(self.maxCapacity.map { "\($0)" } ?? "Unavailable")")
-            print("levelBattery: \(self.levelBattery)")
+            Log.battery.debug("🔌 Charging: \(isCharging ? "Yes" : "No")")
+            Log.battery.debug("maxCapacity: \(self.maxCapacity.map { "\($0)" } ?? "Unavailable")")
+            Log.battery.debug("levelBattery: \(self.levelBattery)")
             self.notifyImportanChangeStatus()
             withAnimation {
                 self.isCharging = isCharging
@@ -112,25 +110,31 @@ class BatteryStatusViewModel: ObservableObject {
             }
 
         case .timeToFullChargeChanged(let time):
-            print("🕒 Time to full charge: \(time) minutes")
+            Log.battery.debug("🕒 Time to full charge: \(time) minutes")
             withAnimation {
                 self.timeToFullCharge = time
             }
 
         case .timeToDischargeChanged(let time):
-            print("🕒 Time until empty: \(time) minutes")
+            Log.battery.debug("🕒 Time until empty: \(time) minutes")
             withAnimation {
                 self.timeToDischarge = time
             }
 
         case .maxCapacityChanged(let capacity):
-            print("🔋 Max capacity: \(capacity.map { "\($0)" } ?? "Unavailable")")
+            Log.battery.debug("🔋 Max capacity: \(capacity.map { "\($0)" } ?? "Unavailable")")
             withAnimation {
                 self.maxCapacity = capacity
             }
 
+        case .adapterWattageChanged(let watts):
+            Log.battery.debug("🔌 Power adapter: \(watts)W")
+            withAnimation {
+                self.maxAdapterWatts = watts
+            }
+
         case .error(let description):
-            print("⚠️ Error: \(description)")
+            Log.battery.error("⚠️ Error: \(description)")
         }
     }
 
@@ -145,6 +149,7 @@ class BatteryStatusViewModel: ObservableObject {
             self.timeToFullCharge = batteryInfo.timeToFullCharge
             self.timeToDischarge = batteryInfo.timeToDischarge
             self.maxCapacity = batteryInfo.maxCapacity
+            self.maxAdapterWatts = batteryInfo.maxAdapterWatts
             self.lastStatus = .plugged(batteryInfo.isPluggedIn)
         }
     }
@@ -152,17 +157,16 @@ class BatteryStatusViewModel: ObservableObject {
     /// Notifies important changes in the battery status with an optional delay
     /// - Parameter delay: The delay before notifying the change, default is 0.0
     private func notifyImportanChangeStatus(delay: Double = 0.0) {
-        Task {
+        Task { [delay] in
             try? await Task.sleep(for: .seconds(delay))
-            self.coordinator.toggleExpandingView(status: true, type: .battery)
+            NotchUIEventBus.events.send(.expandingView(type: .battery))
         }
     }
 
     deinit {
-        print("🔌 Cleaning up battery monitoring...")
+        Log.battery.debug("🔌 Cleaning up battery monitoring...")
         if let managerBatteryId: Int = managerBatteryId {
             managerBattery.removeObserver(byId: managerBatteryId)
         }
     }
-
 }

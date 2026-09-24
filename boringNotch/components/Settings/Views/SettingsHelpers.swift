@@ -18,17 +18,7 @@ func proFeatureBadge() -> some View {
                 Color(red: 0.545, green: 0.196, blue: 0.98), lineWidth: 1))
 }
 
-func comingSoonBadge() -> some View {
-    Text("Coming soon")
-        .foregroundStyle(.secondary)
-        .font(.footnote.bold())
-        .padding(.vertical, 3)
-        .padding(.horizontal, 6)
-        .background(Color(nsColor: .secondarySystemFill))
-        .clipShape(.capsule)
-}
-
-func customBadge(text: String) -> some View {
+func customBadge(text: LocalizedStringKey) -> some View {
     Text(text)
         .foregroundStyle(.secondary)
         .font(.footnote.bold())
@@ -38,7 +28,7 @@ func customBadge(text: String) -> some View {
         .clipShape(.capsule)
 }
 
-func warningBadge(_ text: String, _ description: String) -> some View {
+func warningBadge(_ text: LocalizedStringKey, _ description: LocalizedStringKey) -> some View {
     Section {
         HStack(spacing: 12) {
             Image(systemName: "exclamationmark.triangle.fill")
@@ -55,10 +45,8 @@ func warningBadge(_ text: String, _ description: String) -> some View {
     }
 }
 
-
-func HelpText(_ text: String) -> some View {
+func HelpText(_ text: LocalizedStringKey) -> some View {
     Text(text)
         .font(.caption)
         .foregroundStyle(.secondary)
 }
-

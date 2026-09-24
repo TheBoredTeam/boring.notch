@@ -9,7 +9,7 @@ import Cocoa
 import Defaults
 import SwiftUI
 
-class AudioSpectrum: NSView, AudioCaptureLevelsConsumer {
+class MusicVisualizerModel: NSView, AudioCaptureLevelsConsumer {
     private var barLayers: [CAGradientLayer] = []
     private var isPlaying = false
     private var useRealtime = false
@@ -220,14 +220,14 @@ class AudioSpectrum: NSView, AudioCaptureLevelsConsumer {
     }
 }
 
-struct AudioSpectrumView: NSViewRepresentable {
+struct MusicVisualizer: NSViewRepresentable {
     let isPlaying: Bool
     let tintColor: Color
     @Default(.realtimeAudioWaveform) var realtimeEnabled: Bool
     @ObservedObject private var audioCapture = AudioCaptureManager.shared
 
-    func makeNSView(context: Context) -> AudioSpectrum {
-        let spectrum = AudioSpectrum()
+    func makeNSView(context: Context) -> MusicVisualizerModel {
+        let spectrum = MusicVisualizerModel()
         spectrum.setTintColor(NSColor(tintColor))
         spectrum.setUseRealtime(realtimeEnabled && audioCapture.isCapturing)
         spectrum.setPlaying(isPlaying)
@@ -236,7 +236,7 @@ struct AudioSpectrumView: NSViewRepresentable {
         return spectrum
     }
 
-    func updateNSView(_ nsView: AudioSpectrum, context: Context) {
+    func updateNSView(_ nsView: MusicVisualizerModel, context: Context) {
         nsView.setTintColor(NSColor(tintColor))
         nsView.setUseRealtime(realtimeEnabled && audioCapture.isCapturing)
         nsView.setPlaying(isPlaying)
@@ -247,7 +247,7 @@ struct AudioSpectrumView: NSViewRepresentable {
 #Preview {
     ZStack {
         Color.black
-        AudioSpectrumView(isPlaying: true, tintColor: .green)
+        MusicVisualizer(isPlaying: true, tintColor: .green)
             .frame(width: 18, height: 14)
     }
     .padding()
