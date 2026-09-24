@@ -8,7 +8,7 @@
 import Defaults
 import SwiftUI
 
-struct Charge: View {
+struct BatterySettingsView: View {
     var body: some View {
         Form {
             Section {
@@ -27,6 +27,9 @@ struct Charge: View {
                 }
                 Defaults.Toggle(key: .showPowerStatusIcons) {
                     Text("Show power status icons")
+                }
+                Defaults.Toggle(key: .showChargingWattage) {
+                    Text("Show charging wattage")
                 }
             } header: {
                 Text("Battery Information")

@@ -14,30 +14,82 @@ let defaultImage: NSImage = .init(
     accessibilityDescription: "Album Art"
 )!
 
-class MusicManager: ObservableObject {
+struct NowPlayingFallbackNotice: Identifiable, Equatable {
+    let id = UUID()
+    let fallbackSource: MediaControllerType
+    let failure: NowPlayingFailure
+
+    var title: LocalizedStringResource {
+        switch failure {
+        case .setup:
+            LocalizedStringResource(
+                "Now Playing components unavailable",
+                comment: "Title of the passive notice shown when required Now Playing components cannot be used."
+            )
+        case .probe:
+            LocalizedStringResource(
+                "Could not verify Now Playing",
+                comment: "Title of the passive notice shown when the Now Playing availability probe fails."
+            )
+        case .runtime:
+            LocalizedStringResource(
+                "Now Playing connection lost",
+                comment: "Title of the passive notice shown when an active Now Playing stream fails."
+            )
+        }
+    }
+
+    var subtitle: LocalizedStringResource {
+        if failure == .setup {
+            LocalizedStringResource(
+                "Using \(fallbackSource.localizedString) instead",
+                comment: "Now Playing setup failure notice. The placeholder is the fallback music source name."
+            )
+        } else {
+            LocalizedStringResource(
+                "Using \(fallbackSource.localizedString) temporarily",
+                comment: "Temporary Now Playing fallback notice. The placeholder is the fallback music source name."
+            )
+        }
+    }
+}
+
+@MainActor
+final class MusicManager: ObservableObject {
     // MARK: - Properties
     static let shared = MusicManager()
-    private var cancellables = Set<AnyCancellable>()
-    private var controllerCancellables = Set<AnyCancellable>()
-    private var debounceIdleTask: Task<Void, Never>?
+    private static let noticeDuration: Duration = .seconds(6)
+    private static let runtimeRecoveryDelay: Duration = .seconds(1)
 
-    // Helper to check if macOS has removed support for NowPlayingController
-    public private(set) var isNowPlayingDeprecated: Bool = false
-    private let mediaChecker = MediaChecker()
+    private var controllerCancellables = Set<AnyCancellable>()
+    private var averageColorTask: Task<Void, Never>?
+    private var debounceIdleTask: Task<Void, Never>?
+    private var availabilityTask: Task<Void, Never>?
+    private var runtimeFailureTask: Task<Void, Never>?
+    private var runtimeRecoveryTask: Task<Void, Never>?
+    private var noticeDismissalTask: Task<Void, Never>?
+    private var isDestroyed = false
+    private var lastNoticedFailure: NowPlayingFailure?
+
+    // Helper to check if macOS can use NowPlayingController
+    @Published private(set) var preferredMediaController: MediaControllerType
+    @Published private(set) var nowPlayingAvailability: NowPlayingAvailability = .unchecked
+    @Published private(set) var effectiveMediaController: MediaControllerType?
+    @Published private(set) var nowPlayingNotice: NowPlayingFallbackNotice?
 
     // Active controller
     private var activeController: (any MediaControllerProtocol)?
 
     // Published properties for UI
-    @Published var songTitle: String = "I'm Handsome"
-    @Published var artistName: String = "Me"
+    @Published var songTitle: String = ""
+    @Published var artistName: String = ""
     @Published var albumArt: NSImage = defaultImage
     @Published var isPlaying = false
-    @Published var album: String = "Self Love"
+    @Published var album: String = ""
     @Published var isPlayerIdle: Bool = true
     @Published var animations: BoringAnimations = .init()
     @Published var avgColor: NSColor = .white
-    @Published var bundleIdentifier: String? = nil
+    @Published var bundleIdentifier: String?
     @Published var audioCaptureBundleIdentifiers: [String] = []
     @Published var songDuration: TimeInterval = 0
     @Published var elapsedTime: TimeInterval = 0
@@ -47,10 +99,9 @@ class MusicManager: ObservableObject {
     @Published var repeatMode: RepeatMode = .off
     @Published var volume: Double = 0.5
     @Published var volumeControlSupported: Bool = true
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Published var usingAppIconForArtwork: Bool = false
     @Published var canFavoriteTrack: Bool = false
-    
+
     // Lyrics are now managed by LyricsService
     var lyricsService: LyricsService { LyricsService.shared }
     var currentLyrics: String { lyricsService.currentLyrics }
@@ -58,13 +109,13 @@ class MusicManager: ObservableObject {
     var syncedLyrics: [(time: Double, text: String)] { lyricsService.syncedLyrics }
     @Published var isFavoriteTrack: Bool = false
 
-    private var artworkData: Data? = nil
+    private var artworkData: Data?
 
     // Store last values at the time artwork was changed
-    private var lastArtworkTitle: String = "I'm Handsome"
-    private var lastArtworkArtist: String = "Me"
-    private var lastArtworkAlbum: String = "Self Love"
-    private var lastArtworkBundleIdentifier: String? = nil
+    private var lastArtworkTitle: String = ""
+    private var lastArtworkArtist: String = ""
+    private var lastArtworkAlbum: String = ""
+    private var lastArtworkBundleIdentifier: String?
 
     @Published var isFlipping: Bool = false
     private var flipWorkItem: DispatchWorkItem?
@@ -74,119 +125,359 @@ class MusicManager: ObservableObject {
 
     // MARK: - Initialization
     init() {
-        // Listen for changes to the default controller preference
-        NotificationCenter.default.publisher(for: Notification.Name.mediaControllerChanged)
-            .sink { [weak self] _ in
-                self?.setActiveControllerBasedOnPreference()
-            }
-            .store(in: &cancellables)
+        Self.migrateMediaControllerPreferenceIfNeeded()
+        preferredMediaController = Defaults[.mediaController]
 
-        // Initialize deprecation check asynchronously
-        Task { @MainActor in
-            do {
-                self.isNowPlayingDeprecated = try await self.mediaChecker.checkDeprecationStatus()
-                print("Deprecation check completed: \(self.isNowPlayingDeprecated)")
-            } catch {
-                print("Failed to check deprecation status: \(error). Defaulting to false.")
-                self.isNowPlayingDeprecated = false
-            }
-            
-            // Initialize the active controller after deprecation check
-            self.setActiveControllerBasedOnPreference()
+        if preferredMediaController == .nowPlaying {
+            activateFallback()
+            ensureNowPlayingAvailabilityChecked()
+        } else {
+            activateControllerIfNeeded(preferredMediaController)
         }
+    }
+
+    private static func migrateMediaControllerPreferenceIfNeeded() {
+        guard !Defaults[.didMigrateMediaControllerChoice] else { return }
+
+        let firstLaunch = UserDefaults.standard.object(forKey: "firstLaunch") as? Bool ?? true
+        let hasStoredController = UserDefaults.standard.object(forKey: "mediaController") != nil
+        Defaults[.didChooseMediaController] = Defaults[.didChooseMediaController]
+            || hasStoredController
+            || !firstLaunch
+        Defaults[.didMigrateMediaControllerChoice] = true
     }
 
     deinit {
-        destroy()
-    }
-    
-    public func destroy() {
         debounceIdleTask?.cancel()
-        cancellables.removeAll()
+        availabilityTask?.cancel()
+        runtimeFailureTask?.cancel()
+        runtimeRecoveryTask?.cancel()
+        noticeDismissalTask?.cancel()
         controllerCancellables.removeAll()
         flipWorkItem?.cancel()
         transitionWorkItem?.cancel()
-
-        // Release active controller
-        activeController = nil
     }
 
-    // MARK: - Setup Methods
-    private func createController(for type: MediaControllerType) -> (any MediaControllerProtocol)? {
-        // Cleanup previous controller
-        if activeController != nil {
-            controllerCancellables.removeAll()
-            activeController = nil
+    func destroy() {
+        guard !isDestroyed else { return }
+        isDestroyed = true
+
+        debounceIdleTask?.cancel()
+        availabilityTask?.cancel()
+        runtimeFailureTask?.cancel()
+        runtimeRecoveryTask?.cancel()
+        noticeDismissalTask?.cancel()
+        availabilityTask = nil
+        runtimeFailureTask = nil
+        runtimeRecoveryTask = nil
+        noticeDismissalTask = nil
+        controllerCancellables.removeAll()
+        flipWorkItem?.cancel()
+        transitionWorkItem?.cancel()
+        (activeController as? any NowPlayingRuntimeControlling)?.stopRuntimeStream()
+
+        activeController = nil
+        effectiveMediaController = nil
+        nowPlayingNotice = nil
+    }
+
+    func selectMediaController(_ type: MediaControllerType) {
+        guard !isDestroyed else { return }
+
+        Defaults[.mediaController] = type
+        Defaults[.didChooseMediaController] = true
+        preferredMediaController = type
+        cancelRuntimeRecovery()
+        clearNotice()
+
+        if type == .nowPlaying {
+            if nowPlayingAvailability == .available {
+                activateControllerIfNeeded(.nowPlaying)
+            } else {
+                activateFallback()
+                refreshNowPlayingAvailability()
+            }
+        } else {
+            activateControllerIfNeeded(type)
+        }
+    }
+
+    private func resolvedNowPlayingFallback() -> MediaControllerType {
+        guard let bundleIdentifier = Defaults[.lastSupportedNowPlayingBundleIdentifier],
+              let controller = MediaControllerType(nowPlayingBundleIdentifier: bundleIdentifier)
+        else {
+            return .appleMusic
         }
 
-        let newController: (any MediaControllerProtocol)?
+        return controller
+    }
 
+    func ensureNowPlayingAvailabilityChecked() {
+        guard nowPlayingAvailability == .unchecked else { return }
+        startAvailabilityCheck()
+    }
+
+    func refreshNowPlayingAvailability() {
+        cancelRuntimeRecovery()
+        startAvailabilityCheck()
+    }
+
+    private func startAvailabilityCheck() {
+        guard !isDestroyed, availabilityTask == nil else { return }
+
+        nowPlayingAvailability = .checking
+        availabilityTask = Task { @MainActor [weak self] in
+            let availability: NowPlayingAvailability
+            do {
+                availability = try await MediaChecker().checkAvailability(maxAttempts: 3)
+            } catch is CancellationError {
+                return
+            } catch {
+                availability = .unavailable(.probe)
+            }
+
+            guard let self, !self.isDestroyed else { return }
+            self.availabilityTask = nil
+            self.nowPlayingAvailability = availability
+
+            if availability == .available {
+                self.clearNotice()
+                if self.preferredMediaController == .nowPlaying {
+                    self.activateControllerIfNeeded(.nowPlaying)
+                }
+            } else if self.preferredMediaController == .nowPlaying,
+                      let failure = availability.failure {
+                let noticeFailure = Defaults[.didChooseMediaController] ? failure : nil
+                self.activateFallback(noticeFailure: noticeFailure)
+            }
+        }
+    }
+
+    private func activateFallback(noticeFailure: NowPlayingFailure? = nil) {
+        let fallbackController = resolvedNowPlayingFallback()
+
+        if let noticeFailure {
+            requestNotice(fallbackController: fallbackController, failure: noticeFailure)
+        }
+
+        activateControllerIfNeeded(fallbackController)
+    }
+
+    private func requestNotice(
+        fallbackController: MediaControllerType,
+        failure: NowPlayingFailure
+    ) {
+        guard lastNoticedFailure != failure else { return }
+        lastNoticedFailure = failure
+
+        noticeDismissalTask?.cancel()
+        noticeDismissalTask = nil
+        nowPlayingNotice = NowPlayingFallbackNotice(
+            fallbackSource: fallbackController,
+            failure: failure
+        )
+    }
+
+    @discardableResult
+    func markNowPlayingNoticePresented(_ noticeID: UUID) -> Bool {
+        guard nowPlayingNotice?.id == noticeID,
+              noticeDismissalTask == nil
+        else {
+            return false
+        }
+
+        noticeDismissalTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            do {
+                try await Task.sleep(for: Self.noticeDuration)
+            } catch {
+                return
+            }
+            guard self.nowPlayingNotice?.id == noticeID else { return }
+            self.nowPlayingNotice = nil
+            self.noticeDismissalTask = nil
+        }
+        return true
+    }
+
+    private func clearNotice() {
+        noticeDismissalTask?.cancel()
+        noticeDismissalTask = nil
+        nowPlayingNotice = nil
+        lastNoticedFailure = nil
+    }
+
+    private func activateControllerIfNeeded(_ type: MediaControllerType) {
+        guard !isDestroyed,
+              activeController == nil || effectiveMediaController != type
+        else {
+            return
+        }
+
+        do {
+            let controller = try makeController(for: type)
+            activateController(controller, type: type)
+        } catch {
+            if type == .nowPlaying {
+                let failure = NowPlayingFailure.setup
+                nowPlayingAvailability = .unavailable(failure)
+                let noticeFailure = Defaults[.didChooseMediaController] ? failure : nil
+                activateFallback(noticeFailure: noticeFailure)
+                return
+            }
+
+            guard type != .appleMusic else { return }
+            activateController(AppleMusicController(), type: .appleMusic)
+        }
+    }
+
+    private func makeController(
+        for type: MediaControllerType
+    ) throws -> any MediaControllerProtocol {
         switch type {
         case .nowPlaying:
-            // Only create NowPlayingController if not deprecated on this macOS version
-            if !self.isNowPlayingDeprecated {
-                newController = NowPlayingController()
-            } else {
-                return nil
-            }
+            try NowPlayingController()
         case .appleMusic:
-            newController = AppleMusicController()
+            AppleMusicController()
         case .spotify:
-            newController = SpotifyController()
+            SpotifyController()
         case .youtubeMusic:
-            newController = YouTubeMusicController()
-        }
-
-        // Set up state observation for the new controller
-        if let controller = newController {
-            controller.playbackStatePublisher
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] state in
-                    guard let self = self,
-                          self.activeController === controller else { return }
-                    self.updateFromPlaybackState(state)
-                }
-                .store(in: &controllerCancellables)
-        }
-
-        return newController
-    }
-
-    private func setActiveControllerBasedOnPreference() {
-        let preferredType = Defaults[.mediaController]
-        print("Preferred Media Controller: \(preferredType)")
-
-        // If NowPlaying is deprecated but that's the preference, use Apple Music instead
-        let controllerType = (self.isNowPlayingDeprecated && preferredType == .nowPlaying)
-            ? .appleMusic
-            : preferredType
-
-        if let controller = createController(for: controllerType) {
-            setActiveController(controller)
-        } else if controllerType != .appleMusic, let fallbackController = createController(for: .appleMusic) {
-            // Fallback to Apple Music if preferred controller couldn't be created
-            setActiveController(fallbackController)
+            YouTubeMusicController()
         }
     }
 
-    private func setActiveController(_ controller: any MediaControllerProtocol) {
-        // Cancel any existing flip animation
+    private func activateController(
+        _ controller: any MediaControllerProtocol,
+        type: MediaControllerType
+    ) {
+        let isReplacingController = activeController != nil
+
+        runtimeFailureTask?.cancel()
+        runtimeFailureTask = nil
+        (activeController as? any NowPlayingRuntimeControlling)?.stopRuntimeStream()
+        controllerCancellables.removeAll()
+
         flipWorkItem?.cancel()
-
-        // Set new active controller
+        if isReplacingController {
+            resetPublishedPlaybackState()
+        }
         activeController = controller
-        
-        self.canFavoriteTrack = controller.supportsFavorite
+        effectiveMediaController = type
+        canFavoriteTrack = controller.supportsFavorite
+        volumeControlSupported = controller.supportsVolumeControl
 
-        // Get current state from active controller
+        controller.playbackStatePublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self, controller] state in
+                guard let self,
+                      self.activeController === controller,
+                      state.lastUpdated != .distantPast
+                else {
+                    return
+                }
+                self.updateFromPlaybackState(state)
+            }
+            .store(in: &controllerCancellables)
+
+        if let runtimeController = controller as? any NowPlayingRuntimeControlling {
+            runtimeFailureTask = Task { @MainActor [weak self, runtimeController] in
+                for await _ in runtimeController.runtimeFailures {
+                    guard let self else { return }
+                    self.handleRuntimeFailure(from: runtimeController)
+                }
+            }
+        }
+
         forceUpdate()
+        (controller as? any NowPlayingRuntimeControlling)?.startRuntimeStream()
+    }
+
+    private func resetPublishedPlaybackState() {
+        debounceIdleTask?.cancel()
+        debounceIdleTask = nil
+
+        songTitle = ""
+        artistName = ""
+        album = ""
+        albumArt = defaultImage
+        isPlaying = false
+        isPlayerIdle = true
+        avgColor = .white
+        bundleIdentifier = nil
+        audioCaptureBundleIdentifiers = []
+        songDuration = 0
+        elapsedTime = 0
+        timestampDate = Date()
+        playbackRate = 1
+        isShuffled = false
+        repeatMode = .off
+        volume = 0.5
+        usingAppIconForArtwork = false
+        isFavoriteTrack = false
+
+        artworkData = nil
+        lastArtworkTitle = ""
+        lastArtworkArtist = ""
+        lastArtworkAlbum = ""
+        lastArtworkBundleIdentifier = nil
+        lyricsService.clearLyrics()
+    }
+
+    private func handleRuntimeFailure(from controller: any NowPlayingRuntimeControlling) {
+        guard activeController === controller,
+              effectiveMediaController == .nowPlaying,
+              preferredMediaController == .nowPlaying
+        else {
+            return
+        }
+
+        NSLog("Now Playing runtime stream failed; switching to fallback")
+        let failure = NowPlayingFailure.runtime
+        nowPlayingAvailability = .unavailable(failure)
+        let noticeFailure = Defaults[.didChooseMediaController] ? failure : nil
+        activateFallback(noticeFailure: noticeFailure)
+        scheduleRuntimeRecovery()
+    }
+
+    private func scheduleRuntimeRecovery() {
+        cancelRuntimeRecovery()
+        runtimeRecoveryTask = Task { @MainActor [weak self] in
+            do {
+                try await Task.sleep(for: Self.runtimeRecoveryDelay)
+            } catch {
+                return
+            }
+
+            guard let self,
+                  !self.isDestroyed,
+                  self.preferredMediaController == .nowPlaying
+            else {
+                return
+            }
+
+            self.runtimeRecoveryTask = nil
+            self.startAvailabilityCheck()
+        }
+    }
+
+    private func cancelRuntimeRecovery() {
+        runtimeRecoveryTask?.cancel()
+        runtimeRecoveryTask = nil
     }
 
     // MARK: - Update Methods
-    @MainActor
     private func updateFromPlaybackState(_ state: PlaybackState) {
+        guard state.lastUpdated != .distantPast else { return }
+
+        if effectiveMediaController == .nowPlaying,
+           MediaControllerType(nowPlayingBundleIdentifier: state.bundleIdentifier) != nil,
+           Defaults[.lastSupportedNowPlayingBundleIdentifier] != state.bundleIdentifier {
+            Defaults[.lastSupportedNowPlayingBundleIdentifier] = state.bundleIdentifier
+        }
+
         // Check for playback state changes (playing/paused)
-        if state.isPlaying != self.isPlaying {
+        let playingStateChanged = state.isPlaying != self.isPlaying
+        if playingStateChanged {
             NSLog("Playback state changed: \(state.isPlaying ? "Playing" : "Paused")")
             withAnimation(.smooth) {
                 self.isPlaying = state.isPlaying
@@ -216,9 +507,12 @@ class MusicManager: ObservableObject {
                 self.updateArtwork(artwork)
             } else if state.artwork == nil {
                 // Try to use app icon if no artwork but track changed
-                if let appIconImage = AppIconAsNSImage(for: state.bundleIdentifier) {
+                if let appIconImage = appIconAsNSImage(for: state.bundleIdentifier) {
                     self.usingAppIconForArtwork = true
                     self.updateAlbumArt(newAlbumArt: appIconImage)
+                } else {
+                    self.usingAppIconForArtwork = false
+                    self.updateAlbumArt(newAlbumArt: defaultImage)
                 }
             }
             self.artworkData = state.artwork
@@ -246,7 +540,7 @@ class MusicManager: ObservableObject {
         let shuffleChanged = state.isShuffled != self.isShuffled
         let repeatModeChanged = state.repeatMode != self.repeatMode
         let volumeChanged = state.volume != self.volume
-        
+
         if state.title != self.songTitle {
             self.songTitle = state.title
         }
@@ -270,7 +564,7 @@ class MusicManager: ObservableObject {
         if playbackRateChanged {
             self.playbackRate = state.playbackRate
         }
-        
+
         if shuffleChanged {
             self.isShuffled = state.isShuffled
         }
@@ -292,45 +586,25 @@ class MusicManager: ObservableObject {
         if state.isFavorite != self.isFavoriteTrack {
             self.isFavoriteTrack = state.isFavorite
         }
-        
+
         if volumeChanged {
             self.volume = state.volume
         }
-        
-        self.timestampDate = state.lastUpdated
+
+        // The slider extrapolates from (elapsedTime, timestampDate); only
+        // republish when an extrapolation input actually changed — otherwise
+        // every no-op stream event invalidates the whole view tree. A pause/
+        // resume must rebase it too, or the estimate overshoots by the pause
+        // duration.
+        if timeChanged || playbackRateChanged || playingStateChanged {
+            self.timestampDate = state.lastUpdated
+        }
     }
 
     func toggleFavoriteTrack() {
         guard canFavoriteTrack else { return }
         // Toggle based on current state
         setFavorite(!isFavoriteTrack)
-    }
-
-    @MainActor
-    private func toggleAppleMusicFavorite() async {
-        let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music")
-        guard !runningApps.isEmpty else { return }
-
-        let script = """
-        tell application \"Music\"
-            if it is running then
-                try
-                    set loved of current track to (not loved of current track)
-                    return loved of current track
-                on error
-                    return false
-                end try
-            else
-                return false
-            end if
-        end tell
-        """
-
-        if let result = try? await AppleScriptHelper.execute(script) {
-            let loved = result.booleanValue
-            self.isFavoriteTrack = loved
-            self.forceUpdate()
-        }
     }
 
     func setFavorite(_ favorite: Bool) {
@@ -357,7 +631,7 @@ class MusicManager: ObservableObject {
             }
             return
         }
-        
+
         Task { @MainActor in
             await lyricsService.fetchLyrics(bundleIdentifier: bundleIdentifier, title: title, artist: artist)
         }
@@ -385,8 +659,9 @@ class MusicManager: ObservableObject {
 
             if let artworkImage = NSImage(data: artworkData) {
                 DispatchQueue.main.async { [weak self] in
-                    self?.usingAppIconForArtwork = false
-                    self?.updateAlbumArt(newAlbumArt: artworkImage)
+                    guard let self, self.artworkData == artworkData else { return }
+                    self.usingAppIconForArtwork = false
+                    self.updateAlbumArt(newAlbumArt: artworkImage)
                 }
             }
         }
@@ -412,6 +687,7 @@ class MusicManager: ObservableObject {
 
     func updateAlbumArt(newAlbumArt: NSImage) {
         workItem?.cancel()
+        averageColorTask?.cancel()
         withAnimation(.smooth) {
             self.albumArt = newAlbumArt
             if Defaults[.coloredSpectrogram] {
@@ -421,7 +697,7 @@ class MusicManager: ObservableObject {
     }
 
     // MARK: - Playback Position Estimation
-    public func estimatedPlaybackPosition(at date: Date = Date()) -> TimeInterval {
+    func estimatedPlaybackPosition(at date: Date = Date()) -> TimeInterval {
         guard isPlaying else { return min(elapsedTime, songDuration) }
 
         let timeDifference = date.timeIntervalSince(timestampDate)
@@ -430,22 +706,27 @@ class MusicManager: ObservableObject {
     }
 
     func calculateAverageColor() {
-        albumArt.averageColor { [weak self] color in
-            DispatchQueue.main.async {
-                withAnimation(.smooth) {
-                    self?.avgColor = color ?? .white
-                }
+        let artwork = albumArt
+        averageColorTask = Task { [weak self, artwork] in
+            let color = await artwork.averageColor()
+            guard !Task.isCancelled,
+                  let self,
+                  self.albumArt === artwork else {
+                return
+            }
+
+            withAnimation(.smooth) {
+                self.avgColor = color ?? .white
             }
         }
     }
 
     private func updateSneakPeek() {
-        if isPlaying && Defaults[.enableSneakPeek] {
-            if Defaults[.sneakPeekStyles] == .standard {
-                coordinator.toggleSneakPeek(status: true, type: .music)
-            } else {
-                coordinator.toggleExpandingView(status: true, type: .music)
-            }
+        guard isPlaying && Defaults[.enableSneakPeek] else { return }
+        if Defaults[.sneakPeekStyles] == .standard {
+            NotchUIEventBus.events.send(.sneakPeek(type: .music, value: 0))
+        } else {
+            NotchUIEventBus.events.send(.expandingView(type: .music))
         }
     }
 
@@ -479,7 +760,7 @@ class MusicManager: ObservableObject {
             await activeController?.toggleRepeat()
         }
     }
-    
+
     func togglePlay() {
         Task {
             await activeController?.togglePlay()
@@ -507,7 +788,7 @@ class MusicManager: ObservableObject {
         let newPos = min(max(0, elapsedTime + seconds), songDuration)
         seek(to: newPos)
     }
-    
+
     func setVolume(to level: Double) {
         if let controller = activeController {
             Task {
@@ -517,22 +798,22 @@ class MusicManager: ObservableObject {
     }
     func openMusicApp() {
         guard let bundleID = bundleIdentifier else {
-            print("Error: appBundleIdentifier is nil")
+            Log.music.error("Error: appBundleIdentifier is nil")
             return
         }
 
         let workspace = NSWorkspace.shared
         if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleID) {
             let configuration = NSWorkspace.OpenConfiguration()
-            workspace.openApplication(at: appURL, configuration: configuration) { (app, error) in
+            workspace.openApplication(at: appURL, configuration: configuration) { (_, error) in
                 if let error = error {
-                    print("Failed to launch app with bundle ID: \(bundleID), error: \(error)")
+                    Log.music.error("Failed to launch app with bundle ID: \(bundleID), error: \(error)")
                 } else {
-                    print("Launched app with bundle ID: \(bundleID)")
+                    Log.music.debug("Launched app with bundle ID: \(bundleID)")
                 }
             }
         } else {
-            print("Failed to find app with bundle ID: \(bundleID)")
+            Log.music.error("Failed to find app with bundle ID: \(bundleID)")
         }
     }
 
@@ -548,15 +829,14 @@ class MusicManager: ObservableObject {
             }
         }
     }
-    
-    
+
     func syncVolumeFromActiveApp() async {
         // Check if bundle identifier is valid and if the app is actually running
         guard let bundleID = bundleIdentifier, !bundleID.isEmpty,
               NSWorkspace.shared.runningApplications.contains(where: { $0.bundleIdentifier == bundleID }) else { return }
-        
+
         var script: String?
-        if bundleID == "com.apple.Music" {
+        if bundleID == MediaAppBundleID.appleMusic {
             script = """
             tell application "Music"
                 if it is running then
@@ -566,7 +846,7 @@ class MusicManager: ObservableObject {
                 end if
             end tell
             """
-        } else if bundleID == "com.spotify.client" {
+        } else if bundleID == MediaAppBundleID.spotify {
             script = """
             tell application "Spotify"
                 if it is running then
@@ -580,12 +860,12 @@ class MusicManager: ObservableObject {
             // For unsupported apps, don't sync volume
             return
         }
-        
+
         if let volumeScript = script,
            let result = try? await AppleScriptHelper.execute(volumeScript) {
             let volumeValue = result.int32Value
             let currentVolume = Double(volumeValue) / 100.0
-            
+
             await MainActor.run {
                 if abs(currentVolume - self.volume) > 0.01 {
                     self.volume = currentVolume
