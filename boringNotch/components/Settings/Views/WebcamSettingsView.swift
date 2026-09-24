@@ -49,7 +49,7 @@ struct WebcamSettingsView: View {
                 }
                 .disabled(!showMirror || !checkVideoInput())
             } header: {
-                Text("Mirror")
+                Text("General")
             }
         }
         .formStyle(.grouped)

@@ -14,7 +14,7 @@ on:
       xcode_version:
         required: false
         type: string
-        default: "16.4"
+        default: "26.6"
       code_sign_identity:
         required: false
         type: string

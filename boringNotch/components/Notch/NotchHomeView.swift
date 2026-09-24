@@ -394,7 +394,8 @@ struct MediaOutputSlotButton: View {
     }
 }
 
-private extension Array where Element == MusicControlButton {
+// Internal so the compact layout's slot row can share the padding rule.
+extension Array where Element == MusicControlButton {
     func padded(to length: Int, filler: MusicControlButton) -> [MusicControlButton] {
         if count >= length { return self }
         return self + Array(repeating: filler, count: length - count)
@@ -420,7 +421,7 @@ struct VolumeControlView: View {
                     }
                 }
             }) {
-                Image(systemName: musicManager.volumeControlSupported ? AudioOutputRouteResolver.shared.volumeSymbol(for: CGFloat(volumeSliderValue)) : "speaker.slash")
+                Image(systemName: volumeIcon)
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(musicManager.volumeControlSupported ? .white : .gray)
             }
@@ -476,6 +477,24 @@ struct VolumeControlView: View {
         }
         .onDisappear {
             // volumeUpdateTask?.cancel() // No longer needed
+        }
+    }
+
+    /// Level-reactive speaker waves (v2.7.3 behavior). The route-device
+    /// glyphs (AirPods, headphones, …) that replaced these belong to the
+    /// media-output button beside this slot — duplicating them here made
+    /// volume and output indistinguishable and static while dragging.
+    private var volumeIcon: String {
+        if !musicManager.volumeControlSupported {
+            return "speaker.slash"
+        } else if volumeSliderValue == 0 {
+            return "speaker.slash.fill"
+        } else if volumeSliderValue < 0.33 {
+            return "speaker.1.fill"
+        } else if volumeSliderValue < 0.66 {
+            return "speaker.2.fill"
+        } else {
+            return "speaker.3.fill"
         }
     }
 }

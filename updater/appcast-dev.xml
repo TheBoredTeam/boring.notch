@@ -4,18 +4,17 @@
         <title>boringNotch</title>
         <item>
             <title>2.8-beta.0</title>
-            <pubDate>Mon, 21 Sep 2026 06:28:30 +0000</pubDate>
+            <pubDate>Thu, 24 Sep 2026 03:39:05 +0000</pubDate>
             <link>https://github.com/TheBoredTeam/boring.notch/commits/dev</link>
             <sparkle:channel>dev</sparkle:channel>
-            <sparkle:version>274</sparkle:version>
+            <sparkle:version>278</sparkle:version>
             <sparkle:shortVersionString>2.8-beta.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <description><![CDATA[<h2>Nightly dev</h2>
-<p>Commit: <code>f6245e1023be45bd109436b063c2ff5dbe161db8</code></p>
-<p>Message: Reserve build number 273</p>
-<p>Source: <a href="https://github.com/TheBoredTeam/boring.notch/commit/f6245e1023be45bd109436b063c2ff5dbe161db8">View commit</a></p>
+<p>Commit: <code>839bdf0868e0aa6becb32e264d3b25206ea2420e</code></p>
+<p>Source: <a href="https://github.com/TheBoredTeam/boring.notch/commit/839bdf0868e0aa6becb32e264d3b25206ea2420e">View commit</a></p>
 ]]></description>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/nightly-dev-f6245e1-274/boringNotch-dev-f6245e1-274.dmg" length="10802784" type="application/octet-stream" sparkle:edSignature="fqiJn2xzLnNzvJ91LknGjH8C23Bx/UXDONYYniU2VejHdwY6yfHABlH16fVBBOBU5lincnEfQvXNFQYqv2mRDw=="/>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/nightly/boringNotch-nightly.dmg" length="10567502" type="application/octet-stream" sparkle:edSignature="/6OCXs4IGwK7UY/PZliNI58jw1prgBHCgGA54kaOJBAtpFPzGjiMJ067C8t4PeB0HrRSMDgNO7E7EHerQZEOCA=="/>
         </item>
     </channel>
 </rss>

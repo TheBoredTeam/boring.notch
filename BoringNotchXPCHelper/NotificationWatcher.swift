@@ -7,7 +7,7 @@ import ApplicationServices
 import Foundation
 
 private let notificationCenterBundleID = "com.apple.notificationcenterui"
-private let bannerSubroles: Set<String> = ["AXNotificationCenterBanner", "AXNotificationCenterAlert"]
+private let bannerSubroles = NotificationPanelDetection.bannerSubroles
 
 private extension AXUIElement {
     subscript(attribute: String) -> Any? {
@@ -185,6 +185,20 @@ final class NotificationWatcher {
             var seen = Set<String>()
 
             for window in (appElement[kAXWindowsAttribute] as? [AXUIElement]) ?? [] {
+                let windowAttributes = NotificationPanelDetection.Attributes(
+                    subrole: { window[$0] as? String },
+                    identifier: { window[$0] as? String },
+                    children: {
+                        ((window[kAXChildrenAttribute] as? [AXUIElement]) ?? []).map { child in
+                            .init(
+                                subrole: { child[$0] as? String },
+                                identifier: { child[$0] as? String },
+                                children: { [] }
+                            )
+                        }
+                    }
+                )
+                guard !NotificationPanelDetection.isPanelWindow(windowAttributes) else { continue }
                 guard window[kAXSubroleAttribute] as? String == "AXSystemDialog" else { continue }
                 for banner in banners(in: window) {
                     guard let token = banner[kAXIdentifierAttribute] as? String else { continue }

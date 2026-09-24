@@ -1,0 +1,32 @@
+name: "Require admin for manual runs and reruns"
+description: >-
+  Fails unless the triggering actor is a repo admin, for workflow_dispatch runs
+  and reruns (run_attempt > 1). Scheduled first attempts are always allowed.
+
+inputs:
+  github-token:
+    description: "Token used to read the actor's collaborator permission."
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check triggering actor is an admin
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        REPO: ${{ github.repository }}
+        ACTOR: ${{ github.triggering_actor }}
+        EVENT_NAME: ${{ github.event_name }}
+        RUN_ATTEMPT: ${{ github.run_attempt }}
+      run: |
+        set -euo pipefail
+        if [[ "$EVENT_NAME" != "workflow_dispatch" && "$RUN_ATTEMPT" -le 1 ]]; then
+          echo "Scheduled first attempt does not require an interactive authorization check."
+          exit 0
+        fi
+        PERMISSION="$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" --jq '.permission')"
+        if [[ "$PERMISSION" != "admin" ]]; then
+          echo "::error::${ACTOR} is not an admin (permission: ${PERMISSION})"
+          exit 1
+        fi
