@@ -72,6 +72,12 @@ private struct ScrollMonitor: NSViewRepresentable {
             self.action = action
         }
 
+        private func cancelEndTimeout() {
+            endTask?.cancel()
+            endTask = nil
+            endDeadline = nil
+        }
+
         private func scheduleEndTimeout() {
             // Refresh the deadline; a single task re-checks it instead of one task per event.
             endDeadline = .now + .milliseconds(300)
@@ -121,13 +127,13 @@ private struct ScrollMonitor: NSViewRepresentable {
             defaultsObserver = nil
             accumulated = 0
             active = false
-            endTask?.cancel()
-            endTask = nil
-            endDeadline = nil
+            cancelEndTimeout()
         }
 
         private func handleScroll(_ event: NSEvent) {
             if event.phase == .ended || event.momentumPhase == .ended {
+                // Explicit end wins; drop the pending timeout so `.ended` fires once.
+                cancelEndTimeout()
                 if active {
                     action(accumulated.magnitude, .ended)
                 } else {

@@ -10,11 +10,11 @@ final class BatteryActivityManager: @unchecked Sendable {
 
     // The IOKit run loop source fires on whichever run loop `startMonitoring` ran
     // on, while observers are added from the main actor: every mutable field below
-    // lives behind this one lock (unchecked where it holds non-Sendable closures).
-    private struct State: @unchecked Sendable {
+    // lives behind this one lock.
+    private struct State: Sendable {
         // Stable token per observer: array indices shifted on removal and
         // silently invalidated every later caller's handle.
-        var observers: [Int: (BatteryEvent) -> Void] = [:]
+        var observers: [Int: @Sendable (BatteryEvent) -> Void] = [:]
         var nextObserverId: Int = 0
         var previousBatteryInfo: BatteryInfo?
         // Health capacity means an IORegistry property-dictionary copy; it moves on the
@@ -351,8 +351,8 @@ final class BatteryActivityManager: @unchecked Sendable {
     /// Adds an observer to listen to battery changes
     /// - Parameter observer: The observer closure to be called on battery events
     /// - Returns: The ID of the observer for later removal
-    func addObserver(_ observer: @escaping (BatteryEvent) -> Void) -> Int {
-        state.withLockUnchecked { s -> Int in
+    func addObserver(_ observer: @escaping @Sendable (BatteryEvent) -> Void) -> Int {
+        state.withLock { s -> Int in
             let id = s.nextObserverId
             s.nextObserverId += 1
             s.observers[id] = observer
@@ -363,7 +363,7 @@ final class BatteryActivityManager: @unchecked Sendable {
     /// Removes an observer by its ID
     /// - Parameter id: The ID of the observer to be removed
     func removeObserver(byId id: Int) {
-        state.withLockUnchecked { _ = $0.observers.removeValue(forKey: id) }
+        state.withLock { _ = $0.observers.removeValue(forKey: id) }
     }
 
     /// Notifies all observers of a battery event
@@ -373,7 +373,7 @@ final class BatteryActivityManager: @unchecked Sendable {
             guard let self = self else { return }
             // Copy the handlers out before calling them: an observer that adds
             // or removes one would otherwise re-enter the lock.
-            let observers = self.state.withLockUnchecked { Array($0.observers.values) }
+            let observers = self.state.withLock { Array($0.observers.values) }
             for observer in observers {
                 observer(event)
             }

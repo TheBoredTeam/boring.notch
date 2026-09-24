@@ -12,6 +12,7 @@ import Defaults
 import KeyboardShortcuts
 import SwiftUI
 import SwiftUIIntrospect
+import UniformTypeIdentifiers
 
 @MainActor
 struct ContentView: View {
@@ -46,6 +47,9 @@ struct ContentView: View {
     private let zeroHeightHoverPadding: CGFloat = 10
     private let nowPlayingFallbackNoticeWidth: CGFloat = 330
 
+    /// Constant across every pass; rebuilding the array per body was pure churn.
+    private static let dropContentTypes: [UTType] = [.fileURL, .url, .utf8PlainText, .plainText, .data]
+
     // MARK: - Corner Radius Scaling
     private var cornerRadiusScaleFactor: CGFloat? {
         guard Defaults[.cornerRadiusScaling] else { return nil }
@@ -60,7 +64,7 @@ struct ContentView: View {
         Defaults[.compactMode] ? compactCornerRadiusInsets.opened : cornerRadiusInsets.opened
     }
 
-    private var topCornerRadius: CGFloat {
+    private func topCornerRadius(scaledBy scaleFactor: CGFloat?) -> CGFloat {
         // If the notch is open, return the opened radius.
         if vm.notchState == .open {
             return openedInsets.top
@@ -68,27 +72,32 @@ struct ContentView: View {
 
         // For the closed notch, scale if enabled
         let baseClosedTop = cornerRadiusInsets.closed.top
-        guard let scaleFactor = cornerRadiusScaleFactor else {
+        guard let scaleFactor else {
             return displayClosedNotchHeight > 0 ? baseClosedTop : 0
         }
         return max(0, baseClosedTop * scaleFactor)
     }
 
+    private var topCornerRadius: CGFloat {
+        topCornerRadius(scaledBy: cornerRadiusScaleFactor)
+    }
+
     private var currentNotchShape: NotchShape {
         // Scale bottom corner radius for closed notch shape when scaling is enabled.
+        let scaleFactor = cornerRadiusScaleFactor
         let baseClosedBottom = cornerRadiusInsets.closed.bottom
         let bottomCorner: CGFloat
 
         if vm.notchState == .open {
             bottomCorner = openedInsets.bottom
-        } else if let scaleFactor = cornerRadiusScaleFactor {
+        } else if let scaleFactor {
             bottomCorner = max(0, baseClosedBottom * scaleFactor)
         } else {
             bottomCorner = displayClosedNotchHeight > 0 ? baseClosedBottom : 0
         }
 
         return NotchShape(
-            topCornerRadius: topCornerRadius,
+            topCornerRadius: topCornerRadius(scaledBy: scaleFactor),
             bottomCornerRadius: bottomCorner
         )
     }
@@ -624,7 +633,7 @@ struct ContentView: View {
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
         }
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))
+        .onDrop(of: Self.dropContentTypes, delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))
     }
 
     private func nowPlayingFallbackNotice(_ notice: NowPlayingFallbackNotice) -> some View {
@@ -833,7 +842,7 @@ struct ContentView: View {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
+        .onDrop(of: Self.dropContentTypes, isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
             dropInteraction.dropEvent = true
             ShelfStateViewModel.shared.load(providers)
             return true

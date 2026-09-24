@@ -27,7 +27,9 @@ final class BoringViewModel: NSObject, ObservableObject {
     @Published var isHoveringCalendar: Bool = false
     @Published var isBatteryPopoverActive: Bool = false
 
-    @Published var screenUUID: String?
+    @Published var screenUUID: String? {
+        didSet { screenMetrics = nil }
+    }
 
     @Published var notchSize: CGSize = getClosedNotchSize()
     @Published var closedNotchSize: CGSize = getClosedNotchSize()
@@ -54,6 +56,14 @@ final class BoringViewModel: NSObject, ObservableObject {
         closedNotchSize = notchSize
 
         setupDetectorObserver()
+
+        // Touched first so its observer runs before ours: we must invalidate after its rebuild.
+        _ = NSScreenUUIDCache.shared
+        NotificationCenter.default
+            .publisher(for: NSApplication.didChangeScreenParametersNotification)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.screenMetrics = nil }
+            .store(in: &cancellables)
     }
 
     private func setupDetectorObserver() {
@@ -89,17 +99,35 @@ final class BoringViewModel: NSObject, ObservableObject {
             .store(in: &cancellables)
     }
 
+    private struct ScreenMetrics {
+        let screen: NSScreen?
+        let safeAreaTop: CGFloat
+    }
+
+    /// Cleared on `screenUUID` change and on screen parameter changes; the properties below
+    /// are read ~20x per ContentView body pass.
+    private var screenMetrics: ScreenMetrics?
+
+    private var metrics: ScreenMetrics {
+        if let screenMetrics { return screenMetrics }
+        let screen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) }
+        let metrics = ScreenMetrics(screen: screen, safeAreaTop: screen?.safeAreaInsets.top ?? 0)
+        screenMetrics = metrics
+        return metrics
+    }
+
     // Computed property for effective notch height
     var effectiveClosedNotchHeight: CGFloat {
-        let currentScreen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) }
-        let noNotchAndFullscreen = hideOnClosed && (currentScreen?.safeAreaInsets.top ?? 0 <= 0 || currentScreen == nil)
+        let noNotchAndFullscreen = hideOnClosed && metrics.safeAreaTop <= 0
         return noNotchAndFullscreen ? 0 : closedNotchSize.height
     }
 
     /// Whether the current screen has a notch (safe area top inset > 0)
     var hasNotch: Bool {
-        let currentScreen = screenUUID.flatMap { NSScreen.screen(withUUID: $0) } ?? NSScreen.main
-        return (currentScreen?.safeAreaInsets.top ?? 0) > 0
+        guard metrics.screen != nil else {
+            return (NSScreen.main?.safeAreaInsets.top ?? 0) > 0
+        }
+        return metrics.safeAreaTop > 0
     }
 
     var chinHeight: CGFloat {
@@ -107,7 +135,7 @@ final class BoringViewModel: NSObject, ObservableObject {
             return 0
         }
 
-        guard let currentScreen = screenUUID.flatMap({ NSScreen.screen(withUUID: $0) }) else {
+        guard let currentScreen = metrics.screen else {
             return 0
         }
 

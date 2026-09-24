@@ -21,19 +21,14 @@ final class ShelfItemViewModel: ObservableObject {
 
     @Published var thumbnail: NSImage?
     @Published var isDropTargeted: Bool = false
-    @Published var isRenaming: Bool = false
-    @Published var draftTitle: String = ""
     private var sharingLifecycle: SharingLifecycleDelegate?
-    private var quickShareLifecycle: SharingLifecycleDelegate?
     private var sharingAccessingURLs: [URL] = []
 
     private let selection = ShelfSelectionModel.shared
 
     init(item: ShelfItem) {
         self.item = item
-        let name = item.displayName
-        self.displayName = name
-        self.draftTitle = name
+        self.displayName = item.displayName
     }
 
     /// Re-derives the cached name/icon only when the underlying item actually changed.
