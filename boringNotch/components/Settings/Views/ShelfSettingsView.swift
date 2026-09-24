@@ -8,8 +8,7 @@
 import Defaults
 import SwiftUI
 
-struct Shelf: View {
-    
+struct ShelfSettingsView: View {
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
     @Default(.quickShareProvider) var quickShareProvider
     @Default(.expandedDragDetection) var expandedDragDetection: Bool
@@ -18,7 +17,7 @@ struct Shelf: View {
     private var selectedProvider: QuickShareProvider? {
         quickShareService.availableProviders.first(where: { $0.id == quickShareProvider })
     }
-    
+
     var body: some View {
         Form {
             Section {
@@ -46,13 +45,10 @@ struct Shelf: View {
                 Defaults.Toggle(key: .reverseShelfOrdering) {
                     Text("Keep newer shelf items in front")
                 }
-
             } header: {
-                HStack {
-                    Text("General")
-                }
+                Text("General")
             }
-            
+
             Section {
                 Picker("Quick Share Service", selection: $quickShareProvider) {
                     ForEach(quickShareService.availableProviders, id: \.id) { provider in
@@ -60,8 +56,7 @@ struct Shelf: View {
                             Group {
                                 if let icon = quickShareService.icon(for: provider.id, size: 16) {
                                     Image(nsImage: icon)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
+                                        .resizable().scaledToFit()
                                 } else {
                                     Image(systemName: "square.and.arrow.up")
                                 }
@@ -74,14 +69,13 @@ struct Shelf: View {
                     }
                 }
                 .pickerStyle(.menu)
-                
+
                 if let selectedProvider = selectedProvider {
                     HStack {
                         Group {
                             if let icon = quickShareService.icon(for: selectedProvider.id, size: 16) {
                                 Image(nsImage: icon)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
+                                    .resizable().scaledToFit()
                             } else {
                                 Image(systemName: "square.and.arrow.up")
                             }
@@ -99,7 +93,6 @@ struct Shelf: View {
                     }
                     .padding(.vertical, 4)
                 }
-                
             } header: {
                 HStack {
                     Text("Quick Share")

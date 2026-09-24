@@ -29,7 +29,7 @@ final class MediaKeyInterceptor {
     private var runLoopSource: CFRunLoopSource?
     private let step: Float = 1.0 / 16.0
     private var audioPlayer: AVAudioPlayer?
-    
+
     private init() {}
 
     private var isTapActive: Bool {
@@ -47,7 +47,7 @@ final class MediaKeyInterceptor {
     }
 
     // MARK: - Event Tap
-    
+
     func start(promptIfNeeded: Bool = false) async {
         // Ensure OSD replacement is enabled
         guard Defaults[.osdReplacement] else {
@@ -89,6 +89,12 @@ final class MediaKeyInterceptor {
                 let interceptor = Unmanaged<MediaKeyInterceptor>.fromOpaque(userInfo).takeUnretainedValue()
 
                 if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+                    guard AXIsProcessTrusted() else {
+                        DispatchQueue.main.async {
+                            interceptor.stop()
+                        }
+                        return nil
+                    }
                     interceptor.reenableEventTap(after: type)
                     return nil
                 }
@@ -97,7 +103,7 @@ final class MediaKeyInterceptor {
             },
             userInfo: UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
         )
-        
+
         if let eventTap {
             runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
             if let runLoopSource {
@@ -105,7 +111,7 @@ final class MediaKeyInterceptor {
             }
             CGEvent.tapEnable(tap: eventTap, enable: true)
         } else {
-            print("⚠️ [MediaKeyInterceptor] Failed to create media-key event tap")
+            Log.osd.error("⚠️ [MediaKeyInterceptor] Failed to create media-key event tap")
         }
     }
 
@@ -136,7 +142,7 @@ final class MediaKeyInterceptor {
             reason = "unknown reason"
         }
 
-        print("ℹ️ [MediaKeyInterceptor] Re-enabled media-key event tap after \(reason)")
+        Log.osd.debug("ℹ️ [MediaKeyInterceptor] Re-enabled media-key event tap after \(reason)")
     }
 
     // MARK: - Event Handling
@@ -234,12 +240,12 @@ final class MediaKeyInterceptor {
         if FileManager.default.fileExists(atPath: defaultPath) {
             do {
                 audioPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: defaultPath))
-                print("🔊 [MediaKeyInterceptor] Loaded default Bezel audio from: \(defaultPath)")
+                Log.osd.debug("🔊 [MediaKeyInterceptor] Loaded default Bezel audio from: \(defaultPath)")
             } catch {
-                print("⚠️ [MediaKeyInterceptor] Failed to init AVAudioPlayer with default path \(defaultPath): \(error.localizedDescription)")
+                Log.osd.error("⚠️ [MediaKeyInterceptor] Failed to init AVAudioPlayer with default path \(defaultPath): \(error.localizedDescription)")
             }
         } else {
-            print("⚠️ [MediaKeyInterceptor] Default bezel audio not found at: \(defaultPath)")
+            Log.osd.error("⚠️ [MediaKeyInterceptor] Default bezel audio not found at: \(defaultPath)")
         }
 
         if let player = audioPlayer {
@@ -250,18 +256,23 @@ final class MediaKeyInterceptor {
     }
 
     private func playFeedbackSound() {
-        guard let feedback = UserDefaults.standard.persistentDomain(forName: "NSGlobalDomain")?["com.apple.sound.beep.feedback"] as? Int,
-              feedback == 1 else { return }
+        // Single-key lookup — persistentDomain(forName:) materialized the
+        // entire NSGlobalDomain on every volume key press.
+        let feedback = CFPreferencesCopyAppValue(
+            "com.apple.sound.beep.feedback" as CFString,
+            kCFPreferencesAnyApplication
+        ) as? Int
+        guard feedback == 1 else { return }
 
         prepareAudioPlayerIfNeeded()
         guard let player = audioPlayer else {
-            print("⚠️ [MediaKeyInterceptor] No audio player available to play feedback sound")
+            Log.osd.error("⚠️ [MediaKeyInterceptor] No audio player available to play feedback sound")
             return
         }
         if let url = player.url {
-            print("🔊 [MediaKeyInterceptor] Playing feedback sound from: \(url.path)")
+            Log.osd.debug("🔊 [MediaKeyInterceptor] Playing feedback sound from: \(url.path)")
         } else {
-            print("🔊 [MediaKeyInterceptor] Playing feedback sound (no url available for AVAudioPlayer)")
+            Log.osd.debug("🔊 [MediaKeyInterceptor] Playing feedback sound (no url available for AVAudioPlayer)")
         }
         if player.isPlaying {
             player.stop()
@@ -319,10 +330,8 @@ final class MediaKeyInterceptor {
                     BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .backlight, value: CGFloat(v))
                 } else {
                     let v = BrightnessManager.shared.rawBrightness
-                    Task { @MainActor in
-                        let target = await BrightnessManager.shared.brightnessTargetUUID()
-                        BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(v), targetScreenUUID: target)
-                    }
+                    let target = await BrightnessManager.shared.brightnessTargetUUID()
+                    BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(v), targetScreenUUID: target)
                 }
             case .keyboardBrightnessUp, .keyboardBrightnessDown:
                 let v = KeyboardBacklightManager.shared.rawBrightness

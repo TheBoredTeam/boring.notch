@@ -1,0 +1,341 @@
+name: Nightly Branch Builds
+
+on:
+  # Scheduled runs only start once this workflow exists on the default branch.
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: dev-publication
+  cancel-in-progress: false
+  queue: max
+
+permissions:
+  contents: read
+
+env:
+  PROJECT_NAME: boringNotch
+  NIGHTLY_BRANCH: dev
+  TAG: nightly
+  ASSET_NAME: boringNotch-nightly.dmg
+  TITLE: Latest Nightly
+  APPCAST_FILE: appcast-dev.xml
+  CAUTION_WARNING: >-
+    ⚠️ This is an automated build of the latest development source. It may be
+    unstable, crash unexpectedly, or otherwise misbehave. Use at your own risk!
+
+jobs:
+  prepare:
+    name: Prepare nightly metadata
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      branch_name: ${{ steps.meta.outputs.branch_name }}
+      source_sha: ${{ steps.meta.outputs.source_sha }}
+      short_sha: ${{ steps.meta.outputs.short_sha }}
+      build_number: ${{ steps.meta.outputs.build_number }}
+    steps:
+      # Local composite actions require a checked-out workspace. Use the
+      # workflow revision so authorization is evaluated from trusted code.
+      - name: Checkout workflow tools
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - uses: ./.github/actions/require-admin
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve metadata
+        id: meta
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH_NAME: ${{ env.NIGHTLY_BRANCH }}
+          PBXPROJ_PATH: ${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj
+        run: |
+          set -euo pipefail
+          # Build the live branch head directly: no reservation commit, so what
+          # ships is a real commit and the branch history stays clean.
+          SOURCE_SHA="$(gh api "repos/${REPO}/git/ref/heads/${BRANCH_NAME}" --jq '.object.sha')"
+          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "::error::Resolved ${BRANCH_NAME} head is not a 40-character SHA: '${SOURCE_SHA}'"; exit 1;
+          }
+
+          # The dev appcast belongs to the exact source snapshot. Stable and
+          # beta releases are recorded in the main-branch appcast, which can
+          # be newer than the source commit; read that one from live main so a
+          # nightly cannot reuse a just-published beta build number.
+          APPCAST_SOURCES="updater/${APPCAST_FILE}@${SOURCE_SHA} updater/appcast.xml@main"
+
+          # Build number: one above the highest version already published on
+          # any channel, so Sparkle always sees a monotonic update. Stable and
+          # beta releases are recorded in the main-branch appcast while this
+          # channel's items live in the dev appcast, so the ceiling is the max
+          # across both. A missing/unreadable file simply contributes nothing;
+          # if nothing is readable at all, fall back to the number committed in
+          # the Xcode project (no worse than that baseline).
+          RELEASED="$(for APPCAST_SOURCE in ${APPCAST_SOURCES}; do
+            APPCAST="${APPCAST_SOURCE%@*}"
+            APPCAST_REF="${APPCAST_SOURCE##*@}"
+            gh api "repos/${REPO}/contents/${APPCAST}?ref=${APPCAST_REF}" \
+              --jq '.content' 2>/dev/null | base64 --decode \
+              | grep -Eo 'sparkle:version(="|>)[0-9]+' | grep -Eo '[0-9]+$'
+          done | sort -n | tail -1 || true)"
+          PBXPROJ="$RUNNER_TEMP/project.pbxproj"
+          gh api -H "Accept: application/vnd.github.raw+json" \
+            "repos/${REPO}/contents/${PBXPROJ_PATH}?ref=${SOURCE_SHA}" > "$PBXPROJ"
+          BASE_BUILD="$(grep -Eo 'CURRENT_PROJECT_VERSION = [0-9]+' "$PBXPROJ" \
+            | grep -Eo '[0-9]+$' | sort -n | tail -1)"
+          BASE_BUILD="${BASE_BUILD:-0}"
+          BUILD_NUMBER="$(( RELEASED > BASE_BUILD ? RELEASED + 1 : BASE_BUILD + 1 ))"
+          echo "Nightly ${SOURCE_SHA::7} -> build ${BUILD_NUMBER} (appcast: ${RELEASED:-none}, project: ${BASE_BUILD})"
+
+          {
+            echo "branch_name=$BRANCH_NAME"
+            echo "source_sha=$SOURCE_SHA"
+            echo "short_sha=${SOURCE_SHA::7}"
+            echo "build_number=$BUILD_NUMBER"
+          } >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build nightly DMG
+    needs: prepare
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build_reusable.yml
+    with:
+      source_sha: ${{ needs.prepare.outputs.source_sha }}
+      version: ""
+      build_number: ${{ needs.prepare.outputs.build_number }}
+      code_sign_identity: "Apple Development"
+      update_channel: dev
+    secrets:
+      BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+      P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+
+  publish:
+    name: Publish nightly channel
+    needs: [prepare, build]
+    runs-on: macos-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    env:
+      BRANCH_NAME: ${{ needs.prepare.outputs.branch_name }}
+      SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+      SHORT_SHA: ${{ needs.prepare.outputs.short_sha }}
+    steps:
+      # Local composite actions require a checked-out workspace. Use the
+      # workflow revision before evaluating the authorization gate.
+      - name: Checkout workflow tools
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - uses: ./.github/actions/require-admin
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create release app token
+        id: release_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
+
+      - name: Checkout nightly source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          persist-credentials: false
+
+      - name: Download DMG artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ env.PROJECT_NAME }}.dmg
+          path: Release
+
+      - name: Rename DMG to the rolling nightly name
+        run: mv "Release/${PROJECT_NAME}.dmg" "Release/${ASSET_NAME}"
+
+      - name: Attest the nightly DMG
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: Release/${{ env.ASSET_NAME }}
+
+      - name: Create embedded release notes
+        run: |
+          set -euo pipefail
+          # Nightlies have no changelog; the notes just point at the built
+          # source. Every interpolated value is workflow-provided (a validated
+          # SHA and the pinned branch name), so no HTML escaping is needed.
+          cat > "Release/${ASSET_NAME%.dmg}.html" <<HTML
+          <h2>Nightly ${BRANCH_NAME}</h2>
+          <p>Commit: <code>${SOURCE_SHA}</code></p>
+          <p>Source: <a href="https://github.com/TheBoredTeam/boring.notch/commit/${SOURCE_SHA}">View commit</a></p>
+          HTML
+
+      - name: Fetch Sparkle generate_appcast
+        uses: ./.github/actions/fetch-generate-appcast
+
+      - name: Prepare single nightly appcast input
+        env:
+          APPCAST_INPUT: ${{ runner.temp }}/nightly-appcast-input
+        run: |
+          set -euo pipefail
+          rm -rf "$APPCAST_INPUT"
+          mkdir -p "$APPCAST_INPUT"
+          cp "Release/${ASSET_NAME}" "$APPCAST_INPUT/"
+          cp "Release/${ASSET_NAME%.dmg}.html" "$APPCAST_INPUT/"
+
+      - name: Generate signed nightly appcast
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
+          APPCAST_INPUT: ${{ runner.temp }}/nightly-appcast-input
+          APPCAST_OUTPUT: ${{ runner.temp }}/${{ env.APPCAST_FILE }}
+        run: |
+          set -euo pipefail
+          test -x "$RUNNER_TEMP/generate_appcast" || {
+            echo "::error::$RUNNER_TEMP/generate_appcast missing or not executable"; exit 1;
+          }
+          test -f "$APPCAST_INPUT/${ASSET_NAME}" || {
+            echo "::error::Nightly appcast input is missing ${ASSET_NAME}"; exit 1;
+          }
+          test -f "$APPCAST_INPUT/${ASSET_NAME%.dmg}.html" || {
+            echo "::error::Nightly appcast input is missing embedded release notes"; exit 1;
+          }
+          rm -f "$APPCAST_OUTPUT"
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | "$RUNNER_TEMP/generate_appcast" \
+            --ed-key-file - \
+            --link "https://github.com/TheBoredTeam/boring.notch/commits/${BRANCH_NAME}" \
+            --download-url-prefix "https://github.com/TheBoredTeam/boring.notch/releases/download/${TAG}/" \
+            --embed-release-notes \
+            --channel "${BRANCH_NAME}" \
+            -o "$APPCAST_OUTPUT" \
+            "$APPCAST_INPUT"
+          mv "$APPCAST_OUTPUT" "updater/${APPCAST_FILE}"
+
+      - name: Point the nightly tag at the built source
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          # The rolling tag is intentionally mutable: move it (or create it)
+          # onto the commit this nightly was built from.
+          TAG_SHA="$(gh api "repos/${REPO}/git/ref/tags/${TAG}" --jq '.object.sha' 2>/dev/null || true)"
+          if [[ "$TAG_SHA" == "$SOURCE_SHA" ]]; then
+            echo "Tag ${TAG} already points at ${SOURCE_SHA}."
+          elif [[ -n "$TAG_SHA" ]]; then
+            printf '{"sha":"%s","force":true}' "$SOURCE_SHA" | gh api \
+              -X PATCH "repos/${REPO}/git/refs/tags/${TAG}" --input - >/dev/null
+            echo "Moved ${TAG} from ${TAG_SHA} to ${SOURCE_SHA}."
+          else
+            printf '{"ref":"refs/tags/%s","sha":"%s"}' "$TAG" "$SOURCE_SHA" | gh api \
+              -X POST "repos/${REPO}/git/refs" --input - >/dev/null
+            echo "Created ${TAG} at ${SOURCE_SHA}."
+          fi
+
+      - name: Publish rolling nightly release
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          NOTES="$(printf '%s\n%s' \
+            "Automated nightly build for ${BRANCH_NAME}. Commit: ${SHORT_SHA}" \
+            "${CAUTION_WARNING}")"
+
+          # First run only: create the rolling release as a draft prerelease.
+          # Later runs reuse it and just refresh title and notes; a published
+          # release stays published.
+          gh release view "${TAG}" >/dev/null 2>&1 || {
+            gh release create "${TAG}" \
+              --draft \
+              --prerelease \
+              --target "${SOURCE_SHA}" \
+              --title "${TITLE}" \
+              --notes "${NOTES}"
+          }
+          gh release edit "${TAG}" --prerelease --title "${TITLE}" --notes "${NOTES}"
+
+          # The fixed asset name is intentionally overwritten every night.
+          gh release upload "${TAG}" "Release/${ASSET_NAME}" --clobber
+
+          # Publishing a draft comes last so a failed upload never publishes a
+          # release without the current DMG.
+          if gh release view "${TAG}" --json isDraft --jq '.isDraft' | grep -q true; then
+            gh release edit "${TAG}" --draft=false
+            echo "Published rolling release ${TAG}."
+          fi
+
+      - name: Commit branch appcast pointer
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          REPO: ${{ github.repository }}
+          APPCAST_PATH: updater/${{ env.APPCAST_FILE }}
+        run: |
+          set -euo pipefail
+          # The appcast commit must sit on top of the current branch head. dev
+          # may advance during the build; that is fine as long as it still
+          # contains the built source commit. The compare API is base...head:
+          # base = built source, head = live dev, so "ahead" (dev is built on
+          # top of the source) or "identical" means dev still contains it.
+          CURRENT_HEAD="$(gh api "repos/${REPO}/git/ref/heads/${BRANCH_NAME}" --jq '.object.sha')"
+          RELATION="$(gh api "repos/${REPO}/compare/${SOURCE_SHA}...${CURRENT_HEAD}" --jq '.status')"
+          [[ "$RELATION" == "ahead" || "$RELATION" == "identical" ]] || {
+            echo "::error::${BRANCH_NAME} no longer contains the built source ${SOURCE_SHA} (relation: ${RELATION}); refusing to publish an appcast for unbuilt code"; exit 1;
+          }
+
+          # base_tree is documented as a tree SHA; resolve CURRENT_HEAD's tree
+          # (root-level .tree on git/commits responses).
+          CURRENT_TREE="$(gh api "repos/${REPO}/git/commits/${CURRENT_HEAD}" --jq '.tree.sha')"
+          [[ "$CURRENT_TREE" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "::error::Could not resolve tree SHA of ${CURRENT_HEAD}: got '${CURRENT_TREE}'"; exit 1;
+          }
+
+          # Read the appcast from that head so intervening commits are never
+          # reverted by this update.
+          gh api "repos/${REPO}/contents/${APPCAST_PATH}?ref=${CURRENT_HEAD}" \
+            --jq '.content' | base64 --decode > current-appcast.xml
+          cmp -s "updater/${APPCAST_FILE}" current-appcast.xml && {
+            echo "No changes detected in ${APPCAST_FILE}; skipping commit and ref update."; exit 0;
+          }
+
+          # Create the appcast commit through the Git Database API without
+          # author or committer fields so GitHub signs it as the bot.
+          TREE_BODY="$(jq -n --arg tree "$CURRENT_TREE" --arg path "$APPCAST_PATH" \
+            --rawfile appcast "updater/${APPCAST_FILE}" \
+            '{base_tree: $tree,
+              tree: [{path: $path, mode: "100644", type: "blob", content: $appcast}]
+            }'
+          )"
+          # A garbage response fails the tree creation; the follow-up commit
+          # POST rejects an invalid tree SHA, so no extra guard is needed.
+          NEW_TREE="$(printf '%s' "$TREE_BODY" | gh api -X POST "repos/${REPO}/git/trees" --input - --jq '.sha')"
+          COMMIT_BODY="$(jq -n --arg tree "$NEW_TREE" --arg base "$CURRENT_HEAD" \
+            --arg message "Update ${APPCAST_FILE} to ${SHORT_SHA}" \
+            '{message: $message,
+              tree: $tree,
+              parents: [$base]}'
+          )"
+          APPCAST_RESPONSE="$(printf '%s' "$COMMIT_BODY" | gh api -X POST "repos/${REPO}/git/commits" --input -)"
+          APPCAST_SHA="$(jq -r '.sha' <<< "$APPCAST_RESPONSE")"
+          [[ "$(jq -r '.verification.verified' <<< "$APPCAST_RESPONSE")" == "true" ]] || {
+            echo "::error::Appcast commit ${APPCAST_SHA} is not verified: $(jq -c '.verification' <<< "$APPCAST_RESPONSE")"; exit 1;
+          }
+
+          # Update the branch ref without force: if another commit landed on
+          # ${BRANCH_NAME} first, this PATCH fails and the run stops instead of
+          # discarding it.
+          printf '{"sha":"%s","force":false}' "$APPCAST_SHA" | gh api \
+            -X PATCH "repos/${REPO}/git/refs/heads/${BRANCH_NAME}" --input - >/dev/null

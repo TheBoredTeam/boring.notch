@@ -11,26 +11,26 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct FileShareView: View {
-    @EnvironmentObject private var vm: BoringViewModel
+    let dropInteraction: DropInteractionState
     @StateObject private var quickShare = QuickShareService.shared
     @Default(.quickShareProvider) var quickShareProvider: String
 
     @State private var hostView: NSView?
     @State private var interactionNonce: UUID = .init()
     @State private var isProcessing = false
-    
+
     private var selectedProvider: QuickShareProvider {
         quickShare.availableProviders.first(where: { $0.id == quickShareProvider }) ?? .systemShareMenu
     }
 
     var body: some View {
-        @Bindable var dropInteraction = vm.dropInteraction
+        @Bindable var interaction = dropInteraction
 
         dropArea
             .background(NSViewHost(view: $hostView))
-            .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data, .image], isTargeted: $dropInteraction.dropZoneTargeting) { providers in
+            .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data, .image], isTargeted: $interaction.dropZoneTargeting) { providers in
                 interactionNonce = .init()
-                dropInteraction.dropEvent = true
+                interaction.dropEvent = true
                 Task { await handleDrop(providers) }
                 return true
             }
@@ -50,7 +50,7 @@ struct FileShareView: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(
-                            vm.dropInteraction.dropZoneTargeting
+                            dropInteraction.dropZoneTargeting
                                 ? Color.accentColor.opacity(0.9)
                                 : Color.white.opacity(0.1),
                             style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [10])
@@ -63,36 +63,34 @@ struct FileShareView: View {
                 ZStack {
                     Circle()
                         .fill(Color.white.opacity(
-                            vm.dropInteraction.dropZoneTargeting ? 0.11 : 0.09
+                            dropInteraction.dropZoneTargeting ? 0.11 : 0.09
                         ))
                         .frame(width: 55, height: 55)
                     Group {
                         if let icon = quickShare.icon(for: selectedProvider.id, size: 34) {
                             Image(nsImage: icon)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
+                                .resizable().scaledToFit()
                         } else {
                             Image(systemName: "square.and.arrow.up")
                         }
                     }
                     .frame(width: 34, height: 34)
                         .foregroundStyle(
-                            vm.dropInteraction.dropZoneTargeting ? Color.accentColor : Color.gray
+                            dropInteraction.dropZoneTargeting ? Color.accentColor : Color.gray
                         )
                         .scaleEffect(
-                            vm.dropInteraction.dropZoneTargeting ? 1.06 : 1.0
+                            dropInteraction.dropZoneTargeting ? 1.06 : 1.0
                         )
-                        .animation(.spring(response: 0.36, dampingFraction: 0.7), value: vm.dropInteraction.dropZoneTargeting)
+                        .animation(.spring(response: 0.36, dampingFraction: 0.7), value: dropInteraction.dropZoneTargeting)
                 }
 
                 Text(selectedProvider.id)
                     .font(.system(.headline, design: .rounded))
                     .foregroundColor(.white.opacity(0.8))
                     .multilineTextAlignment(.center)
-
             }
             .padding(18)
-            
+
             // Loading overlay
             if isProcessing || quickShare.isPickerOpen {
                 RoundedRectangle(cornerRadius: 12)
@@ -114,7 +112,7 @@ struct FileShareView: View {
         defer { isProcessing = false }
         await quickShare.shareDroppedFiles(providers, using: selectedProvider, from: hostView)
     }
-    
+
     private func handleClick() async {
         await quickShare.showFilePicker(for: selectedProvider, from: hostView)
     }
@@ -124,13 +122,13 @@ struct FileShareView: View {
 
 private struct NSViewHost: NSViewRepresentable {
     @Binding var view: NSView?
-    
+
     func makeNSView(context: Context) -> NSView {
         let v = NSView(frame: .zero)
         DispatchQueue.main.async { self.view = v }
         return v
     }
-    
+
     func updateNSView(_ nsView: NSView, context: Context) {
         DispatchQueue.main.async { self.view = nsView }
     }

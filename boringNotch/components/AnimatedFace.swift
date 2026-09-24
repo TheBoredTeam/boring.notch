@@ -6,9 +6,9 @@
 
 import SwiftUI
 
-struct MinimalFaceFeatures: View {
+struct AnimatedFace: View {
     @State private var isBlinking = false
-    @State private var blinkTask: Task<Void, Never>? = nil
+    @State private var blinkTask: Task<Void, Never>?
     var height: CGFloat = 24
     var width: CGFloat = 30
 
@@ -35,7 +35,7 @@ struct MinimalFaceFeatures: View {
         .onAppear(perform: startBlinking)
         .onDisappear(perform: stopBlinking)
     }
-    
+
     func startBlinking() {
         guard blinkTask == nil else { return }
         blinkTask = Task {
@@ -93,7 +93,7 @@ struct MinimalFaceFeatures_Previews: PreviewProvider {
     static var previews: some View {
         ZStack {
             Color.black
-            MinimalFaceFeatures(height: 24, width: 30)
+            AnimatedFace(height: 24, width: 30)
         }
         .previewLayout(.fixed(width: 60, height: 60)) // Adjusted preview size for better visibility
     }

@@ -15,23 +15,11 @@ struct GeneralSettings: View {
         return (uuid, screen.localizedName)
     }
     @State private var showLanguageRestartAlert = false
-    @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 
     @Default(.appLanguage) var appLanguage
-    @Default(.mirrorShape) var mirrorShape
-    @Default(.gestureSensitivity) var gestureSensitivity
-    @Default(.minimumHoverDuration) var minimumHoverDuration
-    @Default(.nonNotchHeight) var nonNotchHeight
-    @Default(.nonNotchHeightMode) var nonNotchHeightMode
-    @Default(.notchHeight) var notchHeight
-    @Default(.notchHeightMode) var notchHeightMode
     @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
-    @Default(.enableGestures) var enableGestures
-    @Default(.openNotchOnHover) var openNotchOnHover
-    @Default(.enableOpeningAnimation) var enableOpeningAnimation
-    @Default(.animationSpeedMultiplier) var animationSpeedMultiplier
 
     var body: some View {
         Form {
@@ -43,7 +31,7 @@ struct GeneralSettings: View {
                     Text("Show menu bar icon")
                 }
                 .tint(.effectiveAccent)
-                LaunchAtLogin.Toggle() {
+                LaunchAtLogin.Toggle {
                     Text("Launch at login")
                 }
                 Picker("Language", selection: $appLanguage) {
@@ -55,6 +43,11 @@ struct GeneralSettings: View {
                     appLanguage.applyAppleLanguagesOverride()
                     showLanguageRestartAlert = true
                 }
+            } header: {
+                Text("App")
+            }
+
+            Section {
                 Defaults.Toggle(key: .showOnAllDisplays) {
                     Text("Show on all displays")
                 }
@@ -74,7 +67,7 @@ struct GeneralSettings: View {
                     }
                 }
                 .disabled(showOnAllDisplays)
-                
+
                 Defaults.Toggle(key: .automaticallySwitchDisplay) {
                     Text("Automatically switch displays")
                 }
@@ -84,93 +77,8 @@ struct GeneralSettings: View {
                     }
                     .disabled(showOnAllDisplays)
             } header: {
-                Text("System features")
+                Text("Displays")
             }
-
-            Section {
-                Picker(
-                    selection: $notchHeightMode,
-                    label:
-                        Text("Notch height on notch displays")
-                ) {
-                    Text("Match real notch height")
-                        .tag(WindowHeightMode.matchRealNotchSize)
-                    Text("Match menu bar height")
-                        .tag(WindowHeightMode.matchMenuBar)
-                    Text("Custom height")
-                        .tag(WindowHeightMode.custom)
-                }
-                .onChange(of: notchHeightMode) {
-                    switch notchHeightMode {
-                    case .matchRealNotchSize:
-                        // Get the actual notch height from the built-in display
-                        notchHeight = getRealNotchHeight()
-                    case .matchMenuBar:
-                        notchHeight = getMenuBarHeight(hasNotch: true)
-                    case .custom:
-                        notchHeight = 38
-                    }
-                    NotificationCenter.default.post(
-                        name: Notification.Name.notchHeightChanged, object: nil)
-                }
-                if notchHeightMode == .custom {
-                    Slider(value: $notchHeight, in: 15...45, step: 1) {
-                        Text(
-                            "Custom notch size - \(notchHeight, format: .number.precision(.fractionLength(0)))",
-                            comment: "Slider label showing the custom notch height."
-                        )
-                    }
-                    .onChange(of: notchHeight) {
-                        NotificationCenter.default.post(
-                            name: Notification.Name.notchHeightChanged, object: nil)
-                    }
-                }
-                Picker("Notch height on non-notch displays", selection: $nonNotchHeightMode) {
-                    Text("Match menu bar height")
-                        .tag(WindowHeightMode.matchMenuBar)
-                    Text("Custom height")
-                        .tag(WindowHeightMode.custom)
-                }
-                .onChange(of: nonNotchHeightMode) {
-                    switch nonNotchHeightMode {
-                    case .matchMenuBar:
-                        nonNotchHeight = getMenuBarHeight(hasNotch: false)
-                    case .matchRealNotchSize, .custom:
-                        nonNotchHeight = 23
-                    }
-                    NotificationCenter.default.post(
-                        name: Notification.Name.notchHeightChanged, object: nil)
-                }
-                if nonNotchHeightMode == .custom {
-                    // Custom binding to skip values 1-14 (jump from 0 to 10)
-                    let sliderValue = Binding<Double>(
-                        get: { 
-                            nonNotchHeight == 0 ? 0 : nonNotchHeight - 14
-                        },
-                        set: { newValue in
-                            let oldValue = nonNotchHeight
-                            nonNotchHeight = newValue == 0 ? 0 : newValue + 14
-                            if oldValue != nonNotchHeight {
-                                NotificationCenter.default.post(
-                                    name: Notification.Name.notchHeightChanged, object: nil)
-                            }
-                        }
-                    )
-                    
-                    Slider(value: sliderValue, in: 0...26, step: 1) {
-                        Text(
-                            "Custom notch size - \(nonNotchHeight, format: .number.precision(.fractionLength(0)))",
-                            comment: "Slider label showing the custom notch height."
-                        )
-                    }
-                }
-            } header: {
-                Text("Notch sizing")
-            }
-
-            NotchBehaviour()
-
-            gestureControls()
         }
         .toolbar {
             Button("Quit app") {
@@ -180,11 +88,6 @@ struct GeneralSettings: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("General")
-        .onChange(of: openNotchOnHover) {
-            if !openNotchOnHover {
-                enableGestures = true
-            }
-        }
         .alert("Restart to apply language", isPresented: $showLanguageRestartAlert) {
             Button("Later", role: .cancel) {}
             Button("Restart Now") {
@@ -192,102 +95,6 @@ struct GeneralSettings: View {
             }
         } message: {
             Text("Changing the app language requires restarting Boring Notch.")
-        }
-    }
-
-    @ViewBuilder
-    func gestureControls() -> some View {
-        Section {
-            Defaults.Toggle(key: .enableGestures) {
-                Text("Enable gestures")
-            }
-                .disabled(!openNotchOnHover)
-            if enableGestures {
-                Defaults.Toggle(key: .enableHorizontalMediaGestures) {
-                    Text("Change media with horizontal gestures")
-                }
-                Defaults.Toggle(key: .closeGestureEnabled) {
-                    Text("Close gesture")
-                }
-                Slider(value: $gestureSensitivity, in: 100...300, step: 100) {
-                    HStack {
-                        Text("Gesture sensitivity")
-                        Spacer()
-                        Text(
-                            Defaults[.gestureSensitivity] == 100
-                                ? "High" : Defaults[.gestureSensitivity] == 200 ? "Medium" : "Low"
-                        )
-                        .foregroundStyle(.secondary)
-                    }
-                }
-            }
-        } header: {
-            HStack {
-                Text("Gesture control")
-                customBadge(text: "Beta")
-            }
-        } footer: {
-            Text(
-                "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled"
-            )
-            .multilineTextAlignment(.trailing)
-            .foregroundStyle(.secondary)
-            .font(.caption)
-        }
-    }
-
-    @ViewBuilder
-    func NotchBehaviour() -> some View {
-        Section {
-            Defaults.Toggle(key: .openNotchOnHover) {
-                Text("Open notch on hover")
-            }
-            Defaults.Toggle(key: .enableHaptics) {
-                    Text("Enable haptic feedback")
-            }
-            Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
-            if openNotchOnHover {
-                Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
-                    HStack {
-                        Text("Hover delay")
-                        Spacer()
-                        Text(
-                            Measurement(
-                                value: minimumHoverDuration,
-                                unit: UnitDuration.seconds
-                            ),
-                            format: .measurement(
-                                width: .narrow,
-                                usage: .asProvided,
-                                numberFormatStyle: .number.precision(
-                                    .fractionLength(1)
-                                )
-                            )
-                        )
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .onChange(of: minimumHoverDuration) {
-                    NotificationCenter.default.post(
-                        name: Notification.Name.notchHeightChanged, object: nil)
-                }
-            }
-            Toggle("Notch animation", isOn: $enableOpeningAnimation)
-            if enableOpeningAnimation {
-                Slider(value: $animationSpeedMultiplier, in: 0.1...2.01, step: 0.1) {
-                    HStack {
-                        Text("Animation speed")
-                        Spacer()
-                        Text(
-                            "\(animationSpeedMultiplier, format: .number.precision(.fractionLength(1)))x",
-                            comment: "Animation speed multiplier."
-                        )
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-        } header: {
-            Text("Notch behavior")
         }
     }
 }

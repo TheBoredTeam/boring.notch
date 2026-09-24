@@ -12,13 +12,15 @@ struct BoringHeader: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @StateObject var tvm = ShelfStateViewModel.shared
+    @StateObject var shelfState = ShelfStateViewModel.shared
     @Default(.systemActivityEnabled) private var systemActivityEnabled
+
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if coordinator.alwaysShowTabs
-                    || (Defaults[.boringShelf] && !tvm.isEmpty) {
+                if systemActivityEnabled
+                    || coordinator.alwaysShowTabs
+                    || (Defaults[.boringShelf] && !shelfState.isEmpty) {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()
@@ -70,7 +72,6 @@ struct BoringHeader: View {
                                 DispatchQueue.main.async {
                                     SettingsWindowController.shared.showWindow()
                                 }
-                                
                             }) {
                                 Capsule()
                                     .fill(.black)
@@ -128,5 +129,5 @@ struct BoringHeader: View {
 }
 
 #Preview {
-    BoringHeader().environmentObject(BoringViewModel())
+    BoringHeader().environmentObject(BoringViewModel(camera: CameraModel()))
 }

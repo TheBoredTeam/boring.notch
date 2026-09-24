@@ -70,7 +70,7 @@ struct WheelPicker: View {
         .sensoryFeedback(.alignment, trigger: haptics)
         .onContinuousHover { phase in
             switch phase {
-            case .active(_):
+            case .active:
                 isHovering = true
             case .ended:
                 isHovering = false
@@ -97,7 +97,7 @@ struct WheelPicker: View {
                 scrollMonitor = nil
             }
         }
-        .onChange(of: scrollPosition) { oldValue, newValue in
+        .onChange(of: scrollPosition) { _, newValue in
             if !byClick {
                 handleScrollChange(newValue: newValue, config: config)
             } else {
@@ -585,7 +585,7 @@ struct EventListView: View {
     let events: [EventModel]
     @Default(.autoScrollToNextEvent) private var autoScrollToNextEvent
     @Default(.showFullEventTitles) private var showFullEventTitles
-
+    @State private var hoveredEventID: String?
 
     static func filteredEvents(events: [EventModel]) -> [EventModel] {
         events.filter { event in
@@ -629,15 +629,38 @@ struct EventListView: View {
             List {
                 ForEach(filteredEvents) { event in
                     Button(action: {
-                        if let url = event.calendarAppURL() {
+                        if let link = event.meetingLink, Defaults[.joinMeetingOnEventTap] {
+                            openURL(link.url)
+                        } else if let url = event.calendarAppURL() {
                             openURL(url)
                         }
                     }) {
-                        eventRow(event)
+                        eventRow(event, isHovered: hoveredEventID == event.id)
                     }
                     .id(event.id)
                     .padding(.leading, -5)
                     .buttonStyle(PlainButtonStyle())
+                    .onHover { hovering in
+                        // Guarded: moving between adjacent rows fires the new row's
+                        // enter before the old row's exit, so an unguarded nil would
+                        // clear the wrong row.
+                        if hovering {
+                            hoveredEventID = event.id
+                        } else if hoveredEventID == event.id {
+                            hoveredEventID = nil
+                        }
+                    }
+                    .contextMenu {
+                        if let url = event.calendarAppURL() {
+                            Button("Open in Calendar") { openURL(url) }
+                        }
+                        if let link = event.meetingLink {
+                            Button("Copy Meeting Link") {
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(link.url.absoluteString, forType: .string)
+                            }
+                        }
+                    }
                     .listRowSeparator(.automatic)
                     .listRowSeparatorTint(.gray.opacity(0.2))
                     .listRowBackground(Color.clear)
@@ -657,7 +680,7 @@ struct EventListView: View {
         Spacer(minLength: 0)
     }
 
-    private func eventRow(_ event: EventModel) -> some View {
+    private func eventRow(_ event: EventModel, isHovered: Bool) -> some View {
         if event.type.isReminder {
             let isCompleted: Bool
             if case .reminder(let completed) = event.type {
@@ -733,6 +756,27 @@ struct EventListView: View {
                         }
                     }
                     Spacer(minLength: 0)
+
+                    // Joinable indicator. The 16pt frame lives on the Group, not the
+                    // Image, so the column holds its width whether or not a glyph is
+                    // drawn — otherwise the time column goes ragged between rows.
+                    Group {
+                        if let link = event.meetingLink {
+                            Image(systemName: "video.fill")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(isHovered ? Color.effectiveAccent : .white.opacity(0.5))
+                                .padding(3)
+                                .background(
+                                    Capsule().fill(isHovered ? Color.gray.opacity(0.2) : .clear)
+                                )
+                                .animation(.smooth(duration: 0.3), value: isHovered)
+                                .accessibilityLabel("Join \(link.provider.displayName) meeting")
+                        } else {
+                            Color.clear
+                        }
+                    }
+                    .frame(width: 16)
+
                     VStack(alignment: .trailing, spacing: 4) {
                         if event.isAllDay {
                             Text("All-day")
@@ -792,5 +836,5 @@ struct ReminderToggle: View {
     CalendarView()
         .frame(width: 215, height: 130)
         .background(.black)
-        .environmentObject(BoringViewModel())
+        .environmentObject(BoringViewModel(camera: CameraModel()))
 }

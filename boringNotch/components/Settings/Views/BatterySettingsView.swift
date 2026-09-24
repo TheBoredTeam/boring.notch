@@ -8,7 +8,7 @@
 import Defaults
 import SwiftUI
 
-struct Charge: View {
+struct BatterySettingsView: View {
     var body: some View {
         Form {
             Section {

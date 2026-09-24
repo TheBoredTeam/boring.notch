@@ -63,7 +63,7 @@ private struct SMCKeyData {
     )
 }
 
-final class SMCReadOnly {
+final class SMCReadOnly: @unchecked Sendable {
     static let shared = SMCReadOnly()
 
     private var connection: io_connect_t = 0

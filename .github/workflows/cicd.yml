@@ -45,3 +45,18 @@ jobs:
           verbosity: xcpretty
           upload-logs: always
           configuration: release
+
+      # Unit tests run hosted by the app (TEST_HOST), so they spawn a real
+      # menubar-app instance on the runner — acceptable on CI where nothing
+      # else reacts to it; they are skipped on matrix legs without hosted-test
+      # support if they ever become flaky there.
+      - name: Test
+        uses: mxcl/xcodebuild@d3ee9b419c1be9a988086c58fe0988f32d99cfc5 # v3.6.0
+        with:
+          xcode: ${{ matrix.xcode }}
+          platform: macOS
+          scheme: boringNotch
+          action: test
+          verbosity: xcpretty
+          upload-logs: always
+          configuration: debug

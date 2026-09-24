@@ -9,7 +9,7 @@ import Combine
 import Defaults
 import SwiftUI
 
-class BoringViewModel: NSObject, ObservableObject {
+final class BoringViewModel: NSObject, ObservableObject {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var detector = FullscreenMediaDetector.shared
 
@@ -18,8 +18,9 @@ class BoringViewModel: NSObject, ObservableObject {
     let dropInteraction = DropInteractionState()
 
     @Published private(set) var notchState: NotchState = .closed
+
     var cancellables: Set<AnyCancellable> = []
-    
+
     @Published var hideOnClosed: Bool = true
 
     @Published var edgeAutoOpenActive: Bool = false
@@ -30,11 +31,9 @@ class BoringViewModel: NSObject, ObservableObject {
 
     @Published var notchSize: CGSize = getClosedNotchSize()
     @Published var closedNotchSize: CGSize = getClosedNotchSize()
-    
-    let webcamManager = WebcamManager.shared
-    @Published var isCameraExpanded: Bool = false
-    @Published var isRequestingAuthorization: Bool = false
-    
+
+    let camera: CameraModel
+
     deinit {
         destroy()
     }
@@ -44,18 +43,19 @@ class BoringViewModel: NSObject, ObservableObject {
         cancellables.removeAll()
     }
 
-    init(screenUUID: String? = nil) {
+    init(screenUUID: String? = nil, camera: CameraModel) {
         animation = animationLibrary.animation
+        self.camera = camera
+        self.screenUUID = screenUUID
 
         super.init()
-        
-        self.screenUUID = screenUUID
+
         notchSize = getClosedNotchSize(screenUUID: screenUUID)
         closedNotchSize = notchSize
 
         setupDetectorObserver()
     }
-    
+
     private func setupDetectorObserver() {
         // Publisher for the user’s fullscreen detection setting
         let enabledPublisher = Defaults
@@ -122,30 +122,24 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func toggleCameraPreview() {
-        if isRequestingAuthorization {
-            return
-        }
-
-        switch webcamManager.refreshAuthorizationStatus() {
-        case .authorized:
-            if webcamManager.isSessionRunning {
-                webcamManager.stopSession()
-                isCameraExpanded = false
-            } else if webcamManager.cameraAvailable {
-                webcamManager.startSession()
-                isCameraExpanded = true
+        switch camera.state {
+        case .running:
+            camera.stopSession()
+        case .stopped, .unavailable, .failed:
+            if camera.cameraAvailable {
+                camera.startSession()
             }
 
-        case .denied, .restricted:
+        case .permissionDenied:
             DispatchQueue.main.async {
                 NSApp.setActivationPolicy(.regular)
                 NSApp.activate(ignoringOtherApps: true)
 
                 let alert = NSAlert()
-                alert.messageText = "Camera Access Required"
-                alert.informativeText = "Please allow camera access in System Settings."
-                alert.addButton(withTitle: "Open Settings")
-                alert.addButton(withTitle: "Cancel")
+                alert.messageText = NSLocalizedString("Camera Access Required", comment: "Camera permission alert title")
+                alert.informativeText = NSLocalizedString("Please allow camera access in System Settings.", comment: "Camera permission alert message")
+                alert.addButton(withTitle: NSLocalizedString("Open Settings", comment: "Button title that opens app or system settings"))
+                alert.addButton(withTitle: NSLocalizedString("Cancel", comment: "Cancel button title"))
 
                 if alert.runModal() == .alertFirstButtonReturn {
                     if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {
@@ -157,28 +151,23 @@ class BoringViewModel: NSObject, ObservableObject {
                 NSApp.deactivate()
             }
 
-        case .notDetermined:
-            isRequestingAuthorization = true
-            webcamManager.checkAndRequestVideoAuthorization()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                self.isRequestingAuthorization = false
-            }
+        case .permissionRequired:
+            camera.requestAccess()
 
-        default:
+        case .requestingPermission, .starting:
             break
         }
     }
-    
+
     func isMouseHovering(position: NSPoint = NSEvent.mouseLocation) -> Bool {
         let screenFrame = getScreenFrame(screenUUID)
         if let frame = screenFrame {
-            
             let baseY = frame.maxY - notchSize.height
             let baseX = frame.midX - notchSize.width / 2
-            
+
             return position.y >= baseY && position.x >= baseX && position.x <= baseX + notchSize.width
         }
-        
+
         return false
     }
 
@@ -188,7 +177,7 @@ class BoringViewModel: NSObject, ObservableObject {
 
         self.notchSize = openNotchSize
         self.notchState = .open
-        
+
         // Force music information update when notch is opened
         MusicManager.shared.forceUpdate()
 

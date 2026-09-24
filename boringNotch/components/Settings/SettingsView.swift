@@ -11,51 +11,59 @@ import SwiftUIIntrospect
 
 private enum SettingsTab: String, CaseIterable, Identifiable {
     case general
+    case notch
     case appearance
     case media
     case calendar
-    case osd
-    case battery
-    case systemActivity
     case shelf
     case mirror
+    case battery
+    case osd
+    case systemActivity
+    case notifications
     case shortcuts
-    case advanced
     case about
+
+    enum Icon {
+        case system(String)
+        case custom(String)
+    }
 
     var id: Self { self }
 
-    var title: String {
+    var title: LocalizedStringKey {
         switch self {
         case .general: "General"
+        case .notch: "Notch"
         case .appearance: "Appearance"
         case .media: "Media"
         case .calendar: "Calendar"
-        case .osd: "OSD"
-        case .battery: "Battery"
-        case .systemActivity: "System Activity"
         case .shelf: "Shelf"
         case .mirror: "Mirror"
+        case .battery: "Battery"
+        case .osd: "OSD"
+        case .systemActivity: "System Activity"
+        case .notifications: "Notifications"
         case .shortcuts: "Shortcuts"
-        case .advanced: "Advanced"
         case .about: "About"
         }
     }
 
-    var systemImage: String {
+    var icon: Icon {
         switch self {
-        case .general: "gear"
-        case .appearance: "eye"
-        case .media: "play.laptopcomputer"
-        case .calendar: "calendar"
-        case .osd: "dial.medium.fill"
-        case .battery: "battery.100.bolt"
-        case .systemActivity: "chart.bar.xaxis"
-        case .shelf: "books.vertical"
-        case .mirror: "camera"
-        case .shortcuts: "keyboard"
-        case .advanced: "gearshape.2"
-        case .about: "info.circle"
+        case .general: .system("gear")
+        case .notch: .custom("notch")
+        case .appearance: .system("paintbrush")
+        case .media: .system("play.rectangle")
+        case .calendar: .system("calendar")
+        case .shelf: .system("tray.and.arrow.down")
+        case .mirror: .system("video")
+        case .battery: .system("battery.100.bolt")
+        case .osd: .system("dial.medium.fill")
+        case .systemActivity: .system("chart.bar.xaxis")
+        case .notifications: .system("bell.badge")
+        case .shortcuts: .system("keyboard")
+        case .about: .system("info.circle")
         }
     }
 }
@@ -65,17 +73,18 @@ struct SettingsView: View {
     @State private var accentColorUpdateTrigger = UUID()
 
     let updaterController: SPUStandardUpdaterController?
+    let camera: CameraModel
 
-    init(updaterController: SPUStandardUpdaterController? = nil) {
+    init(updaterController: SPUStandardUpdaterController? = nil, camera: CameraModel) {
         self.updaterController = updaterController
+        self.camera = camera
     }
 
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedTab) {
                 ForEach(SettingsTab.allCases) { tab in
-                    Label(tab.title, systemImage: tab.systemImage)
-                        .tag(tab)
+                    tabItem(tab)
                 }
             }
             .listStyle(SidebarListStyle())
@@ -87,32 +96,34 @@ struct SettingsView: View {
                 switch selectedTab {
                 case .general:
                     GeneralSettings()
+                case .notch:
+                    NotchSettingsView()
                 case .appearance:
-                    Appearance()
+                    AppearanceSettingsView()
                 case .media:
-                    Media()
+                    MediaSettingsView()
+                case .notifications:
+                    NotificationSettingsView()
                 case .calendar:
                     CalendarSettings()
                 case .osd:
                     OSDSettings()
                 case .battery:
-                    Charge()
+                    BatterySettingsView()
                 case .systemActivity:
                     SystemActivitySettings()
                 case .shelf:
-                    Shelf()
+                    ShelfSettingsView()
                 case .mirror:
-                    MirrorSettings()
+                    WebcamSettingsView(camera: camera)
                 case .shortcuts:
-                    Shortcuts()
-                case .advanced:
-                    Advanced()
+                    ShortcutsSettingsView()
                 case .about:
                     if let controller = updaterController {
-                        About(updaterController: controller)
+                        AboutView(updaterController: controller)
                     } else {
                         // Fallback with a default controller
-                        About(
+                        AboutView(
                             updaterController: SPUStandardUpdaterController(
                                 startingUpdater: false, updaterDelegate: nil,
                                 userDriverDelegate: nil))
@@ -138,5 +149,20 @@ struct SettingsView: View {
         .onReceive(NotificationCenter.default.publisher(for: .accentColorChanged)) { _ in
             accentColorUpdateTrigger = UUID()
         }
+    }
+
+    private func tabItem(_ tab: SettingsTab) -> some View {
+        Label {
+            Text(tab.title)
+        } icon: {
+            switch tab.icon {
+            case .system(let imageName):
+                Image(systemName: imageName)
+
+            case .custom(let imageName):
+                Image(imageName)
+            }
+        }
+        .tag(tab)
     }
 }
