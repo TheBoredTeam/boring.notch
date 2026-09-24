@@ -75,19 +75,28 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
         requestAccessibilityAuthorization()
 
-        let deadline = DispatchTime.now() + .seconds(15)
-        func waitForAuthorization() {
-            if AXIsProcessTrusted() {
-                reply(true)
-            } else if DispatchTime.now() >= deadline {
-                reply(false)
-            } else {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    waitForAuthorization()
-                }
+        // macOS posts this on the distributed center when the AX trust database
+        // changes, so we wait on it instead of polling AXIsProcessTrusted().
+        // Everything below runs on main so `replied` needs no locking.
+        DispatchQueue.main.async {
+            let center = DistributedNotificationCenter.default()
+            var observer: NSObjectProtocol?
+            var replied = false
+            func finish(_ granted: Bool) {
+                guard !replied else { return }
+                replied = true
+                if let observer { center.removeObserver(observer) }
+                reply(granted)
+            }
+
+            observer = center.addObserver(forName: Notification.Name("com.apple.accessibility.api"), object: nil, queue: .main) { _ in
+                if AXIsProcessTrusted() { finish(true) }
+            }
+            // Single safety net in case the notification never arrives.
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(15)) {
+                finish(AXIsProcessTrusted())
             }
         }
-        waitForAuthorization()
     }
 
     // MARK: - Notification Center banners

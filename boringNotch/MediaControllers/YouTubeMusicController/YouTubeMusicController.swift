@@ -73,7 +73,12 @@ final class YouTubeMusicController: MediaControllerProtocol {
         artworkFetchTask?.cancel()
         reconnectTask?.cancel()
         appStateObserver?.cancel()
-        updateTimer?.invalidate()
+
+        // Timer is bound to the main run loop; deinit can run anywhere.
+        if updateTimer != nil {
+            nonisolated(unsafe) let timer = updateTimer
+            DispatchQueue.main.async { timer?.invalidate() }
+        }
 
         if let webSocketClient {
             Task {

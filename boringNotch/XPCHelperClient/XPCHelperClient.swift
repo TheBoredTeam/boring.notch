@@ -37,7 +37,9 @@ final class XPCHelperClient: NSObject, ObservableObject {
 
     private var remoteService: RemoteXPCService<BoringNotchXPCHelperProtocol>?
     private var connection: NSXPCConnection?
-    /// Set by the interruption/invalidation hops, cleared when a fresh
+    /// Last value published via `.accessibilityAuthorizationChanged`. Only
+    /// `markAuthorizationChanged(to:)` may write it; it is never reset (not
+    /// even by `shutdown()`), so the post below stays edge-triggered.
     private var lastKnownAuthorization: Bool?
     private let notificationDelegate = NotificationXPCDelegate()
     @MainActor private var activationObserver: (any NSObjectProtocol)?
@@ -116,9 +118,20 @@ final class XPCHelperClient: NSObject, ObservableObject {
         return interface
     }
 
-    private func notifyAuthorizationChange(_ granted: Bool) {
-        guard lastKnownAuthorization != granted else { return }
+    /// Compare-and-store in one step: true only on a real transition.
+    /// Sole caller is `notifyAuthorizationChange`.
+    private func markAuthorizationChanged(to granted: Bool) -> Bool {
+        guard lastKnownAuthorization != granted else { return false }
         lastKnownAuthorization = granted
+        return true
+    }
+
+    /// EDGE-TRIGGERED ON PURPOSE: observers of this notification
+    /// (BoringViewCoordinator, Settings views) call straight back into
+    /// `isAccessibilityAuthorized()`, which lands here again — posting on
+    /// anything but an actual transition is an infinite loop.
+    private func notifyAuthorizationChange(_ granted: Bool) {
+        guard markAuthorizationChanged(to: granted) else { return }
         NotificationCenter.default.post(
             name: .accessibilityAuthorizationChanged,
             object: nil,

@@ -8,6 +8,7 @@
 import CoreAudio
 import CoreGraphics
 import Foundation
+import os
 
 enum AudioOutputRouteKind: Equatable {
     case builtInSpeaker
@@ -23,15 +24,16 @@ enum AudioOutputRouteKind: Equatable {
 final class AudioOutputRouteResolver {
     static let shared = AudioOutputRouteResolver()
 
-    private let stateQueue = DispatchQueue(label: "AudioOutputRouteResolver.state")
-    private var cachedRouteKind: AudioOutputRouteKind = .unknown
+    /// Read on every OSD/media body evaluation, written only from the CoreAudio
+    /// default-device listener thread — an unfair lock keeps reads allocation-free.
+    private let cachedRouteKind = OSAllocatedUnfairLock(initialState: AudioOutputRouteKind.unknown)
 
     /// Symbol for the current output route, independent of volume level —
     /// for the media-output button, which shows *where* audio is going
     /// rather than how loud it is. Built-in output reads as the machine
     /// itself (a laptop), matching how macOS's own output picker shows it.
     func outputRouteSymbol() -> String {
-        let routeKind = stateQueue.sync { cachedRouteKind }
+        let routeKind = cachedRouteKind.withLock { $0 }
         switch routeKind {
         case .airPods: return "airpods"
         case .airPodsPro: return "airpodspro"
@@ -44,7 +46,7 @@ final class AudioOutputRouteResolver {
 
     func volumeSymbol(for value: CGFloat) -> String {
         let clampedValue = max(0, min(1, value))
-        let routeKind = stateQueue.sync { cachedRouteKind }
+        let routeKind = cachedRouteKind.withLock { $0 }
 
         switch routeKind {
         case .airPods:
@@ -82,9 +84,7 @@ final class AudioOutputRouteResolver {
 
     private func refreshCachedRouteKind() {
         let currentRoute = currentRouteKind()
-        stateQueue.sync {
-            self.cachedRouteKind = currentRoute
-        }
+        cachedRouteKind.withLock { $0 = currentRoute }
     }
 
     private func currentRouteKind() -> AudioOutputRouteKind {

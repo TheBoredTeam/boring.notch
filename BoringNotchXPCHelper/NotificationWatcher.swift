@@ -46,6 +46,7 @@ final class NotificationWatcher {
     private var observerRunLoop: AXObserverRunLoop?
     private var pollTimer: DispatchSourceTimer?
     private var liveTokens = Set<String>()
+    private var scanPending = false
     private var allowedBundleIDs = Set<String>()
     private var mirrorAllApps = false
     private var parkedWindowByToken: [String: Int] = [:]
@@ -105,7 +106,7 @@ final class NotificationWatcher {
             guard let refcon else { return }
             let watcher = Unmanaged<NotificationWatcher>.fromOpaque(refcon).takeUnretainedValue()
             DispatchQueue.main.async {
-                watcher.scan()
+                watcher.requestScan()
             }
         }, &observer)
         guard result == .success, let observer, let appElement else { return false }
@@ -173,26 +174,25 @@ final class NotificationWatcher {
         }
     }
 
+    // A burst of AX callbacks collapses into one scan; the flag clears before scan() so a request
+    // arriving during a scan still earns a following one.
+    private func requestScan() {
+        guard !scanPending else { return }
+        scanPending = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            scanPending = false
+            scan()
+        }
+    }
+
     private func scan() {
         autoreleasepool {
             guard let appElement else { return }
             var seen = Set<String>()
 
             for window in (appElement[kAXWindowsAttribute] as? [AXUIElement]) ?? [] {
-                let windowAttributes = NotificationPanelDetection.Attributes(
-                    subrole: { window[$0] as? String },
-                    identifier: { window[$0] as? String },
-                    children: {
-                        ((window[kAXChildrenAttribute] as? [AXUIElement]) ?? []).map { child in
-                            .init(
-                                subrole: { child[$0] as? String },
-                                identifier: { child[$0] as? String },
-                                children: { [] }
-                            )
-                        }
-                    }
-                )
-                guard !NotificationPanelDetection.isPanelWindow(windowAttributes) else { continue }
+                guard !NotificationPanelDetection.isPanelWindow(Self.panelAttributes(for: window)) else { continue }
                 guard window[kAXSubroleAttribute] as? String == "AXSystemDialog" else { continue }
                 for banner in banners(in: window) {
                     guard let token = banner[kAXIdentifierAttribute] as? String else { continue }
@@ -215,6 +215,18 @@ final class NotificationWatcher {
             removed.forEach(restoreWindowIfUnused)
             syncPollTimer()
         }
+    }
+
+    // Lazy and recursive: nothing is read across the process boundary until containsPanelList descends.
+    private static func panelAttributes(for element: AXUIElement) -> NotificationPanelDetection.Attributes {
+        .init(
+            subrole: { element[$0] as? String },
+            identifier: { element[$0] as? String },
+            children: {
+                ((element[kAXChildrenAttribute] as? [AXUIElement]) ?? [])
+                    .map(Self.panelAttributes(for:))
+            }
+        )
     }
 
     // Banner teardown is not reliably reported by a destroy notification, so poll while any banner is live.

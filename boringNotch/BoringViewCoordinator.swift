@@ -388,10 +388,8 @@ final class BoringViewCoordinator: ObservableObject {
     ) {
         Task { @MainActor in
             withAnimation(.smooth) {
-                self.expandingView.show = status
-                self.expandingView.type = type
-                self.expandingView.value = value
-                self.expandingView.browser = browser
+                // Single assignment: field-by-field would fire didSet (and objectWillChange) four times
+                self.expandingView = ExpandedItem(show: status, type: type, value: value, browser: browser)
             }
         }
     }

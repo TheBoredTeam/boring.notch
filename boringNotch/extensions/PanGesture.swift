@@ -7,6 +7,7 @@
 
 import AppKit
 import SwiftUI
+import Combine
 import Defaults
 
 enum PanDirection {
@@ -60,6 +61,9 @@ private struct ScrollMonitor: NSViewRepresentable {
         private var accumulated: CGFloat = 0
         private var active = false
         private var endTask: Task<Void, Never>?
+        private var endDeadline: ContinuousClock.Instant?
+        private var normalizeDirection = Defaults[.normalizeGestureDirection]
+        private var defaultsObserver: AnyCancellable?
         private let noiseThreshold: CGFloat = 0.2
 
         init(direction: PanDirection, threshold: CGFloat, action: @escaping (CGFloat, NSEvent.Phase) -> Void) {
@@ -69,12 +73,17 @@ private struct ScrollMonitor: NSViewRepresentable {
         }
 
         private func scheduleEndTimeout() {
-            // Cancel any existing scheduled end and schedule a new one.
-            endTask?.cancel()
+            // Refresh the deadline; a single task re-checks it instead of one task per event.
+            endDeadline = .now + .milliseconds(300)
+            guard endTask == nil else { return }
             endTask = Task { @MainActor in
                 // If no new scroll event arrives within this window, consider the gesture ended.
-                try? await Task.sleep(for: .milliseconds(300))
-                guard !Task.isCancelled else { return }
+                while let deadline = endDeadline, deadline > .now {
+                    try? await Task.sleep(until: deadline, clock: .continuous)
+                    guard !Task.isCancelled else { return }
+                }
+                endTask = nil
+                endDeadline = nil
                 if active {
                     action(accumulated.magnitude, .ended)
                 } else {
@@ -87,6 +96,13 @@ private struct ScrollMonitor: NSViewRepresentable {
 
         func installMonitor(on view: NSView) {
             removeMonitor()
+
+            normalizeDirection = Defaults[.normalizeGestureDirection]
+            defaultsObserver = Defaults.publisher(.normalizeGestureDirection)
+                .sink { change in
+                    let newValue = change.newValue
+                    Task { @MainActor [weak self] in self?.normalizeDirection = newValue }
+                }
 
             // Local monitor for normal in-window scroll events.
             localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { [weak self, weak view] event in
@@ -102,10 +118,12 @@ private struct ScrollMonitor: NSViewRepresentable {
                 self.localMonitor = nil
             }
 
+            defaultsObserver = nil
             accumulated = 0
             active = false
             endTask?.cancel()
             endTask = nil
+            endDeadline = nil
         }
 
         private func handleScroll(_ event: NSEvent) {
@@ -129,7 +147,7 @@ private struct ScrollMonitor: NSViewRepresentable {
             guard isAxisDominant else { return }
 
             // Determine whether to normalize system deltas to device (physical) direction.
-            let deviceDirectionMultiplier: CGFloat = Defaults[.normalizeGestureDirection] ? (event.isDirectionInvertedFromDevice ? 1 : -1) : 1
+            let deviceDirectionMultiplier: CGFloat = normalizeDirection ? (event.isDirectionInvertedFromDevice ? 1 : -1) : 1
 
             // Scale non-precise (mouse wheel) scrolling deltas so they feel similar to
             // trackpad gestures.

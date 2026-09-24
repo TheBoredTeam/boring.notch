@@ -7,18 +7,20 @@
 
 import AppKit
 import CoreGraphics
+import os
 
 extension NSScreen {
     /// Returns a persistent UUID for this display
     var displayUUID: String? {
-        guard let number = deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber else {
-            return nil
+        guard let displayID = cgDisplayID else { return nil }
+        if let cached = NSScreenUUIDCache.uuidsByDisplayID.withLock({ $0[displayID] }) {
+            return cached
         }
-        let displayID = CGDirectDisplayID(number.uint32Value)
         guard let uuid = CGDisplayCreateUUIDFromDisplayID(displayID) else {
             return nil
         }
         let uuidString = CFUUIDCreateString(nil, uuid.takeRetainedValue()) as String
+        NSScreenUUIDCache.uuidsByDisplayID.withLock { $0[displayID] = uuidString }
         return uuidString
     }
 
@@ -46,6 +48,9 @@ final class NSScreenUUIDCache {
     static let shared = NSScreenUUIDCache()
 
     private var cache: [String: NSScreen] = [:]
+    /// Reverse mapping used by `displayUUID`; nonisolated because that property is,
+    /// and cleared here whenever screen parameters change.
+    nonisolated static let uuidsByDisplayID = OSAllocatedUnfairLock(initialState: [CGDirectDisplayID: String]())
     private var observer: Any?
 
     private init() {
@@ -70,6 +75,7 @@ final class NSScreenUUIDCache {
     }
 
     private func rebuildCache() {
+        Self.uuidsByDisplayID.withLock { $0.removeAll(keepingCapacity: true) }
         var newCache: [String: NSScreen] = [:]
 
         for screen in NSScreen.screens {

@@ -65,6 +65,9 @@ struct ShelfItemView: View {
         .task(id: item.id) {
             await viewModel.loadThumbnail()
         }
+        .onChange(of: item) { _, newItem in
+            viewModel.update(item: newItem)
+        }
         .onAppear {
             viewModel.onQuickLookRequest = { urls in
                 quickLookService.show(urls: urls, selectFirst: true)
@@ -92,8 +95,8 @@ struct ShelfItemView: View {
                 viewModel: viewModel,
                 dragPreview: {
                     DragPreviewView(
-                        thumbnail: viewModel.thumbnail ?? item.icon,
-                        displayName: item.displayName
+                        thumbnail: viewModel.thumbnail ?? viewModel.icon,
+                        displayName: viewModel.displayName
                     )
                 },
                 onPrimaryClick: viewModel.handleClick,
@@ -103,7 +106,7 @@ struct ShelfItemView: View {
     }
 
     private var iconView: some View {
-        Image(nsImage: viewModel.thumbnail ?? item.icon)
+        Image(nsImage: viewModel.thumbnail ?? viewModel.icon)
             .resizable().scaledToFit()
             .frame(width: 56, height: 56)
             .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -111,7 +114,7 @@ struct ShelfItemView: View {
     }
 
     private var textView: some View {
-        Text(item.displayName)
+        Text(viewModel.displayName)
             .font(.system(size: 12, weight: .medium))
             .foregroundStyle(.primary)
             .lineLimit(2)
