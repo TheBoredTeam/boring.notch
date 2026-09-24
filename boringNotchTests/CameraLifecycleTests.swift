@@ -181,4 +181,29 @@ final class CameraLifecycleTests: XCTestCase {
         XCTAssertTrue(camera.isSessionRunning)
         XCTAssertEqual(camera.selectedCameraID, "built-in")
     }
+
+    func testRepeatedAuthorizedStatusDoesNotTriggerAnotherRefresh() {
+        let engine = CameraEngineStub()
+        let camera = CameraModel(engine: engine, authorizationStatus: .authorized)
+        XCTAssertEqual(engine.refreshCount, 1)
+
+        // The real engine republishes the authorization status on every refresh.
+        engine.send(.authorization(.authorized))
+        engine.send(.authorization(.authorized))
+
+        XCTAssertEqual(camera.authorizationStatus, .authorized)
+        XCTAssertEqual(engine.refreshCount, 1)
+    }
+
+    func testNewlyGrantedPermissionRefreshesDevicesOnce() {
+        let engine = CameraEngineStub()
+        let camera = CameraModel(engine: engine, authorizationStatus: .notDetermined)
+        XCTAssertEqual(engine.refreshCount, 1)
+
+        engine.send(.authorization(.authorized))
+        engine.send(.authorization(.authorized))
+
+        XCTAssertEqual(camera.authorizationStatus, .authorized)
+        XCTAssertEqual(engine.refreshCount, 2)
+    }
 }
