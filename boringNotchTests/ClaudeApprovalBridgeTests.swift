@@ -86,4 +86,34 @@ final class ClaudeApprovalBridgeTests: XCTestCase {
         XCTAssertEqual((updated["answers"] as? [String: String])?["Framework?"], "SwiftUI")
         XCTAssertNoThrow(try JSONSerialization.data(withJSONObject: payload))
     }
+
+    func testHookSetupPreservesUnrelatedSettingsAndUsesOneToken() throws {
+        let token = String(repeating: "a", count: 64)
+        let original: [String: Any] = [
+            "model": "keep-this",
+            "hooks": [
+                "PreToolUse": [["matcher": "Bash", "hooks": [["type": "command", "command": "true"]]]],
+                "Stop": [["hooks": [["type": "command", "command": "true"]]]],
+            ],
+        ]
+        let updated = try ClaudeApprovalBridge.settingsWithHooks(original, token: token)
+        let hooks = try XCTUnwrap(updated["hooks"] as? [String: Any])
+        XCTAssertEqual(updated["model"] as? String, "keep-this")
+        XCTAssertEqual((hooks["Stop"] as? [[String: Any]])?.count, 1)
+        XCTAssertEqual((hooks["PreToolUse"] as? [[String: Any]])?.count, 2)
+        XCTAssertEqual(ClaudeApprovalBridge.token(in: hooks), token)
+        XCTAssertTrue(ClaudeApprovalBridge.hasHook(
+            hooks, event: "PermissionRequest", url: ClaudeApprovalBridge.hookURL,
+            token: token, timeout: 25, matcher: ""
+        ))
+        XCTAssertTrue(ClaudeApprovalBridge.hasHook(
+            hooks, event: "PreToolUse", url: ClaudeApprovalBridge.questionHookURL,
+            token: token, timeout: 300, matcher: "AskUserQuestion"
+        ))
+        let repeated = try ClaudeApprovalBridge.settingsWithHooks(updated, token: token)
+        let repeatedHooks = try XCTUnwrap(repeated["hooks"] as? [String: Any])
+        XCTAssertEqual((repeatedHooks["PreToolUse"] as? [[String: Any]])?.count, 2)
+        XCTAssertEqual((repeatedHooks["PermissionRequest"] as? [[String: Any]])?.count, 1)
+        XCTAssertThrowsError(try ClaudeApprovalBridge.settingsWithHooks(["hooks": "invalid"], token: token))
+    }
 }
