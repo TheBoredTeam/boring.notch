@@ -9,9 +9,11 @@ import AppKit
 import SwiftUI
 
 struct NotchAISessionsView: View {
+    @EnvironmentObject private var vm: BoringViewModel
     @ObservedObject private var approvalBridge = ClaudeApprovalBridge.shared
     @State private var sessions: [AISessionRecord] = []
     @State private var isLoading = true
+    @State private var questionWindow: BoringNotchSkyLightWindow?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -64,6 +66,11 @@ struct NotchAISessionsView: View {
         }
         .padding(.top, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear { updateQuestionInputFocus() }
+        .onChange(of: approvalBridge.pendingQuestions.count) { _, _ in
+            updateQuestionInputFocus()
+        }
+        .onDisappear { releaseQuestionInputFocus() }
         .task {
             while !Task.isCancelled {
                 await refresh()
@@ -152,6 +159,29 @@ struct NotchAISessionsView: View {
         guard !Task.isCancelled else { return }
         sessions = latest
         isLoading = false
+    }
+
+    private func updateQuestionInputFocus() {
+        guard !approvalBridge.pendingQuestions.isEmpty,
+              let appDelegate = NSApp.delegate as? AppDelegate,
+              let window = (vm.screenUUID.flatMap { appDelegate.windows[$0] } ?? appDelegate.window)
+                as? BoringNotchSkyLightWindow else {
+            releaseQuestionInputFocus()
+            return
+        }
+        if questionWindow !== window {
+            releaseQuestionInputFocus()
+        }
+        questionWindow = window
+        window.wantsKeyForTextInput = true
+        if !NSApp.isActive { NSApp.activate(ignoringOtherApps: true) }
+        window.makeKeyAndOrderFront(nil)
+    }
+
+    private func releaseQuestionInputFocus() {
+        questionWindow?.makeFirstResponder(nil)
+        questionWindow?.wantsKeyForTextInput = false
+        questionWindow = nil
     }
 }
 
