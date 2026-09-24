@@ -88,7 +88,7 @@ final class ClaudeApprovalBridge: ObservableObject {
             let formatter = ISO8601DateFormatter()
             formatter.formatOptions = [.withInternetDateTime]
             let timestamp = formatter.string(from: Date()).replacingOccurrences(of: ":", with: "-")
-            let backup = directory.appendingPathComponent("settings.json.backup-(timestamp)-boring-notch")
+            let backup = directory.appendingPathComponent("settings.json.backup-\(timestamp)-boring-notch")
             guard !FileManager.default.fileExists(atPath: backup.path) else {
                 throw HookInstallError.backupAlreadyExists
             }

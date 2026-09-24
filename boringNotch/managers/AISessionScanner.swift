@@ -10,6 +10,7 @@ import Foundation
 enum AISessionSource: String, Sendable {
     case codex = "Codex"
     case claude = "Claude Code"
+    case openClaw = "OpenClaw"
 }
 
 enum AISessionStatus: String, Sendable {
@@ -33,7 +34,7 @@ enum AISessionScanner {
             (homeDirectory.appendingPathComponent(".codex/sessions"), .codex),
             (homeDirectory.appendingPathComponent(".claude/projects"), .claude),
         ]
-        return roots.flatMap { root, source in
+        let sessions = roots.flatMap { root, source in
             recentSessionFiles(in: root).compactMap { url, modifiedAt in
                 let lines = readSessionLines(at: url)
                 switch source {
@@ -41,10 +42,18 @@ enum AISessionScanner {
                     return parseCodex(lines: lines, file: url, modifiedAt: modifiedAt)
                 case .claude:
                     return parseClaude(lines: lines, file: url, modifiedAt: modifiedAt)
+                case .openClaw:
+                    return nil
                 }
             }
         }
-        .sorted { $0.lastActivity > $1.lastActivity }
+        let openClawRoot = homeDirectory.appendingPathComponent(".openclaw/agents")
+        let openClawSessions = recentSessionFiles(in: openClawRoot) { url in
+            url.deletingLastPathComponent().lastPathComponent == "sessions"
+        }.compactMap { url, modifiedAt in
+            parseOpenClaw(lines: readSessionLines(at: url), file: url, modifiedAt: modifiedAt)
+        }
+        return (sessions + openClawSessions).sorted { $0.lastActivity > $1.lastActivity }
     }
 
     static func parseCodex(lines: [String], file: URL, modifiedAt: Date) -> AISessionRecord? {
@@ -131,7 +140,47 @@ enum AISessionScanner {
         )
     }
 
-    private static func recentSessionFiles(in root: URL) -> [(URL, Date)] {
+    static func parseOpenClaw(lines: [String], file: URL, modifiedAt: Date) -> AISessionRecord? {
+        var sessionID: String?
+        var cwd: String?
+        var latestMessage: String?
+        var latestEvent: String?
+
+        for line in lines {
+            guard let value = object(from: line), let type = value["type"] as? String else { continue }
+            if type == "session" {
+                sessionID = value["id"] as? String ?? sessionID
+                cwd = value["cwd"] as? String ?? cwd
+            } else if type == "message", let message = value["message"] as? [String: Any],
+                      let role = message["role"] as? String {
+                if role == "assistant" {
+                    if let text = messageText(message["content"]), !text.isEmpty {
+                        latestMessage = preview(text)
+                    }
+                    latestEvent = hasOpenClawToolCall(message["content"]) ? "tool_call" : "assistant"
+                } else if role == "user" || role == "toolResult" {
+                    latestEvent = role
+                }
+            }
+        }
+
+        guard let sessionID, !sessionID.isEmpty else { return nil }
+        let isRecent = Date().timeIntervalSince(modifiedAt) < 300
+        return AISessionRecord(
+            id: "openclaw:\(sessionID)",
+            source: .openClaw,
+            projectName: cwd.map { URL(fileURLWithPath: $0).lastPathComponent }
+                ?? file.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent,
+            status: isRecent && ["user", "toolResult", "tool_call"].contains(latestEvent) ? .working : .idle,
+            lastActivity: modifiedAt,
+            latestMessage: latestMessage,
+            isDesktopSession: false
+        )
+    }
+
+    private static func recentSessionFiles(
+        in root: URL, matching: (URL) -> Bool = { _ in true }
+    ) -> [(URL, Date)] {
         guard let enumerator = FileManager.default.enumerator(
             at: root,
             includingPropertiesForKeys: [.isRegularFileKey, .contentModificationDateKey],
@@ -139,7 +188,7 @@ enum AISessionScanner {
         ) else { return [] }
 
         var files: [(URL, Date)] = []
-        for case let url as URL in enumerator where url.pathExtension == "jsonl" {
+        for case let url as URL in enumerator where url.pathExtension == "jsonl" && matching(url) {
             guard let values = try? url.resourceValues(forKeys: [.isRegularFileKey, .contentModificationDateKey]),
                   values.isRegularFile == true,
                   let date = values.contentModificationDate else { continue }
@@ -188,5 +237,9 @@ enum AISessionScanner {
 
     private static func hasToolResult(_ content: Any?) -> Bool {
         (content as? [[String: Any]])?.contains { $0["type"] as? String == "tool_result" } ?? false
+    }
+
+    private static func hasOpenClawToolCall(_ content: Any?) -> Bool {
+        (content as? [[String: Any]])?.contains { $0["type"] as? String == "toolCall" } ?? false
     }
 }

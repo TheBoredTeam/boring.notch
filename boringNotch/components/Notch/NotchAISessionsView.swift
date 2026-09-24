@@ -39,7 +39,7 @@ struct NotchAISessionsView: View {
                 ContentUnavailableView(
                     isLoading ? "Loading sessions" : "No recent sessions",
                     systemImage: "sparkles",
-                    description: Text("Recent Codex and Claude Code sessions appear here.")
+                    description: Text("Recent Codex, Claude Code, and OpenClaw sessions appear here.")
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
