@@ -23,7 +23,7 @@ struct DailyPlanningSettingsView: View {
                         Button(manager.conclusionPreferences.directoryBookmark == nil ? "Allow Folder Access…" : "Choose Folder…", action: chooseFolder)
                     }
                 }
-                Text("Evening review adds a second page for your thoughts. Write in Markdown; your text is saved unchanged as YYYY-MM-DD.md. Empty entries are not saved. Existing files are kept; another entry gets a numbered suffix. Morning planning is unchanged.")
+                Text("Write in Markdown. Entries are saved as YYYY-MM-DD.md in your diary folder.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 if manager.conclusionPreferences.isEnabled && manager.conclusionPreferences.directoryBookmark == nil {
@@ -105,12 +105,6 @@ struct DailyPlanningSettingsSection: View {
                 displayedComponents: .hourAndMinute
             )
             .disabled(!manager.preferences.eveningReviewEnabled)
-
-            Text(
-                "Sessions notify you in the notch, open when you hover, and stay until you finish. Times are stored on this Mac."
-            )
-            .font(.caption)
-            .foregroundStyle(.secondary)
         }
     }
 

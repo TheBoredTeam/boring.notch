@@ -47,7 +47,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .general: "gear"
         case .appearance: "eye"
         case .media: "play.laptopcomputer"
-        case .dailyPlanning: "sun.max"
+        case .dailyPlanning: "sun.horizon"
         case .calendar: "calendar"
         case .osd: "dial.medium.fill"
         case .battery: "battery.100.bolt"
