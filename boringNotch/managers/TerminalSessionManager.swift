@@ -9,11 +9,45 @@ import AppKit
 import Defaults
 import SwiftTerm
 
+enum TerminalCursorStyleOption: String, CaseIterable {
+    case blinkBlock
+    case steadyBlock
+    case blinkUnderline
+    case steadyUnderline
+    case blinkBar
+    case steadyBar
+
+    var displayName: String {
+        switch self {
+        case .blinkBlock: "Block (blinking)"
+        case .steadyBlock: "Block (steady)"
+        case .blinkUnderline: "Underline (blinking)"
+        case .steadyUnderline: "Underline (steady)"
+        case .blinkBar: "Bar (blinking)"
+        case .steadyBar: "Bar (steady)"
+        }
+    }
+
+    var swiftTermStyle: CursorStyle {
+        switch self {
+        case .blinkBlock: .blinkBlock
+        case .steadyBlock: .steadyBlock
+        case .blinkUnderline: .blinkUnderline
+        case .steadyUnderline: .steadyUnderline
+        case .blinkBar: .blinkBar
+        case .steadyBar: .steadyBar
+        }
+    }
+}
+
 final class StableTerminalHostView: NSView {
     override func resizeSubviews(withOldSize oldSize: NSSize) {
         guard bounds.width >= 10, bounds.height >= 10 else { return }
         for subview in subviews where subview is LocalProcessTerminalView {
             subview.frame = bounds.insetBy(dx: 6, dy: 6)
+        }
+        for subview in subviews where subview is NSVisualEffectView {
+            subview.frame = bounds
         }
     }
 }
@@ -43,7 +77,13 @@ final class TerminalSessionManager: ObservableObject {
     let hostView: StableTerminalHostView = {
         let view = StableTerminalHostView(frame: NSRect(x: 0, y: 0, width: 600, height: 300))
         view.wantsLayer = true
-        view.layer?.backgroundColor = NSColor.black.cgColor
+        view.layer?.backgroundColor = NSColor.clear.cgColor
+        let backdrop = NSVisualEffectView(frame: view.bounds)
+        backdrop.material = .underWindowBackground
+        backdrop.blendingMode = .behindWindow
+        backdrop.state = .active
+        backdrop.autoresizingMask = [.width, .height]
+        view.addSubview(backdrop)
         return view
     }()
 
@@ -77,12 +117,24 @@ final class TerminalSessionManager: ObservableObject {
         let family = Defaults[.terminalFontFamily]
         terminalView.font = NSFont(name: family, size: fontSize)
             ?? .monospacedSystemFont(ofSize: fontSize, weight: .regular)
+        let background = NSColor(Defaults[.terminalBackgroundColor])
+            .withAlphaComponent(CGFloat(Defaults[.terminalOpacity]))
+        terminalView.nativeBackgroundColor = background
+        terminalView.layer?.backgroundColor = NSColor.clear.cgColor
+        terminalView.layer?.isOpaque = false
+        terminalView.nativeForegroundColor = NSColor(Defaults[.terminalForegroundColor])
+        terminalView.caretColor = NSColor(Defaults[.terminalCursorColor])
+        terminalView.caretViewTracksFocus = false
+        let cursorStyle = TerminalCursorStyleOption(rawValue: Defaults[.terminalCursorStyle])
+            ?? .blinkBlock
+        terminalView.getTerminal().setCursorStyle(cursorStyle.swiftTermStyle)
         let scrollback = Defaults[.terminalScrollbackLines]
         terminalView.getTerminal().buffer.changeHistorySize(scrollback)
         terminalView.getTerminal().options.scrollback = scrollback
         terminalView.optionAsMetaKey = Defaults[.terminalOptionAsMeta]
         terminalView.allowMouseReporting = Defaults[.terminalMouseReporting]
         terminalView.useBrightColors = Defaults[.terminalBoldAsBright]
+        terminalView.setNeedsDisplay(terminalView.bounds)
     }
 
     func restart() {

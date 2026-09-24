@@ -5,6 +5,7 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
+import Defaults
 import SwiftTerm
 import SwiftUI
 
@@ -46,12 +47,15 @@ private struct TerminalProcessView: NSViewRepresentable {
 
 struct NotchTerminalView: View {
     @ObservedObject var manager: TerminalSessionManager
+    @Default(.terminalForegroundColor) private var foregroundColor
 
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
                 Image(systemName: "apple.terminal")
+                    .foregroundStyle(foregroundColor)
                 Text(manager.title)
+                    .foregroundStyle(foregroundColor)
                     .lineLimit(1)
                 Spacer()
                 if !manager.isRunning {
@@ -62,6 +66,7 @@ struct NotchTerminalView: View {
                     manager.restart()
                 } label: {
                     Image(systemName: "arrow.counterclockwise")
+                        .foregroundStyle(foregroundColor)
                 }
                 .buttonStyle(.plain)
                 .help("Restart shell")

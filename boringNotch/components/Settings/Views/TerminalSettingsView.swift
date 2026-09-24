@@ -14,6 +14,11 @@ struct TerminalSettingsView: View {
     @Default(.terminalShellPath) private var shellPath
     @Default(.terminalFontFamily) private var fontFamily
     @Default(.terminalFontSize) private var fontSize
+    @Default(.terminalOpacity) private var opacity
+    @Default(.terminalCursorStyle) private var cursorStyle
+    @Default(.terminalBackgroundColor) private var backgroundColor
+    @Default(.terminalForegroundColor) private var foregroundColor
+    @Default(.terminalCursorColor) private var cursorColor
     @Default(.terminalScrollbackLines) private var scrollbackLines
     @Default(.terminalOptionAsMeta) private var optionAsMeta
     @Default(.terminalMouseReporting) private var mouseReporting
@@ -68,6 +73,20 @@ struct TerminalSettingsView: View {
                     Text("\(Int(maxHeightFraction * 100))%")
                         .monospacedDigit()
                 }
+                HStack {
+                    Text("Background opacity")
+                    Slider(value: $opacity, in: 0.3...1, step: 0.05)
+                    Text("\(Int(opacity * 100))%")
+                        .monospacedDigit()
+                }
+                ColorPicker("Background", selection: $backgroundColor, supportsOpacity: false)
+                ColorPicker("Foreground", selection: $foregroundColor, supportsOpacity: false)
+                ColorPicker("Cursor", selection: $cursorColor, supportsOpacity: false)
+                Picker("Cursor style", selection: $cursorStyle) {
+                    ForEach(TerminalCursorStyleOption.allCases, id: \.rawValue) { style in
+                        Text(style.displayName).tag(style.rawValue)
+                    }
+                }
             }
             .disabled(!isEnabled)
 
@@ -99,6 +118,11 @@ struct TerminalSettingsView: View {
         }
         .onChange(of: fontFamily) { _, _ in TerminalSessionManager.applyCurrentSettings() }
         .onChange(of: fontSize) { _, _ in TerminalSessionManager.applyCurrentSettings() }
+        .onChange(of: opacity) { _, _ in TerminalSessionManager.applyCurrentSettings() }
+        .onChange(of: cursorStyle) { _, _ in TerminalSessionManager.applyCurrentSettings() }
+        .onChange(of: backgroundColor) { _, _ in TerminalSessionManager.applyCurrentSettings() }
+        .onChange(of: foregroundColor) { _, _ in TerminalSessionManager.applyCurrentSettings() }
+        .onChange(of: cursorColor) { _, _ in TerminalSessionManager.applyCurrentSettings() }
         .onChange(of: scrollbackLines) { _, _ in TerminalSessionManager.applyCurrentSettings() }
         .onChange(of: optionAsMeta) { _, _ in TerminalSessionManager.applyCurrentSettings() }
         .onChange(of: mouseReporting) { _, _ in TerminalSessionManager.applyCurrentSettings() }

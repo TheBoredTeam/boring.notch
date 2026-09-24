@@ -23,6 +23,13 @@ extension Defaults.Keys {
     static let terminalShellPath = Key<String>("terminalShellPath", default: "/bin/zsh")
     static let terminalFontFamily = Key<String>("terminalFontFamily", default: "")
     static let terminalFontSize = Key<Double>("terminalFontSize", default: 12)
+    static let terminalOpacity = Key<Double>("terminalOpacity", default: 1)
+    static let terminalCursorStyle = Key<String>("terminalCursorStyle", default: "blinkBlock")
+    static let terminalBackgroundColor = Key<Color>("terminalBackgroundColor", default: .black)
+    static let terminalForegroundColor = Key<Color>("terminalForegroundColor", default: .white)
+    static let terminalCursorColor = Key<Color>(
+        "terminalCursorColor", default: Color(nsColor: .selectedControlColor)
+    )
     static let terminalScrollbackLines = Key<Int>("terminalScrollbackLines", default: 1000)
     static let terminalOptionAsMeta = Key<Bool>("terminalOptionAsMeta", default: true)
     static let terminalMouseReporting = Key<Bool>("terminalMouseReporting", default: true)
