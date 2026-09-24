@@ -38,7 +38,7 @@ struct DailyConclusionView: View {
                     .buttonStyle(.plain)
                     ZStack(alignment: .topLeading) {
                         if manager.conclusionText.isEmpty {
-                            Text("Write in Markdown… A small win, a thought, anything on your mind.")
+                            Text("A small win, a thought, anything on your mind…")
                                 .font(.system(size: 13))
                                 .foregroundStyle(.white.opacity(0.55))
                                 .padding(.top, 4)

@@ -36,3 +36,35 @@ Completing this review still records the normal evening completion.
 7. Enable macOS Reduce Motion. Saving and completion should work without the paper/folder movement.
 
 The native filing artwork is implemented directly in SwiftUI; no third-party artwork or reference-site code is copied.
+
+## Avoid overlapping app instances during manual testing
+
+The installed app and Debug app have the same bundle ID. Codex notification hooks
+open that ID, so LaunchServices can start a different registered copy over the test
+window. The taller review window then receives lower-area hover while the installed
+notch receives upper-area hover. This can look like a routing bug even when each
+process routes correctly.
+
+After building and signing the Debug app, run:
+
+```sh
+python3 validation/daily-conclusion/launch-debug.py
+```
+
+Set `DIARY_DEBUG_APP` if the signed source bundle is elsewhere. The script copies
+it to a stable DerivedData test location, closes matching Boring Notch processes
+using `proc_pidpath` (macOS `ps -o comm` can truncate paths), and temporarily
+unregisters other copies of this bundle ID. It registers and launches the feature
+app, exercises a bundle-ID open, and requires exactly one process. It does not
+edit application preferences or the notification hook. Apps in `/tmp` did not
+appear as candidates in the LaunchServices lookup during this investigation.
+
+To return normal bundle-ID launches to the installed app after testing:
+
+```sh
+lsregister=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+"$lsregister" -u "$HOME/Library/Developer/Xcode/DerivedData/boring-notch-evening-diary/Build/Products/Debug/boringNotch.app"
+"$lsregister" -f /Applications/boringNotch.app
+```
+
+Quit the Debug instance before opening the installed app.
