@@ -76,6 +76,7 @@ final class ClaudeApprovalBridge: ObservableObject {
                         token: selectedToken, timeout: 25, matcher: ""),
            Self.hasHook(hooks, event: "PreToolUse", url: Self.questionHookURL,
                         token: selectedToken, timeout: 300, matcher: "AskUserQuestion") {
+            updateEnabled()
             return false
         }
         let updated = try Self.settingsWithHooks(object, token: selectedToken)
@@ -180,6 +181,7 @@ final class ClaudeApprovalBridge: ObservableObject {
         pending.removeAll()
         pendingQuestions.removeAll()
         questionInputs.removeAll()
+        errorMessage = nil
     }
 
     private func receive(_ connection: Int32) {
