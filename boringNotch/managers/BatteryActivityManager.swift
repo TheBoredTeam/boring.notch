@@ -13,6 +13,9 @@ final class BatteryActivityManager {
     private var observers: [Int: (BatteryEvent) -> Void] = [:]
     private var nextObserverId: Int = 0
     private var previousBatteryInfo: BatteryInfo?
+    // Health capacity means an IORegistry property-dictionary copy; it moves on the
+    // order of weeks, so refresh every 30 minutes or on a plug/unplug transition.
+    private var cachedHealthCapacity: (value: Float?, date: Date, isPluggedIn: Bool)?
     // actor-based queue to serialize notification delivery
     private let notificationQueueActor = NotificationQueue()
 
@@ -257,7 +260,7 @@ final class BatteryActivityManager {
                 isPluggedIn: powerSource == kIOPSACPowerValue,
                 isCharging: isCharging,
                 currentCapacity: currentCapacity,
-                maxCapacity: getBatteryHealthCapacity(),
+                maxCapacity: healthCapacity(isPluggedIn: powerSource == kIOPSACPowerValue),
                 isInLowPowerMode: ProcessInfo.processInfo.isLowPowerModeEnabled,
                 timeToFullCharge: 0,
                 timeToDischarge: 0
@@ -292,6 +295,18 @@ final class BatteryActivityManager {
             Log.battery.error("⚠️ Error: Unexpected error getting battery info - \(error.localizedDescription)")
             return defaultBatteryInfo
         }
+    }
+
+    /// Memoized health capacity; see `cachedHealthCapacity` for the refresh cadence.
+    private func healthCapacity(isPluggedIn: Bool) -> Float? {
+        if let cached = cachedHealthCapacity,
+           cached.isPluggedIn == isPluggedIn,
+           Date().timeIntervalSince(cached.date) < 1800 {
+            return cached.value
+        }
+        let value = getBatteryHealthCapacity()
+        cachedHealthCapacity = (value, Date(), isPluggedIn)
+        return value
     }
 
     /// Reads the user-visible battery health capacity from the smart battery registry.

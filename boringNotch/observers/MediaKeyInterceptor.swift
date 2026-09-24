@@ -55,6 +55,13 @@ final class MediaKeyInterceptor {
             return
         }
 
+        // A live tap already implies authorization (revocation tears it down), so
+        // short-circuit before the XPC round trip.
+        if let eventTap, isTapActive {
+            CGEvent.tapEnable(tap: eventTap, enable: true)
+            return
+        }
+
         // Only require Accessibility if any selected source uses the built-in controls
         let needsAccessibility = Defaults[.osdBrightnessSource] == .builtin || Defaults[.osdVolumeSource] == .builtin
         if needsAccessibility {
@@ -67,11 +74,6 @@ final class MediaKeyInterceptor {
                     return
                 }
             }
-        }
-
-        if let eventTap, isTapActive {
-            CGEvent.tapEnable(tap: eventTap, enable: true)
-            return
         }
 
         if eventTap != nil || runLoopSource != nil {

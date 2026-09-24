@@ -30,6 +30,9 @@ final class CalendarManager: ObservableObject {
     /// EventKit can fire EKEventStoreChanged in bursts during syncs; reloads
     /// coalesce so the UI refreshes once per burst instead of per notification.
     private var reloadTask: Task<Void, Never>?
+    /// Day currently held in `events`; a repeat query for it is dropped. Cleared on
+    /// reload so external EventKit changes still refetch.
+    private var loadedWeekStartDate: Date?
 
     private init() {
         self.currentWeekStartDate = CalendarManager.startOfDay(Date())
@@ -67,6 +70,7 @@ final class CalendarManager: ObservableObject {
         self.eventCalendars = all.filter { !$0.isReminder }
         self.reminderLists = all.filter { $0.isReminder }
         self.allCalendars = all // for legacy compatibility, can be removed if not needed
+        loadedWeekStartDate = nil
         updateSelectedCalendars()
     }
 
@@ -185,7 +189,9 @@ final class CalendarManager: ObservableObject {
     }
 
     func updateCurrentDate(_ date: Date) async {
-        currentWeekStartDate = Calendar.current.startOfDay(for: date)
+        let startOfDay = Calendar.current.startOfDay(for: date)
+        currentWeekStartDate = startOfDay
+        guard loadedWeekStartDate != startOfDay else { return }
         await updateEvents()
     }
 
@@ -197,6 +203,7 @@ final class CalendarManager: ObservableObject {
             calendars: calendarIDs
         )
         self.events = eventsResult
+        loadedWeekStartDate = currentWeekStartDate
     }
 
     func setReminderCompleted(reminderID: String, completed: Bool) async {

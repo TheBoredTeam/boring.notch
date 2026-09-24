@@ -145,6 +145,20 @@ final class XPCHelperClient: NSObject, ObservableObject {
         Task { _ = await isAccessibilityAuthorized() }
     }
 
+    /// Explicit teardown for app termination. Clearing the refs before
+    /// invalidating makes the invalidation handler a no-op (its identity
+    /// guard fails), so `helperAvailable` is untouched and the next call
+    /// to `ensureRemoteService()` builds a fresh connection.
+    func shutdown() {
+        stopMonitoringAccessibilityAuthorization()
+        let conn = connection
+        connection = nil
+        remoteService = nil
+        lunarListener = nil
+        notificationDelegate.lunarListener = nil
+        conn?.invalidate()
+    }
+
     func stopMonitoringAccessibilityAuthorization() {
         guard let activationObserver else { return }
         NotificationCenter.default.removeObserver(activationObserver)
