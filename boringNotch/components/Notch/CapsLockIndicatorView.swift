@@ -44,5 +44,5 @@ struct CapsLockIndicatorView: View {
     CapsLockIndicatorView()
         .frame(width: 360)
         .background(Color.black)
-        .environmentObject(BoringViewModel())
+        .environmentObject(BoringViewModel(camera: CameraModel()))
 }
