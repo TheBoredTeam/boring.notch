@@ -50,16 +50,14 @@ final class NotificationWatcher {
     private var mirrorAllApps = false
     private var parkedWindowByToken: [String: Int] = [:]
     private var parkedWindows: [Int: (window: AXUIElement, origin: CGPoint)] = [:]
-    private var currentPollInterval: TimeInterval = 0
     private let activePollInterval: TimeInterval = 0.5
-    private let idlePollInterval: TimeInterval = 2
     private let observerNotifications = [
         kAXWindowCreatedNotification,
         kAXCreatedNotification,
         kAXUIElementDestroyedNotification
     ]
 
-    var isRunning: Bool { pollTimer != nil }
+    var isRunning: Bool { appElement != nil }
 
     func configureFilter(bundleIDs: Set<String>, allApps: Bool) {
         allowedBundleIDs = bundleIDs
@@ -80,12 +78,7 @@ final class NotificationWatcher {
             appElement = nil
             return false
         }
-        let timer = DispatchSource.makeTimerSource(queue: .main)
-        timer.schedule(deadline: .now(), repeating: activePollInterval)
-        timer.setEventHandler { [weak self] in self?.scan() }
-        timer.resume()
-        pollTimer = timer
-        currentPollInterval = activePollInterval
+        // Steady state is event-driven via the AX observer; scan() starts a timer only while banners are live.
         scan()
         return true
     }
@@ -118,14 +111,15 @@ final class NotificationWatcher {
         guard result == .success, let observer, let appElement else { return false }
 
         let refcon = Unmanaged.passUnretained(self).toOpaque()
-        let registered = observerNotifications.contains { notification in
+        // map, not contains: every notification must be registered, not just the first that succeeds.
+        let registered = observerNotifications.map { notification in
             AXObserverAddNotification(
                 observer,
                 appElement,
                 notification as CFString,
                 refcon
             ) == .success
-        }
+        }.contains(true)
         guard registered else {
             return false
         }
@@ -219,15 +213,22 @@ final class NotificationWatcher {
             let removed = liveTokens.subtracting(seen)
             liveTokens.formIntersection(seen)
             removed.forEach(restoreWindowIfUnused)
-            updatePollInterval()
+            syncPollTimer()
         }
     }
 
-    private func updatePollInterval() {
-        let interval = liveTokens.isEmpty ? idlePollInterval : activePollInterval
-        guard interval != currentPollInterval, let pollTimer else { return }
-        currentPollInterval = interval
-        pollTimer.schedule(deadline: .now() + interval, repeating: interval)
+    // Banner teardown is not reliably reported by a destroy notification, so poll while any banner is live.
+    private func syncPollTimer() {
+        if liveTokens.isEmpty {
+            pollTimer?.cancel()
+            pollTimer = nil
+        } else if pollTimer == nil {
+            let timer = DispatchSource.makeTimerSource(queue: .main)
+            timer.schedule(deadline: .now() + activePollInterval, repeating: activePollInterval)
+            timer.setEventHandler { [weak self] in self?.scan() }
+            timer.resume()
+            pollTimer = timer
+        }
     }
 
     private func park(_ window: AXUIElement, for token: String) -> Bool {

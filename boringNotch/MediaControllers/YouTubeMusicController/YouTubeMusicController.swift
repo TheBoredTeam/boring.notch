@@ -51,6 +51,7 @@ final class YouTubeMusicController: MediaControllerProtocol {
     private var webSocketClient: YouTubeMusicWebSocketClient?
 
     private var updateTimer: Timer?
+    private var updateTimerInterval: TimeInterval?
     private var appStateObserver: Task<Void, Never>?
     private var reconnectTask: Task<Void, Never>?
     private var reconnectDelay: TimeInterval = 1.0
@@ -389,18 +390,26 @@ final class YouTubeMusicController: MediaControllerProtocol {
     private func startPeriodicUpdates() async {
         guard isActive() && webSocketClient == nil else { return }
 
+        // The fallback poll is uncached HTTP on the main actor; only pay the
+        // fast cadence while something is actually playing.
+        let interval = playbackState.isPlaying ? configuration.updateInterval : configuration.idleUpdateInterval
+        guard updateTimer == nil || updateTimerInterval != interval else { return }
+
         stopPeriodicUpdates()
 
-        updateTimer = Timer.scheduledTimer(withTimeInterval: configuration.updateInterval, repeats: true) { [weak self] _ in
+        updateTimerInterval = interval
+        updateTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 await self?.updatePlaybackInfo()
+                await self?.startPeriodicUpdates()
             }
         }
     }
 
-    private func stopPeriodicUpdates() {
+    func stopPeriodicUpdates() {
         updateTimer?.invalidate()
         updateTimer = nil
+        updateTimerInterval = nil
     }
 
     func pollPlaybackState() async {

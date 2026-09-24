@@ -8,7 +8,6 @@ import SwiftUI
 
 struct AnimatedFace: View {
     @State private var isBlinking = false
-    @State private var blinkTask: Task<Void, Never>?
     var height: CGFloat = 24
     var width: CGFloat = 30
 
@@ -32,32 +31,16 @@ struct AnimatedFace: View {
             }
         }
         .frame(width: width, height: height)
-        .onAppear(perform: startBlinking)
-        .onDisappear(perform: stopBlinking)
-    }
-
-    func startBlinking() {
-        guard blinkTask == nil else { return }
-        blinkTask = Task {
-            while !(Task.isCancelled) {
+        // .task owns cancellation: torn down with the view, no stray loop to strand.
+        .task {
+            while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(3))
                 if Task.isCancelled { break }
-                await MainActor.run {
-                    isBlinking = true
-                }
+                isBlinking = true
                 try? await Task.sleep(for: .milliseconds(100))
-                if Task.isCancelled { break }
-                await MainActor.run {
-                    isBlinking = false
-                }
+                isBlinking = false
             }
-            await MainActor.run { blinkTask = nil }
         }
-    }
-
-    func stopBlinking() {
-        blinkTask?.cancel()
-        blinkTask = nil
     }
 }
 

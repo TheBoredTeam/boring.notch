@@ -12,8 +12,8 @@ public enum NotificationPanelDetection {
     public static let panelListIdentifier = "AXNotificationListItems"
     public static let panelStackingPrefix = "stack-"
     public static let bannerSubroles: Set<String> = ["AXNotificationCenterBanner", "AXNotificationCenterAlert"]
-    private static let subroleAttribute = "subrole"
-    private static let identifierAttribute = "identifier"
+    private static let subroleAttribute = "AXSubrole"
+    private static let identifierAttribute = "AXIdentifier"
     private static let stackingIdentifierAttribute = "AXStackingIdentifier"
 
     public struct Attributes {
