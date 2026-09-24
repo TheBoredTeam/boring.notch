@@ -106,6 +106,7 @@ final class CameraModel {
     private func handle(_ event: CameraSessionEvent) {
         switch event {
         case .authorization(let status):
+            let wasAuthorized = authorizationStatus == .authorized
             authorizationStatus = status
             switch status {
             case .authorized:
@@ -115,7 +116,11 @@ final class CameraModel {
                     || state == .permissionDenied {
                     state = .stopped
                 }
-                engine.refresh()
+                // Every engine refresh republishes authorization, so refreshing
+                // on an unchanged status spins the session queue forever.
+                if !wasAuthorized {
+                    engine.refresh()
+                }
                 if shouldStart {
                     startSession()
                 }
