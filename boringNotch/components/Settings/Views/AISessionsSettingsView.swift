@@ -24,9 +24,9 @@ struct AISessionsSettingsView: View {
                 Text("AI Sessions")
             }
             Section {
-                Toggle("Show Claude Code approval requests", isOn: $approvalBridgeEnabled)
+                Toggle("Show Claude Code approvals and questions", isOn: $approvalBridgeEnabled)
                     .disabled(!isEnabled)
-                Text("Requires the local hook in Claude Code settings. If Boring Notch is closed or an approval times out, Claude Code keeps its normal permission prompt.")
+                Text("Requires the local permission and question hooks in Claude Code settings. If Boring Notch is closed or a request times out, Claude Code keeps its native prompt.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 if let errorMessage = approvalBridge.errorMessage {
@@ -34,7 +34,7 @@ struct AISessionsSettingsView: View {
                         .foregroundStyle(.orange)
                 }
             } header: {
-                Text("Approvals")
+                Text("Approvals and questions")
             }
         }
         .onChange(of: isEnabled) { _, enabled in

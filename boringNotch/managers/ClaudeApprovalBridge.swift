@@ -16,17 +16,42 @@ struct ClaudeApprovalRequest: Identifiable {
     let projectName: String
 }
 
+struct ClaudeQuestionOption: Identifiable, Sendable {
+    let label: String
+    let detail: String?
+
+    var id: String { label }
+}
+
+struct ClaudeQuestion: Identifiable, Sendable {
+    let text: String
+    let header: String
+    let options: [ClaudeQuestionOption]
+    let multiSelect: Bool
+
+    var id: String { text }
+}
+
+struct ClaudeQuestionRequest: Identifiable, Sendable {
+    let id: UUID
+    let projectName: String
+    let questions: [ClaudeQuestion]
+}
+
 @MainActor
 final class ClaudeApprovalBridge: ObservableObject {
     static let shared = ClaudeApprovalBridge()
     static let port: UInt16 = 37892
     static let hookURL = "http://127.0.0.1:37892/claude/permission"
+    static let questionHookURL = "http://127.0.0.1:37892/claude/question"
 
     @Published private(set) var pending: [ClaudeApprovalRequest] = []
+    @Published private(set) var pendingQuestions: [ClaudeQuestionRequest] = []
     @Published private(set) var errorMessage: String?
 
     private var listener: DispatchSourceRead?
     private var connections: [UUID: Int32] = [:]
+    private var questionInputs: [UUID: [String: Any]] = [:]
     private var token: String?
     private let queue = DispatchQueue(label: "boringNotch.claudeApprovalBridge", qos: .utility)
 
@@ -88,6 +113,23 @@ final class ClaudeApprovalBridge: ObservableObject {
         send(Self.permissionDecision(allow: allow), to: connection)
     }
 
+    func answerQuestion(id: UUID, answers: [String: String]) {
+        guard let request = pendingQuestions.first(where: { $0.id == id }),
+              let input = questionInputs[id],
+              request.questions.allSatisfy({ !(answers[$0.text] ?? "").isEmpty }),
+              let connection = connections.removeValue(forKey: id) else { return }
+        questionInputs.removeValue(forKey: id)
+        pendingQuestions.removeAll { $0.id == id }
+        send(Self.questionDecision(input: input, answers: answers), to: connection)
+    }
+
+    func answerInClaude(id: UUID) {
+        guard let connection = connections.removeValue(forKey: id) else { return }
+        questionInputs.removeValue(forKey: id)
+        pendingQuestions.removeAll { $0.id == id }
+        send([:], to: connection)
+    }
+
     private func stop() {
         listener?.cancel()
         listener = nil
@@ -95,6 +137,8 @@ final class ClaudeApprovalBridge: ObservableObject {
         for connection in connections.values { send([:], to: connection) }
         connections.removeAll()
         pending.removeAll()
+        pendingQuestions.removeAll()
+        questionInputs.removeAll()
     }
 
     private func receive(_ connection: Int32) {
@@ -116,11 +160,27 @@ final class ClaudeApprovalBridge: ObservableObject {
 
     private func handle(_ request: HTTPRequest, connection: Int32) {
         guard let token,
-              request.path == "/claude/permission",
               request.authorization == "Bearer \(token)",
-              let body = try? JSONSerialization.jsonObject(with: request.body) as? [String: Any],
-              body["hook_event_name"] as? String == "PermissionRequest" else {
+              let body = try? JSONSerialization.jsonObject(with: request.body) as? [String: Any] else {
             send([:], to: connection, status: "401 Unauthorized")
+            return
+        }
+
+        if request.path == "/claude/question",
+           body["hook_event_name"] as? String == "PreToolUse",
+           body["tool_name"] as? String == "AskUserQuestion" {
+            handleQuestion(body, connection: connection)
+            return
+        }
+        guard request.path == "/claude/permission",
+              body["hook_event_name"] as? String == "PermissionRequest" else {
+            send([:], to: connection, status: "400 Bad Request")
+            return
+        }
+
+        // Interactive tools must retain their native prompt unless their full input is supplied.
+        if ["AskUserQuestion", "ExitPlanMode"].contains(body["tool_name"] as? String ?? "") {
+            send([:], to: connection)
             return
         }
 
@@ -144,6 +204,32 @@ final class ClaudeApprovalBridge: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 20) { [weak self] in
             guard let self, let connection = self.connections.removeValue(forKey: id) else { return }
             self.pending.removeAll { $0.id == id }
+            self.send([:], to: connection)
+        }
+    }
+
+    private func handleQuestion(_ body: [String: Any], connection: Int32) {
+        guard let input = body["tool_input"] as? [String: Any],
+              let questions = Self.parseQuestions(input) else {
+            send([:], to: connection)
+            return
+        }
+        let id = UUID()
+        let projectName = (body["cwd"] as? String)
+            .map { URL(fileURLWithPath: $0).lastPathComponent } ?? "Unknown project"
+        pendingQuestions.append(ClaudeQuestionRequest(
+            id: id,
+            projectName: projectName,
+            questions: questions
+        ))
+        questionInputs[id] = input
+        connections[id] = connection
+        showApprovalTab()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 290) { [weak self] in
+            guard let self, let connection = self.connections.removeValue(forKey: id) else { return }
+            self.pendingQuestions.removeAll { $0.id == id }
+            self.questionInputs.removeValue(forKey: id)
             self.send([:], to: connection)
         }
     }
@@ -183,6 +269,46 @@ final class ClaudeApprovalBridge: ObservableObject {
             "hookSpecificOutput": [
                 "hookEventName": "PermissionRequest",
                 "decision": ["behavior": allow ? "allow" : "deny"],
+            ],
+        ]
+    }
+
+    nonisolated static func parseQuestions(_ input: [String: Any]) -> [ClaudeQuestion]? {
+        guard let rawQuestions = input["questions"] as? [[String: Any]],
+              (1...4).contains(rawQuestions.count) else { return nil }
+        var questions: [ClaudeQuestion] = []
+        for raw in rawQuestions {
+            guard let text = raw["question"] as? String, !text.isEmpty,
+                  let rawOptions = raw["options"] as? [[String: Any]],
+                  !rawOptions.isEmpty else { return nil }
+            let options = rawOptions.compactMap { option -> ClaudeQuestionOption? in
+                guard let label = option["label"] as? String, !label.isEmpty else { return nil }
+                return ClaudeQuestionOption(label: label, detail: option["description"] as? String)
+            }
+            guard options.count == rawOptions.count,
+                  Set(options.map(\.label)).count == options.count else { return nil }
+            questions.append(ClaudeQuestion(
+                text: text,
+                header: raw["header"] as? String ?? "Question",
+                options: options,
+                multiSelect: raw["multiSelect"] as? Bool ?? false
+            ))
+        }
+        guard Set(questions.map(\.text)).count == questions.count else { return nil }
+        return questions
+    }
+
+    nonisolated static func questionDecision(
+        input: [String: Any],
+        answers: [String: String]
+    ) -> [String: Any] {
+        var updatedInput = input
+        updatedInput["answers"] = answers
+        return [
+            "hookSpecificOutput": [
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "allow",
+                "updatedInput": updatedInput,
             ],
         ]
     }
