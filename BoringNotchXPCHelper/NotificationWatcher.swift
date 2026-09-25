@@ -7,7 +7,15 @@ import ApplicationServices
 import Foundation
 
 private let notificationCenterBundleID = "com.apple.notificationcenterui"
-private let bannerSubroles = NotificationPanelDetection.bannerSubroles
+private let orderedChildrenAttribute = "AXOrderedChildren"
+private let stackingIdentifierAttribute = "AXStackingIdentifier"
+private let maxAccessibilityNodes = 1_024
+private let maxTextNodes = 256
+private let structuralIdentifiers: Set<String> = [
+    "AXNotificationListItems",
+    "widgets-overlay-view"
+]
+private let settleDelay: TimeInterval = 0.15
 
 private extension AXUIElement {
     subscript(attribute: String) -> Any? {
@@ -18,7 +26,16 @@ private extension AXUIElement {
         return value
     }
 
-    func point(attribute: String) -> CGPoint? {
+    func string(_ attribute: String) -> String? {
+        self[attribute] as? String
+    }
+
+    func children() -> [AXUIElement] {
+        (self[kAXChildrenAttribute] as? [AXUIElement] ?? [])
+            + (self[orderedChildrenAttribute] as? [AXUIElement] ?? [])
+    }
+
+    func point(_ attribute: String) -> CGPoint? {
         guard let value = self[attribute],
               CFGetTypeID(value as CFTypeRef) == AXValueGetTypeID(),
               AXValueGetType(value as! AXValue) == .cgPoint
@@ -39,27 +56,26 @@ struct CapturedNotification {
 }
 
 final class NotificationWatcher {
+    private final class ObserverContext: @unchecked Sendable {
+        weak var watcher: NotificationWatcher?
+    }
+
     var onBanner: ((CapturedNotification) -> Void)?
 
     private var appElement: AXUIElement?
     private var axObserver: AXObserver?
     private var observerRunLoop: AXObserverRunLoop?
-    private var pollTimer: DispatchSourceTimer?
+    private var observerContext: ObserverContext?
+    private var scanScheduled = false
+    private var settleWorkItem: DispatchWorkItem?
+    private var observedWindows: [CFHashCode: AXUIElement] = [:]
     private var liveTokens = Set<String>()
     private var allowedBundleIDs = Set<String>()
     private var mirrorAllApps = false
     private var parkedWindowByToken: [String: Int] = [:]
     private var parkedWindows: [Int: (window: AXUIElement, origin: CGPoint)] = [:]
-    private var currentPollInterval: TimeInterval = 0
-    private let activePollInterval: TimeInterval = 0.5
-    private let idlePollInterval: TimeInterval = 2
-    private let observerNotifications = [
-        kAXWindowCreatedNotification,
-        kAXCreatedNotification,
-        kAXUIElementDestroyedNotification
-    ]
 
-    var isRunning: Bool { pollTimer != nil }
+    var isRunning: Bool { appElement != nil }
 
     func configureFilter(bundleIDs: Set<String>, allApps: Bool) {
         allowedBundleIDs = bundleIDs
@@ -80,160 +96,261 @@ final class NotificationWatcher {
             appElement = nil
             return false
         }
-        let timer = DispatchSource.makeTimerSource(queue: .main)
-        timer.schedule(deadline: .now(), repeating: activePollInterval)
-        timer.setEventHandler { [weak self] in self?.scan() }
-        timer.resume()
-        pollTimer = timer
-        currentPollInterval = activePollInterval
+
+        refreshObservedWindows()
         scan()
         return true
     }
 
     func stop() {
-        pollTimer?.cancel()
-        pollTimer = nil
-        if let axObserver, let appElement {
-            for notification in observerNotifications {
-                AXObserverRemoveNotification(axObserver, appElement, notification as CFString)
+        settleWorkItem?.cancel()
+        settleWorkItem = nil
+        if let observer = axObserver {
+            if let appElement {
+                removeObserverNotifications(from: appElement, observer: observer)
             }
-            observerRunLoop?.stop()
+            for window in observedWindows.values {
+                removeObserverNotifications(from: window, observer: observer)
+            }
         }
+        observedWindows.removeAll()
+        observerRunLoop?.stop()
         axObserver = nil
         observerRunLoop = nil
-        appElement = nil
+        observerContext = nil
+        scanScheduled = false
         liveTokens.removeAll()
         restoreAllWindows()
+        appElement = nil
+    }
+
+    private func addObserverNotifications(to element: AXUIElement) -> Bool {
+        guard let observer = axObserver, let context = observerContext else { return false }
+        let refcon = Unmanaged.passUnretained(context).toOpaque()
+        var registered = false
+        for notification in NotificationObservationPolicy.structuralNotifications {
+            let result = AXObserverAddNotification(
+                observer,
+                element,
+                notification as CFString,
+                refcon
+            )
+            if result == .success {
+                registered = true
+            }
+        }
+        return registered
+    }
+
+    private func removeObserverNotifications(from element: AXUIElement, observer: AXObserver) {
+        for notification in NotificationObservationPolicy.structuralNotifications {
+            AXObserverRemoveNotification(observer, element, notification as CFString)
+        }
+    }
+
+    private func refreshObservedWindows() {
+        guard let appElement else { return }
+        let windows = (appElement[kAXWindowsAttribute] as? [AXUIElement]) ?? []
+        var current = Set<CFHashCode>()
+        for window in windows {
+            let subrole = window.string(kAXSubroleAttribute)
+            let identifier = window.string(kAXIdentifierAttribute)
+            guard NotificationObservationPolicy.shouldObserveElement(
+                subrole: subrole,
+                identifier: identifier
+            ) else { continue }
+
+            let key = CFHash(window)
+            current.insert(key)
+            guard observedWindows[key] == nil else { continue }
+            _ = addObserverNotifications(to: window)
+            observedWindows[key] = window
+        }
+
+        let stale = observedWindows.keys.filter { !current.contains($0) }
+        for key in stale {
+            if let window = observedWindows.removeValue(forKey: key) {
+                if let observer = axObserver {
+                    removeObserverNotifications(from: window, observer: observer)
+                }
+            }
+        }
     }
 
     private func installObserver(for processIdentifier: pid_t) -> Bool {
         var observer: AXObserver?
-        let result = AXObserverCreate(processIdentifier, { _, _, _, refcon in
+        let result = AXObserverCreate(processIdentifier, { _, element, notification, refcon in
             guard let refcon else { return }
-            let watcher = Unmanaged<NotificationWatcher>.fromOpaque(refcon).takeUnretainedValue()
-            DispatchQueue.main.async {
-                watcher.scan()
+            let context = Unmanaged<ObserverContext>.fromOpaque(refcon).takeUnretainedValue()
+            let name = notification as String
+            let subrole = name == "AXUIElementDestroyed"
+                ? nil
+                : element.string(kAXSubroleAttribute)
+            let identifier = name == "AXUIElementDestroyed"
+                ? nil
+                : element.string(kAXIdentifierAttribute)
+            DispatchQueue.main.async { [weak context] in
+                context?.watcher?.handleObserverEvent(
+                    notification: name,
+                    subrole: subrole,
+                    identifier: identifier
+                )
             }
         }, &observer)
         guard result == .success, let observer, let appElement else { return false }
 
-        let refcon = Unmanaged.passUnretained(self).toOpaque()
-        let registered = observerNotifications.contains { notification in
-            AXObserverAddNotification(
-                observer,
-                appElement,
-                notification as CFString,
-                refcon
-            ) == .success
-        }
-        guard registered else {
+        let context = ObserverContext()
+        context.watcher = self
+        observerContext = context
+        axObserver = observer
+        guard addObserverNotifications(to: appElement) else {
+            axObserver = nil
+            observerContext = nil
             return false
         }
 
         let runLoop = AXObserverRunLoop(observer: observer)
-        guard runLoop.start() else { return false }
-        axObserver = observer
+        guard runLoop.start() else {
+            axObserver = nil
+            observerContext = nil
+            return false
+        }
         observerRunLoop = runLoop
         return true
     }
 
-    private final class AXObserverRunLoop {
-        private let observer: AXObserver
-        private let ready = DispatchSemaphore(value: 0)
-        private var thread: Thread?
-        private var runLoop: CFRunLoop?
+    private func handleObserverEvent(
+        notification: String,
+        subrole: String?,
+        identifier: String?
+    ) {
+        guard NotificationObservationPolicy.shouldScan(
+            notification: notification,
+            subrole: subrole,
+            identifier: identifier
+        ) else { return }
 
-        init(observer: AXObserver) {
-            self.observer = observer
+        scheduleScan()
+        scheduleSettleScan()
+    }
+
+    private func scheduleSettleScan() {
+        guard settleWorkItem == nil else { return }
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.settleWorkItem = nil
+            self.scan()
         }
+        settleWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + settleDelay, execute: workItem)
+    }
 
-        func start() -> Bool {
-            let thread = Thread { [weak self] in
-                guard let self else { return }
-                let runLoop = CFRunLoopGetCurrent()
-                self.runLoop = runLoop
-                CFRunLoopAddSource(
-                    runLoop,
-                    AXObserverGetRunLoopSource(self.observer),
-                    .defaultMode
-                )
-                self.ready.signal()
-                CFRunLoopRun()
-                CFRunLoopRemoveSource(
-                    runLoop,
-                    AXObserverGetRunLoopSource(self.observer),
-                    .defaultMode
-                )
-            }
-            self.thread = thread
-            thread.start()
-            return ready.wait(timeout: .now() + 1) == .success
-        }
-
-        func stop() {
-            guard let runLoop else { return }
-            CFRunLoopStop(runLoop)
-            CFRunLoopWakeUp(runLoop)
-            thread = nil
-            self.runLoop = nil
+    private func scheduleScan() {
+        guard !scanScheduled else { return }
+        scanScheduled = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.scanScheduled = false
+            self.scan()
         }
     }
 
     private func scan() {
         autoreleasepool {
             guard let appElement else { return }
+            refreshObservedWindows()
             var seen = Set<String>()
 
             for window in (appElement[kAXWindowsAttribute] as? [AXUIElement]) ?? [] {
-                let windowAttributes = NotificationPanelDetection.Attributes(
-                    subrole: { window[$0] as? String },
-                    identifier: { window[$0] as? String },
-                    children: {
-                        ((window[kAXChildrenAttribute] as? [AXUIElement]) ?? []).map { child in
-                            .init(
-                                subrole: { child[$0] as? String },
-                                identifier: { child[$0] as? String },
-                                children: { [] }
-                            )
-                        }
-                    }
-                )
-                guard !NotificationPanelDetection.isPanelWindow(windowAttributes) else { continue }
-                guard window[kAXSubroleAttribute] as? String == "AXSystemDialog" else { continue }
-                for banner in banners(in: window) {
-                    guard let token = banner[kAXIdentifierAttribute] as? String else { continue }
+                guard case .banners(let banners) = inspect(window) else { continue }
+
+                for banner in banners {
+                    let token = token(for: banner)
                     seen.insert(token)
                     guard !liveTokens.contains(token) else { continue }
+
                     let notification = capture(banner, token: token)
-                    guard mirrorAllApps || isAllowed(notification) else {
-                        continue
-                    }
+                    guard mirrorAllApps || isAllowed(notification) else { continue }
                     guard park(window, for: token) else {
                         NSLog("[boringNotch] could not hide notification banner \(token)")
                         continue
                     }
+
                     liveTokens.insert(token)
                     onBanner?(notification)
                 }
             }
+
             let removed = liveTokens.subtracting(seen)
             liveTokens.formIntersection(seen)
             removed.forEach(restoreWindowIfUnused)
-            updatePollInterval()
         }
     }
 
-    private func updatePollInterval() {
-        let interval = liveTokens.isEmpty ? idlePollInterval : activePollInterval
-        guard interval != currentPollInterval, let pollTimer else { return }
-        currentPollInterval = interval
-        pollTimer.schedule(deadline: .now() + interval, repeating: interval)
+    private enum WindowContents {
+        case ignored
+        case banners([AXUIElement])
+    }
+
+    private func inspect(_ root: AXUIElement) -> WindowContents {
+        var pending: [(element: AXUIElement, insideBanner: Bool, insideList: Bool)] = [
+            (root, false, false)
+        ]
+        var visited = Set<CFHashCode>()
+        var banners: [AXUIElement] = []
+
+        while let node = pending.popLast() {
+            let element = node.element
+            guard visited.insert(CFHash(element)).inserted else { continue }
+            guard visited.count <= maxAccessibilityNodes else { return .ignored }
+
+            let subrole = element.string(kAXSubroleAttribute)
+            let identifier = element.string(kAXIdentifierAttribute)
+            let stackingIdentifier = node.insideList && subrole == "AXButton"
+                ? element.string(stackingIdentifierAttribute)
+                : nil
+            if NotificationPanelDetection.isPanel(
+                subrole: subrole,
+                identifier: identifier,
+                stackingIdentifier: stackingIdentifier,
+                insideNotificationList: node.insideList && !node.insideBanner
+            ) || NotificationPanelDetection.isDesktopWidget(identifier: identifier) {
+                return .ignored
+            }
+
+            if !node.insideBanner, NotificationPanelDetection.isBanner(subrole: subrole) {
+                banners.append(element)
+            }
+
+            let childInsideBanner = node.insideBanner || NotificationPanelDetection.isBanner(subrole: subrole)
+            let childInsideList = node.insideList
+                || identifier == NotificationPanelDetection.panelListIdentifier
+            pending.append(contentsOf: element.children().reversed().map {
+                ($0, childInsideBanner, childInsideList)
+            })
+        }
+
+        return banners.isEmpty ? .ignored : .banners(banners)
+    }
+
+    private func token(for banner: AXUIElement) -> String {
+        if let identifier = banner.string(kAXIdentifierAttribute),
+           !identifier.isEmpty,
+           !structuralIdentifiers.contains(identifier) {
+            return identifier
+        }
+        if let stackingIdentifier = banner.string(stackingIdentifierAttribute),
+           !stackingIdentifier.isEmpty {
+            return stackingIdentifier
+        }
+
+        return "ax-\(CFHash(banner))"
     }
 
     private func park(_ window: AXUIElement, for token: String) -> Bool {
         let key = Int(bitPattern: CFHash(window))
         if parkedWindows[key] == nil {
-            guard let origin = window.point(attribute: kAXPositionAttribute) else { return false }
+            guard let origin = window.point(kAXPositionAttribute) else { return false }
             parkedWindows[key] = (window, origin)
             var hidden = CGPoint(x: -10000, y: -10000)
             guard let value = AXValueCreate(.cgPoint, &hidden),
@@ -266,21 +383,13 @@ final class NotificationWatcher {
         parkedWindows.removeAll()
     }
 
-    private func banners(in element: AXUIElement, depth: Int = 0) -> [AXUIElement] {
-        guard depth < 14 else { return [] }
-        if let subrole = element[kAXSubroleAttribute] as? String, bannerSubroles.contains(subrole) {
-            return [element]
-        }
-
-        return ((element[kAXChildrenAttribute] as? [AXUIElement]) ?? [])
-            .flatMap { banners(in: $0, depth: depth + 1) }
-    }
-
     private func capture(_ banner: AXUIElement, token: String) -> CapturedNotification {
-        var parts = [String: String]()
-        collectText(in: banner, into: &parts)
-        let appName = (banner["AXAttributedDescription"] as? NSAttributedString)?.string
-            .components(separatedBy: ",").first?
+        let parts = collectText(in: banner)
+        let description = (banner["AXAttributedDescription"] as? NSAttributedString)?.string
+            ?? banner["AXAttributedDescription"] as? String
+        let appName = description?
+            .split(separator: ",", maxSplits: 1)
+            .first?
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
         return CapturedNotification(
@@ -293,16 +402,36 @@ final class NotificationWatcher {
         )
     }
 
-    private func collectText(in element: AXUIElement, into parts: inout [String: String], depth: Int = 0) {
-        guard depth < 10 else { return }
-        if let identifier = element[kAXIdentifierAttribute] as? String,
-           ["title", "subtitle", "body"].contains(identifier),
-           let value = element[kAXValueAttribute] as? String {
-            parts[identifier] = value.trimmingCharacters(in: .whitespacesAndNewlines)
+    private func collectText(in root: AXUIElement) -> [String: String] {
+        var parts: [String: String] = [:]
+        var pending = [root]
+        var visited = Set<CFHashCode>()
+
+        while let element = pending.popLast() {
+            guard visited.insert(CFHash(element)).inserted else { continue }
+            guard visited.count <= maxTextNodes else { break }
+
+            if let identifier = element.string(kAXIdentifierAttribute),
+               let value = element[kAXValueAttribute] as? String {
+                let value = value.trimmingCharacters(in: .whitespacesAndNewlines)
+                switch identifier {
+                case "title":
+                    parts["title"] = value
+                case "header" where parts["title"] == nil:
+                    parts["title"] = value
+                case "subtitle":
+                    parts["subtitle"] = value
+                case "body":
+                    parts["body"] = value
+                default:
+                    break
+                }
+            }
+
+            pending.append(contentsOf: element.children().reversed())
         }
-        for child in (element[kAXChildrenAttribute] as? [AXUIElement]) ?? [] {
-            collectText(in: child, into: &parts, depth: depth + 1)
-        }
+
+        return parts
     }
 
     private func bundleID(forAppNamed name: String) -> String? {
@@ -321,5 +450,47 @@ final class NotificationWatcher {
         return allowedBundleIDs.contains { bundleID in
             bundleID.split(separator: ".").last.map { appName == $0.lowercased() } ?? false
         }
+    }
+}
+
+private final class AXObserverRunLoop {
+    private let observer: AXObserver
+    private let ready = DispatchSemaphore(value: 0)
+    private var thread: Thread?
+    private var runLoop: CFRunLoop?
+
+    init(observer: AXObserver) {
+        self.observer = observer
+    }
+
+    func start() -> Bool {
+        let thread = Thread { [weak self] in
+            guard let self else { return }
+            let runLoop = CFRunLoopGetCurrent()
+            self.runLoop = runLoop
+            CFRunLoopAddSource(
+                runLoop,
+                AXObserverGetRunLoopSource(self.observer),
+                .defaultMode
+            )
+            self.ready.signal()
+            CFRunLoopRun()
+            CFRunLoopRemoveSource(
+                runLoop,
+                AXObserverGetRunLoopSource(self.observer),
+                .defaultMode
+            )
+        }
+        self.thread = thread
+        thread.start()
+        return ready.wait(timeout: .now() + 1) == .success
+    }
+
+    func stop() {
+        guard let runLoop else { return }
+        CFRunLoopStop(runLoop)
+        CFRunLoopWakeUp(runLoop)
+        thread = nil
+        self.runLoop = nil
     }
 }

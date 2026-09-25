@@ -20,43 +20,38 @@ struct SystemNotification: Identifiable, Equatable {
 final class SystemNotificationManager: ObservableObject {
     static let shared = SystemNotificationManager()
 
-    @Published private(set) var isWatching = false
     @Published private(set) var activeNotification: SystemNotification?
     @Published private(set) var queuedNotifications: [SystemNotification] = []
 
     private let queueLimit = 5
     private let displayDuration: TimeInterval = 8
     private var dismissTask: Task<Void, Never>?
-    private var observers: [NSObjectProtocol] = []
+    private var notificationObserver: NSObjectProtocol?
     private var isUserPresent = false
 
     private init() {
-        observers = [
-            NotificationCenter.default.addObserver(
-                forName: .systemNotificationDidAppear, object: nil, queue: .main
-            ) { [weak self] note in
-                guard let payload = note.userInfo as? [String: String] else { return }
-                Task { @MainActor in self?.add(payload) }
-            }
-        ]
+        notificationObserver = NotificationCenter.default.addObserver(
+            forName: .systemNotificationDidAppear, object: nil, queue: .main
+        ) { [weak self] note in
+            guard let payload = note.userInfo as? [String: String] else { return }
+            Task { @MainActor in self?.add(payload) }
+        }
     }
 
     deinit {
-        observers.forEach(NotificationCenter.default.removeObserver)
+        if let notificationObserver {
+            NotificationCenter.default.removeObserver(notificationObserver)
+        }
     }
 
     func start() async {
-        guard await XPCHelperClient.shared.isAccessibilityAuthorized() else {
-            isWatching = false
-            return
-        }
+        guard await XPCHelperClient.shared.isAccessibilityAuthorized() else { return }
         updateFilter()
-        isWatching = await XPCHelperClient.shared.startNotificationWatching()
+        _ = await XPCHelperClient.shared.startNotificationWatching()
     }
 
     func stop() {
         XPCHelperClient.shared.stopNotificationWatching()
-        isWatching = false
         queuedNotifications.removeAll()
         isUserPresent = false
         dismissActive()
