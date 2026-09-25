@@ -9,7 +9,10 @@ import AppKit
 
 @MainActor
 enum ApplicationRelauncher {
-    static func restart(at appURL: URL? = nil) {
+    static func restart(
+        at appURL: URL? = nil,
+        beforeTerminate: (() -> Void)? = nil
+    ) {
         let workspace = NSWorkspace.shared
         let applicationURL: URL
 
@@ -25,8 +28,17 @@ enum ApplicationRelauncher {
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.createsNewApplicationInstance = true
 
-        workspace.openApplication(at: applicationURL, configuration: configuration, completionHandler: nil)
+        workspace.openApplication(at: applicationURL, configuration: configuration) { _, error in
+            Task { @MainActor in
+                if let error {
+                    NSLog("Failed to relaunch Boring Notch at %@: %@", applicationURL.path, error.localizedDescription)
+                    return
+                }
 
-        NSApplication.shared.terminate(nil)
+                workspace.noteFileSystemChanged(applicationURL.deletingLastPathComponent().path)
+                beforeTerminate?()
+                NSApplication.shared.terminate(nil)
+            }
+        }
     }
 }

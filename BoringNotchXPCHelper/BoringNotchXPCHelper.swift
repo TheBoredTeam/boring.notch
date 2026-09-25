@@ -57,6 +57,36 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         reply(AXIsProcessTrusted())
     }
 
+    @objc func migrateLegacyAppBundle(
+        from sourcePath: String,
+        to destinationPath: String,
+        with reply: @escaping (Bool) -> Void
+    ) {
+        let sourceURL = URL(fileURLWithPath: sourcePath).standardizedFileURL
+        let destinationURL = URL(fileURLWithPath: destinationPath).standardizedFileURL
+        let fileManager = FileManager.default
+
+        guard sourceURL.lastPathComponent == BoringNotchAppBundleNames.legacy,
+              destinationURL.lastPathComponent == BoringNotchAppBundleNames.current,
+              sourceURL.deletingLastPathComponent() == destinationURL.deletingLastPathComponent(),
+              fileManager.fileExists(atPath: sourceURL.path),
+              !fileManager.fileExists(atPath: destinationURL.path)
+        else {
+            NSLog("[boringNotch] refused legacy bundle migration for %@ -> %@", sourcePath, destinationPath)
+            reply(false)
+            return
+        }
+
+        do {
+            try fileManager.moveItem(at: sourceURL, to: destinationURL)
+            NSWorkspace.shared.noteFileSystemChanged(destinationURL.deletingLastPathComponent().path)
+            reply(true)
+        } catch {
+            NSLog("[boringNotch] legacy bundle migration failed for %@: %@", sourcePath, error.localizedDescription)
+            reply(false)
+        }
+    }
+
     @objc func requestAccessibilityAuthorization() {
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
         AXIsProcessTrustedWithOptions(options)

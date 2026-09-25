@@ -129,6 +129,7 @@ final class PreferenceCompatibilityTests: XCTestCase {
     }
 }
 
+@MainActor
 final class LegacyAppBundleMigrationTests: XCTestCase {
     private var temporaryDirectory: URL!
     private let fileManager = FileManager.default
@@ -161,6 +162,20 @@ final class LegacyAppBundleMigrationTests: XCTestCase {
         XCTAssertEqual(migratedURL.standardizedFileURL, destinationURL.standardizedFileURL)
         XCTAssertFalse(fileManager.fileExists(atPath: legacyURL.path))
         XCTAssertEqual(try Data(contentsOf: destinationURL.appendingPathComponent("marker")), Data("updated".utf8))
+    }
+
+    func testMigrationDestinationIsTheRenamedSibling() throws {
+        let legacyURL = temporaryDirectory
+            .appendingPathComponent(LegacyAppBundleMigration.legacyBundleName, isDirectory: true)
+
+        XCTAssertEqual(
+            LegacyAppBundleMigration.destinationURL(for: legacyURL)?.lastPathComponent,
+            LegacyAppBundleMigration.currentBundleName
+        )
+        XCTAssertEqual(
+            LegacyAppBundleMigration.destinationURL(for: legacyURL)?.deletingLastPathComponent(),
+            temporaryDirectory.standardizedFileURL
+        )
     }
 
     func testCurrentProductNameIsNotMoved() throws {
