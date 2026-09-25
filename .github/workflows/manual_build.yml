@@ -18,6 +18,14 @@ on:
           - stable
           - beta
           - dev
+      distribution:
+        description: 'Signing: development, or developer-id (Developer ID + notarization)'
+        required: false
+        default: development
+        type: choice
+        options:
+          - development
+          - developer-id
 
 # Least-privilege: workflow_dispatch build only; no token write access needed.
 permissions:
@@ -91,6 +99,7 @@ jobs:
           VERSION: ${{ inputs.version || '(source version retained)' }}
           BUILD_NUMBER: ${{ steps.resolve_source.outputs.build_number }}
           UPDATE_CHANNEL: ${{ inputs.update_channel || 'stable' }}
+          DISTRIBUTION: ${{ inputs.distribution || 'development' }}
         run: |
           {
             echo "## Manual build"
@@ -100,6 +109,7 @@ jobs:
             echo "- Marketing version: \`$VERSION\`"
             echo "- Bundle build: \`$BUILD_NUMBER\`"
             echo "- Update channel: \`$UPDATE_CHANNEL\`"
+            echo "- Distribution: \`$DISTRIBUTION\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
   build:
@@ -112,7 +122,13 @@ jobs:
       version: ${{ inputs.version || '' }}
       build_number: ${{ needs.authorize.outputs.build_number }}
       update_channel: ${{ inputs.update_channel || 'stable' }}
+      distribution: ${{ inputs.distribution || 'development' }}
     secrets:
       BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
       P12_PASSWORD:              ${{ secrets.P12_PASSWORD }}
       KEYCHAIN_PASSWORD:         ${{ secrets.KEYCHAIN_PASSWORD }}
+      DEVELOPER_ID_CERTIFICATE_BASE64: ${{ secrets.DEVELOPER_ID_CERTIFICATE_BASE64 }}
+      DEVELOPER_ID_P12_PASSWORD:       ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+      NOTARY_API_KEY_BASE64:           ${{ secrets.NOTARY_API_KEY_BASE64 }}
+      NOTARY_API_KEY_ID:               ${{ secrets.NOTARY_API_KEY_ID }}
+      NOTARY_API_ISSUER_ID:            ${{ secrets.NOTARY_API_ISSUER_ID }}
