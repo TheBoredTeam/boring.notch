@@ -307,6 +307,45 @@ class WorkflowSmokeTests(unittest.TestCase):
         for removed in ("immutable", ".immutable", "immutable-release"):
             self.assertNotIn(removed, self.nightly)
 
+    def test_built_product_is_named_boring_notch(self) -> None:
+        # The Xcode product name is "Boring Notch" (so the built app, DMG, and
+        # artifact names carry the space), while the project/target/scheme stay
+        # boringNotch. Every pipeline that ships the built product must address
+        # it through APP_NAME, never PROJECT_NAME.
+        pbxproj = (
+            REPOSITORY_ROOT / "boringNotch.xcodeproj" / "project.pbxproj"
+        ).read_text(encoding="utf-8")
+        self.assertEqual(pbxproj.count('PRODUCT_NAME = "Boring Notch";'), 2)
+        self.assertEqual(pbxproj.count('INFOPLIST_KEY_CFBundleName = "Boring Notch";'), 2)
+        self.assertEqual(pbxproj.count('INFOPLIST_KEY_CFBundleDisplayName = "Boring Notch";'), 2)
+
+        # Reusable build: archives under the project name, exports/ships the
+        # app and DMG under APP_NAME.
+        self.assertIn("APP_NAME: Boring Notch", self.build_reusable)
+        self.assertIn('"Release/$APP_NAME.app"', self.build_reusable)
+        self.assertIn('"Release/$APP_NAME.dmg"', self.build_reusable)
+        self.assertIn('name: ${{ env.APP_NAME }}.dmg', self.build_reusable)
+        self.assertNotIn("Release/$PROJECT_NAME.app", self.build_reusable)
+        self.assertNotIn("Release/$PROJECT_NAME.dmg", self.build_reusable)
+
+        # Release pipeline: draft download, artifact download, release upload,
+        # and the Homebrew cask all point at the renamed product.
+        self.assertIn("APP_NAME: Boring Notch", self.release)
+        self.assertIn('--pattern "$APP_NAME.dmg"', self.release)
+        self.assertIn('name: ${{ env.APP_NAME }}.dmg', self.release)
+        self.assertIn('"Release/$APP_NAME.dmg"', self.release)
+        self.assertIn("/Boring%20Notch.dmg", self.release)
+        self.assertIn('app "Boring Notch.app"', self.release)
+        self.assertNotIn("boringNotch.dmg", self.release)
+        self.assertNotIn('app "boringNotch.app"', self.release)
+
+        # Nightly: downloads the renamed artifact, then renames to the fixed
+        # rolling asset name (which is intentionally unchanged).
+        self.assertIn("APP_NAME: Boring Notch", self.nightly)
+        self.assertIn('name: ${{ env.APP_NAME }}.dmg', self.nightly)
+        self.assertIn('mv "Release/${APP_NAME}.dmg" "Release/${ASSET_NAME}"', self.nightly)
+        self.assertNotIn("${PROJECT_NAME}.dmg", self.nightly)
+
     def test_stable_and_beta_workflows_are_unchanged(self) -> None:
         # Stable/beta live in release.yml; pin the load-bearing invariants the
         # nightly changes must not disturb.
