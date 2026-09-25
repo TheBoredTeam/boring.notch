@@ -111,21 +111,16 @@ final class BatteryStatusViewModel: ObservableObject {
 
         case .timeToFullChargeChanged(let time):
             Log.battery.debug("🕒 Time to full charge: \(time) minutes")
-            withAnimation {
-                self.timeToFullCharge = time
-            }
+            // Expanded-notch only — no animation transaction per notch window.
+            self.timeToFullCharge = time
 
         case .timeToDischargeChanged(let time):
             Log.battery.debug("🕒 Time until empty: \(time) minutes")
-            withAnimation {
-                self.timeToDischarge = time
-            }
+            self.timeToDischarge = time
 
         case .maxCapacityChanged(let capacity):
             Log.battery.debug("🔋 Max capacity: \(capacity.map { "\($0)" } ?? "Unavailable")")
-            withAnimation {
-                self.maxCapacity = capacity
-            }
+            self.maxCapacity = capacity
 
         case .adapterWattageChanged(let watts):
             Log.battery.debug("🔌 Power adapter: \(watts)W")

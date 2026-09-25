@@ -16,7 +16,7 @@ final class NotificationPanelDetectionTests: XCTestCase {
         children: [NotificationPanelDetection.Attributes] = []
     ) -> NotificationPanelDetection.Attributes {
         .init(
-            subrole: { _ in subrole },
+            subrole: { key in key == "AXSubrole" ? subrole : nil },
             identifier: { key in key == "AXIdentifier" ? identifier : nil },
             children: { children }
         )
@@ -28,8 +28,8 @@ final class NotificationPanelDetectionTests: XCTestCase {
         withButtons: Bool = true
     ) -> NotificationPanelDetection.Attributes {
         let stackedButton: NotificationPanelDetection.Attributes = .init(
-            subrole: { _ in "AXButton" },
-            identifier: { key in key == "AXIdentifier" ? nil : "stack-01234567-89ab-cdef-0123-456789abcdefcom.apple.Safari" },
+            subrole: { key in key == "AXSubrole" ? "AXButton" : nil },
+            identifier: { key in key == "AXStackingIdentifier" ? "stack-01234567-89ab-cdef-0123-456789abcdefcom.apple.Safari" : nil },
             children: { [] }
         )
         let listChildren: [NotificationPanelDetection.Attributes] = withButtons ? [stackedButton] : []
@@ -63,8 +63,8 @@ final class NotificationPanelDetectionTests: XCTestCase {
 
     func testButtonWithWrongStackingPrefixIsNotDetected() {
         let button: NotificationPanelDetection.Attributes = .init(
-            subrole: { _ in "AXButton" },
-            identifier: { _ in "other-prefix-abc" },
+            subrole: { key in key == "AXSubrole" ? "AXButton" : nil },
+            identifier: { key in key == "AXStackingIdentifier" ? "other-prefix-abc" : nil },
             children: { [] }
         )
         let window = element("window", subrole: "AXSystemDialog", children: [button])
@@ -103,6 +103,22 @@ final class NotificationPanelDetectionTests: XCTestCase {
             current = element("node", children: [current])
         }
         XCTAssertFalse(NotificationPanelDetection.isPanelWindow(current))
+    }
+
+    func testPanelDetectionUsesRealAccessibilityAttributeNames() {
+        let axNamedWindow: NotificationPanelDetection.Attributes = .init(
+            subrole: { key in key == "AXSubrole" ? "AXNotificationCenterPanel" : nil },
+            identifier: { _ in nil },
+            children: { [] }
+        )
+        XCTAssertTrue(NotificationPanelDetection.isPanelWindow(axNamedWindow))
+
+        let legacyNamedWindow: NotificationPanelDetection.Attributes = .init(
+            subrole: { key in key == "subrole" ? "AXNotificationCenterPanel" : nil },
+            identifier: { _ in nil },
+            children: { [] }
+        )
+        XCTAssertFalse(NotificationPanelDetection.isPanelWindow(legacyNamedWindow))
     }
 
     func testBannerSubroleConstantMatchesWatcherExpectations() {

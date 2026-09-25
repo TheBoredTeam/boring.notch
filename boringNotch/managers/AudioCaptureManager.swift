@@ -28,7 +28,9 @@ final class AudioCaptureManager: ObservableObject {
     private static let log2n: vDSP_Length = 10
     private static let ringCapacity = 4096
     private static let fftIntervalMilliseconds = 33
-    private static let fftLeewayMilliseconds = 0
+    // Non-zero leeway lets the kernel coalesce these 30 Hz wakeups with other
+    // timers; the waveform is smoothed anyway, so a few ms of jitter is free.
+    private static let fftLeewayMilliseconds = 8
     private static let floorDB: Float = -58
     private static let ceilDB: Float = -14
     private static let referenceHz: Double = 1000

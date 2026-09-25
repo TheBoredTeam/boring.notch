@@ -21,6 +21,9 @@ final class NotchWindowManager {
         let viewModel: BoringViewModel
         var window: NSWindow?
         var dragDetector: DragDetector?
+        // One screen-change observer per window — a single shared token meant
+        // only the last-created window kept its drag-detector refresh.
+        var screenChangeObserver: Any?
     }
 
     private(set) var contexts: [String: ScreenContext] = [:] // UUID -> ScreenContext
@@ -107,6 +110,9 @@ final class NotchWindowManager {
                     NotchSpaceManager.shared.notchSpace.windows.remove(window)
                 }
                 context.dragDetector?.stopMonitoring()
+                if let obs = context.screenChangeObserver {
+                    NotificationCenter.default.removeObserver(obs)
+                }
                 contexts.removeValue(forKey: uuid)
             }
         } else {
@@ -127,7 +133,7 @@ final class NotchWindowManager {
         BoringViewCoordinator.shared.applyOSDSources()
     }
 
-    private func createBoringNotchWindow(for screen: NSScreen, with viewModel: BoringViewModel) -> NSWindow {
+    private func createBoringNotchWindow(for screen: NSScreen, with viewModel: BoringViewModel) -> (window: NSWindow, screenChangeObserver: Any) {
         let rect = NSRect(x: 0, y: 0, width: windowSize.width, height: windowSize.height)
         let styleMask: NSWindow.StyleMask = [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow]
 
@@ -149,12 +155,7 @@ final class NotchWindowManager {
         NotchSpaceManager.shared.notchSpace.windows.insert(window)
 
         // Observe when the window's screen changes so we can update drag detectors.
-        // Remove any previous observer first — recreating windows used to
-        // overwrite the token and leak the earlier observer each cycle.
-        if let obs = windowScreenDidChangeObserver {
-            NotificationCenter.default.removeObserver(obs)
-        }
-        windowScreenDidChangeObserver = NotificationCenter.default.addObserver(
+        let observer = NotificationCenter.default.addObserver(
             forName: NSWindow.didChangeScreenNotification,
             object: window,
             queue: .main) { [weak self] _ in
@@ -162,7 +163,7 @@ final class NotchWindowManager {
                     self?.setupDragDetectors()
                 }
         }
-        return window
+        return (window, observer)
     }
 
     private func positionWindow(_ window: NSWindow, on screen: NSScreen, changeAlpha: Bool = false) {
@@ -191,6 +192,9 @@ final class NotchWindowManager {
                     NotchSpaceManager.shared.notchSpace.windows.remove(window)
                 }
                 contexts[uuid]?.dragDetector?.stopMonitoring()
+                if let obs = contexts[uuid]?.screenChangeObserver {
+                    NotificationCenter.default.removeObserver(obs)
+                }
                 contexts.removeValue(forKey: uuid)
             }
 
@@ -208,8 +212,9 @@ final class NotchWindowManager {
 
                 if contexts[uuid]?.window == nil {
                     let viewModel = contexts[uuid]!.viewModel
-                    let window = createBoringNotchWindow(for: screen, with: viewModel)
-                    contexts[uuid]?.window = window
+                    let created = createBoringNotchWindow(for: screen, with: viewModel)
+                    contexts[uuid]?.window = created.window
+                    contexts[uuid]?.screenChangeObserver = created.screenChangeObserver
                 }
 
                 if let window = contexts[uuid]?.window {
@@ -242,7 +247,9 @@ final class NotchWindowManager {
             primaryViewModel.notchSize = getClosedNotchSize(screenUUID: selectedScreen.displayUUID)
 
             if primaryWindow == nil {
-                primaryWindow = createBoringNotchWindow(for: selectedScreen, with: primaryViewModel)
+                let created = createBoringNotchWindow(for: selectedScreen, with: primaryViewModel)
+                primaryWindow = created.window
+                windowScreenDidChangeObserver = created.screenChangeObserver
             }
 
             if let window = primaryWindow {
@@ -374,7 +381,9 @@ final class NotchWindowManager {
         if !Defaults[.showOnAllDisplays] {
             let viewModel = primaryViewModel
             if let screen = NSScreen.main ?? NSScreen.screens.first {
-                primaryWindow = createBoringNotchWindow(for: screen, with: viewModel)
+                let created = createBoringNotchWindow(for: screen, with: viewModel)
+                primaryWindow = created.window
+                windowScreenDidChangeObserver = created.screenChangeObserver
             }
             adjustWindowPosition(changeAlpha: true)
         } else {
