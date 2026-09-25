@@ -381,8 +381,15 @@ struct MediaOutputSlotButton: View {
             // Enumerate on open rather than polling: devices come and go
             // (AirPods connecting, a display waking) and a list built at
             // launch would be stale by the time anyone opened it.
-            routeManager.refreshDevices()
-            showingPicker.toggle()
+            if routeManager.devices.isEmpty {
+                // A popover sizes its window once, at presentation. Opening
+                // on the empty placeholder would size it to that and
+                // truncate names that arrive a moment later.
+                routeManager.refreshDevices { showingPicker = true }
+            } else {
+                routeManager.refreshDevices()
+                showingPicker.toggle()
+            }
         }
         .onHover { hovering in
             isHoveringButton = hovering

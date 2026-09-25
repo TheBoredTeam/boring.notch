@@ -117,11 +117,19 @@ struct ContentView: View {
         return items
     }
 
-    /// This frame bounds hit-testing as well as layout, so a height shorter
-    /// than the content leaves controls outside the hover region. Both the
-    /// notification panel and compact mode size to their content instead.
+    /// A notification is a glance, not a workspace — it doesn't need the full
+    /// height the home/shelf tabs are sized for, and stretching to fill it
+    /// just surrounds two lines of text with empty black.
+    /// nil means "size to content".
+    ///
+    /// Compact mode must use nil: this frame bounds hit-testing as well as
+    /// layout, so any value shorter than the content leaves the transport
+    /// row outside the hover region — moving toward the buttons registered
+    /// as a hover-exit and closed the notch. The compact panel's height is
+    /// controlled by its own internal padding instead, which is the honest
+    /// lever anyway.
     private var openNotchHeight: CGFloat? {
-        if notificationManager.activeNotification != nil { return nil }
+        if notificationManager.activeNotification != nil { return 132 }
         return Defaults[.compactMode] ? nil : vm.notchSize.height
     }
 
@@ -272,12 +280,12 @@ struct ContentView: View {
 
                 mainLayout
                     // alignment: .top matters here — without it this frame
-                    // defaults to centering, so when openNotchHeight is
-                    // smaller than vm.notchSize.height (the full-size home
-                    // and shelf tabs) the visible top edge ends up pulled
-                    // down by half the difference instead of staying flush
-                    // with the window's top-anchored origin. That's what read
-                    // as "the notch sits a bit off the top of the screen."
+                    // defaults to centering, and shrinking the height for a
+                    // notification (openNotchHeight < vm.notchSize.height)
+                    // then pulls the visible top edge down by half the
+                    // difference instead of staying flush with the window's
+                    // top-anchored origin. That's what read as "the notch
+                    // sits a bit off the top of the screen."
                     .frame(height: vm.notchState == .open ? openNotchHeight : nil, alignment: .top)
                     .conditionalModifier(true) { view in
                         return view
@@ -811,13 +819,12 @@ extension ContentView {
 
     // MARK: - Hover Management
 
-    /// Closes the open notch after the hover grace period unless a popover or
-    /// the expanded notification still owns the pointer.
+    /// Closes the open notch after the hover grace period unless a popover
+    /// still owns the pointer.
     private func scheduleCloseIfNotHovering(overNotch notchViewModel: BoringViewModel) {
         guard notchViewModel.notchState == .open,
               !isHovering,
-              !notchViewModel.isPopoverActive,
-              !notchViewModel.isHoveringNotification else { return }
+              !notchViewModel.isPopoverActive else { return }
         hoverTask?.cancel()
         hoverTask = Task {
             try? await Task.sleep(for: .milliseconds(hoverExitDelayMilliseconds))
@@ -826,7 +833,6 @@ extension ContentView {
                 if self.vm.notchState == .open,
                    !self.isHovering,
                    !self.vm.isPopoverActive,
-                   !self.vm.isHoveringNotification,
                    !SharingStateManager.shared.preventNotchClose {
                     self.vm.close()
                 }
@@ -889,7 +895,6 @@ extension ContentView {
 
                     if self.vm.notchState == .open,
                        !self.vm.isPopoverActive,
-                       !self.vm.isHoveringNotification,
                        !SharingStateManager.shared.preventNotchClose {
                         self.vm.close()
                     }

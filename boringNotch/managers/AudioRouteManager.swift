@@ -142,7 +142,7 @@ final class AudioRouteManager: ObservableObject {
 
     private init() {}
 
-    func refreshDevices() {
+    func refreshDevices(completion: (@MainActor @Sendable () -> Void)? = nil) {
         queue.async { [weak self] in
             guard let self else { return }
             let defaultID = Self.fetchDefaultOutputDevice()
@@ -156,6 +156,7 @@ final class AudioRouteManager: ObservableObject {
             Task { @MainActor in
                 self.activeDeviceID = defaultID
                 self.devices = sorted
+                completion?()
             }
         }
     }

@@ -69,7 +69,6 @@ struct NotificationLiveActivity: View {
 }
 
 struct NotificationExpandedView: View {
-    @EnvironmentObject private var vm: BoringViewModel
     @ObservedObject private var manager = SystemNotificationManager.shared
     let notification: SystemNotification
 
@@ -152,12 +151,6 @@ struct NotificationExpandedView: View {
             .buttonStyle(.plain)
         }
         .onAppear { manager.holdActive() }
-        .onHover { hovering in
-            vm.isHoveringNotification = hovering
-        }
-        .onDisappear {
-            vm.isHoveringNotification = false
-            manager.resumeDismiss()
-        }
+        .onDisappear { manager.resumeDismiss() }
     }
 }
