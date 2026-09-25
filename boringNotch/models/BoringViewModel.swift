@@ -123,7 +123,7 @@ final class BoringViewModel: NSObject, ObservableObject {
 
     func toggleCameraPreview() {
         switch camera.state {
-        case .running:
+        case .running, .interrupted:
             camera.stopSession()
         case .stopped, .unavailable, .failed:
             if camera.cameraAvailable {
@@ -189,6 +189,9 @@ final class BoringViewModel: NSObject, ObservableObject {
         if SharingStateManager.shared.preventNotchClose {
             return
         }
+        // The camera is on-demand: the notch closing always ends capture.
+        // Intent clears too, so no recovery path can reopen it while closed.
+        camera.stopSession()
         self.notchSize = getClosedNotchSize(screenUUID: self.screenUUID)
         self.closedNotchSize = self.notchSize
         self.notchState = .closed
