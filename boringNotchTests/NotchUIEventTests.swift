@@ -144,4 +144,16 @@ final class PlaybackStateTests: XCTestCase {
         }
         XCTAssertGreaterThan(nonBlack, 20, "expanded view rendered ~empty")
     }
+
+    /// Every automatic close path waits on isHoveringNotification, so a
+    /// spurious hover-exit can't close the notch under the pointer.
+    @MainActor
+    func testNotificationHoverStateIsPreservedUntilThePanelCloses() {
+        let vm = BoringViewModel(camera: CameraModel())
+        XCTAssertFalse(vm.isHoveringNotification, "a fresh view model must not look hovered")
+
+        vm.isHoveringNotification = true
+        vm.close()
+        XCTAssertFalse(vm.isHoveringNotification, "closing the notch must release the hover guard")
+    }
 }

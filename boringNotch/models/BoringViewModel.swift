@@ -25,7 +25,11 @@ final class BoringViewModel: NSObject, ObservableObject {
 
     @Published var edgeAutoOpenActive: Bool = false
     @Published var isHoveringCalendar: Bool = false
-    @Published var isBatteryPopoverActive: Bool = false
+    /// Guards close paths against spurious hover-exits (AppKit rebuilds
+    /// tracking areas on focus changes).
+    @Published var isHoveringNotification: Bool = false
+    /// Keeps the open notch alive while a popover is showing.
+    @Published var isPopoverActive: Bool = false
 
     @Published var screenUUID: String?
 
@@ -195,7 +199,8 @@ final class BoringViewModel: NSObject, ObservableObject {
         self.notchSize = getClosedNotchSize(screenUUID: self.screenUUID)
         self.closedNotchSize = self.notchSize
         self.notchState = .closed
-        self.isBatteryPopoverActive = false
+        self.isHoveringNotification = false
+        self.isPopoverActive = false
         if self.coordinator.shouldShowSneakPeek(on: self.screenUUID) {
             self.coordinator.toggleSneakPeek(status: false, type: .music, targetScreenUUID: self.screenUUID)
         }

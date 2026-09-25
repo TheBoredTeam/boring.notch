@@ -45,6 +45,9 @@ struct ContentView: View {
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
     private let nowPlayingFallbackNoticeWidth: CGFloat = 330
+    /// Matches the popovers' dismiss delay; long enough to reach a control
+    /// inside the panel without closing under the pointer.
+    private let hoverExitDelayMilliseconds = 350
 
     // MARK: - Corner Radius Scaling
     private var cornerRadiusScaleFactor: CGFloat? {
@@ -114,19 +117,11 @@ struct ContentView: View {
         return items
     }
 
-    /// A notification is a glance, not a workspace — it doesn't need the full
-    /// height the home/shelf tabs are sized for, and stretching to fill it
-    /// just surrounds two lines of text with empty black.
-    /// nil means "size to content".
-    ///
-    /// Compact mode must use nil: this frame bounds hit-testing as well as
-    /// layout, so any value shorter than the content leaves the transport
-    /// row outside the hover region — moving toward the buttons registered
-    /// as a hover-exit and closed the notch. The compact panel's height is
-    /// controlled by its own internal padding instead, which is the honest
-    /// lever anyway.
+    /// This frame bounds hit-testing as well as layout, so a height shorter
+    /// than the content leaves controls outside the hover region. Both the
+    /// notification panel and compact mode size to their content instead.
     private var openNotchHeight: CGFloat? {
-        if notificationManager.activeNotification != nil { return 132 }
+        if notificationManager.activeNotification != nil { return nil }
         return Defaults[.compactMode] ? nil : vm.notchSize.height
     }
 
@@ -277,12 +272,12 @@ struct ContentView: View {
 
                 mainLayout
                     // alignment: .top matters here — without it this frame
-                    // defaults to centering, and shrinking the height for a
-                    // notification (openNotchHeight < vm.notchSize.height)
-                    // then pulls the visible top edge down by half the
-                    // difference instead of staying flush with the window's
-                    // top-anchored origin. That's what read as "the notch
-                    // sits a bit off the top of the screen."
+                    // defaults to centering, so when openNotchHeight is
+                    // smaller than vm.notchSize.height (the full-size home
+                    // and shelf tabs) the visible top edge ends up pulled
+                    // down by half the difference instead of staying flush
+                    // with the window's top-anchored origin. That's what read
+                    // as "the notch sits a bit off the top of the screen."
                     .frame(height: vm.notchState == .open ? openNotchHeight : nil, alignment: .top)
                     .conditionalModifier(true) { view in
                         return view
@@ -326,18 +321,7 @@ struct ContentView: View {
                             }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
-                        if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
-                            hoverTask?.cancel()
-                            hoverTask = Task {
-                                try? await Task.sleep(for: .milliseconds(100))
-                                guard !Task.isCancelled else { return }
-                                await MainActor.run {
-                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
-                                        self.vm.close()
-                                    }
-                                }
-                            }
-                        }
+                        scheduleCloseIfNotHovering(overNotch: vm)
                     }
                     // A new notification always takes the front of the stack,
                     // even if the user had swiped away to music.
@@ -351,19 +335,8 @@ struct ContentView: View {
                     .onChange(of: liveActivities.count) { _, count in
                         if activityIndex >= count { activityIndex = max(count - 1, 0) }
                     }
-                    .onChange(of: vm.isBatteryPopoverActive) {
-                        if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
-                            hoverTask?.cancel()
-                            hoverTask = Task {
-                                try? await Task.sleep(for: .milliseconds(100))
-                                guard !Task.isCancelled else { return }
-                                await MainActor.run {
-                                    if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
-                                        self.vm.close()
-                                    }
-                                }
-                            }
-                        }
+                    .onChange(of: vm.isPopoverActive) { _, _ in
+                        scheduleCloseIfNotHovering(overNotch: vm)
                     }
                     .sensoryFeedback(.alignment, trigger: haptics)
                     .contextMenu {
@@ -838,6 +811,29 @@ extension ContentView {
 
     // MARK: - Hover Management
 
+    /// Closes the open notch after the hover grace period unless a popover or
+    /// the expanded notification still owns the pointer.
+    private func scheduleCloseIfNotHovering(overNotch notchViewModel: BoringViewModel) {
+        guard notchViewModel.notchState == .open,
+              !isHovering,
+              !notchViewModel.isPopoverActive,
+              !notchViewModel.isHoveringNotification else { return }
+        hoverTask?.cancel()
+        hoverTask = Task {
+            try? await Task.sleep(for: .milliseconds(hoverExitDelayMilliseconds))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                if self.vm.notchState == .open,
+                   !self.isHovering,
+                   !self.vm.isPopoverActive,
+                   !self.vm.isHoveringNotification,
+                   !SharingStateManager.shared.preventNotchClose {
+                    self.vm.close()
+                }
+            }
+        }
+    }
+
     private func handleHover(_ hovering: Bool) {
         if coordinator.firstLaunch { return }
         hoverTask?.cancel()
@@ -880,7 +876,7 @@ extension ContentView {
             }
         } else {
             hoverTask = Task {
-                try? await Task.sleep(for: .milliseconds(100))
+                try? await Task.sleep(for: .milliseconds(hoverExitDelayMilliseconds))
                 guard !Task.isCancelled else { return }
 
                 await MainActor.run {
@@ -891,7 +887,10 @@ extension ContentView {
                     // Pointer left — let the notification age out again.
                     self.notificationManager.resumeDismiss()
 
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                    if self.vm.notchState == .open,
+                       !self.vm.isPopoverActive,
+                       !self.vm.isHoveringNotification,
+                       !SharingStateManager.shared.preventNotchClose {
                         self.vm.close()
                     }
                 }

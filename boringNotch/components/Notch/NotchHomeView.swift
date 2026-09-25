@@ -369,8 +369,12 @@ struct FavoriteControlButton: View {
 /// switches it, via a popover device picker. Both layouts use this through
 /// MusicControlSlotButton.
 struct MediaOutputSlotButton: View {
+    @EnvironmentObject private var vm: BoringViewModel
     @ObservedObject private var routeManager = AudioRouteManager.shared
     @State private var showingPicker = false
+    @State private var isHoveringButton = false
+    @State private var isHoveringPopover = false
+    @State private var hideTask: Task<Void, Never>?
 
     var body: some View {
         HoverButton(icon: routeSymbol, scale: .medium) {
@@ -380,10 +384,36 @@ struct MediaOutputSlotButton: View {
             routeManager.refreshDevices()
             showingPicker.toggle()
         }
+        .onHover { hovering in
+            isHoveringButton = hovering
+            if hovering {
+                hideTask?.cancel()
+                hideTask = nil
+            } else {
+                scheduleHideIfNeeded()
+            }
+        }
         .popover(isPresented: $showingPicker, arrowEdge: .bottom) {
             AudioOutputPicker(routeManager: routeManager) {
                 showingPicker = false
             }
+            .onHover { hovering in
+                isHoveringPopover = hovering
+                if hovering {
+                    hideTask?.cancel()
+                    hideTask = nil
+                } else {
+                    scheduleHideIfNeeded()
+                }
+            }
+        }
+        .onChange(of: showingPicker) { _, isShowing in
+            vm.isPopoverActive = isShowing
+        }
+        .onDisappear {
+            hideTask?.cancel()
+            hideTask = nil
+            vm.isPopoverActive = false
         }
     }
 
@@ -391,6 +421,16 @@ struct MediaOutputSlotButton: View {
     /// classification before the first enumeration has run.
     private var routeSymbol: String {
         routeManager.activeDevice?.iconName ?? AudioOutputRouteResolver.shared.outputRouteSymbol()
+    }
+
+    private func scheduleHideIfNeeded() {
+        if isHoveringButton || isHoveringPopover { return }
+        hideTask?.cancel()
+        hideTask = Task {
+            try? await Task.sleep(for: .milliseconds(350))
+            guard !Task.isCancelled else { return }
+            await MainActor.run { withAnimation { showingPicker = false } }
+        }
     }
 }
 

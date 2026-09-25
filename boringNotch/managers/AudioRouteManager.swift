@@ -32,7 +32,7 @@ struct AudioOutputDevice: Identifiable, Equatable {
         if normalized.contains("airpods max") { return "airpodsmax" }
         if normalized.contains("airpods pro") { return "airpodspro" }
         if normalized.contains("airpods") { return "airpods" }
-        if normalized.contains("macbook") { return "laptopcomputer" }
+        if normalized.contains("macbook") { return Self.macSymbol }
         if normalized.contains("homepod") { return "homepod" }
         if normalized.contains("headphone") || normalized.contains("headset") || normalized.contains("beats") {
             return "headphones"
@@ -49,11 +49,80 @@ struct AudioOutputDevice: Identifiable, Equatable {
         case kAudioDeviceTransportTypeUSB:
             return "hifispeaker"
         case kAudioDeviceTransportTypeBuiltIn:
-            return "laptopcomputer"
+            return Self.macSymbol
         default:
             return "speaker.wave.2"
         }
     }
+
+    /// Mac glyph (open lid with camera notch); "laptopcomputer" is the
+    /// generic clamshell without the notch.
+    static let macSymbol = "macbook"
+
+    /// The headphone jack also reports `kAudioDeviceTransportTypeBuiltIn`,
+    /// so the speakers and the "External Headphones" jack are split by name.
+    enum Category {
+        case builtIn
+        case builtInOther
+        case wireless
+        case wired
+        case bluetooth
+        case other
+
+        var sourceGroup: Int {
+            switch self {
+            case .builtIn: return 0
+            case .builtInOther: return 1
+            case .wireless: return 2
+            case .wired: return 3
+            case .bluetooth: return 4
+            case .other: return 5
+            }
+        }
+    }
+
+    var category: Category {
+        let normalized = name.lowercased()
+
+        if normalized.contains("airpods") { return .bluetooth }
+        if normalized.contains("macbook") { return .builtIn }
+        if normalized.contains("homepod") { return .wireless }
+        if normalized.contains("airplay") { return .wireless }
+
+        switch transportType {
+        case kAudioDeviceTransportTypeBuiltIn:
+            // The Mac's own speakers vs. the headphone jack / built-in mic —
+            // both report BuiltIn, so the name decides.
+            if normalized.contains("headphone") || normalized.contains("headset") {
+                return .builtInOther
+            }
+            if normalized.contains("display") || normalized.contains("monitor") {
+                return .wired
+            }
+            return .builtIn
+        case kAudioDeviceTransportTypeAirPlay:
+            return .wireless
+        case kAudioDeviceTransportTypeUSB,
+            kAudioDeviceTransportTypeHDMI,
+            kAudioDeviceTransportTypeDisplayPort,
+            kAudioDeviceTransportTypeVirtual:
+            return .wired
+        case kAudioDeviceTransportTypeBluetooth, kAudioDeviceTransportTypeBluetoothLE:
+            return .bluetooth
+        default:
+            if normalized.contains("bluetooth") || normalized.contains("wireless") { return .bluetooth }
+            if normalized.contains("headphone") || normalized.contains("headset")
+                || normalized.contains("earbud") || normalized.contains("earphone") {
+                return .builtInOther
+            }
+            if normalized.contains("speaker") || normalized.contains("display") || normalized.contains("monitor") {
+                return .wired
+            }
+            return .other
+        }
+    }
+
+    var sourceGroup: Int { category.sourceGroup }
 }
 
 @MainActor
@@ -78,11 +147,10 @@ final class AudioRouteManager: ObservableObject {
             guard let self else { return }
             let defaultID = Self.fetchDefaultOutputDevice()
             let found = Self.fetchOutputDeviceIDs().compactMap(Self.makeDevice)
-            // Active device first, then alphabetical — the one you're using
-            // is the one you're most likely looking for.
+            // Apple's output-menu order: source groups, alphabetical within
+            // each; the active device is not pinned to the top.
             let sorted = found.sorted { lhs, rhs in
-                if lhs.id == defaultID { return true }
-                if rhs.id == defaultID { return false }
+                if lhs.sourceGroup != rhs.sourceGroup { return lhs.sourceGroup < rhs.sourceGroup }
                 return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
             }
             Task { @MainActor in
