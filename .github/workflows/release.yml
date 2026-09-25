@@ -303,7 +303,7 @@ jobs:
           path: Release
 
       - name: Create embedded release notes
-        run: printf '%s' "$RELEASE_NOTES" > Release/${APP_NAME}.html
+        run: printf '%s' "$RELEASE_NOTES" > "Release/${APP_NAME}.html"
 
       - name: Fetch Sparkle generate_appcast
         uses: ./.github/actions/fetch-generate-appcast

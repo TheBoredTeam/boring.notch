@@ -353,6 +353,7 @@ class WorkflowSmokeTests(unittest.TestCase):
         self.assertIn('--pattern "$APP_NAME.dmg"', self.release)
         self.assertIn('name: ${{ env.APP_NAME }}.dmg', self.release)
         self.assertIn('"Release/$APP_NAME.dmg"', self.release)
+        self.assertIn("printf '%s' \"$RELEASE_NOTES\" > \"Release/${APP_NAME}.html\"", self.release)
         self.assertIn("/Boring%20Notch.dmg", self.release)
         self.assertIn('app "Boring Notch.app"', self.release)
         self.assertNotIn("boringNotch.dmg", self.release)
