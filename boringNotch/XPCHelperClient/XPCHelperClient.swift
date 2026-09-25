@@ -151,6 +151,25 @@ final class XPCHelperClient: NSObject, ObservableObject {
         self.activationObserver = nil
     }
 
+    // MARK: - System Metrics
+
+    func systemMetrics(
+        requesting selection: BNSystemMetricSelection
+    ) async -> BNSystemMetricPayload? {
+        do {
+            let service = ensureRemoteService()
+            let data: Data = try await service.withContinuation { service, continuation in
+                service.systemMetrics(selection.rawValue) { data in
+                    continuation.resume(returning: data)
+                }
+            }
+            return try? JSONDecoder().decode(BNSystemMetricPayload.self, from: data)
+        } catch {
+            lastError = .transport(underlying: error)
+            return nil
+        }
+    }
+
     // MARK: - Accessibility
 
     // Fire-and-forget: callers invoke this from non-isolated contexts, and the work

@@ -12,6 +12,8 @@ import SwiftUI
 struct CalendarSettings: View {
     @ObservedObject private var calendarManager = CalendarManager.shared
     @Default(.showCalendar) var showCalendar: Bool
+    @Default(.showSystemActivityInMainCard) private var showSystemActivityInMainCard
+    @Default(.systemActivityEnabled) private var systemActivityEnabled
     @Default(.hideCompletedReminders) var hideCompletedReminders
     @Default(.hideAllDayEvents) var hideAllDayEvents
     @Default(.autoScrollToNextEvent) var autoScrollToNextEvent
@@ -22,8 +24,16 @@ struct CalendarSettings: View {
         Form {
             Section {
                 Defaults.Toggle(key: .showCalendar) {
-                    Text("Show calendar")
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Show calendar")
+                        if systemActivityEnabled && showSystemActivityInMainCard {
+                            Text("Turn off Show in main card in System Activity settings first.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
+                .disabled(systemActivityEnabled && showSystemActivityInMainCard)
                 Defaults.Toggle(key: .calendarWeekView) {
                     Text("Weekly view")
                 }
