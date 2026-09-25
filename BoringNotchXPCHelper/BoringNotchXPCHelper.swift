@@ -92,8 +92,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
     // MARK: - Notification Center banners
 
-    /// One watcher for the whole helper: `BoringNotchXPCHelper` is created per
-    /// connection, the AX observer must not be.
     private static let watcher = NotificationWatcher()
 
     @objc func startNotificationWatching(with reply: @escaping (Bool) -> Void) {
@@ -114,7 +112,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             NSLog("[boringNotch] could not obtain notification delegate proxy — banners will not reach the app")
         }
 
-        // The AX observer needs a live run loop; the helper's is on main.
         DispatchQueue.main.async {
             let watcher = Self.watcher
             watcher.onBanner = { notification in
