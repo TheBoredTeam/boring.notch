@@ -106,6 +106,7 @@ jobs:
           -clonedSourcePackagesDirPath "$RUNNER_TEMP/boringNotch-source-packages" \
           -onlyUsePackageVersionsFromResolvedFile \
           -arch x86_64 \
+          ONLY_ACTIVE_ARCH=NO \
           CODE_SIGNING_ALLOWED=NO \
           CODE_SIGNING_REQUIRED=NO \
           build
