@@ -9,18 +9,23 @@ import AppKit
 
 @MainActor
 enum ApplicationRelauncher {
-    static func restart() {
-        guard let bundleIdentifier = Bundle.main.bundleIdentifier else { return }
-
+    static func restart(at appURL: URL? = nil) {
         let workspace = NSWorkspace.shared
+        let applicationURL: URL
 
-        guard let appURL = workspace.urlForApplication(withBundleIdentifier: bundleIdentifier)
-        else { return }
+        if let appURL {
+            applicationURL = appURL
+        } else {
+            guard let bundleIdentifier = Bundle.main.bundleIdentifier,
+                  let registeredURL = workspace.urlForApplication(withBundleIdentifier: bundleIdentifier)
+            else { return }
+            applicationURL = registeredURL
+        }
 
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.createsNewApplicationInstance = true
 
-        workspace.openApplication(at: appURL, configuration: configuration, completionHandler: nil)
+        workspace.openApplication(at: applicationURL, configuration: configuration, completionHandler: nil)
 
         NSApplication.shared.terminate(nil)
     }

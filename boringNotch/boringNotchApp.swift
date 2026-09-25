@@ -11,6 +11,32 @@ import KeyboardShortcuts
 import Sparkle
 import SwiftUI
 
+enum LegacyAppBundleMigration {
+    static let legacyBundleName = "boringNotch.app"
+    static let currentBundleName = "Boring Notch.app"
+
+    enum MigrationError: Swift.Error {
+        case destinationExists(URL)
+    }
+
+    @discardableResult
+    static func migrateIfNeeded(
+        at bundleURL: URL,
+        fileManager: FileManager = .default
+    ) throws -> URL? {
+        guard bundleURL.lastPathComponent == legacyBundleName else { return nil }
+
+        let destinationURL = bundleURL.deletingLastPathComponent()
+            .appendingPathComponent(currentBundleName, isDirectory: true)
+        guard !fileManager.fileExists(atPath: destinationURL.path) else {
+            throw MigrationError.destinationExists(destinationURL)
+        }
+
+        try fileManager.moveItem(at: bundleURL, to: destinationURL)
+        return destinationURL
+    }
+}
+
 @main
 struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -88,6 +114,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var screenLockedObserver: Any?
     private var screenUnlockedObserver: Any?
     private var observers: [Any] = []
+    private var isMigratingLegacyBundle = false
 
     /// Kept for existing internal readers; the state itself moved to the manager.
     var windows: [String: NSWindow] { windowManager.windows }
@@ -100,6 +127,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        if isMigratingLegacyBundle { return }
+
         // Flush debounced shelf persistence to avoid losing recent changes
         ShelfStateViewModel.shared.flushSync()
 
@@ -136,6 +165,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        do {
+            if let migratedURL = try LegacyAppBundleMigration.migrateIfNeeded(at: Bundle.main.bundleURL) {
+                isMigratingLegacyBundle = true
+                ApplicationRelauncher.restart(at: migratedURL)
+                return
+            }
+        } catch {
+            NSLog("Failed to migrate legacy Boring Notch app bundle: %@", error.localizedDescription)
+        }
+
         SettingsWindowController.shared.setCamera(camera)
 
         NotificationCenter.default.addObserver(

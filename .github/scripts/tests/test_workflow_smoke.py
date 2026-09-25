@@ -316,8 +316,27 @@ class WorkflowSmokeTests(unittest.TestCase):
             REPOSITORY_ROOT / "boringNotch.xcodeproj" / "project.pbxproj"
         ).read_text(encoding="utf-8")
         self.assertEqual(pbxproj.count('PRODUCT_NAME = "Boring Notch";'), 2)
+        self.assertEqual(pbxproj.count('PRODUCT_MODULE_NAME = boringNotch;'), 2)
         self.assertEqual(pbxproj.count('INFOPLIST_KEY_CFBundleName = "Boring Notch";'), 2)
         self.assertEqual(pbxproj.count('INFOPLIST_KEY_CFBundleDisplayName = "Boring Notch";'), 2)
+        self.assertEqual(
+            pbxproj.count(
+                'TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Boring Notch.app/'
+                '$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Boring Notch";'
+            ),
+            2,
+        )
+
+        scheme = (
+            REPOSITORY_ROOT
+            / "boringNotch.xcodeproj"
+            / "xcshareddata"
+            / "xcschemes"
+            / "boringNotch.xcscheme"
+        ).read_text(encoding="utf-8")
+        self.assertEqual(scheme.count('BuildableName = "Boring Notch.app"'), 3)
+        self.assertIn("<TestAction", scheme)
+        self.assertIn('BlueprintName = "boringNotchTests"', scheme)
 
         # Reusable build: archives under the project name, exports/ships the
         # app and DMG under APP_NAME.
@@ -338,6 +357,10 @@ class WorkflowSmokeTests(unittest.TestCase):
         self.assertIn('app "Boring Notch.app"', self.release)
         self.assertNotIn("boringNotch.dmg", self.release)
         self.assertNotIn('app "boringNotch.app"', self.release)
+
+        readme = (REPOSITORY_ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("releases/latest/download/Boring%20Notch.dmg", readme)
+        self.assertNotIn("releases/latest/download/boringNotch.dmg", readme)
 
         # Nightly: downloads the renamed artifact, then renames to the fixed
         # rolling asset name (which is intentionally unchanged).
