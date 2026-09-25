@@ -76,7 +76,7 @@ This is the quickest and easiest method. It only requires a single command and w
 After moving Boring Notch to your Applications folder, run:
 
 ```bash
-xattr -dr com.apple.quarantine /Applications/boringNotch.app
+xattr -dr com.apple.quarantine "/Applications/Boring Notch.app"
 ```
 
 Then open the app normally.

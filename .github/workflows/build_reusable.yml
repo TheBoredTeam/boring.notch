@@ -38,6 +38,7 @@ jobs:
       contents: read
     env:
       PROJECT_NAME: boringNotch
+      APP_NAME: Boring Notch
       EXPORT_METHOD: development
       VERSION_INPUT: ${{ inputs.version }}
       BUILD_NUMBER_INPUT: ${{ inputs.build_number }}
@@ -140,18 +141,18 @@ jobs:
           python3 -m pip install --require-hashes -r Configuration/dmg/requirements.txt
           chmod +x Configuration/dmg/create_dmg.sh
           ./Configuration/dmg/create_dmg.sh \
-            "Release/$PROJECT_NAME.app" \
-            "Release/$PROJECT_NAME.dmg" \
-            "$PROJECT_NAME $VERSION_INPUT"
+            "Release/$APP_NAME.app" \
+            "Release/$APP_NAME.dmg" \
+            "$APP_NAME $VERSION_INPUT"
 
       - name: Upload DMG
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: ${{ env.PROJECT_NAME }}.dmg
-          path: Release/${{ env.PROJECT_NAME }}.dmg
+          name: ${{ env.APP_NAME }}.dmg
+          path: Release/${{ env.APP_NAME }}.dmg
 
       - name: Upload .app
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: ${{ env.PROJECT_NAME }}.app
-          path: Release/${{ env.PROJECT_NAME }}.app
+          name: ${{ env.APP_NAME }}.app
+          path: Release/${{ env.APP_NAME }}.app

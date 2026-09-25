@@ -5,7 +5,6 @@
 //  Created by Anmol Malhotra on 2026-02-24.
 //
 
-import AVFoundation
 import SwiftUI
 import Defaults
 
@@ -21,25 +20,25 @@ struct WebcamSettingsView: View {
                 Defaults.Toggle(key: .showMirror) {
                     Text("Enable boring mirror")
                 }
-                .disabled(!checkVideoInput())
+                .disabled(!camera.cameraAvailable)
 
                 Defaults.Toggle(key: .isMirrored) {
                     Text("Flip video")
                 }
-                .disabled(!showMirror || !checkVideoInput())
+                .disabled(!showMirror || !camera.cameraAvailable)
 
                 Picker("Camera", selection: Binding(
-                    get: { camera.selectedCameraID },
+                    get: { camera.selection },
                     set: { camera.selectCamera($0) }
                 )) {
                     Text("Automatic")
-                        .tag(nil as String?)
-                    ForEach(camera.availableCameras) { camera in
-                        Text(camera.name)
-                            .tag(camera.id as String?)
+                        .tag(CameraSelection.automatic)
+                    ForEach(camera.availableCameras) { device in
+                        Text(device.name)
+                            .tag(CameraSelection.device(device.id))
                     }
                 }
-                .disabled(!showMirror || !checkVideoInput())
+                .disabled(!showMirror || !camera.cameraAvailable)
 
                 Picker("Frame shape", selection: $mirrorShape) {
                     Text("Circle")
@@ -47,7 +46,7 @@ struct WebcamSettingsView: View {
                     Text("Square")
                         .tag(MirrorShapeEnum.rectangle)
                 }
-                .disabled(!showMirror || !checkVideoInput())
+                .disabled(!showMirror || !camera.cameraAvailable)
             } header: {
                 Text("General")
             }
@@ -59,9 +58,5 @@ struct WebcamSettingsView: View {
         .onAppear {
             camera.refresh()
         }
-    }
-
-    private func checkVideoInput() -> Bool {
-        AVCaptureDevice.default(for: .video) != nil
     }
 }
