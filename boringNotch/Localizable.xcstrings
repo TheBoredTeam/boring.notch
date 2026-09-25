@@ -656,6 +656,7 @@
       }
     },
     "Access Denied" : {
+      "comment" : "Camera permission placeholder title",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -16756,6 +16757,7 @@
       }
     },
     "Mirror" : {
+      "comment" : "Camera mirror placeholder title",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -17596,6 +17598,9 @@
           }
         }
       }
+    },
+    "No Camera" : {
+      "comment" : "No camera available placeholder title"
     },
     "No Compatible Apps Found" : {
       "comment" : "Context menu item: No Compatible Apps Found",
@@ -20309,6 +20314,9 @@
           }
         }
       }
+    },
+    "Paused" : {
+      "comment" : "Camera interrupted placeholder title"
     },
     "PDF Creation Failed" : {
       "localizations" : {
