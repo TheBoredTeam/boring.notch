@@ -35,6 +35,7 @@ struct AppIcons {
 }
 
 func normalizeBundleIdentifier(_ bundleID: String) -> String {
+    let bundleID = bundleID.trimmingCharacters(in: .whitespacesAndNewlines)
     let lower = bundleID.lowercased()
 
     // Handle Safari Technology Preview rendering helper processes
@@ -57,11 +58,35 @@ func normalizeBundleIdentifier(_ bundleID: String) -> String {
     return bundleID
 }
 
-func appIcon(for bundleID: String) -> Image {
+private func applicationURL(for bundleID: String) -> URL? {
     let workspace = NSWorkspace.shared
     let normalizedID = normalizeBundleIdentifier(bundleID)
 
     if let appURL = workspace.urlForApplication(withBundleIdentifier: normalizedID) {
+        return appURL
+    }
+
+    return workspace.runningApplications
+        .filter {
+            !$0.isTerminated
+                && $0.bundleIdentifier.map(normalizeBundleIdentifier) == normalizedID
+        }
+        .sorted { lhs, rhs in
+            if lhs.activationPolicy == .regular, rhs.activationPolicy != .regular {
+                return true
+            }
+            if rhs.activationPolicy == .regular, lhs.activationPolicy != .regular {
+                return false
+            }
+            return lhs.processIdentifier < rhs.processIdentifier
+        }
+        .first?.bundleURL
+}
+
+func appIcon(for bundleID: String) -> Image {
+    let workspace = NSWorkspace.shared
+
+    if let appURL = applicationURL(for: bundleID) {
         let appIcon = workspace.icon(forFile: appURL.path)
         return Image(nsImage: appIcon)
     }
@@ -71,9 +96,8 @@ func appIcon(for bundleID: String) -> Image {
 
 func appIconAsNSImage(for bundleID: String) -> NSImage? {
     let workspace = NSWorkspace.shared
-    let normalizedID = normalizeBundleIdentifier(bundleID)
 
-    if let appURL = workspace.urlForApplication(withBundleIdentifier: normalizedID) {
+    if let appURL = applicationURL(for: bundleID) {
         let appIcon = workspace.icon(forFile: appURL.path)
         appIcon.size = NSSize(width: 256, height: 256)
         return appIcon
@@ -90,7 +114,7 @@ func appIconAsNSImage(for bundleID: String) -> NSImage? {
 ///   3. one bounded listing of those directories (filename first, then
 ///      CFBundleDisplayName / CFBundleName)
 /// Hits and misses are memoized, so a chatty app never re-scans the disk.
-final class BundleIDResolver {
+final class BundleIDResolver: @unchecked Sendable {
     static let shared = BundleIDResolver()
 
     /// Thread-safety: the only production caller (`SystemNotificationManager.add`)
@@ -131,16 +155,23 @@ final class BundleIDResolver {
     private func resolve(target: String, name: String, searchDirectories: [URL]) -> String? {
         // 1. Running apps — the same match the helper attempts, redone here in
         //    case the app (re)launched between posting and capture.
-        if let running = NSWorkspace.shared.runningApplications.first(where: {
-            guard let localizedName = $0.localizedName else { return false }
-            return Self.normalizedAppName(localizedName) == target
-        })?.bundleIdentifier {
-            return running
+        let running = NSWorkspace.shared.runningApplications
+            .filter({
+                guard let localizedName = $0.localizedName else { return false }
+                return Self.normalizedAppName(localizedName) == target
+            })
+            .sorted(by: Self.preferRegularApplication)
+            .compactMap({ $0.bundleIdentifier })
+            .first
+        if let running {
+            return normalizeBundleIdentifier(running)
         }
 
         // 2. Direct probes: the name as reported, plus a space-stripped
         //    variant ("Google Chrome" -> "GoogleChrome.app" style installs).
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = name
+            .filter { !$0.unicodeScalars.allSatisfy(Self.bidiControlCharacters.contains) }
+            .trimmingCharacters(in: .whitespacesAndNewlines)
         let withoutSpaces = trimmed.replacingOccurrences(of: " ", with: "")
         let candidates = withoutSpaces == trimmed ? [trimmed] : [trimmed, withoutSpaces]
         for directory in searchDirectories {
@@ -186,6 +217,19 @@ final class BundleIDResolver {
     private func bundleIdentifier(at url: URL) -> String? {
         guard FileManager.default.fileExists(atPath: url.path) else { return nil }
         return Bundle(url: url)?.bundleIdentifier
+    }
+
+    private static func preferRegularApplication(
+        _ lhs: NSRunningApplication,
+        _ rhs: NSRunningApplication
+    ) -> Bool {
+        if lhs.activationPolicy == .regular, rhs.activationPolicy != .regular {
+            return true
+        }
+        if rhs.activationPolicy == .regular, lhs.activationPolicy != .regular {
+            return false
+        }
+        return lhs.processIdentifier < rhs.processIdentifier
     }
 
     /// Directional formatting characters Notification Center and app names both

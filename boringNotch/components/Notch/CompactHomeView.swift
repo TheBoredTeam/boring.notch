@@ -213,9 +213,18 @@ struct CompactHomeView: View {
 }
 
 /// Output device list shared by both layouts' media-output buttons.
+/// Row treatment follows macOS's AirPlay output menu: rounded highlight on
+/// hover, circular icon badge marking the active output, no checkmark.
 struct AudioOutputPicker: View {
     @ObservedObject var routeManager: AudioRouteManager
     let onSelect: () -> Void
+
+    /// Apple's rows use a softly rounded rectangle, not a full pill.
+    private let rowCornerRadius: CGFloat = 8
+    private let listInset: CGFloat = 8
+    private let badgeSize: CGFloat = 24
+    private let hoverFill: CGFloat = 0.1
+    private let pressedFill: CGFloat = 0.18
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -236,31 +245,77 @@ struct AudioOutputPicker: View {
                     .padding(.bottom, 10)
             } else {
                 ForEach(routeManager.devices) { device in
-                    Button {
-                        routeManager.select(device)
-                        onSelect()
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: device.iconName)
-                                .frame(width: 18)
-                            Text(device.name)
-                                .font(.system(size: 12))
-                                .lineLimit(1)
-                            Spacer(minLength: 12)
-                            if device.id == routeManager.activeDeviceID {
-                                Image(systemName: "checkmark")
-                                    .font(.system(size: 10, weight: .bold))
-                            }
-                        }
-                        .contentShape(Rectangle())
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                    }
-                    .buttonStyle(.plain)
+                    deviceRow(device)
                 }
+                .padding(.horizontal, listInset)
                 .padding(.bottom, 6)
             }
         }
         .frame(minWidth: 220)
+    }
+
+    private func deviceRow(_ device: AudioOutputDevice) -> some View {
+        let isSelected = device.id == routeManager.activeDeviceID
+
+        return Button {
+            routeManager.select(device)
+            onSelect()
+        } label: {
+            HStack(spacing: 10) {
+                deviceIcon(device, isSelected: isSelected)
+
+                Text(device.name)
+                    .font(.system(size: 13))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+
+                Spacer(minLength: 10)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .contentShape(RoundedRectangle(cornerRadius: rowCornerRadius))
+        }
+        .buttonStyle(AudioOutputRowButtonStyle(
+            cornerRadius: rowCornerRadius,
+            hoverFill: hoverFill,
+            pressedFill: pressedFill
+        ))
+    }
+
+    /// White badge + accent glyph for the active output, dim badge + white
+    /// glyph for the rest.
+    @ViewBuilder
+    private func deviceIcon(_ device: AudioOutputDevice, isSelected: Bool) -> some View {
+        Image(systemName: device.iconName)
+            .font(.system(size: badgeSize * 0.55, weight: .regular))
+            .foregroundStyle(isSelected ? Color.accentColor : Color.white)
+            .frame(width: badgeSize, height: badgeSize)
+            .background(isSelected ? Color.white : Color.white.opacity(0.22), in: Circle())
+    }
+}
+
+private struct AudioOutputRowButtonStyle: ButtonStyle {
+    let cornerRadius: CGFloat
+    let hoverFill: CGFloat
+    let pressedFill: CGFloat
+
+    @State private var isHovering = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        let fill: CGFloat
+        if configuration.isPressed {
+            fill = pressedFill
+        } else {
+            fill = isHovering ? hoverFill : 0
+        }
+
+        return configuration.label
+            .background(Color.white.opacity(fill), in: RoundedRectangle(cornerRadius: cornerRadius))
+            .onHover { hovering in
+                withAnimation(.easeOut(duration: 0.12)) {
+                    isHovering = hovering
+                }
+            }
     }
 }

@@ -27,7 +27,7 @@ jobs:
     #   - https://gh.io/supported-runners-and-hardware-resources
     #   - https://gh.io/using-larger-runners (GitHub.com only)
     # Consider using larger runners or machines with greater resources for possible analysis time improvements.
-    runs-on: ${{ (matrix.language == 'swift' && 'xcode-27') || 'ubuntu-latest' }}
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-26-intel') || 'ubuntu-latest' }}
     permissions:
       # required for all workflows
       security-events: write
@@ -105,6 +105,7 @@ jobs:
           -derivedDataPath "$RUNNER_TEMP/boringNotch-derived-data" \
           -clonedSourcePackagesDirPath "$RUNNER_TEMP/boringNotch-source-packages" \
           -onlyUsePackageVersionsFromResolvedFile \
+          -arch x86_64 \
           CODE_SIGNING_ALLOWED=NO \
           CODE_SIGNING_REQUIRED=NO \
           build

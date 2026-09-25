@@ -233,6 +233,9 @@
         }
       }
     },
+    "%@ notification" : {
+      "comment" : "A label describing the notification. The argument is the name of the app that sent the notification."
+    },
     "%@ Required" : {
       "localizations" : {
         "en" : {
@@ -656,6 +659,7 @@
       }
     },
     "Access Denied" : {
+      "comment" : "Camera permission placeholder title",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -2695,7 +2699,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reculer 15 s"
+            "value" : "Reculer de 15 s"
           }
         },
         "it" : {
@@ -8084,7 +8088,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Taille personnalisée de l'encoche - %@"
+            "value" : "Taille de l'encoche - %@"
           }
         },
         "he" : {
@@ -8945,6 +8949,9 @@
           }
         }
       }
+    },
+    "Dismiss notification" : {
+      "comment" : "A button that dismisses a notification."
     },
     "Displays" : {
       "localizations" : {
@@ -13232,7 +13239,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Haut"
+            "value" : "Élevé"
           }
         },
         "he" : {
@@ -14796,7 +14803,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bas"
+            "value" : "Faible"
           }
         },
         "he" : {
@@ -16472,7 +16479,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Moyen"
+            "value" : "Moyenne"
           }
         },
         "he" : {
@@ -16756,6 +16763,7 @@
       }
     },
     "Mirror" : {
+      "comment" : "Camera mirror placeholder title",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -17596,6 +17604,9 @@
           }
         }
       }
+    },
+    "No Camera" : {
+      "comment" : "No camera available placeholder title"
     },
     "No Compatible Apps Found" : {
       "comment" : "Context menu item: No Compatible Apps Found",
@@ -19236,6 +19247,7 @@
       }
     },
     "Open in %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -19977,6 +19989,9 @@
         }
       }
     },
+    "Opens %@" : {
+      "comment" : "A hint that appears when tapping the notification. The argument is the name of the app."
+    },
     "Option (⌥) Key Behavior" : {
       "localizations" : {
         "cs" : {
@@ -20309,6 +20324,9 @@
           }
         }
       }
+    },
+    "Paused" : {
+      "comment" : "Camera interrupted placeholder title"
     },
     "PDF Creation Failed" : {
       "localizations" : {
@@ -22844,7 +22862,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nécessite %@. Seules les bannières visibles sont en récupérées."
+            "value" : "Nécessite %@. Seules les bannières visibles sont récupérées."
           }
         },
         "pt-BR" : {
@@ -22907,7 +22925,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nécessite macOS 14.2 ou ultérieur. Mettre à jour macOS pour activer la forme d'onde audio en temps réel."
+            "value" : "Nécessite macOS 14.2 ou version ultérieure. Mettez à jour macOS pour activer la forme d'onde audio en temps réel."
           }
         },
         "it" : {
@@ -25047,6 +25065,9 @@
         }
       }
     },
+    "Show next queued notification" : {
+      "comment" : "A button that displays a label with the number of queued notifications and opens the next queued notification."
+    },
     "Show notch on lock screen" : {
       "localizations" : {
         "de" : {
@@ -26105,7 +26126,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Afficher les ombres"
+            "value" : "Activer l'effet de lueur"
           }
         },
         "it" : {
@@ -26281,7 +26302,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Affiche une encoche moins large avec seulement le lecteur de musique — aucun onglet, calendrier ou miroir."
+            "value" : "Le mode compact affiche une encoche moins large avec seulement le lecteur de musique — aucun onglet, calendrier ou miroir."
           }
         },
         "it" : {
@@ -27973,7 +27994,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Activer/désactiver l'ouverture de l'encoche:"
+            "value" : "Activer/désactiver l'ouverture de l'encoche :"
           }
         },
         "he" : {
@@ -28091,7 +28112,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Activer/désactiver l'aperçu furtif:"
+            "value" : "Activer/désactiver l'aperçu furtif :"
           }
         },
         "he" : {
@@ -28209,7 +28230,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Glisser deux doigts vers le haut sur l'encoche pour fermer, glisser deux doigts vers le bas sur l'encoche pour l'ouvrir lorsque l'option **Ouvrir l'encoche au survol** est désactivée"
+            "value" : "Lorsque l'option **Ouvrir l'encoche au survol** est désactivée, balayez deux doigts vers le bas ou le haut pour ouvrir ou fermer l'encoche "
           }
         },
         "he" : {
@@ -29646,7 +29667,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Infos de la version"
+            "value" : "Informations sur la version"
           }
         },
         "he" : {

@@ -153,6 +153,23 @@ final class XPCHelperClient: NSObject, ObservableObject {
 
     // MARK: - Accessibility
 
+    func migrateLegacyAppBundle(from source: URL, to destination: URL) async -> Bool {
+        do {
+            let service = ensureRemoteService()
+            return try await service.withContinuation { service, continuation in
+                service.migrateLegacyAppBundle(
+                    from: source.path,
+                    to: destination.path
+                ) { migrated in
+                    continuation.resume(returning: migrated)
+                }
+            }
+        } catch {
+            lastError = .transport(underlying: error)
+            return false
+        }
+    }
+
     // Fire-and-forget: callers invoke this from non-isolated contexts, and the work
     // itself hops onto the main actor.
     nonisolated func requestAccessibilityAuthorization() {

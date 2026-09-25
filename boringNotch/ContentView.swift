@@ -45,6 +45,9 @@ struct ContentView: View {
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
     private let nowPlayingFallbackNoticeWidth: CGFloat = 330
+    /// Matches the popovers' dismiss delay; long enough to reach a control
+    /// inside the panel without closing under the pointer.
+    private let hoverExitDelayMilliseconds = 350
 
     // MARK: - Corner Radius Scaling
     private var cornerRadiusScaleFactor: CGFloat? {
@@ -326,18 +329,7 @@ struct ContentView: View {
                             }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
-                        if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
-                            hoverTask?.cancel()
-                            hoverTask = Task {
-                                try? await Task.sleep(for: .milliseconds(100))
-                                guard !Task.isCancelled else { return }
-                                await MainActor.run {
-                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
-                                        self.vm.close()
-                                    }
-                                }
-                            }
-                        }
+                        scheduleCloseIfNotHovering(overNotch: vm)
                     }
                     // A new notification always takes the front of the stack,
                     // even if the user had swiped away to music.
@@ -351,19 +343,8 @@ struct ContentView: View {
                     .onChange(of: liveActivities.count) { _, count in
                         if activityIndex >= count { activityIndex = max(count - 1, 0) }
                     }
-                    .onChange(of: vm.isBatteryPopoverActive) {
-                        if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
-                            hoverTask?.cancel()
-                            hoverTask = Task {
-                                try? await Task.sleep(for: .milliseconds(100))
-                                guard !Task.isCancelled else { return }
-                                await MainActor.run {
-                                    if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
-                                        self.vm.close()
-                                    }
-                                }
-                            }
-                        }
+                    .onChange(of: vm.isPopoverActive) { _, _ in
+                        scheduleCloseIfNotHovering(overNotch: vm)
                     }
                     .sensoryFeedback(.alignment, trigger: haptics)
                     .contextMenu {
@@ -505,7 +486,7 @@ struct ContentView: View {
                            // which is what was stretching the whole panel
                            // out around a short message.
                            BoringHeader()
-                               .frame(height: max(24, displayClosedNotchHeight))
+                               .frame(height: max(38, displayClosedNotchHeight))
                                .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
                        }
                         // New case to enable compact notch on external displays
@@ -838,6 +819,27 @@ extension ContentView {
 
     // MARK: - Hover Management
 
+    /// Closes the open notch after the hover grace period unless a popover
+    /// still owns the pointer.
+    private func scheduleCloseIfNotHovering(overNotch notchViewModel: BoringViewModel) {
+        guard notchViewModel.notchState == .open,
+              !isHovering,
+              !notchViewModel.isPopoverActive else { return }
+        hoverTask?.cancel()
+        hoverTask = Task {
+            try? await Task.sleep(for: .milliseconds(hoverExitDelayMilliseconds))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                if self.vm.notchState == .open,
+                   !self.isHovering,
+                   !self.vm.isPopoverActive,
+                   !SharingStateManager.shared.preventNotchClose {
+                    self.vm.close()
+                }
+            }
+        }
+    }
+
     private func handleHover(_ hovering: Bool) {
         if coordinator.firstLaunch { return }
         hoverTask?.cancel()
@@ -880,7 +882,7 @@ extension ContentView {
             }
         } else {
             hoverTask = Task {
-                try? await Task.sleep(for: .milliseconds(100))
+                try? await Task.sleep(for: .milliseconds(hoverExitDelayMilliseconds))
                 guard !Task.isCancelled else { return }
 
                 await MainActor.run {
@@ -891,7 +893,9 @@ extension ContentView {
                     // Pointer left — let the notification age out again.
                     self.notificationManager.resumeDismiss()
 
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                    if self.vm.notchState == .open,
+                       !self.vm.isPopoverActive,
+                       !SharingStateManager.shared.preventNotchClose {
                         self.vm.close()
                     }
                 }

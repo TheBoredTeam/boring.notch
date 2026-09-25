@@ -19,6 +19,7 @@ permissions:
 
 env:
   PROJECT_NAME: boringNotch
+  APP_NAME: Boring Notch
   BETA_CHANNEL_NAME: beta
 
 jobs:
@@ -292,17 +293,17 @@ jobs:
           set -euo pipefail
           gh release download "v${VERSION}" \
             --repo "$GITHUB_REPOSITORY" \
-            --pattern "$PROJECT_NAME.dmg" \
+            --pattern "$APP_NAME.dmg" \
             --dir Release
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         if: ${{ needs.preparation.outputs.resume == 'false' }}
         with:
-          name: ${{ env.PROJECT_NAME }}.dmg
+          name: ${{ env.APP_NAME }}.dmg
           path: Release
 
       - name: Create embedded release notes
-        run: printf '%s' "$RELEASE_NOTES" > Release/boringNotch.html
+        run: printf '%s' "$RELEASE_NOTES" > "Release/${APP_NAME}.html"
 
       - name: Fetch Sparkle generate_appcast
         uses: ./.github/actions/fetch-generate-appcast
@@ -351,7 +352,7 @@ jobs:
           if [[ "$IS_BETA" == "true" ]]; then
             RELEASE_FLAGS+=(--prerelease)
           fi
-          gh release create "$TAG" "Release/$PROJECT_NAME.dmg" \
+          gh release create "$TAG" "Release/$APP_NAME.dmg" \
             --target "$SOURCE_SHA" \
             --title "${TAG} - ${TITLE}" \
             --notes "$NOTES" \
@@ -579,7 +580,7 @@ jobs:
       - name: Generate cask files
         run: |
           set -euo pipefail
-          DMG_URL="https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/boringNotch.dmg"
+          DMG_URL="https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/Boring%20Notch.dmg"
 
           # Retry SHA calculation (release may need a moment to propagate)
           for attempt in 1 2 3; do
@@ -604,10 +605,10 @@ jobs:
             end
             auto_updates true
             depends_on macos: :sonoma
-            app "boringNotch.app"
+            app "Boring Notch.app"
 
             postflight do
-              app_path = appdir/"boringNotch.app"
+              app_path = appdir/"Boring Notch.app"
               next unless app_path.exist?
               system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", app_path]
             end
@@ -707,10 +708,10 @@ jobs:
           fi
           {
             if [[ "${RELEASE_SUCCEEDED}" == "true" ]]; then
-              echo "✅ Released boringNotch v${VERSION} (${BUILD_TYPE} build ${BUILD_NUMBER})"
+              echo "✅ Released Boring Notch v${VERSION} (${BUILD_TYPE} build ${BUILD_NUMBER})"
               echo "🍺 Homebrew cask updated"
               echo "📱 Sparkle appcast updated"
             else
-              echo "❌ Release failed${VERSION:+ for boringNotch v${VERSION}}"
+              echo "❌ Release failed${VERSION:+ for Boring Notch v${VERSION}}"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
