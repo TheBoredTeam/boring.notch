@@ -2,14 +2,14 @@
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <item>
-            <title>2.8-rc.0</title>
-            <pubDate>Wed, 23 Sep 2026 23:06:32 +0000</pubDate>
+            <title>2.8-rc.1</title>
+            <pubDate>Fri, 25 Sep 2026 09:34:13 +0000</pubDate>
             <link>https://github.com/TheBoredTeam/boring.notch/releases</link>
             <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>278</sparkle:version>
-            <sparkle:shortVersionString>2.8-rc.0</sparkle:shortVersionString>
+            <sparkle:version>282</sparkle:version>
+            <sparkle:shortVersionString>2.8-rc.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description>&lt;h2&gt;✨ What's New&lt;/h2&gt;
+            <description>&lt;!-- &lt;h2&gt;✨ What's New&lt;/h2&gt;
 
 &lt;h3&gt;🎵 Music &amp;amp; Media&lt;/h3&gt;
 &lt;ul&gt;
@@ -123,8 +123,27 @@
 &lt;p&gt;Thank you to everyone who contributed code, translations, testing, bug reports, and feedback to this release!&lt;/p&gt;
 
 &lt;h3&gt;📄 Full Changelog&lt;/h3&gt;
-&lt;p&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.7.3...v2.8-rc.0"&gt;Compare v2.7.3 → v2.8-rc.0&lt;/a&gt;&lt;/p&gt;</description>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.8-rc.0/boringNotch.dmg" length="10583820" type="application/octet-stream" sparkle:edSignature="3pIV67RJ7Og8xaeLv58n/VUeHYu87iVtpECRIft00Orw4OpC6CfJGGZLvNaMyAltprj9SZD1R+3CQP5tmu+hDA==" />
+&lt;p&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.7.3...v2.8-rc.0"&gt;Compare v2.7.3 → v2.8-rc.0&lt;/a&gt;&lt;/p&gt; --&gt;
+
+&lt;h2&gt;🛠️ Fixes &amp;amp; Improvements&lt;/h2&gt;
+&lt;ul&gt;
+    &lt;li&gt;Fixed performance issues causing high CPU utilization for some users — @DavideSirico and @Alexander5015&lt;/li&gt;
+    &lt;li&gt;Fixed mirror sizing and alignment&lt;/li&gt;
+    &lt;li&gt;Fixed UI bugs with notifications&lt;/li&gt;
+    &lt;li&gt;Fixed Audio output selector hover broken and improved design &lt;/li&gt;
+    &lt;li&gt;Renamed boringNotch to Boring Notch&lt;/li&gt;
+    &lt;li&gt;Updated dependencies used by the project.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr&gt;
+&lt;h2&gt;👋 New Contributors&lt;/h2&gt;
+&lt;p&gt;@DavideSirico&lt;/p&gt;
+
+&lt;p&gt;Thank you to everyone who contributed code, translations, testing, bug reports, and feedback to this release!&lt;/p&gt;
+
+&lt;h3&gt;📄 Full Changelog&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.8-rc.0...v2.8-rc.1"&gt;Compare v2.8-rc.0 → v2.8-rc.1&lt;/p&gt;</description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.8-rc.1/Boring%20Notch.dmg" length="10629350" type="application/octet-stream" sparkle:edSignature="Y+9JNs6D8eMWRjGQ73wzr0W1rbpNCNtyYV0g2NrUSfszuCdbG4VVmZACg/wHkV+tupIXvj5mcdpPKvA5HWjtCQ==" />
         </item>
         <item>
             <title>2.7.3</title>
