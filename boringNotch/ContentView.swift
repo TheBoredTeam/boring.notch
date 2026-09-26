@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var calendarActivity = CalendarLiveActivityViewModel.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -58,6 +59,20 @@ struct ContentView: View {
         )
     }
 
+    /// Whether the calendar live activity has an event to show right now.
+    private var calendarActivityActive: Bool {
+        coordinator.calendarLiveActivityEnabled
+            && calendarActivity.activeEvent != nil
+            && vm.notchState == .closed
+            && !vm.hideOnClosed
+    }
+
+    /// Music not using the closed-notch slot, so calendar can take it alone.
+    private var musicSlotIdle: Bool {
+        !coordinator.expandingView.show
+            && !(musicManager.isPlaying || !musicManager.isPlayerIdle)
+    }
+
     private var computedChinWidth: CGFloat {
         var chinWidth: CGFloat = vm.closedNotchSize.width
 
@@ -69,6 +84,12 @@ struct ContentView: View {
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
         {
+            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+            if calendarActivityActive {
+                // Room for the calendar ring beside the music visualizer.
+                chinWidth += max(0, vm.effectiveClosedNotchHeight - 16) + 8
+            }
+        } else if calendarActivityActive && musicSlotIdle {
             chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
@@ -290,6 +311,9 @@ struct ContentView: View {
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
+                      } else if calendarActivityActive && musicSlotIdle {
+                          CalendarOnlyLiveActivity()
+                              .frame(alignment: .center)
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
@@ -479,11 +503,44 @@ struct ContentView: View {
                 ),
                 alignment: .center
             )
+
+            // Calendar countdown ring, shown alongside music when an event is active.
+            if calendarActivityActive {
+                CalendarLiveActivityRing(
+                    progress: calendarActivity.progress,
+                    size: max(0, vm.effectiveClosedNotchHeight - 16)
+                )
+            }
         }
         .frame(
             height: vm.effectiveClosedNotchHeight,
             alignment: .center
         )
+    }
+
+    /// Calendar live activity when music isn't using the notch slot:
+    /// calendar icon on the left, countdown ring on the right.
+    func CalendarOnlyLiveActivity() -> some View {
+        HStack {
+            Image(systemName: "calendar")
+                .resizable()
+                .scaledToFit()
+                .foregroundStyle(.gray)
+                .frame(
+                    width: max(0, vm.effectiveClosedNotchHeight - 16),
+                    height: max(0, vm.effectiveClosedNotchHeight - 16)
+                )
+
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.closedNotchSize.width + -cornerRadiusInsets.closed.top)
+
+            CalendarLiveActivityRing(
+                progress: calendarActivity.progress,
+                size: max(0, vm.effectiveClosedNotchHeight - 16)
+            )
+        }
+        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
     }
 
     @ViewBuilder
