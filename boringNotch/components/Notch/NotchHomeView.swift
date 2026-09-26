@@ -38,6 +38,7 @@ struct AlbumArtView: View {
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var vm: BoringViewModel
     let albumArtNamespace: Namespace.ID
+    @Default(.showMediaSourceAppIcon) private var showMediaSourceAppIcon
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -99,7 +100,7 @@ struct AlbumArtView: View {
 
     @ViewBuilder
     private var appIconOverlay: some View {
-        if vm.notchState == .open && !musicManager.usingAppIconForArtwork {
+        if showMediaSourceAppIcon && vm.notchState == .open && !musicManager.usingAppIconForArtwork {
             appIcon(for: musicManager.bundleIdentifier ?? MediaAppBundleID.appleMusic)
                 .resizable().scaledToFit()
                 .frame(width: 30, height: 30)

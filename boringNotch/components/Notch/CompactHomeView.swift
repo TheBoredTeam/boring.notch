@@ -39,6 +39,7 @@ struct CompactHomeView: View {
     @Default(.musicControlSlotLimit) private var slotLimit
     @Default(.playerColorTinting) private var playerColorTinting
     @Default(.showRemainingTime) private var showRemainingTime
+    @Default(.showMediaSourceAppIcon) private var showMediaSourceAppIcon
 
     private let albumArtWidth: CGFloat = 45
     private let headerSpacing: CGFloat = 10
@@ -201,7 +202,7 @@ struct CompactHomeView: View {
             // Badge scaled to this art. AlbumArtView's is a fixed 30pt with
             // a +10/+10 offset, sized for the 120pt art in the full layout —
             // on 50pt art it spills outside the corner.
-            if !musicManager.usingAppIconForArtwork {
+            if showMediaSourceAppIcon && !musicManager.usingAppIconForArtwork {
                 appIcon(for: musicManager.bundleIdentifier ?? MediaAppBundleID.appleMusic)
                     .resizable().scaledToFit()
                     .frame(width: 18, height: 18)

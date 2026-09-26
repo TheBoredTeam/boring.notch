@@ -447,6 +447,7 @@ extension Defaults.Keys {
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
     static let enableLyrics = Key<Bool>("enableLyrics", default: false)
     static let showRemainingTime = Key<Bool>("showRemainingTime", default: false)
+    static let showMediaSourceAppIcon = Key<Bool>("showMediaSourceAppIcon", default: true)
     static let musicControlSlots = Key<[MusicControlButton]>(
         "musicControlSlots",
         default: MusicControlButton.defaultLayout
