@@ -328,6 +328,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         ClaudeApprovalBridge.shared.updateEnabled()
+        AISessionMonitor.shared.updateEnabled()
+        _ = AISessionFocusService.shared
 
         // Sync notch height with real value on app launch if mode is matchRealNotchSize
         syncNotchHeightIfNeeded()

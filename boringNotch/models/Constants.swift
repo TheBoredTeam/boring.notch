@@ -21,6 +21,10 @@ let spacing: CGFloat = 16
 extension Defaults.Keys {
     static let enableAISessionFeature = Key<Bool>("enableAISessionFeature", default: false)
     static let enableClaudeApprovalBridge = Key<Bool>("enableClaudeApprovalBridge", default: false)
+    static let enableAISessionCompletionNotifications = Key<Bool>(
+        "enableAISessionCompletionNotifications", default: false
+    )
+    static let enableOpenClawBridge = Key<Bool>("enableOpenClawBridge", default: false)
 }
 enum CalendarSelectionState: Codable, Defaults.Serializable {
     case all

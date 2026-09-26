@@ -22,6 +22,8 @@ struct ContentView: View {
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
     @ObservedObject var notificationManager = SystemNotificationManager.shared
+    @ObservedObject var aiSessionMonitor = AISessionMonitor.shared
+    @ObservedObject var aiApprovalBridge = ClaudeApprovalBridge.shared
     /// Which entry of the closed-notch activity stack is on top.
     @State private var activityIndex: Int = 0
     @State private var hoverTask: Task<Void, Never>?
@@ -117,7 +119,16 @@ struct ContentView: View {
             items.append(.music)
         }
 
+        if Defaults[.enableAISessionFeature], aiActiveCount > 0 {
+            items.append(.aiSessions)
+        }
+
         return items
+    }
+
+    private var aiActiveCount: Int {
+        max(aiSessionMonitor.sessions.filter { $0.status == .working }.count,
+            aiApprovalBridge.pending.count + aiApprovalBridge.pendingQuestions.count)
     }
 
     /// A notification is a glance, not a workspace — it doesn't need the full
@@ -212,6 +223,8 @@ struct ContentView: View {
                 if showingInlineMusicPeek {
                     chinWidth += 2 * inlineMusicPeekLabelWidth
                 }
+            case .aiSessions:
+                chinWidth += 180
             }
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
@@ -485,6 +498,22 @@ struct ContentView: View {
                               case .music:
                                   MusicLiveActivity()
                                       .frame(alignment: .center)
+                              case .aiSessions:
+                                  HStack(spacing: 8) {
+                                      Image(systemName: "sparkles")
+                                      Text("AI")
+                                      Rectangle().fill(.black)
+                                          .frame(width: vm.closedNotchSize.width + 10)
+                                      Text("\(aiActiveCount) active")
+                                  }
+                                  .font(.system(size: 11, weight: .medium))
+                                  .foregroundStyle(.white)
+                                  .padding(.horizontal, 10)
+                                  .frame(height: displayClosedNotchHeight)
+                                  .onTapGesture {
+                                      coordinator.currentView = .aiSessions
+                                      _ = vm.open()
+                                  }
                               }
                           }
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed {
