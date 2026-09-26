@@ -10,7 +10,8 @@ import Defaults
 import SwiftUI
 
 class MusicVisualizerModel: NSView, AudioCaptureLevelsConsumer {
-    private var barLayers: [CAGradientLayer] = []
+    private let gradientLayer = CAGradientLayer()
+    private let barMaskLayer = CAShapeLayer()
     private var isPlaying = false
     private var useRealtime = false
     private var tintColor: NSColor = .systemBlue
@@ -21,7 +22,8 @@ class MusicVisualizerModel: NSView, AudioCaptureLevelsConsumer {
     private static let levelChangeThreshold: Float = 0.005
     private static let minBarScale: CGFloat = 0.12
     private static let idleBarScale: CGFloat = 0.3
-    private static let animationKey = "scaleAnimation"
+    private static let randomAnimationKey = "randomPathAnimation"
+    private static let transitionAnimationKey = "pathTransitionAnimation"
 
     private let barWidth: CGFloat = 2
     private let barCount = AudioCaptureManager.barCount
@@ -51,90 +53,106 @@ class MusicVisualizerModel: NSView, AudioCaptureLevelsConsumer {
         if frame.width < totalWidth {
             frame.size = CGSize(width: totalWidth, height: totalHeight)
         }
+
+        // One gradient plus one shape mask replaces six independently
+        // transformed gradient layers. The visualizer still has six bars,
+        // but WindowServer now composites a single tiny layer tree.
         let scale = NSScreen.main?.backingScaleFactor ?? 2.0
-        for i in 0..<barCount {
-            let barLayer = CAGradientLayer()
-            barLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-            applyFrame(to: barLayer, at: i, height: barWidth)
-            barLayer.cornerRadius = barWidth / 2
-            barLayer.contentsScale = scale
-            barLayer.shouldRasterize = false
-            barLayer.startPoint = CGPoint(x: 0.5, y: 0)
-            barLayer.endPoint = CGPoint(x: 0.5, y: 1)
-            barLayer.colors = [tintColor.withAlphaComponent(0.6).cgColor, tintColor.cgColor]
-            layer?.addSublayer(barLayer)
-            barLayers.append(barLayer)
-        }
+        gradientLayer.frame = CGRect(x: 0, y: 0, width: totalWidth, height: totalHeight)
+        gradientLayer.contentsScale = scale
+        gradientLayer.shouldRasterize = false
+        gradientLayer.startPoint = CGPoint(x: 0.5, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 0.5, y: 1)
+        gradientLayer.colors = [tintColor.withAlphaComponent(0.6).cgColor, tintColor.cgColor]
+
+        barMaskLayer.frame = gradientLayer.bounds
+        barMaskLayer.fillColor = NSColor.black.cgColor
+        barMaskLayer.path = path(
+            for: Array(repeating: Self.idleBarScale, count: barCount),
+            dots: true
+        )
+        gradientLayer.mask = barMaskLayer
+        layer?.addSublayer(gradientLayer)
     }
 
     private func expandBars(animated: Bool) {
-        CATransaction.begin()
-        if animated {
-            CATransaction.setAnimationDuration(0.3)
-            CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .easeOut))
-        } else {
-            CATransaction.setDisableActions(true)
-        }
-        for (index, barLayer) in barLayers.enumerated() {
-            applyFrame(to: barLayer, at: index, height: totalHeight)
-            barLayer.transform = CATransform3DMakeScale(1.0, Self.idleBarScale, 1.0)
-        }
-        CATransaction.commit()
+        setPath(
+            path(for: Array(repeating: Self.idleBarScale, count: barCount)),
+            animated: animated
+        )
     }
 
     private func collapseBarsToDots() {
-        CATransaction.begin()
-        CATransaction.setAnimationDuration(0.3)
-        CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .easeOut))
-        for (index, barLayer) in barLayers.enumerated() {
-            barLayer.removeAnimation(forKey: Self.animationKey)
-            barLayer.transform = CATransform3DIdentity
-            applyFrame(to: barLayer, at: index, height: barWidth)
-        }
-        CATransaction.commit()
+        barMaskLayer.removeAnimation(forKey: Self.randomAnimationKey)
+        setPath(
+            path(for: Array(repeating: Self.idleBarScale, count: barCount), dots: true),
+            animated: true
+        )
     }
 
     private func startRandomAnimating() {
-        for (index, barLayer) in barLayers.enumerated() {
-            animateBar(barLayer, delay: Double(index) * 0.08)
-        }
-    }
+        guard isPlaying, !useRealtime else { return }
 
-    private func animateBar(_ barLayer: CAGradientLayer, delay: Double = 0) {
-        guard isPlaying else { return }
-        let animation = CAKeyframeAnimation(keyPath: "transform.scale.y")
-        var values: [CGFloat] = []
-        var keyTimes: [NSNumber] = []
+        // Cancel the expand/collapse tween before the repeating animation
+        // starts; both otherwise animate the same mask property.
+        barMaskLayer.removeAnimation(forKey: Self.transitionAnimationKey)
+        let startPath = path(for: randomScales())
+        var values: [Any] = [startPath]
+        var keyTimes: [NSNumber] = [0]
         let numSteps = 50
-        let startValue = CGFloat.random(in: 0.3...1.0)
-        for i in 0...numSteps {
-            if i == 0 || i == numSteps {
-                values.append(startValue)
-            } else {
-                values.append(CGFloat.random(in: 0.3...1.0))
-            }
-            keyTimes.append(NSNumber(value: Double(i) / Double(numSteps)))
+
+        for step in 1..<numSteps {
+            values.append(path(for: randomScales()))
+            keyTimes.append(NSNumber(value: Double(step) / Double(numSteps)))
         }
+        values.append(startPath)
+        keyTimes.append(1)
+
+        let animation = CAKeyframeAnimation(keyPath: "path")
         animation.values = values
         animation.keyTimes = keyTimes
         animation.duration = 15
         animation.repeatCount = .infinity
         animation.calculationMode = .cubic
-        animation.beginTime = CACurrentMediaTime() + delay
         if #available(macOS 12.0, *) {
-            animation.preferredFrameRateRange = CAFrameRateRange(minimum: 10, maximum: 30, preferred: 15)
+            animation.preferredFrameRateRange = CAFrameRateRange(
+                minimum: 10,
+                maximum: 30,
+                preferred: 15
+            )
         }
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        barLayer.transform = CATransform3DMakeScale(1.0, startValue, 1.0)
-        CATransaction.commit()
-        barLayer.add(animation, forKey: Self.animationKey)
+
+        barMaskLayer.removeAnimation(forKey: Self.randomAnimationKey)
+        barMaskLayer.path = startPath
+        barMaskLayer.add(animation, forKey: Self.randomAnimationKey)
+    }
+
+    private func randomScales() -> [CGFloat] {
+        (0..<barCount).map { _ in CGFloat.random(in: Self.idleBarScale...1.0) }
     }
 
     private func stopRandomAnimating() {
-        for barLayer in barLayers {
-            barLayer.removeAnimation(forKey: Self.animationKey)
+        barMaskLayer.removeAnimation(forKey: Self.randomAnimationKey)
+    }
+
+    private func setPath(_ newPath: CGPath, animated: Bool) {
+        barMaskLayer.removeAnimation(forKey: Self.transitionAnimationKey)
+        guard animated else {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            barMaskLayer.path = newPath
+            CATransaction.commit()
+            return
         }
+
+        let oldPath = barMaskLayer.presentation()?.path ?? barMaskLayer.path ?? newPath
+        let animation = CABasicAnimation(keyPath: "path")
+        animation.fromValue = oldPath
+        animation.toValue = newPath
+        animation.duration = 0.3
+        animation.timingFunction = CAMediaTimingFunction(name: .easeOut)
+        barMaskLayer.path = newPath
+        barMaskLayer.add(animation, forKey: Self.transitionAnimationKey)
     }
 
     func setPlaying(_ playing: Bool) {
@@ -159,12 +177,7 @@ class MusicVisualizerModel: NSView, AudioCaptureLevelsConsumer {
         if enabled {
             stopRandomAnimating()
         } else {
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
-            for barLayer in barLayers {
-                barLayer.transform = CATransform3DMakeScale(1.0, Self.idleBarScale, 1.0)
-            }
-            CATransaction.commit()
+            expandBars(animated: false)
             startRandomAnimating()
         }
     }
@@ -190,33 +203,49 @@ class MusicVisualizerModel: NSView, AudioCaptureLevelsConsumer {
         guard isPlaying, useRealtime, values.count == barCount else { return }
         var maxDelta: Float = 0
         for i in 0..<barCount {
-            let d = abs(values[i] - lastAppliedLevels[i])
-            if d > maxDelta { maxDelta = d }
+            let delta = abs(values[i] - lastAppliedLevels[i])
+            if delta > maxDelta { maxDelta = delta }
         }
         guard maxDelta >= Self.levelChangeThreshold else { return }
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
+
         for i in 0..<barCount {
-            let v = values[i]
-            lastAppliedLevels[i] = v
-            let clamped = max(Self.minBarScale, min(1.0, CGFloat(v)))
-            barLayers[i].transform = CATransform3DMakeScale(1.0, clamped, 1.0)
+            lastAppliedLevels[i] = values[i]
         }
-        CATransaction.commit()
+        let scales = values.map { value in
+            max(Self.minBarScale, min(CGFloat(1), CGFloat(value)))
+        }
+        setPath(path(for: scales), animated: false)
     }
 
     func setTintColor(_ color: NSColor) {
         if let last = lastTintColor, last.isEqual(color) { return }
         lastTintColor = color
         tintColor = color
-        let colors = [color.withAlphaComponent(0.6).cgColor, color.cgColor]
-        barLayers.forEach { $0.colors = colors }
+        gradientLayer.colors = [
+            color.withAlphaComponent(0.6).cgColor,
+            color.cgColor
+        ]
     }
 
-    private func applyFrame(to barLayer: CALayer, at index: Int, height: CGFloat) {
-        let x = CGFloat(index) * (barWidth + spacing)
-        barLayer.bounds = CGRect(x: 0, y: 0, width: barWidth, height: height)
-        barLayer.position = CGPoint(x: x + barWidth / 2, y: totalHeight / 2)
+    private func path(for scales: [CGFloat], dots: Bool = false) -> CGPath {
+        let path = CGMutablePath()
+        for (index, scale) in scales.enumerated() {
+            let height = dots ? barWidth : totalHeight * scale
+            let rect = CGRect(
+                x: CGFloat(index) * (barWidth + spacing),
+                y: (totalHeight - height) / 2,
+                width: barWidth,
+                height: height
+            )
+            let cornerRadius = min(barWidth / 2, height / 2)
+            path.addRoundedRect(
+                in: rect,
+                cornerWidth: cornerRadius,
+                cornerHeight: cornerRadius,
+                transform: .identity
+            )
+        }
+        return path
     }
 }
 
