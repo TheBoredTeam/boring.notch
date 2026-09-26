@@ -75,6 +75,7 @@ struct AlbumArtView: View {
             .scaleEffect(musicManager.isPlaying ? 1 : 0.85)
 
             albumArtDarkOverlay
+                .allowsHitTesting(false)
         }
     }
 
