@@ -293,17 +293,17 @@ jobs:
           set -euo pipefail
           gh release download "v${VERSION}" \
             --repo "$GITHUB_REPOSITORY" \
-            --pattern "$APP_NAME.dmg" \
+            --pattern "$PROJECT_NAME.dmg" \
             --dir Release
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         if: ${{ needs.preparation.outputs.resume == 'false' }}
         with:
-          name: ${{ env.APP_NAME }}.dmg
+          name: ${{ env.PROJECT_NAME }}.dmg
           path: Release
 
       - name: Create embedded release notes
-        run: printf '%s' "$RELEASE_NOTES" > "Release/${APP_NAME}.html"
+        run: printf '%s' "$RELEASE_NOTES" > "Release/${PROJECT_NAME}.html"
 
       - name: Fetch Sparkle generate_appcast
         uses: ./.github/actions/fetch-generate-appcast
@@ -352,7 +352,7 @@ jobs:
           if [[ "$IS_BETA" == "true" ]]; then
             RELEASE_FLAGS+=(--prerelease)
           fi
-          gh release create "$TAG" "Release/$APP_NAME.dmg" \
+          gh release create "$TAG" "Release/$PROJECT_NAME.dmg" \
             --target "$SOURCE_SHA" \
             --title "${TAG} - ${TITLE}" \
             --notes "$NOTES" \
@@ -580,7 +580,7 @@ jobs:
       - name: Generate cask files
         run: |
           set -euo pipefail
-          DMG_URL="https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/Boring%20Notch.dmg"
+          DMG_URL="https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/${PROJECT_NAME}.dmg"
 
           # Retry SHA calculation (release may need a moment to propagate)
           for attempt in 1 2 3; do
