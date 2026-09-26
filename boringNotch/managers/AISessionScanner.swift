@@ -200,14 +200,37 @@ enum AISessionScanner {
     private static func readSessionLines(at url: URL) -> [String] {
         guard let handle = try? FileHandle(forReadingFrom: url) else { return [] }
         defer { try? handle.close() }
-        guard let head = try? handle.read(upToCount: 16 * 1024),
-              let length = try? handle.seekToEnd() else { return [] }
-        let tailOffset = length > 64 * 1024 ? length - 64 * 1024 : 0
-        guard (try? handle.seek(toOffset: tailOffset)) != nil,
-              let tail = try? handle.readToEnd() else { return [] }
-        let headLines = String(decoding: head, as: UTF8.self).split(separator: "\n").map(String.init)
-        let tailLines = String(decoding: tail, as: UTF8.self).split(separator: "\n").map(String.init)
-        return headLines + tailLines
+        guard let length = try? handle.seekToEnd() else { return [] }
+        return readSessionLines(length: length) { offset, count in
+            guard (try? handle.seek(toOffset: offset)) != nil else { return nil }
+            return try? handle.read(upToCount: count)
+        }
+    }
+
+    static func readSessionLines(
+        length: UInt64, read: (UInt64, Int) -> Data?
+    ) -> [String] {
+        let tailByteCount = 64 * 1024
+        if length <= tailByteCount {
+            guard let data = read(0, Int(length)) else { return [] }
+            return String(decoding: data, as: UTF8.self).split(separator: "\n").map(String.init)
+        }
+
+        // Session metadata can be much longer than a small read buffer.
+        let headerByteCount = 256 * 1024
+        let head = read(0, min(Int(length), headerByteCount)) ?? Data()
+        let firstLine = head.firstIndex(of: 0x0A).map { newline in
+            String(decoding: head[..<newline], as: UTF8.self)
+        }
+
+        let tailOffset = length - UInt64(tailByteCount)
+        guard let tail = read(tailOffset, tailByteCount),
+              let firstNewline = tail.firstIndex(of: 0x0A) else {
+            return firstLine.map { [$0] } ?? []
+        }
+        let tailLines = String(decoding: tail[tail.index(after: firstNewline)...], as: UTF8.self)
+            .split(separator: "\n").map(String.init)
+        return (firstLine.map { [$0] } ?? []) + tailLines
     }
 
     private static func object(from line: String) -> [String: Any]? {
