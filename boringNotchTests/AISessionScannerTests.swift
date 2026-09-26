@@ -38,6 +38,29 @@ final class AISessionScannerTests: XCTestCase {
         XCTAssertEqual(record.latestMessage, "Done")
     }
 
+    func testCodexMetadataLongerThanInitialBufferIsNotDropped() throws {
+        let metadata = String(repeating: "x", count: 20 * 1024)
+        let header = #"{"type":"session_meta","payload":{"id":"long-thread","cwd":"/tmp/project","originator":"Codex Desktop","extra":"\#(metadata)"}}"#
+        let filler = String(repeating: #"{"type":"event_msg","payload":{"type":"other"}}"# + "\n", count: 2_000)
+        let data = Data((header + "\n" + filler + #"{"type":"event_msg","payload":{"type":"task_started"}}"# + "\n").utf8)
+        XCTAssertGreaterThan(header.utf8.count, 16 * 1024)
+        XCTAssertGreaterThan(data.count, 64 * 1024)
+
+        let lines = AISessionScanner.readSessionLines(length: UInt64(data.count)) { offset, count in
+            let start = Int(offset)
+            return data[start..<min(start + count, data.count)]
+        }
+        let record = try XCTUnwrap(AISessionScanner.parseCodex(
+            lines: lines,
+            file: URL(fileURLWithPath: "/tmp/session.jsonl"),
+            modifiedAt: Date()
+        ))
+        XCTAssertEqual(record.id, "codex:long-thread")
+        XCTAssertEqual(record.projectName, "project")
+        XCTAssertEqual(record.status, .working)
+        XCTAssertTrue(record.isDesktopSession)
+    }
+
     func testClaudeToolUseIsWorkingAndAssistantReplyIsIdle() throws {
         let lines = [
             #"{"type":"user","sessionId":"session-1","cwd":"/tmp/project","message":{"content":"Help"}}"#,
