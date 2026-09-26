@@ -1564,7 +1564,7 @@
 			repositoryURL = "https://github.com/apple/swift-collections.git";
 			requirement = {
 				kind = exactVersion;
-				version = 1.6.0;
+				version = 1.7.0;
 			};
 		};
 		9A987A112C73CAA1005CA465 /* XCRemoteSwiftPackageReference "Pow" */ = {
