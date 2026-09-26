@@ -21,6 +21,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var capsLockManager = CapsLockManager.shared
     @ObservedObject var notificationManager = SystemNotificationManager.shared
     /// Which entry of the closed-notch activity stack is on top.
     @State private var activityIndex: Int = 0
@@ -466,6 +467,9 @@ struct ContentView: View {
                               hoverAnimation: $isHovering,
                               gestureProgress: $gestureProgress
                           )
+                              .transition(.opacity)
+                      } else if capsLockManager.isOn && Defaults[.showCapsLockIndicator] && vm.notchState == .closed && !coordinator.shouldShowSneakPeek(on: vm.screenUUID) && !vm.hideOnClosed {
+                          CapsLockIndicatorView()
                               .transition(.opacity)
                       } else if !liveActivities.isEmpty && vm.notchState == .closed && !vm.hideOnClosed {
                           LiveActivityStack(items: liveActivities, index: $activityIndex) { item in
