@@ -27,7 +27,6 @@ extension NSItemProvider {
     
     /// Loads raw data for the given type identifier
     func loadData() async -> Data? {
-        NSLog(String(describing: self.registeredTypeIdentifiers))
         guard hasItemConformingToTypeIdentifier(UTType.data.identifier) else { return nil }
         return await withCheckedContinuation { (cont: CheckedContinuation<Data?, Never>) in
             loadItem(forTypeIdentifier: UTType.data.identifier, options: nil) { item, error in
@@ -37,33 +36,26 @@ extension NSItemProvider {
                     return
                 }
                 if let url = item as? URL, let data = try? Data(contentsOf: url) {
-                    if !url.absoluteString.contains("com.apple.SwiftUI.filePromises") {
-                        cont.resume(returning: nil)
-                        return
-                    }
+                    // Requesting the generic "public.data" representation commonly
+                    // makes the system write a temp file and hand back its URL —
+                    // for BOTH SwiftUI's own drag mechanism AND external system
+                    // drag sources (the screenshot thumbnail bubble, Quick Look
+                    // previews, browser image drags, etc). Previously this only
+                    // accepted SwiftUI's own temp path and silently discarded
+                    // every external source's data, even though it had already
+                    // been read successfully above.
                     self.suggestedName = self.suggestedName ?? url.lastPathComponent
-                    
+
+                    // Best-effort cleanup of the system's temp file/folder — not
+                    // gating the actual data return on it succeeding.
                     let fileManager = FileManager.default
                     let folderURL = url.deletingLastPathComponent()
-
-                    do {
-                        // Delete the file first
-                        try fileManager.removeItem(at: url)
-                        print("Deleted file: \(url.path)")
-
-                        // Check folder contents
-                        let contents = try fileManager.contentsOfDirectory(atPath: folderURL.path)
-                        if contents.isEmpty {
-                            try fileManager.removeItem(at: folderURL)
-                            print("Folder was empty, deleted folder: \(folderURL.path)")
-                        } else {
-                            print("Folder not deleted — it still contains \(contents.count) item(s).")
-                        }
-
-                    } catch {
-                        print("Error: \(error.localizedDescription)")
+                    try? fileManager.removeItem(at: url)
+                    if let contents = try? fileManager.contentsOfDirectory(atPath: folderURL.path),
+                       contents.isEmpty {
+                        try? fileManager.removeItem(at: folderURL)
                     }
-                    
+
                     cont.resume(returning: data)
                 } else if let data = item as? Data {
                     cont.resume(returning: data)
