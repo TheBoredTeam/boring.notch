@@ -142,14 +142,14 @@ jobs:
           chmod +x Configuration/dmg/create_dmg.sh
           ./Configuration/dmg/create_dmg.sh \
             "Release/$APP_NAME.app" \
-            "Release/$APP_NAME.dmg" \
+            "Release/$PROJECT_NAME.dmg" \
             "$APP_NAME $VERSION_INPUT"
 
       - name: Upload DMG
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: ${{ env.APP_NAME }}.dmg
-          path: Release/${{ env.APP_NAME }}.dmg
+          name: ${{ env.PROJECT_NAME }}.dmg
+          path: Release/${{ env.PROJECT_NAME }}.dmg
 
       - name: Upload .app
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

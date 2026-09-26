@@ -105,7 +105,7 @@ jobs:
           -derivedDataPath "$RUNNER_TEMP/boringNotch-derived-data" \
           -clonedSourcePackagesDirPath "$RUNNER_TEMP/boringNotch-source-packages" \
           -onlyUsePackageVersionsFromResolvedFile \
-          -arch x86_64 \
+          ONLY_ACTIVE_ARCH=YES \
           CODE_SIGNING_ALLOWED=NO \
           CODE_SIGNING_REQUIRED=NO \
           build
