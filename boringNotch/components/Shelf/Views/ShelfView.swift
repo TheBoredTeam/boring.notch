@@ -42,6 +42,21 @@ struct ShelfView: View {
         return true
     }
 
+    private func presentFilePicker() {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = true
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = true
+        panel.title = "Add to Shelf"
+        panel.message = "Choose files or folders to add to the shelf"
+
+        guard panel.runModal() == .OK, !panel.urls.isEmpty else { return }
+
+        let providers = panel.urls.map { NSItemProvider(contentsOf: $0) ?? NSItemProvider() }
+        dropInteraction.dropEvent = true
+        shelfState.load(providers)
+    }
+
     private func panel(quickLookService: QuickLookService) -> some View {
         RoundedRectangle(cornerRadius: 16)
             .stroke(
@@ -78,6 +93,11 @@ struct ShelfView: View {
                         .foregroundStyle(.gray)
                         .font(.system(.title3, design: .rounded))
                         .fontWeight(.medium)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    presentFilePicker()
                 }
             } else {
                 ScrollView(.horizontal) {
