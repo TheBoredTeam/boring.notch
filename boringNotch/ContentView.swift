@@ -35,9 +35,13 @@ struct ContentView: View {
 
     @State private var haptics: Bool = false
 
+    @State private var albumArtOpacity: Double = 1.0
+    @State private var albumArtFadeTask: Task<Void, Never>?
+
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.albumArtDisplayMode) var albumArtDisplayMode
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -701,8 +705,9 @@ struct ContentView: View {
                 return base
             }()
 
-            Image(nsImage: musicManager.albumArt)
-                .resizable().scaledToFit()
+            currentAlbumArtImage
+                .resizable()
+                .aspectRatio(contentMode: .fit)
                 .clipShape(
                     RoundedRectangle(
                         cornerRadius: closedCornerRadius)
@@ -713,6 +718,7 @@ struct ContentView: View {
                     height: scaledArtSize
                 )
                 .offset(x: artVerticalInset - liveActivityEdgeMargin)
+                .opacity(albumArtDisplayMode == .fade ? albumArtOpacity : 1.0)
 
             Rectangle()
                 .fill(.black)
@@ -784,6 +790,68 @@ struct ContentView: View {
             height: displayClosedNotchHeight,
             alignment: .center
         )
+        .onAppear {
+            refreshAlbumArtFade()
+        }
+        .onChange(of: musicManager.songTitle) { _, _ in
+            refreshAlbumArtFade()
+        }
+        .onChange(of: vm.notchState) { _, _ in
+            refreshAlbumArtFade()
+        }
+        .onChange(of: isHovering) { _, _ in
+            refreshAlbumArtFade()
+        }
+        .onChange(of: albumArtDisplayMode) { _, _ in
+            refreshAlbumArtFade()
+        }
+    }
+
+    private var currentAlbumArtImage: Image {
+        if albumArtDisplayMode == .appIcon,
+           let bundleID = musicManager.bundleIdentifier,
+           !bundleID.isEmpty {
+            return appIcon(for: bundleID)
+        }
+        return Image(nsImage: musicManager.albumArt)
+    }
+
+    private func refreshAlbumArtFade() {
+        guard albumArtDisplayMode == .fade else {
+            albumArtFadeTask?.cancel()
+            albumArtFadeTask = nil
+            if albumArtOpacity != 1.0 {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    albumArtOpacity = 1.0
+                }
+            }
+            return
+        }
+
+        if vm.notchState != .closed || isHovering {
+            albumArtFadeTask?.cancel()
+            albumArtFadeTask = nil
+            withAnimation(.easeInOut(duration: 0.3)) {
+                albumArtOpacity = 1.0
+            }
+            return
+        }
+
+        scheduleAlbumArtFade()
+    }
+
+    private func scheduleAlbumArtFade() {
+        albumArtFadeTask?.cancel()
+        withAnimation(.easeInOut(duration: 0.3)) {
+            albumArtOpacity = 1.0
+        }
+        albumArtFadeTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(3))
+            if Task.isCancelled { return }
+            withAnimation(.easeInOut(duration: 1.0)) {
+                albumArtOpacity = 0.0
+            }
+        }
     }
 
     @ViewBuilder

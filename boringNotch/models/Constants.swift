@@ -270,6 +270,26 @@ enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     }
 }
 
+// Album art display options for the closed-notch music live activity
+enum AlbumArtDisplayMode: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case always
+    case fade
+    case appIcon
+
+    var id: String { self.rawValue }
+
+    var localizedString: String {
+        switch self {
+        case .always:
+            return NSLocalizedString("album_art_always", comment: "Album art display: Always show")
+        case .fade:
+            return NSLocalizedString("album_art_fade", comment: "Album art display: Fade after 3 seconds")
+        case .appIcon:
+            return NSLocalizedString("album_art_app_icon", comment: "Album art display: Show app icon")
+        }
+    }
+}
+
 // Action to perform when Option (⌥) is held while pressing media keys
 enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable {
     case openSettings
@@ -454,6 +474,10 @@ extension Defaults.Keys {
     static let musicControlSlotLimit = Key<Int>(
         "musicControlSlotLimit",
         default: MusicControlButton.defaultLayout.count
+    )
+    static let albumArtDisplayMode = Key<AlbumArtDisplayMode>(
+        "albumArtDisplayMode",
+        default: .always
     )
 
     // MARK: Battery

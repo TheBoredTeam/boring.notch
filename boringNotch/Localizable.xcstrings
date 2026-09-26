@@ -1263,6 +1263,49 @@
         }
       }
     },
+    "Album art display" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album art display"
+          }
+        }
+      }
+    },
+    "album_art_always" : {
+      "comment" : "Album art display: Always show",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always show"
+          }
+        }
+      }
+    },
+    "album_art_app_icon" : {
+      "comment" : "Album art display: Show app icon",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show app icon"
+          }
+        }
+      }
+    },
+    "album_art_fade" : {
+      "comment" : "Album art display: Fade after 3 seconds",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fade after 3 seconds"
+          }
+        }
+      }
+    },
     "All-day" : {
       "localizations" : {
         "cs" : {
