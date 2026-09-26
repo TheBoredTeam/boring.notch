@@ -280,6 +280,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        // Disabled until a notch opens — see TabShortcutController
+        TabShortcutController.updateRegistration()
+
+        KeyboardShortcuts.onKeyDown(for: .selectTab1) { [weak self] in
+            self?.selectTab(at: 0)
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .selectTab2) { [weak self] in
+            self?.selectTab(at: 1)
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .nextTab) { [weak self] in
+            self?.cycleTab(by: 1)
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .previousTab) { [weak self] in
+            self?.cycleTab(by: -1)
+        }
+
         KeyboardShortcuts.onKeyDown(for: .toggleNotchOpen) { [weak self] in
             Task { [weak self] in
                 guard let self = self else { return }
@@ -342,6 +361,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // make sure OSD subsystems are in the right state now that initial
         // notch windows have been created/cleaned up
         coordinator.applyOSDSources()
+    }
+
+    private func selectTab(at index: Int) {
+        guard coordinator.tabsVisible, tabs.indices.contains(index) else { return }
+        withAnimation(.smooth) {
+            coordinator.currentView = tabs[index].view
+        }
+    }
+
+    /// Steps through `tabs` by `offset`, wrapping around at either end.
+    private func cycleTab(by offset: Int) {
+        guard coordinator.tabsVisible,
+              let current = tabs.firstIndex(where: { $0.view == coordinator.currentView })
+        else { return }
+        let next = (current + offset + tabs.count) % tabs.count
+        selectTab(at: next)
     }
 
     func playWelcomeSound() {
