@@ -22,8 +22,11 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var dragDetectorTargeting: Bool = false
     @Published var generalDropTargeting: Bool = false
     @Published var dropZoneTargeting: Bool = false
+    @Published var storageDropTargeting: Bool = false
+    @Published var appleIntelligenceDropTargeting: Bool = false
     @Published var dropEvent: Bool = false
     @Published var anyDropZoneTargeting: Bool = false
+    @Published var suppressAutoOpenUntil: Date = .distantPast
     var cancellables: Set<AnyCancellable> = []
     
     @Published var hideOnClosed: Bool = true
@@ -59,9 +62,13 @@ class BoringViewModel: NSObject, ObservableObject {
         notchSize = getClosedNotchSize(screenUUID: screenUUID)
         closedNotchSize = notchSize
 
-        Publishers.CombineLatest3($dropZoneTargeting, $dragDetectorTargeting, $generalDropTargeting)
-            .map { shelf, drag, general in
-                shelf || drag || general
+        Publishers.CombineLatest(
+            Publishers.CombineLatest4($dropZoneTargeting, $dragDetectorTargeting, $generalDropTargeting, $appleIntelligenceDropTargeting),
+            $storageDropTargeting
+        )
+            .map { sharedTargets, storage in
+                let (shelf, drag, general, appleIntelligence) = sharedTargets
+                return shelf || drag || general || appleIntelligence || storage
             }
             .assign(to: \.anyDropZoneTargeting, on: self)
             .store(in: &cancellables)
@@ -197,11 +204,21 @@ class BoringViewModel: NSObject, ObservableObject {
         MusicManager.shared.forceUpdate()
     }
 
-    func close() {
+    func resetDropSessionState() {
+        dropEvent = false
+        dragDetectorTargeting = false
+        generalDropTargeting = false
+        dropZoneTargeting = false
+        storageDropTargeting = false
+        appleIntelligenceDropTargeting = false
+    }
+
+    func close(ignoringSharingState: Bool = false) {
         // Do not close while a share picker or sharing service is active
-        if SharingStateManager.shared.preventNotchClose {
+        if SharingStateManager.shared.preventNotchClose && !ignoringSharingState {
             return
         }
+        resetDropSessionState()
         self.notchSize = getClosedNotchSize(screenUUID: self.screenUUID)
         self.closedNotchSize = self.notchSize
         self.notchState = .closed
