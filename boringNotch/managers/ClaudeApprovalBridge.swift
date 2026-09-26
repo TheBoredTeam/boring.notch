@@ -14,6 +14,8 @@ struct ClaudeApprovalRequest: Identifiable {
     let toolName: String
     let detail: String
     let projectName: String
+    let source: AISessionSource
+    let sessionID: String?
 }
 
 struct ClaudeQuestionOption: Identifiable, Sendable {
@@ -36,14 +38,16 @@ struct ClaudeQuestionRequest: Identifiable, Sendable {
     let id: UUID
     let projectName: String
     let questions: [ClaudeQuestion]
+    let source: AISessionSource
+    let sessionID: String?
 }
 
 @MainActor
 final class ClaudeApprovalBridge: ObservableObject {
     static let shared = ClaudeApprovalBridge()
-    static let port: UInt16 = 37892
-    static let hookURL = "http://127.0.0.1:37892/claude/permission"
-    static let questionHookURL = "http://127.0.0.1:37892/claude/question"
+    nonisolated static let port: UInt16 = 37892
+    nonisolated static let hookURL = "http://127.0.0.1:37892/claude/permission"
+    nonisolated static let questionHookURL = "http://127.0.0.1:37892/claude/question"
 
     @Published private(set) var pending: [ClaudeApprovalRequest] = []
     @Published private(set) var pendingQuestions: [ClaudeQuestionRequest] = []
@@ -51,8 +55,11 @@ final class ClaudeApprovalBridge: ObservableObject {
 
     private var listener: DispatchSourceRead?
     private var connections: [UUID: Int32] = [:]
+    private var disconnectWatchers: [UUID: DispatchSourceRead] = [:]
     private var questionInputs: [UUID: [String: Any]] = [:]
+    private var openClawRequestIDs: Set<UUID> = []
     private var token: String?
+    private var openClawToken: String?
     private let queue = DispatchQueue(label: "boringNotch.claudeApprovalBridge", qos: .utility)
 
     private init() {}
@@ -100,16 +107,20 @@ final class ClaudeApprovalBridge: ObservableObject {
     }
 
     func updateEnabled() {
-        guard Defaults[.enableAISessionFeature], Defaults[.enableClaudeApprovalBridge] else {
+        guard Defaults[.enableAISessionFeature],
+              Defaults[.enableClaudeApprovalBridge] || Defaults[.enableOpenClawBridge] else {
             stop()
             return
         }
-        guard listener == nil else { return }
-        guard let configuredToken = Self.configuredToken() else {
-            errorMessage = "Install the local approval hook before enabling this option."
+        token = Defaults[.enableClaudeApprovalBridge] ? Self.configuredToken() : nil
+        openClawToken = Defaults[.enableOpenClawBridge]
+            ? OpenClawHookInstaller.configuredToken() : nil
+        guard token != nil || openClawToken != nil else {
+            stop()
+            errorMessage = "Install a local hook before enabling live actions."
             return
         }
-        token = configuredToken
+        guard listener == nil else { return }
 
         let fd = Darwin.socket(AF_INET, SOCK_STREAM, 0)
         guard fd >= 0 else {
@@ -150,37 +161,46 @@ final class ClaudeApprovalBridge: ObservableObject {
     }
 
     func respond(to id: UUID, allow: Bool) {
-        guard let connection = connections.removeValue(forKey: id) else { return }
+        guard let connection = takeConnection(for: id) else { return }
         pending.removeAll { $0.id == id }
-        send(Self.permissionDecision(allow: allow), to: connection)
+        let isOpenClaw = openClawRequestIDs.remove(id) != nil
+        send(isOpenClaw ? Self.openClawPermissionDecision(allow: allow)
+             : Self.permissionDecision(allow: allow), to: connection)
     }
 
     func answerQuestion(id: UUID, answers: [String: String]) {
         guard let request = pendingQuestions.first(where: { $0.id == id }),
               let input = questionInputs[id],
               request.questions.allSatisfy({ !(answers[$0.text] ?? "").isEmpty }),
-              let connection = connections.removeValue(forKey: id) else { return }
+              let connection = takeConnection(for: id) else { return }
         questionInputs.removeValue(forKey: id)
         pendingQuestions.removeAll { $0.id == id }
-        send(Self.questionDecision(input: input, answers: answers), to: connection)
+        let isOpenClaw = openClawRequestIDs.remove(id) != nil
+        send(isOpenClaw ? Self.openClawQuestionDecision(answers: answers)
+             : Self.questionDecision(input: input, answers: answers), to: connection)
     }
 
     func answerInClaude(id: UUID) {
-        guard let connection = connections.removeValue(forKey: id) else { return }
+        guard let connection = takeConnection(for: id) else { return }
         questionInputs.removeValue(forKey: id)
         pendingQuestions.removeAll { $0.id == id }
-        send([:], to: connection)
+        let isOpenClaw = openClawRequestIDs.remove(id) != nil
+        send(isOpenClaw ? ["ok": true, "answer": ["skipped": true]] : [:], to: connection)
     }
 
     private func stop() {
         listener?.cancel()
         listener = nil
         token = nil
+        openClawToken = nil
+        for watcher in disconnectWatchers.values { watcher.cancel() }
+        disconnectWatchers.removeAll()
         for connection in connections.values { send([:], to: connection) }
         connections.removeAll()
         pending.removeAll()
         pendingQuestions.removeAll()
         questionInputs.removeAll()
+        openClawRequestIDs.removeAll()
         errorMessage = nil
     }
 
@@ -202,9 +222,20 @@ final class ClaudeApprovalBridge: ObservableObject {
     }
 
     private func handle(_ request: HTTPRequest, connection: Int32) {
-        guard let token,
-              request.authorization == "Bearer \(token)",
-              let body = try? JSONSerialization.jsonObject(with: request.body) as? [String: Any] else {
+        guard let body = try? JSONSerialization.jsonObject(with: request.body) as? [String: Any] else {
+            send([:], to: connection, status: "400 Bad Request")
+            return
+        }
+        if request.path == "/openclaw/event" {
+            guard let openClawToken,
+                  request.authorization == "Bearer \(openClawToken)" else {
+                send([:], to: connection, status: "401 Unauthorized")
+                return
+            }
+            handleOpenClaw(body, connection: connection)
+            return
+        }
+        guard let token, request.authorization == "Bearer \(token)" else {
             send([:], to: connection, status: "401 Unauthorized")
             return
         }
@@ -239,13 +270,16 @@ final class ClaudeApprovalBridge: ObservableObject {
             id: id,
             toolName: toolName,
             detail: detail,
-            projectName: projectName
+            projectName: projectName,
+            source: .claude,
+            sessionID: body["session_id"] as? String
         ))
         connections[id] = connection
+        watchDisconnect(for: id, connection: connection)
         showApprovalTab()
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 20) { [weak self] in
-            guard let self, let connection = self.connections.removeValue(forKey: id) else { return }
+            guard let self, let connection = self.takeConnection(for: id) else { return }
             self.pending.removeAll { $0.id == id }
             self.send([:], to: connection)
         }
@@ -263,14 +297,17 @@ final class ClaudeApprovalBridge: ObservableObject {
         pendingQuestions.append(ClaudeQuestionRequest(
             id: id,
             projectName: projectName,
-            questions: questions
+            questions: questions,
+            source: .claude,
+            sessionID: body["session_id"] as? String
         ))
         questionInputs[id] = input
         connections[id] = connection
+        watchDisconnect(for: id, connection: connection)
         showApprovalTab()
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 290) { [weak self] in
-            guard let self, let connection = self.connections.removeValue(forKey: id) else { return }
+            guard let self, let connection = self.takeConnection(for: id) else { return }
             self.pendingQuestions.removeAll { $0.id == id }
             self.questionInputs.removeValue(forKey: id)
             self.send([:], to: connection)
@@ -286,6 +323,116 @@ final class ClaudeApprovalBridge: ObservableObject {
             .flatMap { appDelegate.viewModels[$0] } ?? appDelegate.vm
         BoringViewCoordinator.shared.currentView = .aiSessions
         if model.notchState == .closed { _ = model.open() }
+    }
+
+    private func handleOpenClaw(_ body: [String: Any], connection: Int32) {
+        guard let event = body["event"] as? [String: Any],
+              event["protocol_version"] as? String == "1",
+              event["source"] as? String == "openclaw",
+              let sessionID = event["session_id"] as? String,
+              !sessionID.isEmpty, sessionID.utf8.count <= 256,
+              let eventName = event["hook_event_name"] as? String else {
+            send(["ok": false, "error": "invalid_payload"], to: connection,
+                 status: "400 Bad Request")
+            return
+        }
+        let cwd = event["cwd"] as? String
+        let message = event["message"] as? String
+        AISessionMonitor.shared.ingestOpenClaw(
+            sessionID: sessionID, event: eventName, cwd: cwd, message: message
+        )
+        let projectName = cwd.map { URL(fileURLWithPath: $0).lastPathComponent }
+            ?? "OpenClaw"
+
+        if eventName == "PermissionRequest" {
+            let id = UUID()
+            let toolName = event["tool_name"] as? String ?? "Tool"
+            let input = event["tool_input"] as? [String: Any] ?? [:]
+            let detail = (try? JSONSerialization.data(
+                withJSONObject: input, options: [.prettyPrinted, .sortedKeys]
+            )).flatMap { String(data: $0, encoding: .utf8) } ?? "No tool parameters provided"
+            pending.append(ClaudeApprovalRequest(
+                id: id, toolName: toolName, detail: detail,
+                projectName: projectName, source: .openClaw,
+                sessionID: sessionID
+            ))
+            connections[id] = connection
+            watchDisconnect(for: id, connection: connection)
+            openClawRequestIDs.insert(id)
+            showApprovalTab()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 20) { [weak self] in
+                guard let self, let connection = self.takeConnection(for: id) else { return }
+                self.pending.removeAll { $0.id == id }
+                self.openClawRequestIDs.remove(id)
+                self.send(["ok": true], to: connection)
+            }
+            return
+        }
+
+        if eventName == "AskUserQuestion",
+           let question = event["question"] as? [String: Any],
+           let text = question["text"] as? String, !text.isEmpty {
+            let options = (question["options"] as? [[String: Any]] ?? []).compactMap { item -> ClaudeQuestionOption? in
+                guard let label = item["label"] as? String else { return nil }
+                return ClaudeQuestionOption(label: label, detail: item["description"] as? String)
+            }
+            let id = UUID()
+            let parsed = ClaudeQuestion(
+                text: text, header: question["header"] as? String ?? "Question",
+                options: options, multiSelect: false
+            )
+            pendingQuestions.append(ClaudeQuestionRequest(
+                id: id, projectName: projectName, questions: [parsed],
+                source: .openClaw, sessionID: sessionID
+            ))
+            questionInputs[id] = [:]
+            connections[id] = connection
+            watchDisconnect(for: id, connection: connection)
+            openClawRequestIDs.insert(id)
+            showApprovalTab()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 290) { [weak self] in
+                guard let self, let connection = self.takeConnection(for: id) else { return }
+                self.pendingQuestions.removeAll { $0.id == id }
+                self.questionInputs.removeValue(forKey: id)
+                self.openClawRequestIDs.remove(id)
+                self.send(["ok": true, "answer": ["skipped": true]], to: connection)
+            }
+            return
+        }
+        send(["ok": true], to: connection)
+    }
+
+    private func takeConnection(for id: UUID) -> Int32? {
+        disconnectWatchers.removeValue(forKey: id)?.cancel()
+        return connections.removeValue(forKey: id)
+    }
+
+    private func watchDisconnect(for id: UUID, connection: Int32) {
+        let watcher = DispatchSource.makeReadSource(fileDescriptor: connection, queue: queue)
+        watcher.setEventHandler { [weak self, weak watcher] in
+            var byte: UInt8 = 0
+            let result = Darwin.recv(connection, &byte, 1, MSG_PEEK)
+            guard result >= 0 else { return }
+            watcher?.cancel()
+            Task { @MainActor [weak self] in
+                guard let self, self.takeConnection(for: id) != nil else { return }
+                Darwin.close(connection)
+                self.pending.removeAll { $0.id == id }
+                self.pendingQuestions.removeAll { $0.id == id }
+                self.questionInputs.removeValue(forKey: id)
+                self.openClawRequestIDs.remove(id)
+            }
+        }
+        watcher.resume()
+        disconnectWatchers[id] = watcher
+    }
+
+    nonisolated static func openClawPermissionDecision(allow: Bool) -> [String: Any] {
+        ["ok": true, "decision": ["behavior": allow ? "allow" : "deny"]]
+    }
+
+    nonisolated static func openClawQuestionDecision(answers: [String: String]) -> [String: Any] {
+        ["ok": true, "answer": ["value": answers.values.joined(separator: ", "), "skipped": false]]
     }
 
     private func send(_ object: [String: Any], to connection: Int32, status: String = "200 OK") {

@@ -7,18 +7,18 @@
 
 import Foundation
 
-enum AISessionSource: String, Sendable {
+enum AISessionSource: String, Codable, Sendable {
     case codex = "Codex"
     case claude = "Claude Code"
     case openClaw = "OpenClaw"
 }
 
-enum AISessionStatus: String, Sendable {
+enum AISessionStatus: String, Codable, Sendable {
     case working = "Working"
     case idle = "Idle"
 }
 
-struct AISessionRecord: Identifiable, Sendable {
+struct AISessionRecord: Codable, Equatable, Identifiable, Sendable {
     let id: String
     let source: AISessionSource
     let projectName: String
@@ -26,10 +26,19 @@ struct AISessionRecord: Identifiable, Sendable {
     let lastActivity: Date
     let latestMessage: String?
     let isDesktopSession: Bool
+    let cwd: String?
+    let latestPrompt: String?
+    let latestReply: String?
+    let terminalBundleID: String?
+    let windowTitle: String?
+    let currentTool: String?
 }
 
 enum AISessionScanner {
     static func scan(homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser) -> [AISessionRecord] {
+        let codexPrompts = latestCodexPrompts(
+            at: homeDirectory.appendingPathComponent(".codex/history.jsonl")
+        )
         let roots: [(URL, AISessionSource)] = [
             (homeDirectory.appendingPathComponent(".codex/sessions"), .codex),
             (homeDirectory.appendingPathComponent(".claude/projects"), .claude),
@@ -39,7 +48,10 @@ enum AISessionScanner {
                 let lines = readSessionLines(at: url)
                 switch source {
                 case .codex:
-                    return parseCodex(lines: lines, file: url, modifiedAt: modifiedAt)
+                    return parseCodex(
+                        lines: lines, file: url, modifiedAt: modifiedAt,
+                        historyPrompts: codexPrompts
+                    )
                 case .claude:
                     return parseClaude(lines: lines, file: url, modifiedAt: modifiedAt)
                 case .openClaw:
@@ -56,12 +68,20 @@ enum AISessionScanner {
         return (sessions + openClawSessions).sorted { $0.lastActivity > $1.lastActivity }
     }
 
-    static func parseCodex(lines: [String], file: URL, modifiedAt: Date) -> AISessionRecord? {
+    static func parseCodex(
+        lines: [String], file: URL, modifiedAt: Date,
+        historyPrompts: [String: String] = [:]
+    ) -> AISessionRecord? {
         var sessionID: String?
         var cwd: String?
         var isDesktopSession = false
         var latestMessage: String?
+        var latestPrompt: String?
+        var latestReply: String?
         var latestTask: String?
+        var terminalBundleID: String?
+        var windowTitle: String?
+        var currentTool: String?
 
         for line in lines {
             guard let value = object(from: line), let payload = value["payload"] as? [String: Any] else { continue }
@@ -70,6 +90,8 @@ enum AISessionScanner {
                 sessionID = payload["id"] as? String ?? sessionID
                 cwd = payload["cwd"] as? String ?? cwd
                 isDesktopSession = (payload["originator"] as? String) == "Codex Desktop"
+                terminalBundleID = payload["terminal_bundle"] as? String ?? terminalBundleID
+                windowTitle = payload["window_title"] as? String ?? windowTitle
             case "turn_context":
                 cwd = payload["cwd"] as? String ?? cwd
             case "event_msg":
@@ -78,12 +100,24 @@ enum AISessionScanner {
                     latestTask = event
                 }
                 if let message = payload["last_agent_message"] as? String, !message.isEmpty {
-                    latestMessage = preview(message)
+                    latestReply = preview(message)
+                    latestMessage = latestReply
+                }
+                if payload["type"] as? String == "user_message",
+                   let message = payload["message"] as? String, !message.isEmpty {
+                    latestPrompt = preview(message)
                 }
             case "response_item":
                 if payload["role"] as? String == "assistant",
                    let message = messageText(payload["content"]), !message.isEmpty {
-                    latestMessage = preview(message)
+                    latestReply = preview(message)
+                    latestMessage = latestReply
+                } else if payload["role"] as? String == "user",
+                          let message = messageText(payload["content"]), !message.isEmpty {
+                    latestPrompt = preview(message)
+                }
+                if payload["type"] as? String == "function_call" {
+                    currentTool = payload["name"] as? String ?? currentTool
                 }
             default:
                 break
@@ -99,7 +133,13 @@ enum AISessionScanner {
             status: isRecent && (latestTask == "task_started" || latestTask == nil) ? .working : .idle,
             lastActivity: modifiedAt,
             latestMessage: latestMessage,
-            isDesktopSession: isDesktopSession
+            isDesktopSession: isDesktopSession,
+            cwd: cwd,
+            latestPrompt: latestPrompt ?? historyPrompts[sessionID].map(preview),
+            latestReply: latestReply,
+            terminalBundleID: terminalBundleID,
+            windowTitle: windowTitle,
+            currentTool: currentTool
         )
     }
 
@@ -107,6 +147,9 @@ enum AISessionScanner {
         var sessionID = file.deletingPathExtension().lastPathComponent
         var cwd: String?
         var latestMessage: String?
+        var latestPrompt: String?
+        var latestReply: String?
+        var currentTool: String?
         var latestEvent: String?
 
         for line in lines {
@@ -117,12 +160,20 @@ enum AISessionScanner {
             if type == "user", let message = value["message"] as? [String: Any] {
                 let content = message["content"]
                 latestEvent = hasToolResult(content) ? "tool_result" : "user"
+                if latestEvent == "user", let text = messageText(content), !text.isEmpty {
+                    latestPrompt = preview(text)
+                }
             } else if type == "assistant", let message = value["message"] as? [String: Any] {
                 if let text = messageText(message["content"]), !text.isEmpty {
-                    latestMessage = preview(text)
+                    latestReply = preview(text)
+                    latestMessage = latestReply
                     latestEvent = "assistant"
                 }
-                if hasToolUse(message["content"]) { latestEvent = "tool_use" }
+                if hasToolUse(message["content"]) {
+                    latestEvent = "tool_use"
+                    currentTool = (message["content"] as? [[String: Any]])?
+                        .first(where: { $0["type"] as? String == "tool_use" })?["name"] as? String
+                }
             }
         }
 
@@ -136,7 +187,13 @@ enum AISessionScanner {
             status: isRecent && ["user", "tool_result", "tool_use"].contains(latestEvent) ? .working : .idle,
             lastActivity: modifiedAt,
             latestMessage: latestMessage,
-            isDesktopSession: false
+            isDesktopSession: false,
+            cwd: cwd,
+            latestPrompt: latestPrompt,
+            latestReply: latestReply,
+            terminalBundleID: nil,
+            windowTitle: nil,
+            currentTool: currentTool
         )
     }
 
@@ -144,6 +201,9 @@ enum AISessionScanner {
         var sessionID: String?
         var cwd: String?
         var latestMessage: String?
+        var latestPrompt: String?
+        var latestReply: String?
+        var currentTool: String?
         var latestEvent: String?
 
         for line in lines {
@@ -155,11 +215,19 @@ enum AISessionScanner {
                       let role = message["role"] as? String {
                 if role == "assistant" {
                     if let text = messageText(message["content"]), !text.isEmpty {
-                        latestMessage = preview(text)
+                        latestReply = preview(text)
+                        latestMessage = latestReply
                     }
                     latestEvent = hasOpenClawToolCall(message["content"]) ? "tool_call" : "assistant"
+                    if latestEvent == "tool_call" {
+                        currentTool = (message["content"] as? [[String: Any]])?
+                            .first(where: { $0["type"] as? String == "toolCall" })?["name"] as? String
+                    }
                 } else if role == "user" || role == "toolResult" {
                     latestEvent = role
+                    if role == "user", let text = messageText(message["content"]), !text.isEmpty {
+                        latestPrompt = preview(text)
+                    }
                 }
             }
         }
@@ -174,7 +242,13 @@ enum AISessionScanner {
             status: isRecent && ["user", "toolResult", "tool_call"].contains(latestEvent) ? .working : .idle,
             lastActivity: modifiedAt,
             latestMessage: latestMessage,
-            isDesktopSession: false
+            isDesktopSession: false,
+            cwd: cwd,
+            latestPrompt: latestPrompt,
+            latestReply: latestReply,
+            terminalBundleID: nil,
+            windowTitle: nil,
+            currentTool: currentTool
         )
     }
 
@@ -205,6 +279,25 @@ enum AISessionScanner {
             guard (try? handle.seek(toOffset: offset)) != nil else { return nil }
             return try? handle.read(upToCount: count)
         }
+    }
+
+    private static func latestCodexPrompts(at url: URL) -> [String: String] {
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return [:] }
+        defer { try? handle.close() }
+        guard let length = try? handle.seekToEnd() else { return [:] }
+        let offset = length > 256 * 1024 ? length - 256 * 1024 : 0
+        guard (try? handle.seek(toOffset: offset)) != nil,
+              let data = try? handle.readToEnd() else { return [:] }
+        var lines = String(decoding: data, as: UTF8.self).split(separator: "\n")
+        if offset > 0 && !lines.isEmpty { lines.removeFirst() }
+        var prompts: [String: String] = [:]
+        for line in lines {
+            guard let object = object(from: String(line)),
+                  let id = object["session_id"] as? String,
+                  let prompt = object["text"] as? String, !prompt.isEmpty else { continue }
+            prompts[id] = prompt
+        }
+        return prompts
     }
 
     static func readSessionLines(

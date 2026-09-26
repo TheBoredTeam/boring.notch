@@ -10,6 +10,9 @@
 		C0DE72000000000000000001 /* AISessionScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE72000000000000000003 /* AISessionScanner.swift */; };
 		C0DE72000000000000000002 /* NotchAISessionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE72000000000000000004 /* NotchAISessionsView.swift */; };
 		C0DE73000000000000000001 /* ClaudeApprovalBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE73000000000000000002 /* ClaudeApprovalBridge.swift */; };
+		C0DE74000000000000000001 /* AISessionMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE74000000000000000002 /* AISessionMonitor.swift */; };
+		C0DE75000000000000000001 /* AISessionFocusService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE75000000000000000002 /* AISessionFocusService.swift */; };
+		C0DE76000000000000000001 /* OpenClawHookInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE76000000000000000002 /* OpenClawHookInstaller.swift */; };
 		07FE456E7AEA085D9FCA6D97 /* MeetingLinkDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B2A5E5F4D28F1DD9CD0B09 /* MeetingLinkDetector.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -189,6 +192,9 @@
 		C0DE72000000000000000003 /* AISessionScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AISessionScanner.swift; sourceTree = "<group>"; };
 		C0DE72000000000000000004 /* NotchAISessionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchAISessionsView.swift; sourceTree = "<group>"; };
 		C0DE73000000000000000002 /* ClaudeApprovalBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeApprovalBridge.swift; sourceTree = "<group>"; };
+		C0DE74000000000000000002 /* AISessionMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AISessionMonitor.swift; sourceTree = "<group>"; };
+		C0DE75000000000000000002 /* AISessionFocusService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AISessionFocusService.swift; sourceTree = "<group>"; };
+		C0DE76000000000000000002 /* OpenClawHookInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenClawHookInstaller.swift; sourceTree = "<group>"; };
 		0268933F488E47DFB58E48CF /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
 		033B8885979E4EA1A78E8ADC /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
@@ -581,6 +587,9 @@
 			children = (
 				C0DE72000000000000000003 /* AISessionScanner.swift */,
 				C0DE73000000000000000002 /* ClaudeApprovalBridge.swift */,
+				C0DE74000000000000000002 /* AISessionMonitor.swift */,
+				C0DE75000000000000000002 /* AISessionFocusService.swift */,
+				C0DE76000000000000000002 /* OpenClawHookInstaller.swift */,
 				11DB26652EDD0BE1001EA0CF /* LyricsService.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
@@ -982,6 +991,9 @@
 				C0DE72000000000000000001 /* AISessionScanner.swift in Sources */,
 				C0DE72000000000000000002 /* NotchAISessionsView.swift in Sources */,
 				C0DE73000000000000000001 /* ClaudeApprovalBridge.swift in Sources */,
+				C0DE74000000000000000001 /* AISessionMonitor.swift in Sources */,
+				C0DE75000000000000000001 /* AISessionFocusService.swift in Sources */,
+				C0DE76000000000000000001 /* OpenClawHookInstaller.swift in Sources */,
 				115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,

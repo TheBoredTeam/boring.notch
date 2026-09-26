@@ -9,11 +9,32 @@ import AppKit
 import SwiftUI
 
 struct NotchAISessionsView: View {
+    let previewSessions: [AISessionRecord]?
     @EnvironmentObject private var vm: BoringViewModel
     @ObservedObject private var approvalBridge = ClaudeApprovalBridge.shared
-    @State private var sessions: [AISessionRecord] = []
-    @State private var isLoading = true
+    @ObservedObject private var monitor = AISessionMonitor.shared
+    @ObservedObject private var focusService = AISessionFocusService.shared
     @State private var questionWindow: BoringNotchSkyLightWindow?
+
+    init(previewSessions: [AISessionRecord]? = nil) {
+        self.previewSessions = previewSessions
+    }
+
+    private var displayedSessions: [AISessionRecord] {
+        previewSessions ?? monitor.sessions
+    }
+
+    private var displayedCompletions: [AISessionCompletion] {
+        previewSessions == nil ? monitor.completions : []
+    }
+
+    private var displayedQuestions: [ClaudeQuestionRequest] {
+        previewSessions == nil ? approvalBridge.pendingQuestions : []
+    }
+
+    private var displayedApprovals: [ClaudeApprovalRequest] {
+        previewSessions == nil ? approvalBridge.pending : []
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -22,11 +43,11 @@ struct NotchAISessionsView: View {
                 Text("AI Sessions")
                     .font(.system(size: 13, weight: .semibold))
                 Spacer()
-                Text("\(sessions.filter { $0.status == .working }.count) working")
+                Text("\(displayedSessions.filter { $0.status == .working }.count) working")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Button {
-                    Task { await refresh() }
+                    Task { await monitor.refresh() }
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
@@ -35,9 +56,11 @@ struct NotchAISessionsView: View {
             }
             .padding(.horizontal, 14)
 
-            if sessions.isEmpty && approvalBridge.pending.isEmpty && approvalBridge.pendingQuestions.isEmpty {
+            if displayedSessions.isEmpty && displayedCompletions.isEmpty
+                && displayedApprovals.isEmpty && displayedQuestions.isEmpty {
                 ContentUnavailableView(
-                    isLoading ? "Loading sessions" : "No recent sessions",
+                    previewSessions == nil && monitor.isLoading
+                        ? "Loading sessions" : "No recent sessions",
                     systemImage: "sparkles",
                     description: Text("Recent Codex, Claude Code, and OpenClaw sessions appear here.")
                 )
@@ -45,17 +68,34 @@ struct NotchAISessionsView: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 7) {
-                        ForEach(approvalBridge.pendingQuestions) { request in
+                        ForEach(displayedCompletions) { completion in
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                                Text("\(completion.source.rawValue) finished · \(completion.projectName)")
+                                    .font(.system(size: 10, weight: .medium))
+                                Spacer()
+                                Button {
+                                    monitor.dismissCompletion(id: completion.id)
+                                } label: {
+                                    Image(systemName: "xmark")
+                                }
+                                .buttonStyle(.plain)
+                            }
+                            .padding(10)
+                            .background(.green.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+                        }
+                        ForEach(displayedQuestions) { request in
                             ClaudeQuestionCard(request: request) { answers in
                                 approvalBridge.answerQuestion(id: request.id, answers: answers)
                             } onFallback: {
                                 approvalBridge.answerInClaude(id: request.id)
                             }
                         }
-                        ForEach(approvalBridge.pending) { approval in
+                        ForEach(displayedApprovals) { approval in
                             approvalCard(approval)
                         }
-                        ForEach(sessions) { session in
+                        ForEach(displayedSessions) { session in
                             sessionCard(session)
                         }
                     }
@@ -65,23 +105,22 @@ struct NotchAISessionsView: View {
             }
         }
         .padding(.top, 8)
+        .foregroundStyle(.white)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onAppear { updateQuestionInputFocus() }
+        .onAppear {
+            guard previewSessions == nil else { return }
+            updateQuestionInputFocus()
+            monitor.updateEnabled()
+        }
         .onChange(of: approvalBridge.pendingQuestions.count) { _, _ in
             updateQuestionInputFocus()
         }
         .onDisappear { releaseQuestionInputFocus() }
-        .task {
-            while !Task.isCancelled {
-                await refresh()
-                try? await Task.sleep(for: .seconds(10))
-            }
-        }
     }
 
     private func approvalCard(_ request: ClaudeApprovalRequest) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Permission requested · \(request.projectName)")
+            Text("\(request.source.rawValue) permission · \(request.projectName)")
                 .font(.system(size: 11, weight: .semibold))
             Text(request.toolName)
                 .font(.system(size: 10, weight: .medium))
@@ -121,7 +160,7 @@ struct NotchAISessionsView: View {
                     .font(.system(size: 11))
                     .lineLimit(1)
                 Spacer(minLength: 4)
-                Text(session.status.rawValue)
+                Text(statusLabel(for: session))
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
                 Text(session.lastActivity, style: .relative)
@@ -129,36 +168,55 @@ struct NotchAISessionsView: View {
                     .foregroundStyle(.tertiary)
             }
 
-            if let message = session.latestMessage {
-                Text(message)
+            if let prompt = session.latestPrompt {
+                Text("You: \(prompt)")
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
                     .textSelection(.enabled)
             }
 
-            if session.isDesktopSession,
-               let threadID = session.id.split(separator: ":", maxSplits: 1).last,
-               let url = URL(string: "codex://threads/\(threadID)") {
-                Button("Open in Codex") {
-                    NSWorkspace.shared.open(url)
+            if let reply = session.latestReply {
+                Text("Reply: \(reply)")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .textSelection(.enabled)
+            }
+
+            if session.status == .working, let tool = session.currentTool {
+                Text("Using \(tool)")
+                    .font(.system(size: 9))
+                    .foregroundStyle(.tertiary)
+            }
+
+            HStack(spacing: 12) {
+                if focusService.hasBinding(for: session) {
+                    Button(session.isDesktopSession ? "Open session"
+                           : focusService.hasExplicitBinding(for: session)
+                           ? "Return to terminal" : "Find terminal") {
+                        focusService.focus(session)
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10, weight: .medium))
                 }
-                .buttonStyle(.plain)
-                .font(.system(size: 10, weight: .medium))
+                if !session.isDesktopSession && focusService.canBindCurrentTerminal {
+                    Button("Bind previous terminal") {
+                        focusService.bindLastTerminal(to: session)
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10, weight: .medium))
+                }
+            }
+            if let error = focusService.errorMessage {
+                Text(error)
+                    .font(.system(size: 9))
+                    .foregroundStyle(.orange)
             }
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 10))
-    }
-
-    private func refresh() async {
-        let latest = await Task.detached(priority: .utility) {
-            AISessionScanner.scan()
-        }.value
-        guard !Task.isCancelled else { return }
-        sessions = latest
-        isLoading = false
     }
 
     private func updateQuestionInputFocus() {
@@ -178,6 +236,17 @@ struct NotchAISessionsView: View {
         window.makeKeyAndOrderFront(nil)
     }
 
+    private func statusLabel(for session: AISessionRecord) -> String {
+        let rawID = session.id.split(separator: ":", maxSplits: 1).last.map(String.init)
+        if approvalBridge.pendingQuestions.contains(where: {
+            $0.source == session.source && $0.sessionID == rawID
+        }) { return "Question" }
+        if approvalBridge.pending.contains(where: {
+            $0.source == session.source && $0.sessionID == rawID
+        }) { return "Approval" }
+        return session.status.rawValue
+    }
+
     private func releaseQuestionInputFocus() {
         questionWindow?.makeFirstResponder(nil)
         questionWindow?.wantsKeyForTextInput = false
@@ -195,7 +264,7 @@ private struct ClaudeQuestionCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Question from \(request.projectName)")
+            Text("Question from \(request.source.rawValue) · \(request.projectName)")
                 .font(.system(size: 11, weight: .semibold))
 
             ForEach(request.questions) { question in
@@ -233,7 +302,9 @@ private struct ClaudeQuestionCard: View {
             HStack {
                 Button("Send answers") { onAnswer(answers) }
                     .disabled(answers.count != request.questions.count)
-                Button("Answer in Claude") { onFallback() }
+                Button(request.source == .claude ? "Answer in Claude" : "Answer in OpenClaw") {
+                    onFallback()
+                }
             }
             .font(.system(size: 10, weight: .medium))
         }

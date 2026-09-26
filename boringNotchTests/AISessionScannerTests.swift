@@ -26,6 +26,7 @@ final class AISessionScannerTests: XCTestCase {
     func testCodexCompletedTaskIsIdle() throws {
         let lines = [
             #"{"type":"session_meta","payload":{"id":"thread-2"}}"#,
+            #"{"type":"event_msg","payload":{"type":"user_message","message":"What changed?"}}"#,
             #"{"type":"event_msg","payload":{"type":"task_started"}}"#,
             #"{"type":"event_msg","payload":{"type":"task_complete","last_agent_message":"Done"}}"#,
         ]
@@ -36,6 +37,18 @@ final class AISessionScannerTests: XCTestCase {
         ))
         XCTAssertEqual(record.status, .idle)
         XCTAssertEqual(record.latestMessage, "Done")
+        XCTAssertEqual(record.latestPrompt, "What changed?")
+        XCTAssertEqual(record.latestReply, "Done")
+    }
+
+    func testCodexHistoryProvidesPromptWhenTranscriptTailDoesNot() throws {
+        let record = try XCTUnwrap(AISessionScanner.parseCodex(
+            lines: [#"{"type":"session_meta","payload":{"id":"history-thread"}}"#],
+            file: URL(fileURLWithPath: "/tmp/session.jsonl"),
+            modifiedAt: Date(),
+            historyPrompts: ["history-thread": "Latest question"]
+        ))
+        XCTAssertEqual(record.latestPrompt, "Latest question")
     }
 
     func testCodexMetadataLongerThanInitialBufferIsNotDropped() throws {
@@ -78,6 +91,8 @@ final class AISessionScannerTests: XCTestCase {
         ))
         XCTAssertEqual(completed.status, .idle)
         XCTAssertEqual(completed.latestMessage, "Finished")
+        XCTAssertEqual(completed.latestPrompt, "Help")
+        XCTAssertEqual(completed.latestReply, "Finished")
     }
 
     func testOpenClawToolCallIsWorkingAndAssistantReplyIsIdle() throws {
@@ -100,5 +115,49 @@ final class AISessionScannerTests: XCTestCase {
         ))
         XCTAssertEqual(completed.status, .idle)
         XCTAssertEqual(completed.latestMessage, "Finished")
+        XCTAssertEqual(completed.latestPrompt, "Help")
+        XCTAssertEqual(completed.latestReply, "Finished")
+    }
+
+    func testSnapshotReconciliationRetainsRecentSessionsAndPrunesOldOnes() throws {
+        let now = Date()
+        let recent = try XCTUnwrap(AISessionScanner.parseCodex(
+            lines: [#"{"type":"session_meta","payload":{"id":"recent"}}"#],
+            file: URL(fileURLWithPath: "/tmp/recent.jsonl"),
+            modifiedAt: now.addingTimeInterval(-120)
+        ))
+        let stale = try XCTUnwrap(AISessionScanner.parseCodex(
+            lines: [#"{"type":"session_meta","payload":{"id":"stale"}}"#],
+            file: URL(fileURLWithPath: "/tmp/stale.jsonl"),
+            modifiedAt: now.addingTimeInterval(-3_600)
+        ))
+        let encoded = try JSONEncoder().encode([recent, stale])
+        let restored = try JSONDecoder().decode([AISessionRecord].self, from: encoded)
+        let result = AISessionMonitor.reconcile(scanned: [], previous: restored, at: now)
+        XCTAssertEqual(result.map(\.id), [recent.id])
+    }
+
+    func testCompletionReminderOnlyAppearsForRecentWorkingToIdleTransition() throws {
+        let now = Date()
+        let file = URL(fileURLWithPath: "/tmp/session.jsonl")
+        let working = try XCTUnwrap(AISessionScanner.parseCodex(
+            lines: [
+                #"{"type":"session_meta","payload":{"id":"transition"}}"#,
+                #"{"type":"event_msg","payload":{"type":"task_started"}}"#,
+            ], file: file, modifiedAt: now.addingTimeInterval(-10)
+        ))
+        let completed = try XCTUnwrap(AISessionScanner.parseCodex(
+            lines: [
+                #"{"type":"session_meta","payload":{"id":"transition"}}"#,
+                #"{"type":"event_msg","payload":{"type":"task_complete"}}"#,
+            ], file: file, modifiedAt: now
+        ))
+        XCTAssertEqual(
+            AISessionMonitor.completedSessions(before: [working.id: working], after: [completed], at: now).count,
+            1
+        )
+        XCTAssertTrue(AISessionMonitor.completedSessions(
+            before: [completed.id: completed], after: [completed], at: now
+        ).isEmpty)
     }
 }
