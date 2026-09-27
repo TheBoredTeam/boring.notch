@@ -54,6 +54,12 @@ The host's lock-screen notch shows a closed padlock beside the camera cutout. Af
 
 The fixture path (`BN_EXTENSION_LICENSE_FIXTURE`) and isolated plugin directory (`BN_EXTENSION_TEST_DIRECTORY`) are honored only in Debug with `BN_ALLOW_DEVELOPMENT_EXTENSIONS=1`. Receipt signatures are still checked. Release builds contain neither override.
 
+## Visual preview
+
+The music layout below is rendered from the extension with original sample text and placeholder artwork. It demonstrates layout, not physical lock-screen validation.
+
+![Lock Screen music layout with sample lyrics](images/lock-screen-preview.png)
+
 ## Runtime validation still required before sale
 
 Test a Developer ID signed and notarized app/plugin pair on supported macOS versions, on a physical lock screen, with Touch ID/password unlock, display sleep/wake, fast user switching, changing display layouts, playback pause/seek/track changes, unavailable lyrics, and reduced motion. The private SkyLight API is OS-dependent; successful compilation or a desktop preview alone is not lock-screen compatibility proof.
