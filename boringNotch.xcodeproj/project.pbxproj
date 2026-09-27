@@ -1327,6 +1327,7 @@
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Boring Notch shows calendar events and, when you enable it, your next meeting on the lock screen.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
 				INFOPLIST_KEY_NSContactsUsageDescription = "This app matches notification senders to your contacts to show their photo";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2024-2026 The Bored Team. Licensed under GPL-3.0.";
@@ -1396,6 +1397,7 @@
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Boring Notch shows calendar events and, when you enable it, your next meeting on the lock screen.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
 				INFOPLIST_KEY_NSContactsUsageDescription = "This app matches notification senders to your contacts to show their photo";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2024-2026 The Bored Team. Licensed under GPL-3.0.";

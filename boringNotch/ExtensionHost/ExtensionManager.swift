@@ -27,6 +27,7 @@ final class ExtensionManager: ObservableObject {
     private var lastArtwork: NSImage?
     private var started = false
     private var loadedIDs = Set<String>()
+    private var artworkDisabled = Set<String>()
 
     private var directory: URL {
         #if DEBUG
@@ -95,6 +96,10 @@ final class ExtensionManager: ObservableObject {
             let name = String(cString: command)
             MainActor.assumeIsolated {
                 guard ExtensionLicenseStore.shared.licensedProducts.contains(productID) else { return }
+                if name == "presentation.artwork" {
+                    ExtensionManager.shared.setArtworkRequested(value > 0, for: productID)
+                    return
+                }
                 let music = MusicManager.shared
                 switch name {
                 case "media.toggle": music.playPause()
@@ -118,7 +123,8 @@ final class ExtensionManager: ObservableObject {
 
     private func publishSnapshot(force: Bool = false) {
         let lyricsID = "theboringteam.boringnotch.lockscreen-lyrics"
-        let lyricsVisible = locked && awake && sessionActive && ExtensionLicenseStore.shared.licensedProducts.contains(lyricsID)
+        let visible = locked && awake && sessionActive
+        let lyricsVisible = visible && ExtensionLicenseStore.shared.licensedProducts.contains(lyricsID)
         let consumers = runtimes.filter { force || $0.key != lyricsID || lyricsVisible }
         guard !consumers.isEmpty else {
             artwork = nil
@@ -126,7 +132,7 @@ final class ExtensionManager: ObservableObject {
             return
         }
         let music = MusicManager.shared
-        let needsArtwork = consumers.keys.contains { $0 != lyricsID } || lyricsVisible
+        let needsArtwork = consumers.keys.contains { !artworkDisabled.contains($0) && ($0 != lyricsID || lyricsVisible) }
         if !needsArtwork {
             artwork = nil
             lastArtwork = nil
@@ -155,8 +161,21 @@ final class ExtensionManager: ObservableObject {
         for (id, runtime) in consumers {
             var licensedSnapshot = snapshot
             licensedSnapshot["licensed"] = ExtensionLicenseStore.shared.licensedProducts.contains(id)
+            if artworkDisabled.contains(id) { licensedSnapshot["artwork"] = "" }
+            if id == lyricsID, visible,
+               let screen = NSScreen.screen(withUUID: BoringViewCoordinator.shared.selectedScreenUUID) ?? NSScreen.main {
+                let size = getClosedNotchSize(screenUUID: screen.displayUUID)
+                let height = max(32, max(size.height, screen.safeAreaInsets.top))
+                licensedSnapshot["notchTarget"] = ["x": screen.frame.midX + size.width / 2 - 4,
+                    "y": screen.frame.maxY - height / 2 - 12, "size": 24.0]
+            }
             if let data = try? JSONSerialization.data(withJSONObject: licensedSnapshot) { runtime.send(snapshot: data) }
         }
+    }
+
+    private func setArtworkRequested(_ requested: Bool, for product: String) {
+        let changed = requested ? artworkDisabled.remove(product) != nil : artworkDisabled.insert(product).inserted
+        if changed { publishSnapshot(force: true) }
     }
 
     func choosePackage() {

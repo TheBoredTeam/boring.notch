@@ -24,14 +24,14 @@ struct ExtensionsSettingsView: View {
                     Image(systemName: "text.line.first.and.arrowtriangle.forward")
                         .font(.system(size: 28)).foregroundStyle(Color.effectiveAccent)
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("Lock Screen Lyrics").font(.headline)
-                        Text("Your music, on the big screen.").foregroundStyle(.secondary)
-                        Text("Animated lyrics and album artwork for your lock screen. Requires Boring Notch and the separately installed extension.")
+                        Text("Lock Screen").font(.headline)
+                        Text("Music. Focus. A little perspective.").foregroundStyle(.secondary)
+                        Text("Three music layouts, word highlighting, a focus timer, and a personal glance screen. All included in one extension for Boring Notch.")
                             .font(.callout).foregroundStyle(.secondary)
                     }
                 }.padding(.vertical, 8)
                 HStack {
-                    Text("$1 · Permanent unlock").font(.callout.weight(.medium))
+                    Text("$1 · All lock-screen features · Permanent unlock").font(.callout.weight(.medium))
                     Spacer()
                     if let checkoutURL { Link("Buy Me a Coffee", destination: checkoutURL).buttonStyle(.borderedProminent) }
                     else { Text("Coming soon").foregroundStyle(.secondary) }
@@ -46,7 +46,7 @@ struct ExtensionsSettingsView: View {
                 Section {
                     ExtensionLicenseSettings(productID: manifest.id)
                     if let controller = extensions.settingsControllers[manifest.id] {
-                        ExtensionSettingsController(controller: controller).frame(minHeight: 380)
+                        ExtensionSettingsController(controller: controller).frame(minHeight: 740)
                     }
                     LabeledContent("Version", value: manifest.version)
                     Button("Uninstall extension", role: .destructive) { extensions.remove(manifest) }
