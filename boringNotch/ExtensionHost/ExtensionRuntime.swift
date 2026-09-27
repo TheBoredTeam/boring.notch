@@ -7,7 +7,7 @@
 
 import AppKit
 
-/// C ABI keeps private extensions independent of the app's Swift module and compiler ABI.
+/// C ABI keeps extensions independent of the app's Swift module and compiler ABI.
 /// All calls, including the command callback, run on the main thread.
 @MainActor
 final class ExtensionRuntime {
@@ -29,7 +29,8 @@ final class ExtensionRuntime {
 
     init(url: URL, command: Command) throws {
         let (manifest, executable) = try ExtensionPackage.inspect(url)
-        try ExtensionPackage.verifySignature(at: url)
+        let publisher = try ExtensionPackage.verifySignature(at: url)
+        guard ExtensionTrustStore.isApproved(publisher, for: manifest.id) else { throw ExtensionError.unapprovedPublisher }
         guard let handle = dlopen(executable.path, RTLD_NOW | RTLD_LOCAL) else {
             throw ExtensionError.incompatibleBinary
         }

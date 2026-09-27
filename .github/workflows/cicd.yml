@@ -46,6 +46,9 @@ jobs:
           upload-logs: always
           configuration: release
 
+      - name: Smoke-test the public free extension
+        run: bash examples/now-playing-extension/smoke-host.sh
+
       # Unit tests run hosted by the app (TEST_HOST), so they spawn a real
       # menubar-app instance on the runner — acceptable on CI where nothing
       # else reacts to it; they are skipped on matrix legs without hosted-test

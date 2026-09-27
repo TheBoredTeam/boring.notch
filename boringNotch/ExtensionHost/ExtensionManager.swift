@@ -28,6 +28,9 @@ final class ExtensionManager: ObservableObject {
     private var started = false
     private var loadedIDs = Set<String>()
     private var artworkDisabled = Set<String>()
+    private var inactiveIDs = Set<String>()
+    private var lockedNotchIDs = Set<String>()
+    @Published private(set) var requestsLockedNotch = false
 
     private var directory: URL {
         #if DEBUG
@@ -50,11 +53,6 @@ final class ExtensionManager: ObservableObject {
         MusicManager.shared.objectWillChange
             .debounce(for: .milliseconds(100), scheduler: DispatchQueue.main)
             .sink { [weak self] _ in self?.publishSnapshot() }
-            .store(in: &subscriptions)
-        ExtensionLicenseStore.shared.$licensedProducts
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in self?.publishSnapshot(force: true) }
             .store(in: &subscriptions)
         for (name, event) in [(NSWorkspace.screensDidSleepNotification, "sleep"),
                               (NSWorkspace.screensDidWakeNotification, "wake"),
@@ -95,9 +93,17 @@ final class ExtensionManager: ObservableObject {
             let productID = Unmanaged<NSString>.fromOpaque(context).takeUnretainedValue() as String
             let name = String(cString: command)
             MainActor.assumeIsolated {
-                guard ExtensionLicenseStore.shared.licensedProducts.contains(productID) else { return }
+                guard ExtensionManager.shared.runtimes[productID] != nil, value.isFinite else { return }
                 if name == "presentation.artwork" {
                     ExtensionManager.shared.setArtworkRequested(value > 0, for: productID)
+                    return
+                }
+                if name == "presentation.active" {
+                    ExtensionManager.shared.setActive(value > 0, for: productID)
+                    return
+                }
+                if name == "presentation.lockedNotch" {
+                    ExtensionManager.shared.setLockedNotchRequested(value > 0, for: productID)
                     return
                 }
                 let music = MusicManager.shared
@@ -122,17 +128,17 @@ final class ExtensionManager: ObservableObject {
     }
 
     private func publishSnapshot(force: Bool = false) {
-        let lyricsID = "theboringteam.boringnotch.lockscreen-lyrics"
         let visible = locked && awake && sessionActive
-        let lyricsVisible = visible && ExtensionLicenseStore.shared.licensedProducts.contains(lyricsID)
-        let consumers = runtimes.filter { force || $0.key != lyricsID || lyricsVisible }
+        let consumers = runtimes.filter { force || $0.value.manifest.receivesUpdates(
+            locked: locked, awake: awake, sessionActive: sessionActive, requested: !inactiveIDs.contains($0.key)) }
         guard !consumers.isEmpty else {
             artwork = nil
             lastArtwork = nil
             return
         }
         let music = MusicManager.shared
-        let needsArtwork = consumers.keys.contains { !artworkDisabled.contains($0) && ($0 != lyricsID || lyricsVisible) }
+        let needsArtwork = consumers.keys.contains { !artworkDisabled.contains($0) && !inactiveIDs.contains($0) &&
+            runtimes[$0]?.manifest.receivesUpdates(locked: locked, awake: awake, sessionActive: sessionActive, requested: true) == true }
         if !needsArtwork {
             artwork = nil
             lastArtwork = nil
@@ -159,23 +165,56 @@ final class ExtensionManager: ObservableObject {
             "canFavorite": music.canFavoriteTrack
         ]
         for (id, runtime) in consumers {
-            var licensedSnapshot = snapshot
-            licensedSnapshot["licensed"] = ExtensionLicenseStore.shared.licensedProducts.contains(id)
-            if artworkDisabled.contains(id) { licensedSnapshot["artwork"] = "" }
-            if id == lyricsID, visible,
+            var extensionSnapshot = snapshot
+            if artworkDisabled.contains(id) || !runtime.manifest.receivesUpdates(
+                locked: locked, awake: awake, sessionActive: sessionActive, requested: !inactiveIDs.contains(id)) {
+                extensionSnapshot["artwork"] = ""
+            }
+            if visible,
                let screen = NSScreen.screen(withUUID: BoringViewCoordinator.shared.selectedScreenUUID) ?? NSScreen.main {
                 let size = getClosedNotchSize(screenUUID: screen.displayUUID)
                 let height = max(32, max(size.height, screen.safeAreaInsets.top))
-                licensedSnapshot["notchTarget"] = ["x": screen.frame.midX + size.width / 2 - 4,
+                extensionSnapshot["notchTarget"] = ["x": screen.frame.midX + size.width / 2 - 4,
                     "y": screen.frame.maxY - height / 2 - 12, "size": 24.0]
             }
-            if let data = try? JSONSerialization.data(withJSONObject: licensedSnapshot) { runtime.send(snapshot: data) }
+            if let data = try? JSONSerialization.data(withJSONObject: extensionSnapshot) { runtime.send(snapshot: data) }
         }
     }
 
     private func setArtworkRequested(_ requested: Bool, for product: String) {
         let changed = requested ? artworkDisabled.remove(product) != nil : artworkDisabled.insert(product).inserted
         if changed { publishSnapshot(force: true) }
+    }
+
+    private func setActive(_ active: Bool, for id: String) {
+        let changed = active ? inactiveIDs.remove(id) != nil : inactiveIDs.insert(id).inserted
+        if changed { publishSnapshot(force: true) }
+    }
+
+    private func setLockedNotchRequested(_ requested: Bool, for id: String) {
+        if requested { lockedNotchIDs.insert(id) } else { lockedNotchIDs.remove(id) }
+        let value = !lockedNotchIDs.isEmpty
+        if requestsLockedNotch != value { requestsLockedNotch = value }
+    }
+
+    private func approvePublisher(_ publisher: ExtensionPublisher, manifest: ExtensionManifest) -> Bool {
+        guard !ExtensionTrustStore.isApproved(publisher, for: manifest.id) else { return true }
+        let alert = NSAlert()
+        alert.messageText = "Install \(manifest.name)?"
+        alert.informativeText = "Publisher: \(publisher.name) (\(publisher.teamID)). Extensions run inside Boring Notch and share its access. Only install extensions from developers you trust."
+        alert.addButton(withTitle: "Install")
+        alert.addButton(withTitle: "Cancel")
+        return alert.runModal() == .alertFirstButtonReturn
+    }
+
+    func enable(_ manifest: ExtensionManifest) {
+        do {
+            let publisher = try ExtensionPackage.verifySignature(at: packageURL(manifest.id))
+            guard approvePublisher(publisher, manifest: manifest) else { return }
+            ExtensionTrustStore.approve(publisher, for: manifest.id)
+            try load(manifest)
+            message = "Extension enabled."
+        } catch { message = error.localizedDescription }
     }
 
     func choosePackage() {
@@ -199,20 +238,23 @@ final class ExtensionManager: ObservableObject {
             let staging = directory.appendingPathComponent("\(UUID().uuidString).bnplugin")
             defer { try? FileManager.default.removeItem(at: staging) }
             try FileManager.default.copyItem(at: source, to: staging)
-            _ = try ExtensionPackage.inspect(staging)
-            try ExtensionPackage.verifySignature(at: staging)
+            let (stagedManifest, _) = try ExtensionPackage.inspect(staging)
+            guard stagedManifest == manifest else { throw ExtensionError.invalidPackage }
+            let publisher = try ExtensionPackage.verifySignature(at: staging)
+            guard approvePublisher(publisher, manifest: manifest) else { return }
             if FileManager.default.fileExists(atPath: destination.path) {
                 _ = try FileManager.default.replaceItemAt(destination, withItemAt: staging)
             } else {
                 try FileManager.default.moveItem(at: staging, to: destination)
             }
+            ExtensionTrustStore.approve(publisher, for: manifest.id)
             refresh()
             if loadedIDs.contains(manifest.id) {
                 needsRestart = true
                 message = "Extension updated. Restart Boring Notch to use the new version."
             } else {
                 try load(manifest)
-                message = "Extension installed. Open its settings to activate it."
+                message = "Extension installed."
             }
         } catch { message = error.localizedDescription }
     }
@@ -222,6 +264,10 @@ final class ExtensionManager: ObservableObject {
             try FileManager.default.trashItem(at: packageURL(manifest.id), resultingItemURL: nil)
             settingsControllers.removeValue(forKey: manifest.id)
             runtimes.removeValue(forKey: manifest.id)?.stop()
+            ExtensionTrustStore.remove(manifest.id)
+            inactiveIDs.remove(manifest.id)
+            artworkDisabled.remove(manifest.id)
+            setLockedNotchRequested(false, for: manifest.id)
             refresh()
             message = "Extension moved to Trash."
         } catch { message = error.localizedDescription }
@@ -239,13 +285,16 @@ final class ExtensionManager: ObservableObject {
     }
 
     func stop() {
-        ExtensionLicenseStore.shared.stop()
         subscriptions.removeAll()
         workspaceObservers.forEach { NSWorkspace.shared.notificationCenter.removeObserver($0) }
         workspaceObservers.removeAll()
         settingsControllers.removeAll()
         runtimes.values.forEach { $0.stop() }
         runtimes.removeAll()
+        inactiveIDs.removeAll()
+        artworkDisabled.removeAll()
+        lockedNotchIDs.removeAll()
+        requestsLockedNotch = false
         artwork = nil
         lastArtwork = nil
     }

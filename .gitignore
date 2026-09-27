@@ -55,3 +55,6 @@ __pycache__/
 *.xcarchive
 *.dSYM
 
+
+# Public extension example build output
+examples/**/dist/

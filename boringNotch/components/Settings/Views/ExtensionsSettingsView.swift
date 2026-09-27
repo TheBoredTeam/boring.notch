@@ -9,44 +9,24 @@ import SwiftUI
 
 struct ExtensionsSettingsView: View {
     @ObservedObject private var extensions = ExtensionManager.shared
-
-    private var checkoutURL: URL? {
-        guard let value = Bundle.main.object(forInfoDictionaryKey: "BNLockScreenLyricsCheckoutURL") as? String,
-              let url = URL(string: value), url.scheme == "https", url.host != nil,
-              url.user == nil, url.password == nil else { return nil }
-        return url
-    }
-
     var body: some View {
         Form {
             Section {
-                HStack(spacing: 14) {
-                    Image(systemName: "text.line.first.and.arrowtriangle.forward")
-                        .font(.system(size: 28)).foregroundStyle(Color.effectiveAccent)
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("Lock Screen").font(.headline)
-                        Text("Music. Focus. A little perspective.").foregroundStyle(.secondary)
-                        Text("Three music layouts, word highlighting, a focus timer, and a personal glance screen. All included in one extension for Boring Notch.")
-                            .font(.callout).foregroundStyle(.secondary)
-                    }
-                }.padding(.vertical, 8)
-                HStack {
-                    Text("$1 · All lock-screen features · Permanent unlock").font(.callout.weight(.medium))
-                    Spacer()
-                    if let checkoutURL { Link("Buy Me a Coffee", destination: checkoutURL).buttonStyle(.borderedProminent) }
-                    else { Text("Coming soon").foregroundStyle(.secondary) }
-                }
+                Text("Make Boring Notch your own.").font(.headline)
+                Text("Install extensions from developers you trust. Extensions may be free or paid; each developer manages their own purchase and access settings.")
+                    .foregroundStyle(.secondary)
                 Button("Install extension…", action: extensions.choosePackage)
-                Text("After purchase, download the .bnplugin file and install it here.")
-                    .font(.caption).foregroundStyle(.secondary)
-                Text("Verify your email before checkout. After your $1 purchase, your permanent key appears on the license page and is also sent by email.")
-                    .font(.caption).foregroundStyle(.secondary)
+                if let url = URL(string: "https://github.com/TheBoredTeam/boring.notch/blob/dev/docs/extensions.md") {
+                    Link("Build an extension", destination: url)
+                }
             }
             ForEach(extensions.installed, id: \.id) { manifest in
                 Section {
-                    ExtensionLicenseSettings(productID: manifest.id)
                     if let controller = extensions.settingsControllers[manifest.id] {
-                        ExtensionSettingsController(controller: controller).frame(minHeight: 740)
+                        ExtensionSettingsController(controller: controller)
+                            .frame(minHeight: controller.preferredContentSize.height > 0 ? min(1400, max(200, controller.preferredContentSize.height)) : 380)
+                    } else {
+                        Button("Review and enable…") { extensions.enable(manifest) }
                     }
                     LabeledContent("Version", value: manifest.version)
                     Button("Uninstall extension", role: .destructive) { extensions.remove(manifest) }
@@ -64,33 +44,8 @@ struct ExtensionsSettingsView: View {
     }
 }
 
-private struct ExtensionLicenseSettings: View {
-    let productID: String
-    @ObservedObject private var licenses = ExtensionLicenseStore.shared
-    @State private var code = ""
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if licenses.licensedProducts.contains(productID) {
-                Label("Permanently unlocked", systemImage: "checkmark.seal.fill").foregroundStyle(.green)
-            } else {
-                HStack {
-                    SecureField("14-character license code", text: $code)
-                    Button(licenses.activatingProduct == productID ? "Activating…" : "Activate") {
-                        licenses.activate(code: code, productID: productID)
-                        code = ""
-                    }.disabled(!licenses.isConfigured || licenses.activatingProduct != nil || code.isEmpty)
-                }
-                if !licenses.isConfigured {
-                    Text("Activation will be available when this extension launches.").font(.caption).foregroundStyle(.secondary)
-                }
-            }
-            if let message = licenses.message { Text(message).font(.caption).foregroundStyle(.secondary) }
-        }
-    }
-}
-
 private struct ExtensionSettingsController: NSViewControllerRepresentable {
     let controller: NSViewController
     func makeNSViewController(context: Context) -> NSViewController { controller }
-    func updateNSViewController(_ nsViewController: NSViewController, context: Context) {}
+    func updateNSViewController(_ controller: NSViewController, context: Context) {}
 }

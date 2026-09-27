@@ -9,6 +9,7 @@
 //  glue (shortcuts, onboarding, termination) and forwards to this manager.
 //
 
+import Combine
 import Defaults
 import SwiftUI
 
@@ -33,9 +34,16 @@ final class NotchWindowManager {
     private var previousScreens: [NSScreen]?
     private var lockedWindows: [BoringNotchSkyLightWindow] = []
     private let lockedNotchPresentation = LockedNotchPresentation()
+    private var extensionNotchSubscription: AnyCancellable?
 
     init(camera: CameraModel) {
         primaryViewModel = BoringViewModel(camera: camera)
+        extensionNotchSubscription = ExtensionManager.shared.$requestsLockedNotch.dropFirst().removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self, self.isScreenLocked else { return }
+                self.showLockedNotch()
+            }
     }
 
     // MARK: - Public lookups (preserve AppDelegate's old API shape)
@@ -81,10 +89,7 @@ final class NotchWindowManager {
     }
 
     private var showsLockedNotch: Bool {
-        let product = "theboringteam.boringnotch.lockscreen-lyrics"
-        return Defaults[.showOnLockScreen] || (
-            ExtensionLicenseStore.shared.licensedProducts.contains(product) &&
-            ExtensionManager.shared.installed.contains { $0.id == product })
+        Defaults[.showOnLockScreen] || ExtensionManager.shared.requestsLockedNotch
     }
 
     private func showLockedNotch() {

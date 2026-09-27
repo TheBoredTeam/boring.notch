@@ -9,10 +9,16 @@ import Foundation
 import Security
 
 struct ExtensionManifest: Codable, Equatable {
+    enum Activation: String, Codable { case always, lockScreen }
     let id: String
     let name: String
     let version: String
     let apiVersion: Int
+    var activation: Activation? = nil
+
+    func receivesUpdates(locked: Bool, awake: Bool, sessionActive: Bool, requested: Bool) -> Bool {
+        requested && awake && sessionActive && (activation != .lockScreen || locked)
+    }
 
     func validate() throws {
         guard apiVersion == 1, !name.isEmpty, !version.isEmpty,
@@ -22,12 +28,13 @@ struct ExtensionManifest: Codable, Equatable {
 }
 
 enum ExtensionError: LocalizedError {
-    case invalidPackage, untrustedSignature, incompatibleBinary, restartRequired
+    case invalidPackage, untrustedSignature, unapprovedPublisher, incompatibleBinary, restartRequired
 
     var errorDescription: String? {
         switch self {
         case .invalidPackage: "This is not a compatible Boring Notch extension."
-        case .untrustedSignature: "This extension must be signed by the same developer as Boring Notch."
+        case .untrustedSignature: "This extension needs a valid, notarized Developer ID signature."
+        case .unapprovedPublisher: "Review this extension's publisher before enabling it."
         case .incompatibleBinary: "This extension could not be loaded. Check its version and Mac compatibility."
         case .restartRequired: "Restart Boring Notch to finish changing this extension."
         }
@@ -69,19 +76,19 @@ enum ExtensionPackage {
         return (manifest, executable)
     }
 
-    static func verifySignature(at url: URL) throws {
-        #if DEBUG
-        // Explicit local opt-in; compiled out of release builds. Never change library validation.
-        if ProcessInfo.processInfo.environment["BN_ALLOW_DEVELOPMENT_EXTENSIONS"] == "1" { return }
-        #endif
-        guard let team = try signingTeam(at: Bundle.main.bundleURL), !team.isEmpty,
-              try signingTeam(at: url) == team else { throw ExtensionError.untrustedSignature }
-    }
+    static let publisherRequirement = "anchor apple generic and certificate leaf[field.1.2.840.113635.100.6.1.13] exists and notarized"
 
-    private static func signingTeam(at url: URL) throws -> String? {
+    @discardableResult
+    static func verifySignature(at url: URL) throws -> ExtensionPublisher {
+        #if DEBUG
+        // Local development is explicit and unavailable in Release builds.
+        if ProcessInfo.processInfo.environment["BN_ALLOW_DEVELOPMENT_EXTENSIONS"] == "1" {
+            return ExtensionPublisher(teamID: "development", name: "Local development build", isDevelopment: true)
+        }
+        #endif
         var code: SecStaticCode?
         var requirement: SecRequirement?
-        guard SecRequirementCreateWithString("anchor apple generic" as CFString, [], &requirement) == errSecSuccess,
+        guard SecRequirementCreateWithString(publisherRequirement as CFString, [], &requirement) == errSecSuccess,
               let requirement else { throw ExtensionError.untrustedSignature }
         guard SecStaticCodeCreateWithPath(url as CFURL, [], &code) == errSecSuccess,
               let code,
@@ -90,6 +97,37 @@ enum ExtensionPackage {
         var information: CFDictionary?
         guard SecCodeCopySigningInformation(code, SecCSFlags(rawValue: kSecCSSigningInformation), &information) == errSecSuccess
         else { throw ExtensionError.untrustedSignature }
-        return (information as? [String: Any])?[kSecCodeInfoTeamIdentifier as String] as? String
+        guard let values = information as? [String: Any],
+              let team = values[kSecCodeInfoTeamIdentifier as String] as? String, !team.isEmpty else {
+            throw ExtensionError.untrustedSignature
+        }
+        let certificates = values[kSecCodeInfoCertificates as String] as? [SecCertificate]
+        let name = certificates?.first.flatMap { SecCertificateCopySubjectSummary($0) as String? } ?? team
+        return ExtensionPublisher(teamID: team, name: name, isDevelopment: false)
+    }
+}
+
+struct ExtensionPublisher: Equatable {
+    let teamID: String
+    let name: String
+    let isDevelopment: Bool
+}
+
+/// Approval is for a specific extension ID and publisher, never payment status.
+enum ExtensionTrustStore {
+    private static let key = "approvedExtensionPublishers"
+    static func isApproved(_ publisher: ExtensionPublisher, for id: String, defaults: UserDefaults = .standard) -> Bool {
+        publisher.isDevelopment || (defaults.dictionary(forKey: key) as? [String: String])?[id] == publisher.teamID
+    }
+    static func approve(_ publisher: ExtensionPublisher, for id: String, defaults: UserDefaults = .standard) {
+        guard !publisher.isDevelopment else { return }
+        var publishers = defaults.dictionary(forKey: key) as? [String: String] ?? [:]
+        publishers[id] = publisher.teamID
+        defaults.set(publishers, forKey: key)
+    }
+    static func remove(_ id: String, defaults: UserDefaults = .standard) {
+        var publishers = defaults.dictionary(forKey: key) as? [String: String] ?? [:]
+        publishers.removeValue(forKey: id)
+        defaults.set(publishers, forKey: key)
     }
 }

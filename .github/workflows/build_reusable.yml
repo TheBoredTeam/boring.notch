@@ -30,8 +30,6 @@ on:
         required: true
       KEYCHAIN_PASSWORD:
         required: true
-      EXTENSION_LICENSE_PUBLIC_KEYS:
-        required: false
 
 jobs:
   build:
@@ -100,12 +98,6 @@ jobs:
             --build-number "$BUILD_NUMBER" \
             --info-plist "$PROJECT_NAME/Info.plist" \
             --update-channel "$UPDATE_CHANNEL"
-
-      - name: Configure paid extension licensing
-        env:
-          EXTENSION_LICENSE_PUBLIC_KEYS: ${{ secrets.EXTENSION_LICENSE_PUBLIC_KEYS }}
-          EXTENSION_LICENSE_SERVER_URL: ${{ vars.EXTENSION_LICENSE_SERVER_URL }}
-        run: python3 .github/scripts/stamp_extension_licensing.py boringNotch/Info.plist
 
       - name: Build and archive
         run: |

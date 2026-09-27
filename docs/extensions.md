@@ -1,67 +1,86 @@
-# Paid extensions
+# Building extensions
 
-Boring Notch loads separately installed, publisher-signed `.bnplugin` bundles. The free app builds without downloading private extension source. `extensions/lockscreen-lyrics` is an optional private Git submodule, not an Xcode dependency or bundled app resource.
+Boring Notch is a neutral host for independently developed `.bnplugin` extensions. Extensions may be free or paid. The host has no purchase catalog, activation codes, receipt verification, license server, or payment-provider configuration. A developer who charges for an extension implements that behavior inside their own package or service.
 
-Maintainers with access can run `git submodule update --init extensions/lockscreen-lyrics`. Public contributors should use a normal clone, without recursive submodule checkout. Public CI deliberately does not initialize private submodules.
+The public app builds without private source or commercial configuration. `extensions/lockscreen-lyrics` remains an optional maintainer-only submodule; normal clones and public CI do not initialize it.
 
-## Install and ownership
+## Start with the free example
 
-Open Settings → Extensions, choose **Install extension…**, and select the downloaded `.bnplugin` bundle. Installation validates its manifest, API version, paths, and Apple code signature before copying it into Application Support. Release builds require the same Apple Team ID as the host app and retain hardened runtime library validation. Restart is required after updating an already loaded binary. Uninstall moves the bundle to Trash and immediately stops its instance.
-
-The [$1 Buy Me a Coffee shop item](https://buymeacoffee.com/jfxh67wvfxq/e/580376) permanently unlocks the entire Lock Screen extension, including Music, Focus, and Glance. Existing Lock Screen Lyrics keys remain compatible with the unchanged `theboringteam.boringnotch.lockscreen-lyrics` product ID. This is a one-time payment, with no subscription or renewal. There is no extra purchase for individual lock-screen modes. Downloading or installing a plugin is not proof of payment.
-
-The customer receives a random, 14-character alphanumeric activation code. This code is a bearer credential for retrieving a signed receipt, not a truncated cryptographic signature. The app exchanges it and a random Keychain-persisted Mac identifier over HTTPS. The returned receipt is verified with Ed25519, checked for the expected product/Mac/issuer, and stored in Keychain. Valid permanent receipts work offline without periodic online checks. No hardware serial number is sent.
-
-The app starts purchases at the configured license service's `/buy` page. Buyers verify their email once before checkout, then return from Buy Me a Coffee to `/license`. The page displays the code after a verified payment for that email/product. Direct shop buyers receive an emailed private link; codes are also emailed as a backup. The shop's fixed redirect is not proof of ownership. The private service README covers redirect, webhook, SMTP, and public-origin setup.
-
-## Build configuration
-
-The reusable app build injects these through `.github/scripts/stamp_extension_licensing.py`, before Apple code signing:
-
-- GitHub Actions secret `EXTENSION_LICENSE_PUBLIC_KEYS`: JSON mapping a signing key ID to its base64-encoded 32-byte Ed25519 **public** key.
-- Repository variable `EXTENSION_LICENSE_SERVER_URL`: HTTPS base URL of the private license service.
-The checkout URL is generated from the license service origin as `/buy?product=theboringteam.boringnotch.lockscreen-lyrics`. The private service catalog controls the Buy Me a Coffee destination. No separate checkout variable is needed.
-
-The public keys and server URL must be set together. With none set, the free app builds normally and purchasing/activation show as unavailable. No placeholder checkout is opened. The public key is intentionally public; putting it in a GitHub secret does not make it a client secret. The private signing key belongs only on the issuer server, never in the app, plugin, app CI, or this repository. Keep previous public key IDs when rotating signing keys so existing permanent receipts remain valid.
-
-The receipt signing key is separate from the Developer ID certificate used to sign the Mac binaries. Apple code signing authenticates the distributed app/plugin to macOS; it is not remote attestation to the license service. A modified client can bypass local checks. Keeping signing keys private prevents forging receipts for authentic clients.
-
-## Extension ABI v1
-
-Every entry point and command callback is invoked on the main thread. Symbol names and C signatures are declared in [extension-api.h](extension-api.h). No Swift app types cross the ABI. The instance pointer owns the plugin; the settings-controller pointer is borrowed, retained by the host while displayed. `destroy` must close windows, cancel work, and break all view/controller retain cycles. Swift library code stays loaded until the app exits.
-
-`update` receives UTF-8 JSON, copied by the plugin before returning:
-
-```json
-{"title":"Song","artist":"Artist","album":"Album","duration":180,"elapsed":12.5,"timestamp":1790000000,"rate":1,"playing":true,"idle":false,"artwork":"base64 JPEG","favorite":false,"canFavorite":true,"licensed":true}
-```
-
-The host computes `licensed` per extension ID from a verified receipt. Media updates are coalesced; extensions extrapolate position from `timestamp` and `rate`, freezing it when paused. Artwork is resized and encoded only when changed. Lifecycle events are `lock`, `unlock`, `sleep`, `wake`, `session-inactive`, and `session-active`. Commands are `media.toggle`, `media.next`, `media.previous`, `media.favorite`, and `media.seek` (seconds). `presentation.artwork` (0/1) lets a licensed extension opt out of artwork serialization while displaying a mode that does not need it. The optional `notchTarget` snapshot object contains a global AppKit center (`x`, `y`) and `size` for the brief unlock artwork animation. Unknown commands are ignored; media commands require a verified entitlement in the host.
-
-For local development only, a Debug host launched with `BN_ALLOW_DEVELOPMENT_EXTENSIONS=1` accepts an ad-hoc-signed package. This opt-in is compiled out of Release. It does not grant an entitlement or disable the app's hardened-runtime settings.
-
-## Local manual testing
-
-Maintainers with the private submodule can run:
+[Now Playing Example](../examples/now-playing-extension/NowPlaying.swift) is a small SwiftUI extension with media updates, a playback button, and its own settings controller. It needs no account, license, or keys.
 
 ```sh
-bash extensions/lockscreen-lyrics/scripts/run-local.sh "$PWD"
+bash examples/now-playing-extension/build.sh
+bash examples/now-playing-extension/smoke-host.sh
 ```
 
-This builds an isolated Debug app/plugin pair, generates an ephemeral Go-signed receipt, pins its public key in that app copy, and launches with the extension enabled. No purchase is needed and the license Keychain is untouched. `BN_REPLACE_LOCAL_TEST=1` replaces only test copies launched from that submodule checkout after the new build succeeds. Play music and press Control–Command–Q to test the physical lock screen.
+The smoke test compiles the public package loader and runtime, loads the example, sends a media snapshot with no licensing fields, checks its host callback, and verifies teardown. It never locks the Mac.
 
-The host's lock-screen notch shows a closed padlock beside the camera cutout. After macOS confirms an unlock, it opens the padlock and fades the badge out over 600 ms before restoring the normal notch. Reduce Motion uses a brief static open-padlock state. Re-locking or changing displays cancels the transition; no animation task runs while idle. This responds to the existing session's unlock notification, not the initial login before Boring Notch is running.
+For interactive development, launch a Debug Boring Notch build with:
 
-The fixture path (`BN_EXTENSION_LICENSE_FIXTURE`) and isolated plugin directory (`BN_EXTENSION_TEST_DIRECTORY`) are honored only in Debug with `BN_ALLOW_DEVELOPMENT_EXTENSIONS=1`. Receipt signatures are still checked. Release builds contain neither override.
+```sh
+open -n '/path/to/Boring Notch.app' \
+  --env BN_ALLOW_DEVELOPMENT_EXTENSIONS=1 \
+  --env "BN_EXTENSION_TEST_DIRECTORY=$PWD/examples/now-playing-extension/dist"
+```
 
-## Visual preview
+Then open Settings → Extensions. Debug opt-in permits local ad-hoc signatures. These overrides are absent from Release builds. The example builds for the current Mac architecture; distribute both arm64 and x86_64 slices if you support both.
 
-The music layout below is rendered from the extension with original sample text and placeholder artwork. It demonstrates layout, not physical lock-screen validation.
+## Package format
 
-![Lock Screen music layout with sample lyrics](images/lock-screen-preview.png)
+```text
+com.example.boringnotch.now-playing.bnplugin/
+  Contents/
+    Info.plist
+    MacOS/NowPlaying
+    Resources/manifest.json
+```
 
-## Runtime validation still required before sale
+`CFBundleIdentifier` must match the manifest ID. `CFBundleExecutable` names the binary under `Contents/MacOS`. The binary exports the five functions in [extension-api.h](extension-api.h). Installed packages are named `<manifest.id>.bnplugin`.
 
-Test a Developer ID signed and notarized app/plugin pair on supported macOS versions, on a physical lock screen, with Touch ID/password unlock, display sleep/wake, fast user switching, changing display layouts, playback pause/seek/track changes, unavailable lyrics, and reduced motion. The private SkyLight API is OS-dependent; successful compilation or a desktop preview alone is not lock-screen compatibility proof.
+```json
+{"id":"com.example.boringnotch.now-playing","name":"Now Playing Example","version":"1.0.0","apiVersion":1,"activation":"always"}
+```
 
-The reference is [the supplied Droppy clip](https://x.com/Droppyformac/status/2103885027310199137/video/1). The implementation is independently authored; reference footage, album art, and song lyrics are not bundled.
+`activation` is `always` (also the default when omitted) or `lockScreen`. A lock-screen extension receives routine media updates only while locked, awake, and in the active session. Both types receive initial/forced snapshots and lifecycle events. The manifest contains no price or license requirement.
+
+## Installation and publisher trust
+
+Users choose **Install extension…** in Settings → Extensions. Boring Notch validates the manifest, bundle paths, all architecture signatures, and notarization before installation. Production packages need a valid **Developer ID Application** signature from their own publisher; the publisher does not need Boring Notch's Team ID or permission from its maintainers.
+
+Before enabling an extension, the user reviews its verified publisher. Approval is stored for that extension ID and Team ID. A different publisher requires another review. Copying a package into Application Support does not approve it automatically. Each load checks the signature again before `dlopen`; updating a loaded binary requires an app restart. Uninstall moves the package to Trash, removes approval, and stops the instance.
+
+Extensions execute in the app process and share the host's sandbox, permissions, and access. They are not isolated from the host. The app's `disable-library-validation` entitlement permits third-party Team IDs; explicit package signature/notarization checks and publisher approval gate the loader. The rest of the host's hardened runtime and sandbox remain enabled. Notarization does not certify an extension's behavior.
+
+To distribute your extension, build the desired architectures, sign the bundle with your Developer ID Application certificate, distribute it in a signed/notarized/stapled DMG, and test installation on a clean Mac. Do not ship the example's ad-hoc development signature.
+
+## ABI v1 and lifecycle
+
+Calls and command callbacks run on the main thread. No Swift application types cross the C ABI. `create` owns the returned instance pointer; `destroy` closes windows, cancels work, and breaks view/controller retain cycles. The settings-controller pointer is borrowed and retained by the host while displayed. Set its `preferredContentSize.height` for the desired settings space (the host bounds this to 200–1400 points). Swift library metadata stays loaded until the app exits.
+
+Do not send host commands from `create`; the instance is registered after it returns. Commands are available from the first `update`. Callbacks may synchronously cause another snapshot, so update your local policy state before invoking them.
+
+`update` receives copied UTF-8 JSON:
+
+```json
+{"title":"Song","artist":"Artist","album":"Album","duration":180,"elapsed":12.5,"timestamp":1790000000,"rate":1,"playing":true,"idle":false,"artwork":"base64 JPEG","favorite":false,"canFavorite":false}
+```
+
+Extrapolate playback using `timestamp` and `rate`, freezing when paused. Artwork is a bounded JPEG and can be empty. Ignore unknown fields. There is no `licensed` field or host-issued entitlement.
+
+Lifecycle events are `lock`, `unlock`, `sleep`, `wake`, `session-inactive`, and `session-active`. Release hidden resources on unlock/sleep/session changes as appropriate. Initial lifecycle events arrive after the initial snapshot.
+
+Commands available to every loaded, approved extension:
+
+| Command | Value | Behavior |
+| --- | --- | --- |
+| `media.toggle` | ignored | Toggle playback |
+| `media.next` / `media.previous` | ignored | Change track |
+| `media.favorite` | ignored | Toggle favorite when supported |
+| `media.seek` | seconds | Seek within the track bounds |
+| `presentation.active` | 0 or 1 | Suspend/resume routine media snapshots; lifecycle events continue |
+| `presentation.artwork` | 0 or 1 | Opt out/in to artwork serialization |
+| `presentation.lockedNotch` | 0 or 1 | Request the host's static lock badge and subsequent unlock transition |
+
+While the screen is locked, snapshots may include `notchTarget` with global AppKit center coordinates `x`, `y` and a point `size`, for coordinating a brief presentation transition. Ignore it if unused. The lock badge responds to the current session's lock/unlock events, not initial login before the app is running.
+
+Use bounded caches and event-driven updates. Avoid a display-link or continuous animation timer for static content. Any extension that displays over the lock screen must be physically tested with password/Touch ID, sleep/wake, user switching, display changes, and accessibility preferences on supported macOS versions. Desktop previews and successful builds do not establish lock-screen compatibility.

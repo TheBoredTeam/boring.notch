@@ -2,6 +2,7 @@
 //  ExtensionPackageTests.swift
 //  boringNotchTests
 //
+import Security
 import XCTest
 @testable import boringNotch
 
@@ -23,7 +24,7 @@ final class ExtensionPackageTests: XCTestCase {
     }
 
     func testManifestRequiresSupportedAPIAndSafeIdentifier() throws {
-        try ExtensionManifest(id: "theboringteam.lockscreen-lyrics", name: "Lyrics", version: "1.0", apiVersion: 1).validate()
+        try ExtensionManifest(id: "com.example.free-extension", name: "Lyrics", version: "1.0", apiVersion: 1).validate()
         for id in ["../escape", "a/../../escape", "", "/tmp/plugin", "com.plugin/evil"] {
             XCTAssertThrowsError(try ExtensionManifest(id: id, name: "Lyrics", version: "1.0", apiVersion: 1).validate())
         }
@@ -46,4 +47,32 @@ final class ExtensionPackageTests: XCTestCase {
         try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("link"), withDestinationURL: URL(fileURLWithPath: "/tmp"))
         XCTAssertThrowsError(try ExtensionPackage.inspect(root))
     }
+    func testAnyPublisherCanBeApprovedButIdentityChangesRequireReview() throws {
+        let suite = "extension-trust-tests-" + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let independent = ExtensionPublisher(teamID: "INDEPENDENT", name: "Independent Developer", isDevelopment: false)
+        let other = ExtensionPublisher(teamID: "DIFFERENT", name: "Another Developer", isDevelopment: false)
+        XCTAssertFalse(ExtensionTrustStore.isApproved(independent, for: "com.example.free", defaults: defaults))
+        ExtensionTrustStore.approve(independent, for: "com.example.free", defaults: defaults)
+        XCTAssertTrue(ExtensionTrustStore.isApproved(independent, for: "com.example.free", defaults: defaults))
+        XCTAssertFalse(ExtensionTrustStore.isApproved(other, for: "com.example.free", defaults: defaults))
+        XCTAssertFalse(ExtensionTrustStore.isApproved(independent, for: "com.example.other", defaults: defaults))
+        ExtensionTrustStore.remove("com.example.free", defaults: defaults)
+        XCTAssertFalse(ExtensionTrustStore.isApproved(independent, for: "com.example.free", defaults: defaults))
+    }
+
+    func testPublisherRequirementAndActivityModes() throws {
+        var requirement: SecRequirement?
+        XCTAssertEqual(SecRequirementCreateWithString(ExtensionPackage.publisherRequirement as CFString, [], &requirement), errSecSuccess)
+        let legacy = Data(#"{"id":"com.example.free","name":"Free","version":"1","apiVersion":1}"#.utf8)
+        let always = try JSONDecoder().decode(ExtensionManifest.self, from: legacy)
+        XCTAssertTrue(always.receivesUpdates(locked: false, awake: true, sessionActive: true, requested: true))
+        var locked = always; locked.activation = .lockScreen
+        XCTAssertFalse(locked.receivesUpdates(locked: false, awake: true, sessionActive: true, requested: true))
+        XCTAssertTrue(locked.receivesUpdates(locked: true, awake: true, sessionActive: true, requested: true))
+        XCTAssertFalse(locked.receivesUpdates(locked: true, awake: false, sessionActive: true, requested: true))
+        XCTAssertFalse(always.receivesUpdates(locked: false, awake: true, sessionActive: true, requested: false))
+    }
+
 }
