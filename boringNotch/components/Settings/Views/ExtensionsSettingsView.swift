@@ -12,7 +12,8 @@ struct ExtensionsSettingsView: View {
 
     private var checkoutURL: URL? {
         guard let value = Bundle.main.object(forInfoDictionaryKey: "BNLockScreenLyricsCheckoutURL") as? String,
-              let url = URL(string: value), url.scheme == "https", url.host != nil else { return nil }
+              let url = URL(string: value), url.scheme == "https", url.host != nil,
+              url.user == nil, url.password == nil else { return nil }
         return url
     }
 
@@ -38,7 +39,7 @@ struct ExtensionsSettingsView: View {
                 Button("Install extension…", action: extensions.choosePackage)
                 Text("After purchase, download the .bnplugin file and install it here.")
                     .font(.caption).foregroundStyle(.secondary)
-                Text("One $1 purchase permanently unlocks Lock Screen Lyrics. Your activation code will arrive by email.")
+                Text("Verify your email before checkout. After your $1 purchase, your permanent key appears on the license page and is also sent by email.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             ForEach(extensions.installed, id: \.id) { manifest in

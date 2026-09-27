@@ -91,6 +91,30 @@ final class ExtensionLicenseStore: ObservableObject {
 
     private init() {
         guard !publicKeys.isEmpty else { return }
+        #if DEBUG
+        // A local launch can use a Go-issued receipt without touching the user's Keychain.
+        // The public key is still pinned in this specific test app's signed Info.plist.
+        if ProcessInfo.processInfo.environment["BN_ALLOW_DEVELOPMENT_EXTENSIONS"] == "1",
+           let path = ProcessInfo.processInfo.environment["BN_EXTENSION_LICENSE_FIXTURE"] {
+            struct Fixture: Decodable {
+                let receipt: ExtensionLicenseEnvelope
+                let productID: String
+                let deviceID: String
+            }
+            do {
+                let data = try Data(contentsOf: URL(fileURLWithPath: path))
+                guard data.count < 32_768 else { throw ExtensionLicenseError.invalidReceipt }
+                let fixture = try JSONDecoder().decode(Fixture.self, from: data)
+                _ = try ExtensionLicenseVerifier.verify(fixture.receipt, keys: publicKeys,
+                    productID: fixture.productID, deviceID: fixture.deviceID)
+                deviceID = fixture.deviceID
+                receipts[fixture.productID] = fixture.receipt
+                licensedProducts.insert(fixture.productID)
+                message = "Local test license active."
+            } catch { message = error.localizedDescription }
+            return
+        }
+        #endif
         do {
             if let stored = try read(account: "device-v1"), let id = String(data: stored, encoding: .utf8), !id.isEmpty {
                 deviceID = id

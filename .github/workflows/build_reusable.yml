@@ -105,7 +105,6 @@ jobs:
         env:
           EXTENSION_LICENSE_PUBLIC_KEYS: ${{ secrets.EXTENSION_LICENSE_PUBLIC_KEYS }}
           EXTENSION_LICENSE_SERVER_URL: ${{ vars.EXTENSION_LICENSE_SERVER_URL }}
-          EXTENSION_CHECKOUT_URL: ${{ vars.EXTENSION_CHECKOUT_URL }}
         run: python3 .github/scripts/stamp_extension_licensing.py boringNotch/Info.plist
 
       - name: Build and archive

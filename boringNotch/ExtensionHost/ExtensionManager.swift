@@ -29,7 +29,13 @@ final class ExtensionManager: ObservableObject {
     private var loadedIDs = Set<String>()
 
     private var directory: URL {
-        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["BN_ALLOW_DEVELOPMENT_EXTENSIONS"] == "1",
+           let path = ProcessInfo.processInfo.environment["BN_EXTENSION_TEST_DIRECTORY"] {
+            return URL(fileURLWithPath: path, isDirectory: true)
+        }
+        #endif
+        return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("BoringNotch/Extensions", isDirectory: true)
     }
 

@@ -8,15 +8,11 @@ import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
-DEFAULT_CHECKOUT_URL = "https://buymeacoffee.com/jfxh67wvfxq/e/580376"
-
-
 def stamp(path, environ):
-    names = ("EXTENSION_LICENSE_PUBLIC_KEYS", "EXTENSION_LICENSE_SERVER_URL", "EXTENSION_CHECKOUT_URL")
+    names = ("EXTENSION_LICENSE_PUBLIC_KEYS", "EXTENSION_LICENSE_SERVER_URL")
     values = [environ.get(name, "").strip() for name in names]
     if not any(values):
         return  # Public/contributor builds remain independent of the private product.
-    values[2] = values[2] or DEFAULT_CHECKOUT_URL
     if not all(values):
         raise ValueError("Extension public keys and license server must be configured together")
     keys = json.loads(values[0])
@@ -27,18 +23,14 @@ def stamp(path, environ):
             raise ValueError("Invalid public key mapping")
         if len(base64.b64decode(value, validate=True)) != 32:
             raise ValueError("Only 32-byte Ed25519 public keys may be embedded")
-    for value in values[1:]:
-        url = urlparse(value)
-        if url.scheme != "https" or not url.hostname or url.username or url.password or url.query or url.fragment:
-            raise ValueError("Licensing URLs must be HTTPS URLs without credentials, queries, or fragments")
-    checkout = urlparse(values[2])
-    if checkout.hostname not in ("buymeacoffee.com", "www.buymeacoffee.com"):
-        raise ValueError("The checkout must point to Buy Me a Coffee")
+    url = urlparse(values[1])
+    if url.scheme != "https" or not url.hostname or url.username or url.password or url.path not in ("", "/") or url.query or url.fragment:
+        raise ValueError("The license server must be an HTTPS origin without credentials, paths, queries, or fragments")
     with path.open("rb") as source:
         info = plistlib.load(source)
     info["BNExtensionLicensePublicKeys"] = keys
     info["BNExtensionLicenseServerURL"] = values[1].rstrip("/")
-    info["BNLockScreenLyricsCheckoutURL"] = values[2]
+    info["BNLockScreenLyricsCheckoutURL"] = values[1].rstrip("/") + "/buy?product=theboringteam.boringnotch.lockscreen-lyrics"
     with path.open("wb") as target:
         plistlib.dump(info, target, sort_keys=False)
 
