@@ -50,6 +50,8 @@ bash extensions/lockscreen-lyrics/scripts/run-local.sh "$PWD"
 
 This builds an isolated Debug app/plugin pair, generates an ephemeral Go-signed receipt, pins its public key in that app copy, and launches with the extension enabled. No purchase is needed and the license Keychain is untouched. `BN_REPLACE_LOCAL_TEST=1` replaces only test copies launched from that submodule checkout after the new build succeeds. Play music and press Control–Command–Q to test the physical lock screen.
 
+The host's lock-screen notch shows a closed padlock beside the camera cutout. After macOS confirms an unlock, it opens the padlock and fades the badge out over 600 ms before restoring the normal notch. Reduce Motion uses a brief static open-padlock state. Re-locking or changing displays cancels the transition; no animation task runs while idle. This responds to the existing session's unlock notification, not the initial login before Boring Notch is running.
+
 The fixture path (`BN_EXTENSION_LICENSE_FIXTURE`) and isolated plugin directory (`BN_EXTENSION_TEST_DIRECTORY`) are honored only in Debug with `BN_ALLOW_DEVELOPMENT_EXTENSIONS=1`. Receipt signatures are still checked. Release builds contain neither override.
 
 ## Runtime validation still required before sale

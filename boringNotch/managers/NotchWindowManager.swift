@@ -32,6 +32,7 @@ final class NotchWindowManager {
     private var windowScreenDidChangeObserver: Any?
     private var previousScreens: [NSScreen]?
     private var lockedWindows: [BoringNotchSkyLightWindow] = []
+    private let lockedNotchPresentation = LockedNotchPresentation()
 
     init(camera: CameraModel) {
         primaryViewModel = BoringViewModel(camera: camera)
@@ -61,7 +62,19 @@ final class NotchWindowManager {
     }
 
     func screenUnlocked() {
+        guard isScreenLocked else { return }
         isScreenLocked = false
+        guard !lockedWindows.isEmpty else {
+            restoreUnlockedNotch()
+            return
+        }
+        lockedNotchPresentation.unlock(reduceMotion: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion) { [weak self] in
+            guard let self, !self.isScreenLocked else { return }
+            self.restoreUnlockedNotch()
+        }
+    }
+
+    private func restoreUnlockedNotch() {
         hideLockedNotch()
         adjustWindowPosition(changeAlpha: true)
         setupDragDetectors()
@@ -89,7 +102,7 @@ final class NotchWindowManager {
             window.level = NSWindow.Level(rawValue: NSWindow.Level.screenSaver.rawValue + 1)
             window.ignoresMouseEvents = true
             window.wantsKeyForTextInput = false
-            window.contentView = NSHostingView(rootView: LockedNotchView(size: size))
+            window.contentView = NSHostingView(rootView: LockedNotchView(size: size, presentation: lockedNotchPresentation))
             window.setFrame(frame, display: true)
             window.enableSkyLight()
             window.orderFrontRegardless()
@@ -98,6 +111,7 @@ final class NotchWindowManager {
     }
 
     private func hideLockedNotch() {
+        lockedNotchPresentation.cancel()
         for window in lockedWindows {
             window.disableSkyLight()
             window.orderOut(nil)
@@ -196,6 +210,9 @@ final class NotchWindowManager {
             showLockedNotch()
             return
         }
+        // A display/preference change can interrupt the brief unlock handoff.
+        // Dispose of the old overlay before positioning the normal windows.
+        if lockedNotchPresentation.isTransitioning { hideLockedNotch() }
         let coordinator = BoringViewCoordinator.shared
         if Defaults[.showOnAllDisplays] {
             let currentScreenUUIDs = Set(NSScreen.screens.compactMap { $0.displayUUID })
@@ -316,7 +333,7 @@ final class NotchWindowManager {
     func setupDragDetectors() {
         cleanupDragDetectors()
 
-        guard !isScreenLocked, Defaults[.expandedDragDetection] else { return }
+        guard !isScreenLocked, !lockedNotchPresentation.isTransitioning, Defaults[.expandedDragDetection] else { return }
 
         if Defaults[.showOnAllDisplays] {
             for screen in NSScreen.screens {
@@ -402,7 +419,7 @@ final class NotchWindowManager {
     }
 
     func togglePopover(_ sender: Any?) {
-        guard !isScreenLocked else { return }
+        guard !isScreenLocked, !lockedNotchPresentation.isTransitioning else { return }
         if primaryWindow?.isVisible == true {
             primaryWindow?.orderOut(nil)
         } else {
@@ -417,21 +434,66 @@ final class NotchWindowManager {
     }
 }
 
+/// One short task per confirmed unlock; nothing polls or animates while locked.
+@MainActor
+final class LockedNotchPresentation: ObservableObject {
+    enum Phase { case locked, unlocked, dismissed }
+    @Published private(set) var phase: Phase = .locked
+    private var task: Task<Void, Never>?
+    private var generation = 0
+    var isTransitioning: Bool { task != nil }
+
+    func unlock(reduceMotion: Bool, completion: @escaping @MainActor () -> Void) {
+        guard phase == .locked, task == nil else { return }
+        generation &+= 1
+        let generation = generation
+        phase = .unlocked
+        task = Task { [weak self] in
+            do {
+                try await Task.sleep(for: .milliseconds(reduceMotion ? 180 : 440))
+                guard !Task.isCancelled, self?.generation == generation else { return }
+                self?.phase = .dismissed
+                if !reduceMotion { try await Task.sleep(for: .milliseconds(160)) }
+                guard !Task.isCancelled, self?.generation == generation else { return }
+                self?.task = nil
+                completion()
+            } catch { /* Re-lock, screen change, or teardown cancelled the handoff. */ }
+        }
+    }
+
+    func cancel() {
+        generation &+= 1
+        task?.cancel()
+        task = nil
+        if phase != .locked { phase = .locked }
+    }
+
+    deinit { task?.cancel() }
+}
+
 // Deliberately independent of ContentView: no media, camera, hover, drag,
 // clipboard, or notification observers run in the locked notch.
 private struct LockedNotchView: View {
     let size: CGSize
+    @ObservedObject var presentation: LockedNotchPresentation
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         NotchShape().fill(.black)
             .overlay(alignment: .trailing) {
-                Image(systemName: "lock.fill")
+                Image(systemName: presentation.phase == .locked ? "lock.fill" : "lock.open.fill")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.9))
+                    .contentTransition(reduceMotion ? .identity : .symbolEffect(.replace.byLayer))
+                    .scaleEffect(!reduceMotion && presentation.phase == .unlocked ? 1.12 : 1)
+                    .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.8), value: presentation.phase)
                     .frame(width: 32, height: size.height)
                     .padding(.trailing, 8)
             }
             .frame(width: size.width, height: size.height)
-            .accessibilityLabel("Boring Notch, Mac locked")
+            .opacity(presentation.phase == .dismissed ? 0 : 1)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: presentation.phase)
+            .accessibilityLabel(presentation.phase == .locked ? "Boring Notch, Mac locked" : "Boring Notch, Mac unlocked")
             .allowsHitTesting(false)
     }
 }
