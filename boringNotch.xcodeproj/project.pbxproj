@@ -320,6 +320,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		B1E000012026092700000001 /* ExtensionHost */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = ExtensionHost; sourceTree = "<group>"; };
 		112FB72F2CCF12CC0015238C /* private */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = private; sourceTree = "<group>"; };
 		11DAAB303061BDED00E15887 /* Settings */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Settings; sourceTree = "<group>"; };
 		11DAAB463061BE1600E15887 /* LiveActivities */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = LiveActivities; sourceTree = "<group>"; };
@@ -631,6 +632,7 @@
 		14CEF4142C5CAED300855D72 /* boringNotch */ = {
 			isa = PBXGroup;
 			children = (
+				B1E000012026092700000001 /* ExtensionHost */,
 				11F748672EC9AC9600F841DB /* XPCHelperClient */,
 				116398942DF5D6B40052E6AF /* Providers */,
 				14288DE22C6E016F00B9F80C /* observers */,
@@ -825,6 +827,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				112FB72F2CCF12CC0015238C /* private */,
+				B1E000012026092700000001 /* ExtensionHost */,
 				11DAAB303061BDED00E15887 /* Settings */,
 				11DAAB463061BE1600E15887 /* LiveActivities */,
 				11DAAB583061BE3000E15887 /* extensions */,

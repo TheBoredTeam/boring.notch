@@ -1,0 +1,3 @@
+[submodule "extensions/lockscreen-lyrics"]
+	path = extensions/lockscreen-lyrics
+	url = https://github.com/TheBoredTeam/boring-notch-lockscreen-lyrics.git

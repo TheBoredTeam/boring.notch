@@ -32,6 +32,8 @@ build/
 *.dSYM
 
 # Temporary files
+__pycache__/
+*.pyc
 *.swp
 *.swo
 *.tmp
