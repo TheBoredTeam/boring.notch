@@ -110,7 +110,10 @@ struct ContentView: View {
         let musicIsShowing = (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled
-        if musicIsShowing {
+        // The inline song-change peek is drawn inside the music pill, so it
+        // has to bring the pill with it even when the persistent live
+        // activity is turned off — otherwise the peek never appears.
+        if musicIsShowing || showingInlineMusicPeek {
             items.append(.music)
         }
 
