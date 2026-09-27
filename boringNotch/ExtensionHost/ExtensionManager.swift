@@ -53,7 +53,7 @@ final class ExtensionManager: ObservableObject {
         ExtensionLicenseStore.shared.$licensedProducts
             .dropFirst()
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in self?.publishSnapshot() }
+            .sink { [weak self] _ in self?.publishSnapshot(force: true) }
             .store(in: &subscriptions)
         for (name, event) in [(NSWorkspace.screensDidSleepNotification, "sleep"),
                               (NSWorkspace.screensDidWakeNotification, "wake"),
@@ -70,6 +70,7 @@ final class ExtensionManager: ObservableObject {
                     case "session-inactive": self?.sessionActive = false
                     default: break
                     }
+                    self?.publishSnapshot()
                     self?.send(event: event)
                 }
             })
@@ -78,6 +79,7 @@ final class ExtensionManager: ObservableObject {
 
     func setScreenLocked(_ value: Bool) {
         locked = value
+        publishSnapshot()
         send(event: value ? "lock" : "unlock")
     }
 
@@ -108,23 +110,39 @@ final class ExtensionManager: ObservableObject {
         loadedIDs.insert(manifest.id)
         runtimes[manifest.id] = runtime
         settingsControllers[manifest.id] = runtime.settingsController()
-        publishSnapshot()
+        publishSnapshot(force: true)
         runtime.send(event: locked ? "lock" : "unlock")
         runtime.send(event: awake ? "wake" : "sleep")
         runtime.send(event: sessionActive ? "session-active" : "session-inactive")
     }
 
-    private func publishSnapshot() {
-        guard !runtimes.isEmpty else { return }
+    private func publishSnapshot(force: Bool = false) {
+        let lyricsID = "theboringteam.boringnotch.lockscreen-lyrics"
+        let lyricsVisible = locked && awake && sessionActive && ExtensionLicenseStore.shared.licensedProducts.contains(lyricsID)
+        let consumers = runtimes.filter { force || $0.key != lyricsID || lyricsVisible }
+        guard !consumers.isEmpty else {
+            artwork = nil
+            lastArtwork = nil
+            return
+        }
         let music = MusicManager.shared
-        if lastArtwork !== music.albumArt {
+        let needsArtwork = consumers.keys.contains { $0 != lyricsID } || lyricsVisible
+        if !needsArtwork {
+            artwork = nil
+            lastArtwork = nil
+        } else if lastArtwork !== music.albumArt {
             lastArtwork = music.albumArt
-            let image = NSImage(size: NSSize(width: 600, height: 600))
-            image.lockFocus()
-            music.albumArt.draw(in: NSRect(x: 0, y: 0, width: 600, height: 600))
-            image.unlockFocus()
-            artwork = image.tiffRepresentation.flatMap(NSBitmapImageRep.init(data:))?
-                .representation(using: .jpeg, properties: [.compressionFactor: 0.85])?.base64EncodedString()
+            artwork = nil
+            if let source = music.albumArt.cgImage(forProposedRect: nil, context: nil, hints: nil),
+               let context = CGContext(data: nil, width: 600, height: 600, bitsPerComponent: 8, bytesPerRow: 0,
+                                       space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) {
+                context.interpolationQuality = .medium
+                context.draw(source, in: CGRect(x: 0, y: 0, width: 600, height: 600))
+                if let image = context.makeImage() {
+                    artwork = NSBitmapImageRep(cgImage: image)
+                        .representation(using: .jpeg, properties: [.compressionFactor: 0.85])?.base64EncodedString()
+                }
+            }
         }
         let snapshot: [String: Any] = [
             "title": music.songTitle, "artist": music.artistName, "album": music.album,
@@ -134,7 +152,7 @@ final class ExtensionManager: ObservableObject {
             "artwork": artwork ?? "", "favorite": music.isFavoriteTrack,
             "canFavorite": music.canFavoriteTrack
         ]
-        for (id, runtime) in runtimes {
+        for (id, runtime) in consumers {
             var licensedSnapshot = snapshot
             licensedSnapshot["licensed"] = ExtensionLicenseStore.shared.licensedProducts.contains(id)
             if let data = try? JSONSerialization.data(withJSONObject: licensedSnapshot) { runtime.send(snapshot: data) }
@@ -209,5 +227,7 @@ final class ExtensionManager: ObservableObject {
         settingsControllers.removeAll()
         runtimes.values.forEach { $0.stop() }
         runtimes.removeAll()
+        artwork = nil
+        lastArtwork = nil
     }
 }

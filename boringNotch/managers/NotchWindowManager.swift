@@ -31,6 +31,7 @@ final class NotchWindowManager {
     private(set) var isScreenLocked: Bool = false
     private var windowScreenDidChangeObserver: Any?
     private var previousScreens: [NSScreen]?
+    private var lockedWindows: [BoringNotchSkyLightWindow] = []
 
     init(camera: CameraModel) {
         primaryViewModel = BoringViewModel(camera: camera)
@@ -52,47 +53,58 @@ final class NotchWindowManager {
 
     func screenLocked() {
         isScreenLocked = true
-        if !Defaults[.showOnLockScreen] {
-            cleanupWindows()
-        } else {
-            enableSkyLightOnAllWindows()
-        }
+        primaryViewModel.close()
+        contexts.values.forEach { $0.viewModel.close() }
+        cleanupDragDetectors()
+        cleanupWindows()
+        showLockedNotch()
     }
 
     func screenUnlocked() {
         isScreenLocked = false
-        if !Defaults[.showOnLockScreen] {
-            adjustWindowPosition(changeAlpha: true)
-            setupDragDetectors()
-        } else {
-            disableSkyLightOnAllWindows()
+        hideLockedNotch()
+        adjustWindowPosition(changeAlpha: true)
+        setupDragDetectors()
+    }
+
+    private var showsLockedNotch: Bool {
+        let product = "theboringteam.boringnotch.lockscreen-lyrics"
+        return Defaults[.showOnLockScreen] || (
+            ExtensionLicenseStore.shared.licensedProducts.contains(product) &&
+            ExtensionManager.shared.installed.contains { $0.id == product })
+    }
+
+    private func showLockedNotch() {
+        hideLockedNotch()
+        guard isScreenLocked, showsLockedNotch else { return }
+        let selected = NSScreen.screen(withUUID: BoringViewCoordinator.shared.selectedScreenUUID) ?? NSScreen.main
+        let screens = Defaults[.showOnAllDisplays] ? NSScreen.screens : [selected].compactMap { $0 }
+        for screen in screens {
+            let closed = getClosedNotchSize(screenUUID: screen.displayUUID)
+            let size = CGSize(width: closed.width + 64, height: max(32, max(closed.height, screen.safeAreaInsets.top)))
+            let frame = NSRect(x: screen.frame.midX - size.width / 2, y: screen.frame.maxY - size.height,
+                               width: size.width, height: size.height)
+            let window = BoringNotchSkyLightWindow(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel],
+                                                  backing: .buffered, defer: false)
+            window.level = NSWindow.Level(rawValue: NSWindow.Level.screenSaver.rawValue + 1)
+            window.ignoresMouseEvents = true
+            window.wantsKeyForTextInput = false
+            window.contentView = NSHostingView(rootView: LockedNotchView(size: size))
+            window.setFrame(frame, display: true)
+            window.enableSkyLight()
+            window.orderFrontRegardless()
+            lockedWindows.append(window)
         }
     }
 
-    private func enableSkyLightOnAllWindows() {
-        if Defaults[.showOnAllDisplays] {
-            contexts.values.forEach { context in
-                (context.window as? BoringNotchSkyLightWindow)?.enableSkyLight()
-            }
-        } else {
-            (primaryWindow as? BoringNotchSkyLightWindow)?.enableSkyLight()
+    private func hideLockedNotch() {
+        for window in lockedWindows {
+            window.disableSkyLight()
+            window.orderOut(nil)
+            window.contentView = nil
+            window.close()
         }
-    }
-
-    private func disableSkyLightOnAllWindows() {
-        // Delay disabling SkyLight to avoid flicker during unlock transition
-        Task {
-            try? await Task.sleep(for: .milliseconds(150))
-            await MainActor.run {
-                if Defaults[.showOnAllDisplays] {
-                    contexts.values.forEach { context in
-                        (context.window as? BoringNotchSkyLightWindow)?.disableSkyLight()
-                    }
-                } else {
-                    (primaryWindow as? BoringNotchSkyLightWindow)?.disableSkyLight()
-                }
-            }
-        }
+        lockedWindows.removeAll()
     }
 
     // MARK: - Window lifecycle
@@ -180,6 +192,10 @@ final class NotchWindowManager {
     }
 
     func adjustWindowPosition(changeAlpha: Bool = false) {
+        if isScreenLocked {
+            showLockedNotch()
+            return
+        }
         let coordinator = BoringViewCoordinator.shared
         if Defaults[.showOnAllDisplays] {
             let currentScreenUUIDs = Set(NSScreen.screens.compactMap { $0.displayUUID })
@@ -300,7 +316,7 @@ final class NotchWindowManager {
     func setupDragDetectors() {
         cleanupDragDetectors()
 
-        guard Defaults[.expandedDragDetection] else { return }
+        guard !isScreenLocked, Defaults[.expandedDragDetection] else { return }
 
         if Defaults[.showOnAllDisplays] {
             for screen in NSScreen.screens {
@@ -386,6 +402,7 @@ final class NotchWindowManager {
     }
 
     func togglePopover(_ sender: Any?) {
+        guard !isScreenLocked else { return }
         if primaryWindow?.isVisible == true {
             primaryWindow?.orderOut(nil)
         } else {
@@ -394,7 +411,27 @@ final class NotchWindowManager {
     }
 
     func cleanup() {
+        hideLockedNotch()
         cleanupDragDetectors()
         cleanupWindows()
+    }
+}
+
+// Deliberately independent of ContentView: no media, camera, hover, drag,
+// clipboard, or notification observers run in the locked notch.
+private struct LockedNotchView: View {
+    let size: CGSize
+    var body: some View {
+        NotchShape().fill(.black)
+            .overlay(alignment: .trailing) {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .frame(width: 32, height: size.height)
+                    .padding(.trailing, 8)
+            }
+            .frame(width: size.width, height: size.height)
+            .accessibilityLabel("Boring Notch, Mac locked")
+            .allowsHitTesting(false)
     }
 }
