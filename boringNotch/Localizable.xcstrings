@@ -13,6 +13,12 @@
     },
     " (default)" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " (standard)"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -191,6 +197,12 @@
     },
     "%@ is only needed when using built-in macOS control sources for OSD replacement. External sources like BetterDisplay or Lunar do not require it. You can enable it later in OSD settings if needed." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ wird nur benötigt, wenn eingebaute macOS-Steuerungsquellen für den OSD-Austausch verwendet werden. Externe Quellen wie BetterDisplay oder Lunar benötigen es nicht. Sie können es später in den OSD-Einstellungen aktivieren."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -234,7 +246,21 @@
       }
     },
     "%@ notification" : {
-      "comment" : "A label describing the notification. The argument is the name of the app that sent the notification."
+      "comment" : "A label describing the notification. The argument is the name of the app that sent the notification.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notification de %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notificação %@"
+          }
+        }
+      }
     },
     "%@ Required" : {
       "localizations" : {
@@ -795,6 +821,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Accessibilità"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アクセシビリティ"
           }
         },
         "pt-BR" : {
@@ -4230,6 +4262,12 @@
             "value" : "Fotocamera"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カメラ"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4263,6 +4301,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Accesso Fotocamera Richiesto"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カメラへのアクセス権限が必要"
           }
         },
         "pt-BR" : {
@@ -4919,6 +4963,12 @@
             "value" : "Controlla di nuovo"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再読み込み"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5128,6 +5178,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vérification de la disponibilité de « À l'écoute »..."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "読み込み中…"
           }
         },
         "pt-BR" : {
@@ -5416,6 +5472,12 @@
             "value" : "Scegli applicazione"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリを選択"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5555,6 +5617,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Choisissez le mode d'affichage du calendrier dans l'encoche."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カレンダー表示方式を選択。"
           }
         },
         "pt-BR" : {
@@ -7009,6 +7077,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Converti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "変換"
           }
         },
         "pt-BR" : {
@@ -8951,7 +9025,21 @@
       }
     },
     "Dismiss notification" : {
-      "comment" : "A button that dismisses a notification."
+      "comment" : "A button that dismisses a notification.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ignorer la notification"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descartar notificação"
+          }
+        }
+      }
     },
     "Displays" : {
       "localizations" : {
@@ -11248,6 +11336,12 @@
     "Flip video" : {
       "comment" : "A toggle to flip the video.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Video spiegeln"
+          }
+        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11282,6 +11376,12 @@
     },
     "Format:" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Format:"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11310,6 +11410,12 @@
     },
     "Forward 15s" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 Sekunden vorwärts"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13239,7 +13345,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Élevé"
+            "value" : "Élevée"
           }
         },
         "he" : {
@@ -17606,7 +17712,21 @@
       }
     },
     "No Camera" : {
-      "comment" : "No camera available placeholder title"
+      "comment" : "No camera available placeholder title",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune caméra"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sem câmera"
+          }
+        }
+      }
     },
     "No Compatible Apps Found" : {
       "comment" : "Context menu item: No Compatible Apps Found",
@@ -19990,7 +20110,21 @@
       }
     },
     "Opens %@" : {
-      "comment" : "A hint that appears when tapping the notification. The argument is the name of the app."
+      "comment" : "A hint that appears when tapping the notification. The argument is the name of the app.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir dans %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre %@"
+          }
+        }
+      }
     },
     "Option (⌥) Key Behavior" : {
       "localizations" : {
@@ -20326,7 +20460,21 @@
       }
     },
     "Paused" : {
-      "comment" : "Camera interrupted placeholder title"
+      "comment" : "Camera interrupted placeholder title",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interrompu"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausado"
+          }
+        }
+      }
     },
     "PDF Creation Failed" : {
       "localizations" : {
@@ -25066,7 +25214,21 @@
       }
     },
     "Show next queued notification" : {
-      "comment" : "A button that displays a label with the number of queued notifications and opens the next queued notification."
+      "comment" : "A button that displays a label with the number of queued notifications and opens the next queued notification.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher la prochaine notification en attente"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar próxima notificação na fila"
+          }
+        }
+      }
     },
     "Show notch on lock screen" : {
       "localizations" : {
@@ -30448,6 +30610,12 @@
     "Works with most media apps, including browsers, to detect what's playing. Note: This may be removed in a future macOS version." : {
       "comment" : "Onboarding description of the universal macOS Now Playing music source.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Funktioniert mit den meisten Medien-Apps, einschließlich Browsern, um zu erkennen, was abgespielt wird. Hinweis: Dies kann in einer zukünftigen macOS-Version entfernt werden."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
