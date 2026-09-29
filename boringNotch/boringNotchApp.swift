@@ -332,7 +332,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         syncNotchHeightIfNeeded()
 
         windowManager.prepareInitialWindows()
-        FloatingShelfController.shared.start()
+        FloatingShelfController.shared.start { [weak windowManager] in
+            windowManager?.isAnyNotchOpen ?? false
+        }
 
         if coordinator.firstLaunch {
             DispatchQueue.main.async {

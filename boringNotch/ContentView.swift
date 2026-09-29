@@ -331,6 +331,11 @@ struct ContentView: View {
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
                         scheduleCloseIfNotHovering(overNotch: vm)
                     }
+                    .onChange(of: vm.notchState) { _, state in
+                        if state == .open {
+                            FloatingShelfController.shared.notchDidOpen()
+                        }
+                    }
                     // A new notification always takes the front of the stack,
                     // even if the user had swiped away to music.
                     .onChange(of: notificationManager.activeNotification?.id) { _, newID in

@@ -86,22 +86,37 @@ final class FloatingShelfTests: XCTestCase {
 
     func testTriggerRequiresShelfFlagsAndAnActiveDrag() {
         XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
-            shelfEnabled: false, floatingShelfEnabled: true, contentDragActive: true,
+            shelfEnabled: false, floatingShelfEnabled: true, notchOpen: false, contentDragActive: true,
             shake: true, shiftHeld: true, shortcutPressed: true
         ))
         XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
-            shelfEnabled: true, floatingShelfEnabled: false, contentDragActive: true,
+            shelfEnabled: true, floatingShelfEnabled: false, notchOpen: false, contentDragActive: true,
             shake: true, shiftHeld: false, shortcutPressed: false
         ))
         XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
-            shelfEnabled: true, floatingShelfEnabled: true, contentDragActive: false,
+            shelfEnabled: true, floatingShelfEnabled: true, notchOpen: false, contentDragActive: false,
             shake: true, shiftHeld: true, shortcutPressed: false
         ))
     }
 
     func testShortcutOpensWithoutADrag() {
         XCTAssertTrue(FloatingShelfTriggerPolicy.shouldPresent(
-            shelfEnabled: true, floatingShelfEnabled: true, contentDragActive: false,
+            shelfEnabled: true, floatingShelfEnabled: true, notchOpen: false, contentDragActive: false,
+            shake: false, shiftHeld: false, shortcutPressed: true
+        ))
+    }
+
+    func testOpenNotchBlocksEveryTrigger() {
+        XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
+            shelfEnabled: true, floatingShelfEnabled: true, notchOpen: true, contentDragActive: true,
+            shake: true, shiftHeld: false, shortcutPressed: false
+        ))
+        XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
+            shelfEnabled: true, floatingShelfEnabled: true, notchOpen: true, contentDragActive: true,
+            shake: false, shiftHeld: true, shortcutPressed: false
+        ))
+        XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
+            shelfEnabled: true, floatingShelfEnabled: true, notchOpen: true, contentDragActive: false,
             shake: false, shiftHeld: false, shortcutPressed: true
         ))
     }
@@ -123,7 +138,7 @@ final class FloatingShelfTests: XCTestCase {
         XCTAssertTrue(presenting(shake: false, shiftHeld: true, shortcutPressed: false))
         XCTAssertTrue(presenting(shake: false, shiftHeld: false, shortcutPressed: true))
         XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
-            shelfEnabled: true, floatingShelfEnabled: true, contentDragActive: true,
+            shelfEnabled: true, floatingShelfEnabled: true, notchOpen: false, contentDragActive: true,
             shake: false, shiftHeld: false, shortcutPressed: false
         ))
     }
@@ -187,6 +202,7 @@ final class FloatingShelfTests: XCTestCase {
         FloatingShelfTriggerPolicy.shouldPresent(
             shelfEnabled: true,
             floatingShelfEnabled: true,
+            notchOpen: false,
             contentDragActive: true,
             shake: shake,
             shiftHeld: shiftHeld,

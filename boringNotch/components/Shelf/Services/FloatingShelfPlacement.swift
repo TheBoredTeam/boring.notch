@@ -48,12 +48,14 @@ enum FloatingShelfTriggerPolicy {
     static func shouldPresent(
         shelfEnabled: Bool,
         floatingShelfEnabled: Bool,
+        notchOpen: Bool,
         contentDragActive: Bool,
         shake: Bool,
         shiftHeld: Bool,
         shortcutPressed: Bool
     ) -> Bool {
-        guard shelfEnabled, floatingShelfEnabled else { return false }
+        // The open notch already shows the shelf, so a second one is never stacked beside it.
+        guard shelfEnabled, floatingShelfEnabled, !notchOpen else { return false }
         if shortcutPressed { return true }
         guard contentDragActive else { return false }
         return shake || shiftHeld

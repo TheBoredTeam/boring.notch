@@ -19,7 +19,7 @@ final class FloatingShelfController {
     private var shakeDetector = PointerShakeDetector()
     private var panel: FloatingShelfPanel?
     private var isPresented = false
-    private var isDragging = false
+    private var isMouseDown = false
     private var isContentDragging = false
     private var pasteboardChangeCount = -1
     private var dismissTask: Task<Void, Never>?
@@ -33,11 +33,13 @@ final class FloatingShelfController {
     private var mouseDraggedMonitor: Any?
     private var mouseUpMonitor: Any?
     private let dragPasteboard = NSPasteboard(name: .drag)
+    private var isNotchOpen: () -> Bool = { false }
 
     private init() {}
 
-    func start() {
+    func start(isNotchOpen: @escaping () -> Bool) {
         guard mouseDownMonitor == nil else { return }
+        self.isNotchOpen = isNotchOpen
         installMonitors()
         // Create the panel before any drag so its drop registration already exists.
         _ = ensurePanel()
@@ -52,6 +54,14 @@ final class FloatingShelfController {
         keyboardPoll?.cancel()
         keyboardPoll = nil
         removeMonitors()
+        dismiss()
+    }
+
+    /// Hiding the panel mid-share would drop the picker's anchor, and hiding it while an item
+    /// is being dragged out would end that drag, so those cases keep the panel.
+    func notchDidOpen() {
+        guard !SharingStateManager.shared.preventNotchClose,
+              !ShelfSelectionModel.shared.isDragging else { return }
         dismiss()
     }
 
@@ -89,7 +99,7 @@ final class FloatingShelfController {
 
     private func handleMouseDown() {
         pasteboardChangeCount = dragPasteboard.changeCount
-        isDragging = true
+        isMouseDown = true
         isContentDragging = false
         shareDropArmed = false
         shakeDetector.reset()
@@ -97,7 +107,7 @@ final class FloatingShelfController {
     }
 
     private func handleMouseDragged(sample: PointerSample) {
-        guard isDragging else { return }
+        guard isMouseDown else { return }
         noteContentDragIfNeeded()
         noteShareHover()
         guard isContentDragging, !ShelfSelectionModel.shared.isDragging else { return }
@@ -111,13 +121,13 @@ final class FloatingShelfController {
 
     private func handleShortcut() {
         // While the button is down, the hardware poll owns the shortcut so a drag cannot double-toggle.
-        guard !isDragging else { return }
+        guard !isMouseDown else { return }
         toggleFromShortcut(near: NSEvent.mouseLocation)
     }
 
     private func handleMouseUp() {
-        guard isDragging else { return }
-        isDragging = false
+        guard isMouseDown else { return }
+        isMouseDown = false
         isContentDragging = false
         keyboardPoll?.cancel()
         keyboardPoll = nil
@@ -134,7 +144,7 @@ final class FloatingShelfController {
         keyboardPoll = Task { @MainActor in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(100))
-                guard !Task.isCancelled, self.isDragging else { return }
+                guard !Task.isCancelled, self.isMouseDown else { return }
                 self.noteContentDragIfNeeded()
                 self.noteShareHover()
                 guard !ShelfSelectionModel.shared.isDragging else { continue }
@@ -156,6 +166,7 @@ final class FloatingShelfController {
         FloatingShelfTriggerPolicy.shouldPresent(
             shelfEnabled: Defaults[.boringShelf],
             floatingShelfEnabled: Defaults[.floatingShelf],
+            notchOpen: isNotchOpen(),
             contentDragActive: isContentDragging,
             shake: shake,
             shiftHeld: held.contains(.shift) && !shortcutHeld,
@@ -171,6 +182,7 @@ final class FloatingShelfController {
         guard FloatingShelfTriggerPolicy.shouldPresent(
             shelfEnabled: Defaults[.boringShelf],
             floatingShelfEnabled: Defaults[.floatingShelf],
+            notchOpen: isNotchOpen(),
             contentDragActive: isContentDragging,
             shake: false,
             shiftHeld: false,
@@ -217,7 +229,6 @@ final class FloatingShelfController {
 
         dismissTask?.cancel()
         let panel = ensurePanel()
-        panel.resetAppearance()
         let frame = FloatingShelfPlacement.frame(cursor: cursor, screenFrame: screen.frame)
         panel.setFrame(frame, display: true)
         panel.orderFrontRegardless()
@@ -249,18 +260,13 @@ final class FloatingShelfController {
         guard isPresented else { return }
         let dropped = panel?.dropInteraction.dropEvent == true
         panel?.dropInteraction.dropEvent = false
-        if dropped {
-            if shareDropArmed || SharingStateManager.shared.preventNotchClose {
-                scheduleDismissAfterSharing()
-            } else {
-                scheduleNotchStyleDismiss()
-            }
-            return
+        if SharingStateManager.shared.preventNotchClose || (dropped && shareDropArmed) {
+            scheduleDismissAfterSharing()
+        } else if dropped {
+            scheduleNotchStyleDismiss()
+        } else {
+            dismiss()
         }
-        if SharingStateManager.shared.preventNotchClose {
-            return
-        }
-        dismiss()
     }
 
     /// Loading the dropped files and presenting the picker is asynchronous, so allow a few
