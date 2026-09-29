@@ -233,6 +233,9 @@ final class FloatingShelfController {
         panel.setFrame(frame, display: true)
         panel.show(growingFrom: FloatingShelfPlacement.growthAnchor(cursor: cursor, frame: frame))
         isPresented = true
+        if Defaults[.enableHaptics] {
+            NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+        }
         Log.shelf.debug("Presented floating shelf")
     }
 
