@@ -102,6 +102,8 @@ final class FloatingShelfPanel: NSPanel {
         // screenSaver level draws the panel but the drag passes through it.
         level = .floating
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+        // Borderless windows have no visible title, so VoiceOver would otherwise announce an unnamed window.
+        setAccessibilityTitle(String(localized: "Floating shelf"))
     }
 }
 
