@@ -4,7 +4,7 @@ Independent developers can compile a native Boring Notch extension, distribute a
 
 An extension can supply collapsed live activities, tabs in the expanded notch, or both. Its SwiftUI/AppKit layouts, controls, observable models, timers, and business logic stay inside its bundle. The host discovers contributions at runtime through the C ABI. Building Boring Notch never compiles, embeds, or statically links third-party extension source; the standalone example is built separately by its own script.
 
-The in-app **Store** uses the same reviewed catalog as the website. Paid and free releases use the same installation contract; price never gates bundle installation. See [the Store publication guide](extension-store.md) for approved release metadata and the boundary between host services and developer commerce.
+The in-app **Store** reads the reviewed [boring.extensions](https://github.com/TheBoredTeam/boring.extensions) registry. Each extension has one source plist; CI generates the complete remote catalog, so approved listings and release updates appear on refresh without an app release. Paid and free releases use the same installation contract; price never gates bundle installation. See [the Store publication guide](extension-store.md) for approved release metadata and the boundary between host services and developer commerce.
 
 ## Build the example
 

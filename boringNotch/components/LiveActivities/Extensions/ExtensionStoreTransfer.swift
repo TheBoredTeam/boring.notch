@@ -9,10 +9,36 @@ import Foundation
 /// URLSession delivers bounded chunks; package bytes are never accumulated in RAM.
 final class ExtensionStoreTransfer: NSObject, URLSessionDataDelegate, @unchecked Sendable {
     enum Destination: Sendable { case memory, file(URL) }
+    struct Validators: Codable, Equatable, Sendable {
+        let etag: String?
+        let lastModified: String?
+
+        init(etag: String? = nil, lastModified: String? = nil) {
+            self.etag = Self.validHeader(etag, maximum: 1_024)
+            self.lastModified = Self.validHeader(lastModified, maximum: 128)
+        }
+
+        var isEmpty: Bool { etag == nil && lastModified == nil }
+
+        var sanitized: Self { Self(etag: etag, lastModified: lastModified) }
+
+        func merging(_ previous: Self) -> Self {
+            Self(etag: etag ?? previous.etag, lastModified: lastModified ?? previous.lastModified)
+        }
+
+        private static func validHeader(_ value: String?, maximum: Int) -> String? {
+            guard let value, !value.isEmpty, value.utf8.count <= maximum,
+                  value.rangeOfCharacter(from: .controlCharacters) == nil else { return nil }
+            return value
+        }
+    }
+
     struct Result: Sendable {
         let data: Data
         let sha256: String
         let byteCount: Int
+        let notModified: Bool
+        let validators: Validators
     }
 
     private let url: URL
@@ -21,6 +47,7 @@ final class ExtensionStoreTransfer: NSObject, URLSessionDataDelegate, @unchecked
     private let configuration: URLSessionConfiguration
     private let progress: @Sendable (Double?) -> Void
     private let queue: OperationQueue
+    private let validators: Validators
 
     // Access only on queue.
     private var continuation: CheckedContinuation<Result, Error>?
@@ -35,15 +62,19 @@ final class ExtensionStoreTransfer: NSObject, URLSessionDataDelegate, @unchecked
     private var lastProgressPercent = -1
     private var cancelled = false
     private var completed = false
+    private var notModified = false
+    private var responseValidators = Validators()
 
     init(
         url: URL, maximumBytes: Int, destination: Destination,
         configuration: URLSessionConfiguration? = nil,
+        validators: Validators = Validators(),
         progress: @escaping @Sendable (Double?) -> Void = { _ in }
     ) {
         self.url = url
         self.maximumBytes = maximumBytes
         self.destination = destination
+        self.validators = validators.sanitized
         let configuration = (configuration?.copy() as? URLSessionConfiguration) ?? .ephemeral
         configuration.httpCookieStorage = nil
         configuration.httpShouldSetCookies = false
@@ -99,6 +130,10 @@ final class ExtensionStoreTransfer: NSObject, URLSessionDataDelegate, @unchecked
         request.httpMethod = "GET"
         request.setValue("BoringNotch-ExtensionStore/1", forHTTPHeaderField: "User-Agent")
         request.setValue("identity", forHTTPHeaderField: "Accept-Encoding")
+        if case .memory = destination {
+            request.setValue(validators.etag, forHTTPHeaderField: "If-None-Match")
+            request.setValue(validators.lastModified, forHTTPHeaderField: "If-Modified-Since")
+        }
         let session = URLSession(configuration: configuration, delegate: self, delegateQueue: queue)
         self.session = session
         let task = session.dataTask(with: request)
@@ -119,8 +154,20 @@ final class ExtensionStoreTransfer: NSObject, URLSessionDataDelegate, @unchecked
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
                     completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
-        guard !completed, let response = response as? HTTPURLResponse, response.statusCode == 200,
+        guard !completed, let response = response as? HTTPURLResponse,
               let url = response.url, ExtensionCatalogURL.isSafeHTTPS(url) else {
+            completionHandler(.cancel)
+            finish(.failure(ExtensionStoreError.invalidResponse))
+            return
+        }
+        responseValidators = Validators(etag: response.value(forHTTPHeaderField: "ETag"),
+                                        lastModified: response.value(forHTTPHeaderField: "Last-Modified"))
+        if response.statusCode == 304, case .memory = destination, !validators.isEmpty {
+            notModified = true
+            completionHandler(.allow)
+            return
+        }
+        guard response.statusCode == 200 else {
             completionHandler(.cancel)
             finish(.failure(ExtensionStoreError.invalidResponse))
             return
@@ -138,6 +185,10 @@ final class ExtensionStoreTransfer: NSObject, URLSessionDataDelegate, @unchecked
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive chunk: Data) {
         guard !completed else { return }
+        guard !notModified else {
+            finish(.failure(ExtensionStoreError.invalidResponse))
+            return
+        }
         guard chunk.count <= maximumBytes - byteCount else {
             finish(.failure(ExtensionStoreError.downloadTooLarge))
             return
@@ -161,13 +212,19 @@ final class ExtensionStoreTransfer: NSObject, URLSessionDataDelegate, @unchecked
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         guard !completed else { return }
         if let error { finish(.failure(cancelled ? CancellationError() : error)); return }
+        if notModified {
+            finish(.success(Result(data: Data(), sha256: "", byteCount: 0, notModified: true,
+                                   validators: responseValidators.merging(validators))))
+            return
+        }
         guard byteCount > 0 else { finish(.failure(ExtensionStoreError.emptyDownload)); return }
         if expectedBytes >= 0, byteCount != expectedBytes {
             finish(.failure(ExtensionStoreError.invalidResponse))
             return
         }
         let checksum = hasher.finalize().map { String(format: "%02x", $0) }.joined()
-        finish(.success(Result(data: data, sha256: checksum, byteCount: byteCount)))
+        finish(.success(Result(data: data, sha256: checksum, byteCount: byteCount, notModified: false,
+                               validators: responseValidators)))
     }
 
     private func finish(_ result: Swift.Result<Result, Error>) {

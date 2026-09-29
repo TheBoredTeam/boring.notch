@@ -7,7 +7,16 @@ import Foundation
 struct ExtensionCatalog: Decodable, Sendable {
     static let maximumBytes = 2_000_000
     static let maximumItems = 500
-    static let officialURL = URL(string: "https://theboring.name/extensions/catalog.json")
+    static let defaultURL = URL(string: "https://raw.githubusercontent.com/TheBoredTeam/boring.extensions/main/catalog.plist")
+    static var officialURL: URL? {
+        sourceURL(configuredValue: Bundle.main.object(forInfoDictionaryKey: "BoringNotchExtensionCatalogURL") as? String)
+    }
+
+    static func sourceURL(configuredValue: String?) -> URL? {
+        guard let configuredValue else { return defaultURL }
+        guard let url = URL(string: configuredValue), ExtensionCatalogURL.isSafeHTTPS(url) else { return nil }
+        return url
+    }
 
     let schemaVersion: Int
     let extensions: [ExtensionCatalogItem]
@@ -15,7 +24,16 @@ struct ExtensionCatalog: Decodable, Sendable {
     static func decode(_ data: Data) throws -> ExtensionCatalog {
         guard data.count <= maximumBytes else { throw ExtensionStoreError.catalogTooLarge }
         let catalog: ExtensionCatalog
-        do { catalog = try JSONDecoder().decode(Self.self, from: data) }
+        do {
+            // Existing JSON catalogs remain readable during migration. New
+            // catalogs use native XML or binary property lists generated in CI.
+            let firstByte = data.first { ![0x20, 0x09, 0x0a, 0x0d].contains($0) }
+            if firstByte == 0x7b {
+                catalog = try JSONDecoder().decode(Self.self, from: data)
+            } else {
+                catalog = try PropertyListDecoder().decode(Self.self, from: data)
+            }
+        }
         catch { throw ExtensionStoreError.invalidCatalog }
         guard catalog.schemaVersion == 1, catalog.extensions.count <= maximumItems,
               Set(catalog.extensions.map(\.id)).count == catalog.extensions.count,
@@ -37,6 +55,14 @@ struct ExtensionCatalogItem: Decodable, Equatable, Identifiable, Sendable {
     struct Developer: Decodable, Equatable, Sendable {
         let name: String
         let url: URL
+
+        private enum CodingKeys: String, CodingKey { case name, url }
+
+        init(from decoder: Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            name = try values.decode(String.self, forKey: .name)
+            url = try values.decodeCatalogURL(forKey: .url)
+        }
     }
 
     struct Price: Decodable, Equatable, Sendable {
@@ -60,6 +86,7 @@ struct ExtensionCatalogItem: Decodable, Equatable, Identifiable, Sendable {
     let sourceURL: URL?
     let supportURL: URL?
     let artifact: ExtensionCatalogArtifact?
+    private let productURL: URL?
     private let icon: String?
     private let artwork: String?
 
@@ -70,17 +97,36 @@ struct ExtensionCatalogItem: Decodable, Equatable, Identifiable, Sendable {
     var iconURL: URL? { icon.flatMap(ExtensionCatalogURL.assetURL) }
     var artworkURL: URL? { artwork.flatMap(ExtensionCatalogURL.assetURL) }
 
-    var websiteURL: URL? {
-        var components = URLComponents(string: "https://theboring.name/extensions/")
-        components?.queryItems = [URLQueryItem(name: "extension", value: slug)]
-        return components?.url
-    }
+    var websiteURL: URL? { productURL ?? developer.url }
 
     private enum CodingKeys: String, CodingKey {
         case id, slug, name, tagline, description, developer, categories, price, status, statusNote
         case version, requirements, artifact, icon, artwork
         case sourceURL = "sourceUrl"
         case supportURL = "supportUrl"
+        case productURL = "websiteUrl"
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        slug = try values.decode(String.self, forKey: .slug)
+        name = try values.decode(String.self, forKey: .name)
+        tagline = try values.decode(String.self, forKey: .tagline)
+        description = try values.decode(String.self, forKey: .description)
+        developer = try values.decode(Developer.self, forKey: .developer)
+        categories = try values.decode([String].self, forKey: .categories)
+        price = try values.decode(Price.self, forKey: .price)
+        status = try values.decode(Status.self, forKey: .status)
+        statusNote = try values.decodeIfPresent(String.self, forKey: .statusNote)
+        version = try values.decode(String.self, forKey: .version)
+        requirements = try values.decode([String].self, forKey: .requirements)
+        sourceURL = try values.decodeCatalogURLIfPresent(forKey: .sourceURL)
+        supportURL = try values.decodeCatalogURLIfPresent(forKey: .supportURL)
+        productURL = try values.decodeCatalogURLIfPresent(forKey: .productURL)
+        artifact = try values.decodeIfPresent(ExtensionCatalogArtifact.self, forKey: .artifact)
+        icon = try values.decodeIfPresent(String.self, forKey: .icon)
+        artwork = try values.decodeIfPresent(String.self, forKey: .artwork)
     }
 
     func validate() throws {
@@ -100,10 +146,12 @@ struct ExtensionCatalogItem: Decodable, Equatable, Identifiable, Sendable {
               (price.amount == 0) == (price.billing == "free"),
               sourceURL.map(ExtensionCatalogURL.isSafeHTTPS) ?? true,
               supportURL.map(ExtensionCatalogURL.isSafeHTTPS) ?? true,
+              productURL.map(ExtensionCatalogURL.isSafeHTTPS) ?? true,
               icon.map({ ExtensionCatalogURL.assetURL($0) != nil }) ?? true,
               artwork.map({ ExtensionCatalogURL.assetURL($0) != nil }) ?? true else {
             throw ExtensionStoreError.invalidCatalog
         }
+        guard status != .available || artifact != nil else { throw ExtensionStoreError.invalidCatalog }
         if let artifact {
             try artifact.validate()
             guard artifact.version == version else { throw ExtensionStoreError.invalidCatalog }
@@ -123,6 +171,23 @@ struct ExtensionCatalogArtifact: Decodable, Equatable, Sendable {
     let version: String
     let apiVersion: Int
 
+    private enum CodingKeys: String, CodingKey { case downloadURL, url, sha256, publisherTeamID, version, apiVersion }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        let downloadURL = try values.decodeCatalogURLIfPresent(forKey: .downloadURL)
+        let legacyURL = try values.decodeCatalogURLIfPresent(forKey: .url)
+        guard let resolvedURL = downloadURL ?? legacyURL,
+              downloadURL == nil || legacyURL == nil || downloadURL == legacyURL else {
+            throw ExtensionStoreError.invalidCatalog
+        }
+        url = resolvedURL
+        sha256 = try values.decode(String.self, forKey: .sha256)
+        publisherTeamID = try values.decode(String.self, forKey: .publisherTeamID)
+        version = try values.decode(String.self, forKey: .version)
+        apiVersion = try values.decode(Int.self, forKey: .apiVersion)
+    }
+
     func validate() throws {
         guard ExtensionCatalogURL.isSafeHTTPS(url), url.pathExtension.lowercased() == "zip",
               sha256.range(of: #"\A[A-Fa-f0-9]{64}\z"#, options: .regularExpression) != nil,
@@ -130,6 +195,26 @@ struct ExtensionCatalogArtifact: Decodable, Equatable, Sendable {
               !version.isEmpty, version.trimmingCharacters(in: .whitespacesAndNewlines) == version,
               version.rangeOfCharacter(from: .controlCharacters) == nil, version.utf8.count <= 64,
               apiVersion == 1 else { throw ExtensionStoreError.invalidCatalog }
+    }
+}
+
+private extension KeyedDecodingContainer {
+    // PropertyListDecoder does not give URL the JSON decoder's string special
+    // case. The public format deliberately uses ordinary strings in both.
+    func decodeCatalogURL(forKey key: Key) throws -> URL {
+        let value = try decode(String.self, forKey: key)
+        guard let url = URL(string: value) else {
+            throw DecodingError.dataCorruptedError(forKey: key, in: self, debugDescription: "Invalid URL string")
+        }
+        return url
+    }
+
+    func decodeCatalogURLIfPresent(forKey key: Key) throws -> URL? {
+        guard let value = try decodeIfPresent(String.self, forKey: key) else { return nil }
+        guard let url = URL(string: value) else {
+            throw DecodingError.dataCorruptedError(forKey: key, in: self, debugDescription: "Invalid URL string")
+        }
+        return url
     }
 }
 
@@ -143,6 +228,7 @@ enum ExtensionCatalogURL {
     }
 
     static func assetURL(_ value: String) -> URL? {
+        if let absolute = URL(string: value), isSafeHTTPS(absolute) { return absolute }
         guard value.hasPrefix("assets/extensions/"), !value.contains("\\"), !value.contains("%"),
               !value.split(separator: "/", omittingEmptySubsequences: false).contains(where: {
                   $0.isEmpty || $0 == "." || $0 == ".."

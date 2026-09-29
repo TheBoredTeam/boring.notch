@@ -48,9 +48,9 @@ final class ExtensionCatalogTests: XCTestCase {
             let entry = try StoreCatalogFixture.decode(StoreCatalogFixture.item(status: status))
             XCTAssertNil(entry.installableArtifact)
             XCTAssertNotNil(entry.sourceURL)
-            XCTAssertEqual(entry.websiteURL?.host, "theboring.name")
+            XCTAssertEqual(entry.websiteURL, entry.developer.url)
         }
-        XCTAssertNil(try StoreCatalogFixture.decode(StoreCatalogFixture.item(artifact: false)).installableArtifact)
+        XCTAssertThrowsError(try StoreCatalogFixture.decode(StoreCatalogFixture.item(artifact: false)))
     }
 
     func testUnknownProductAndPaymentFieldsAreIgnored() throws {
@@ -111,10 +111,88 @@ final class ExtensionCatalogTests: XCTestCase {
 
     func testAssetPathsCannotEscapeThePublishedAssetDirectory() {
         XCTAssertNotNil(ExtensionCatalogURL.assetURL("assets/extensions/focus.svg"))
+        XCTAssertEqual(ExtensionCatalogURL.assetURL("https://another.example.org/a.svg")?.host, "another.example.org")
         for path in ["assets/extensions/../secret.svg", "assets/extensions/%2e%2e/secret.svg",
                      "assets/extensions/%252e%252e/secret.svg", "assets/extensions/a.svg?token=secret",
-                     "https://another.example.org/a.svg", "assets/extensions//a.svg"] {
+                     "http://another.example.org/a.svg", "https://user:pass@another.example.org/a.svg",
+                     "assets/extensions//a.svg"] {
             XCTAssertNil(ExtensionCatalogURL.assetURL(path), path)
+        }
+    }
+
+    func testXMLAndBinaryPlistsAcceptCanonicalPublicDownloadURL() throws {
+        var item = StoreCatalogFixture.item()
+        var artifact = try XCTUnwrap(item["artifact"] as? [String: Any])
+        artifact["downloadURL"] = artifact.removeValue(forKey: "url")
+        item["artifact"] = artifact
+        item["icon"] = "https://raw.githubusercontent.com/example/catalog/main/icons/focus.png"
+        item["artwork"] = "https://publisher.example.org/focus.png"
+        for format in [PropertyListSerialization.PropertyListFormat.xml, .binary] {
+            let bytes = try PropertyListSerialization.data(fromPropertyList: ["schemaVersion": 1, "extensions": [item]],
+                                                          format: format, options: 0)
+            let decoded = try XCTUnwrap(ExtensionCatalog.decode(bytes).extensions.first)
+            XCTAssertEqual(decoded.installableArtifact?.url.absoluteString, "https://downloads.example.org/focus.zip")
+            XCTAssertEqual(decoded.iconURL?.host, "raw.githubusercontent.com")
+            XCTAssertEqual(decoded.artworkURL?.host, "publisher.example.org")
+            XCTAssertEqual(decoded.installableArtifact?.publisherTeamID, "AB12CD34EF")
+        }
+    }
+
+    func testConflictingDownloadURLAliasesAndIncompleteAvailableListingsAreRejected() throws {
+        var item = StoreCatalogFixture.item()
+        var artifact = try XCTUnwrap(item["artifact"] as? [String: Any])
+        artifact["downloadURL"] = artifact["url"]
+        item["artifact"] = artifact
+        XCTAssertNotNil(try StoreCatalogFixture.decode(item).installableArtifact)
+        artifact["downloadURL"] = "https://other.example.org/different.zip"
+        item["artifact"] = artifact
+        XCTAssertThrowsError(try StoreCatalogFixture.decode(item))
+        artifact.removeValue(forKey: "url")
+        artifact["downloadURL"] = "http://example.org/insecure.zip"
+        item["artifact"] = artifact
+        XCTAssertThrowsError(try StoreCatalogFixture.decode(item))
+        item.removeValue(forKey: "artifact")
+        let plist = try PropertyListSerialization.data(fromPropertyList: ["schemaVersion": 1, "extensions": [item]],
+                                                       format: .xml, options: 0)
+        XCTAssertThrowsError(try ExtensionCatalog.decode(plist))
+    }
+
+    func testEndpointConfigurationUsesGitHubDefaultAndRejectsUnsafeOverrides() {
+        XCTAssertEqual(ExtensionCatalog.sourceURL(configuredValue: nil)?.absoluteString,
+                       "https://raw.githubusercontent.com/TheBoredTeam/boring.extensions/main/catalog.plist")
+        XCTAssertEqual(ExtensionCatalog.sourceURL(configuredValue: "https://example.org/catalog.plist")?.host, "example.org")
+        for invalid in ["", "file:///tmp/catalog.plist", "http://example.org/catalog.plist",
+                        "https://user:secret@example.org/catalog.plist", "https://example.org/catalog.plist#fragment"] {
+            XCTAssertNil(ExtensionCatalog.sourceURL(configuredValue: invalid))
+        }
+    }
+
+    func testMissingProductWebsiteUsesDeveloperURLWithoutInventingAListingPage() throws {
+        var value = StoreCatalogFixture.item()
+        value["slug"] = "new-independent-listing"
+        let item = try StoreCatalogFixture.decode(value)
+        XCTAssertEqual(item.websiteURL?.absoluteString, "https://example.org/")
+        XCTAssertEqual(item.websiteURL, item.developer.url)
+    }
+
+    func testExplicitProductWebsiteIsUsedByJSONAndPlistListings() throws {
+        var value = StoreCatalogFixture.item()
+        value["websiteUrl"] = "https://publisher.example.org/products/focus?source=notch"
+        let jsonItem = try StoreCatalogFixture.decode(value)
+        XCTAssertEqual(jsonItem.websiteURL?.absoluteString, value["websiteUrl"] as? String)
+        let plist = try PropertyListSerialization.data(fromPropertyList: ["schemaVersion": 1, "extensions": [value]],
+                                                       format: .xml, options: 0)
+        let plistItem = try XCTUnwrap(ExtensionCatalog.decode(plist).extensions.first)
+        XCTAssertEqual(plistItem.websiteURL, jsonItem.websiteURL)
+        XCTAssertNotEqual(plistItem.websiteURL, plistItem.developer.url)
+    }
+
+    func testUnsafeProductWebsiteIsRejectedInsteadOfSilentlyFallingBack() throws {
+        for url in ["", "/relative-product", "http://example.org/product", "file:///tmp/product",
+                    "https://user:secret@example.org/product", "https://example.org/product#fragment"] {
+            var value = StoreCatalogFixture.item()
+            value["websiteUrl"] = url
+            XCTAssertThrowsError(try StoreCatalogFixture.decode(value), url)
         }
     }
 
