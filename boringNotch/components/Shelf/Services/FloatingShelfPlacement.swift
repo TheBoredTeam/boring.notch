@@ -9,7 +9,8 @@ import CoreGraphics
 
 /// Where the floating shelf sits relative to the pointer, in AppKit coordinates (origin at the bottom left).
 enum FloatingShelfPlacement {
-    static let panelSize = CGSize(width: 240, height: 148)
+    /// Wide enough for the share control on the left and the drop well beside it.
+    static let panelSize = CGSize(width: 392, height: 168)
     static let screenMargin: CGFloat = 8
     /// Gap so the shelf sits beside the pointer instead of chasing it during the rest of the shake.
     static let cursorGap: CGFloat = 12

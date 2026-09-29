@@ -88,6 +88,7 @@ struct FileShareView: View {
                     .font(.system(.headline, design: .rounded))
                     .foregroundColor(.white.opacity(0.8))
                     .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
             }
             .padding(18)
 
@@ -102,6 +103,7 @@ struct FileShareView: View {
                     )
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .contentShape(RoundedRectangle(cornerRadius: 12))
     }
 

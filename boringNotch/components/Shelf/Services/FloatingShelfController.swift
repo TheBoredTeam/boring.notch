@@ -34,6 +34,8 @@ final class FloatingShelfController {
     func start() {
         guard mouseDownMonitor == nil else { return }
         installMonitors()
+        // Create the panel before any drag so its drop registration already exists.
+        _ = ensurePanel()
         KeyboardShortcuts.onKeyDown(for: .showFloatingShelf) { [weak self] in
             Task { @MainActor in
                 self?.handleShortcut()
@@ -126,7 +128,8 @@ final class FloatingShelfController {
 
         // The drop lands in this same mouse-up turn. Decide after it has been delivered.
         Task { @MainActor in
-            if self.acceptedDrop {
+            let dropLanded = self.acceptedDrop || self.panel?.dropInteraction.dropEvent == true
+            if dropLanded {
                 self.scheduleDismiss()
             } else {
                 self.dismiss()
@@ -161,19 +164,18 @@ final class FloatingShelfController {
             return panel
         }
         let panel = FloatingShelfPanel()
-        panel.onPerformDrop = { [weak self] pasteboard in
-            self?.performDrop(from: pasteboard) ?? false
+        panel.onShelfDrop = { [weak self] providers in
+            self?.performShelfDrop(providers) ?? false
         }
         self.panel = panel
         return panel
     }
 
-    private func performDrop(from pasteboard: NSPasteboard) -> Bool {
-        let providers = DragPasteboardContent.itemProviders(from: pasteboard)
-        guard !providers.isEmpty else { return false }
+    private func performShelfDrop(_ providers: [NSItemProvider]) -> Bool {
+        guard !providers.isEmpty, !ShelfSelectionModel.shared.isDragging else { return false }
         ShelfStateViewModel.shared.load(providers)
         acceptedDrop = true
-        panel?.dropModel.isTargeted = false
+        panel?.dropInteraction.dropEvent = true
         panel?.dropModel.acceptedCount = providers.count
         Log.shelf.notice("Floating shelf accepted \(providers.count, privacy: .public) item(s)")
         return true
