@@ -20,7 +20,6 @@ final class FloatingShelfController {
     private var isPresented = false
     private var isDragging = false
     private var isContentDragging = false
-    private var acceptedDrop = false
     private var pasteboardChangeCount = -1
     private var dismissTask: Task<Void, Never>?
 
@@ -85,7 +84,6 @@ final class FloatingShelfController {
         pasteboardChangeCount = dragPasteboard.changeCount
         isDragging = true
         isContentDragging = false
-        acceptedDrop = false
         shakeDetector.reset()
     }
 
@@ -126,16 +124,9 @@ final class FloatingShelfController {
         isContentDragging = false
         shakeDetector.reset()
 
-        // The drop lands in this same mouse-up turn. Decide after it has been delivered.
-        Task { @MainActor in
-            let dropLanded = self.acceptedDrop || self.panel?.dropInteraction.dropEvent == true
-            if dropLanded {
-                self.scheduleDismiss()
-            } else {
-                self.dismiss()
-            }
-            self.acceptedDrop = false
-        }
+        // onDrop sets dropEvent on this mouse-up, but that can land after the monitor.
+        // The notch waits the same 500ms, then stays open when the drop actually landed.
+        scheduleDropReleaseCheck()
     }
 
     private func noteContentDragIfNeeded() {
@@ -164,30 +155,33 @@ final class FloatingShelfController {
             return panel
         }
         let panel = FloatingShelfPanel()
-        panel.onShelfDrop = { [weak self] providers in
-            self?.performShelfDrop(providers) ?? false
-        }
         self.panel = panel
         return panel
     }
 
-    private func performShelfDrop(_ providers: [NSItemProvider]) -> Bool {
-        guard !providers.isEmpty, !ShelfSelectionModel.shared.isDragging else { return false }
-        ShelfStateViewModel.shared.load(providers)
-        acceptedDrop = true
-        panel?.dropInteraction.dropEvent = true
-        panel?.dropModel.acceptedCount = providers.count
-        Log.shelf.notice("Floating shelf accepted \(providers.count, privacy: .public) item(s)")
-        return true
-    }
-
-    private func scheduleDismiss() {
+    private func scheduleDropReleaseCheck() {
         dismissTask?.cancel()
         dismissTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(1.5))
+            try? await Task.sleep(for: .milliseconds(500))
             guard !Task.isCancelled else { return }
-            self.dismiss()
+            self.finishDragRelease()
         }
+    }
+
+    /// A drop into ShelfView or FileShareView sets dropEvent and must leave this panel up.
+    /// The share picker is anchored to it, and BoringViewModel.close() likewise stays open
+    /// while SharingStateManager.preventNotchClose is set.
+    private func finishDragRelease() {
+        guard isPresented else { return }
+        if panel?.dropInteraction.dropEvent == true {
+            panel?.dropInteraction.dropEvent = false
+            Log.shelf.debug("Floating shelf kept open after drop")
+            return
+        }
+        if SharingStateManager.shared.preventNotchClose {
+            return
+        }
+        dismiss()
     }
 
     private func dismiss() {
