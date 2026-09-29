@@ -12,6 +12,7 @@ struct ShelfSettingsView: View {
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
     @Default(.quickShareProvider) var quickShareProvider
     @Default(.expandedDragDetection) var expandedDragDetection: Bool
+    @Default(.boringShelf) var boringShelf: Bool
     @Default(.floatingShelf) var floatingShelf: Bool
     @Default(.floatingShelfShakeTrigger) var floatingShelfShakeTrigger: Bool
     @Default(.floatingShelfShakeSensitivity) var floatingShelfShakeSensitivity
@@ -27,23 +28,6 @@ struct ShelfSettingsView: View {
                 Defaults.Toggle(key: .boringShelf) {
                     Text("Enable shelf")
                 }
-                Defaults.Toggle(key: .floatingShelf) {
-                    Text("Floating shelf")
-                }
-                Defaults.Toggle(key: .floatingShelfShakeTrigger) {
-                    Text("Open floating shelf by shaking while dragging")
-                }
-                .disabled(!floatingShelf)
-                Picker("Shake sensitivity", selection: $floatingShelfShakeSensitivity) {
-                    ForEach(ShakeSensitivity.allCases) { sensitivity in
-                        Text(sensitivity.localizedString).tag(sensitivity)
-                    }
-                }
-                .disabled(!floatingShelf || !floatingShelfShakeTrigger)
-                Defaults.Toggle(key: .floatingShelfShiftTrigger) {
-                    Text("Open floating shelf by holding Shift while dragging")
-                }
-                .disabled(!floatingShelf)
                 Defaults.Toggle(key: .openShelfByDefault) {
                     Text("Open shelf by default if items are present")
                 }
@@ -67,11 +51,34 @@ struct ShelfSettingsView: View {
                 }
             } header: {
                 Text("General")
+            }
+
+            Section {
+                Defaults.Toggle(key: .floatingShelf) {
+                    Text("Enable floating shelf")
+                }
+                Defaults.Toggle(key: .floatingShelfShakeTrigger) {
+                    Text("Open by shaking while dragging")
+                }
+                .disabled(!floatingShelf)
+                Picker("Shake sensitivity", selection: $floatingShelfShakeSensitivity) {
+                    ForEach(ShakeSensitivity.allCases) { sensitivity in
+                        Text(sensitivity.localizedString).tag(sensitivity)
+                    }
+                }
+                .disabled(!floatingShelf || !floatingShelfShakeTrigger)
+                Defaults.Toggle(key: .floatingShelfShiftTrigger) {
+                    Text("Open by holding Shift while dragging")
+                }
+                .disabled(!floatingShelf)
+            } header: {
+                Text("Floating shelf")
             } footer: {
-                Text("While dragging files, shake the pointer or hold Shift to open a shelf beside the cursor. The shelf shortcut opens it anytime and closes it again, as does Escape. Files land in the shelf.")
+                Text("Opens a shelf beside the pointer while you drag files or text. The floating shelf shortcut in Shortcuts toggles it anytime, and Escape closes it.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+            .disabled(!boringShelf)
 
             Section {
                 Picker("Quick Share Service", selection: $quickShareProvider) {
