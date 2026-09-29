@@ -24,29 +24,34 @@ struct CalendarMonthGridView: View {
 
     private var rowCount: CGFloat { CGFloat(max(1, cells.count / 7)) }
 
-    /// Keep cells wide enough for two-digit day numbers (10–31).
+    private let weekdayRowHeight: CGFloat = 10
+    private let rowSpacing: CGFloat = 1
+
+    /// Cell height chosen so weekday row + all rows fit the pane height (5 rows: 16pt, 6 rows: 14pt).
     private var daySize: CGFloat {
-        min(22, max(18, 96 / rowCount))
+        let available = 104 - weekdayRowHeight - rowSpacing - 2
+        return min(17, floor((available - (rowCount - 1) * rowSpacing) / rowCount))
     }
 
     var body: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: rowSpacing) {
             HStack(spacing: columnSpacing) {
                 ForEach(0..<7, id: \.self) { index in
                     let weekday = (calendar.firstWeekday - 1 + index) % 7
                     Text(calendar.veryShortStandaloneWeekdaySymbols[weekday])
                         .font(.system(size: 9, weight: .medium))
                         .foregroundStyle(Color(white: 0.55))
-                        .frame(width: daySize, height: 10)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: weekdayRowHeight)
                 }
             }
 
             LazyVGrid(
                 columns: Array(
-                    repeating: GridItem(.flexible(minimum: daySize), spacing: columnSpacing),
+                    repeating: GridItem(.flexible(), spacing: columnSpacing),
                     count: 7
                 ),
-                spacing: 2
+                spacing: rowSpacing
             ) {
                 ForEach(Array(cells.enumerated()), id: \.offset) { _, date in
                     if let date {
@@ -74,7 +79,7 @@ struct CalendarMonthGridView: View {
             onSelectDate(date)
         } label: {
             Text("\(day)")
-                .font(.system(size: 11, weight: isToday || isSelected ? .semibold : .medium))
+                .font(.system(size: 10.5, weight: isToday || isSelected ? .semibold : .medium))
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -95,8 +100,7 @@ struct CalendarMonthGridView: View {
                 .overlay(alignment: .bottom) {
                     Circle()
                         .fill(hasEvents ? Color.effectiveAccent : Color.clear)
-                        .frame(width: 3, height: 3)
-                        .offset(y: -1)
+                        .frame(width: 2.5, height: 2.5)
                 }
                 .contentShape(Rectangle())
         }

@@ -561,6 +561,10 @@ struct CalendarView: View {
         case day, month, year
     }
 
+    /// Height of the month/year grids. The header above them is ~22pt, and header + grid must stay
+    /// within the day pane's height, otherwise the open notch grows past `openNotchSize`.
+    private static let gridPaneHeight: CGFloat = 104
+
     var body: some View {
         VStack(spacing: 0) {
             switch calendarPane {
@@ -584,6 +588,7 @@ struct CalendarView: View {
                         calendarPane = .day
                     }
                 )
+                .frame(height: Self.gridPaneHeight, alignment: .top)
 
             case .year:
                 monthYearHeader(showChevrons: false)
@@ -591,6 +596,7 @@ struct CalendarView: View {
                     displayedMonth = month
                     calendarPane = .month
                 }
+                .frame(height: Self.gridPaneHeight, alignment: .top)
             }
         }
         .onChange(of: selectedDate) {
@@ -678,7 +684,8 @@ struct CalendarView: View {
     /// Header for month/year panes: tappable month + year, optional month chevrons.
     private func monthYearHeader(showChevrons: Bool) -> some View {
         HStack(alignment: .center, spacing: 6) {
-            VStack(alignment: .leading, spacing: 0) {
+            // Single row keeps the header short so the pane fits the notch's fixed height.
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
                 monthLabelButton(for: displayedMonth)
                 yearLabelButton(for: displayedMonth)
             }

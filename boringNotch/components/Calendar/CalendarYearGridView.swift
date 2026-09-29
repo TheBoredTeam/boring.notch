@@ -22,7 +22,7 @@ struct CalendarYearGridView: View {
     var body: some View {
         LazyVGrid(
             columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 3),
-            spacing: 6
+            spacing: 2
         ) {
             ForEach(months, id: \.self) { month in
                 monthButton(month)
@@ -30,7 +30,7 @@ struct CalendarYearGridView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         .padding(.horizontal, 4)
-        .padding(.top, 4)
+        .padding(.top, 2)
         .buttonStyle(.plain)
     }
 
@@ -44,7 +44,7 @@ struct CalendarYearGridView: View {
                 .font(.system(size: 12, weight: isCurrentMonth ? .semibold : .medium))
                 .foregroundStyle(isCurrentMonth ? Color.effectiveAccent : Color(white: 0.75))
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
+                .padding(.vertical, 5)
                 .contentShape(Rectangle())
         }
         .accessibilityLabel(month.formatted(.dateTime.month(.wide).year()))
