@@ -60,6 +60,22 @@ final class FloatingShelfTests: XCTestCase {
         XCTAssertTrue(feedShake(&detector, axis: .horizontal, startTime: 1.2))
     }
 
+    func testSensitivityChangesHowMuchShakeIsNeeded() {
+        let short: [CGFloat] = [0, 40, 0, 40]
+        let long: [CGFloat] = [0, 40, 0, 40, 0, 40]
+
+        var high = PointerShakeDetector(sensitivity: .high)
+        XCTAssertTrue(feedShake(&high, axis: .horizontal, startTime: 0, positions: short))
+
+        var medium = PointerShakeDetector(sensitivity: .medium)
+        XCTAssertFalse(feedShake(&medium, axis: .horizontal, startTime: 0, positions: short))
+
+        var low = PointerShakeDetector(sensitivity: .low)
+        XCTAssertFalse(feedShake(&low, axis: .horizontal, startTime: 0))
+        low.reset()
+        XCTAssertTrue(feedShake(&low, axis: .horizontal, startTime: 1, positions: long))
+    }
+
     // MARK: - Placement
 
     func testShelfSitsBelowThePointer() {
@@ -213,9 +229,9 @@ final class FloatingShelfTests: XCTestCase {
         _ detector: inout PointerShakeDetector,
         axis: ShakeAxis,
         startTime: TimeInterval,
-        step: TimeInterval = 0.05
+        step: TimeInterval = 0.05,
+        positions: [CGFloat] = [0, 40, 0, 40, 0]
     ) -> Bool {
-        let positions: [CGFloat] = [0, 40, 0, 40, 0]
         var triggered = false
         for (index, position) in positions.enumerated() {
             let point: CGPoint

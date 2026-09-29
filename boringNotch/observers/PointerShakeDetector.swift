@@ -19,13 +19,27 @@ struct PointerSample: Equatable {
 /// run while the mouse button is held, and apps never receive an event for it.
 /// A file drag is exactly that button-down case, so the shelf measures the wiggle itself.
 struct PointerShakeDetector {
-    /// Three direction changes is one short back-and-forth, not a curved drag.
-    private let minimumReversals = 3
+    /// At medium, three direction changes is one short back-and-forth, not a curved drag.
+    private let minimumReversals: Int
     /// Long enough for a flick of the wrist, short enough that a slow wander falls out of the window.
     private let window: TimeInterval = 0.45
     /// Ignore tracker jitter that is not an intentional stroke.
-    private let minimumStep: CGFloat = 8
+    private let minimumStep: CGFloat
     private let cooldown: TimeInterval = 0.8
+
+    init(sensitivity: ShakeSensitivity = .medium) {
+        switch sensitivity {
+        case .low:
+            minimumReversals = 4
+            minimumStep = 12
+        case .medium:
+            minimumReversals = 3
+            minimumStep = 8
+        case .high:
+            minimumReversals = 2
+            minimumStep = 5
+        }
+    }
 
     private var samples: [PointerSample] = []
     private var lastTriggerTime: TimeInterval = -.greatestFiniteMagnitude

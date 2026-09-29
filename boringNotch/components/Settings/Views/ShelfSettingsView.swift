@@ -13,6 +13,8 @@ struct ShelfSettingsView: View {
     @Default(.quickShareProvider) var quickShareProvider
     @Default(.expandedDragDetection) var expandedDragDetection: Bool
     @Default(.floatingShelf) var floatingShelf: Bool
+    @Default(.floatingShelfShakeTrigger) var floatingShelfShakeTrigger: Bool
+    @Default(.floatingShelfShakeSensitivity) var floatingShelfShakeSensitivity
     @StateObject private var quickShareService = QuickShareService.shared
 
     private var selectedProvider: QuickShareProvider? {
@@ -32,6 +34,12 @@ struct ShelfSettingsView: View {
                     Text("Open floating shelf by shaking while dragging")
                 }
                 .disabled(!floatingShelf)
+                Picker("Shake sensitivity", selection: $floatingShelfShakeSensitivity) {
+                    ForEach(ShakeSensitivity.allCases) { sensitivity in
+                        Text(sensitivity.localizedString).tag(sensitivity)
+                    }
+                }
+                .disabled(!floatingShelf || !floatingShelfShakeTrigger)
                 Defaults.Toggle(key: .floatingShelfShiftTrigger) {
                     Text("Open floating shelf by holding Shift while dragging")
                 }

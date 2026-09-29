@@ -138,7 +138,7 @@ final class FloatingShelfController {
         isMouseDown = true
         isContentDragging = false
         shareDropArmed = false
-        shakeDetector.reset()
+        shakeDetector = PointerShakeDetector(sensitivity: Defaults[.floatingShelfShakeSensitivity])
         startKeyboardPoll()
     }
 
