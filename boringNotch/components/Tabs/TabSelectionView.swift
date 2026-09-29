@@ -13,6 +13,7 @@ struct TabModel: Identifiable {
     let label: String
     let icon: String
     let view: NotchViews
+    var iconImage: NSImage? = nil
 }
 
 struct TabSelectionView: View {
@@ -33,7 +34,7 @@ struct TabSelectionView: View {
         var result = [TabModel(label: "Home", icon: "house.fill", view: .home)]
         if shelfEnabled { result.append(TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)) }
         result += registry.tabs(for: compactMode ? .compact : .regular).map {
-            TabModel(label: $0.descriptor.title, icon: $0.systemSymbol, view: .extensionTab($0.id))
+            TabModel(label: $0.descriptor.title, icon: $0.systemSymbol, view: .extensionTab($0.id), iconImage: $0.iconImage)
         }
         return result
     }
@@ -73,7 +74,7 @@ struct TabSelectionView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: 0) {
                         ForEach(tabs) { tab in
-                            TabButton(label: tab.label, icon: tab.icon, selected: selection == tab.view) {
+                            TabButton(label: tab.label, icon: tab.icon, selected: selection == tab.view, iconImage: tab.iconImage) {
                                 select(tab.view)
                             }
                             .frame(height: NotchTabStripMetrics.buttonHeight)
@@ -97,15 +98,18 @@ struct TabSelectionView: View {
             }
             if showsOverflow {
                 Menu {
-                    ForEach(tabs) { tab in
-                        Button { select(tab.view) } label: {
-                            if tab.view == selection {
-                                Label(tab.label, systemImage: "checkmark")
-                            } else {
-                                Label(tab.label, systemImage: tab.icon)
+                    Picker("Active tab", selection: Binding(get: { coordinator.currentView }, set: select)) {
+                        ForEach(tabs) { tab in
+                            Label {
+                                Text(tab.label)
+                            } icon: {
+                                TabIcon(symbol: tab.icon, image: tab.iconImage)
                             }
+                            .tag(tab.view)
                         }
                     }
+                    .pickerStyle(.inline)
+                    .labelsHidden()
                 } label: {
                     Image(systemName: "chevron.down")
                         .font(.system(size: 9, weight: .semibold))

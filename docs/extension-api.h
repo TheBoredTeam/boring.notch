@@ -85,6 +85,15 @@ void *bn_extension_activity_view_v1(void *instance, const char *activity_id,
  * At most 8 tabs per provider. IDs follow the activity local-ID grammar.
  * title is nonblank and at most 64 UTF-8 bytes. symbol is an SF Symbol name at
  * most 128 UTF-8 bytes; unavailable symbols render a host fallback icon.
+ * Optional iconPNG is base64-encoded static PNG artwork, at most 16,384 UTF-8
+ * bytes encoded and 128x128 pixels (both dimensions must be positive). Exactly
+ * one complete PNG is allowed: no APNG, trailing data, URLs or data-URL prefix.
+ * The host renders its alpha mask as a template in the tab strip and overflow,
+ * tinting it for selection/appearance. Keep symbol for older-host compatibility.
+ * Missing, malformed, oversized or unsupported artwork falls back to symbol
+ * without removing the tab. Decoded icons are cached; icon metadata changes
+ * preserve mounted controller identity. The entire snapshot still fits 65,536
+ * bytes, including base64 artwork. No binary ABI version change is needed.
  * Optional presentations is a nonempty, unique array of "regular"/"compact".
  * Omitting it means ["regular"], preserving existing bundles. Compact support
  * requires both explicit declaration and tab_view_v2 below; it is never inferred

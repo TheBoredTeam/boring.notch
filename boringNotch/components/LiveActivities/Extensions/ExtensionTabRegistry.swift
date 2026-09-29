@@ -32,8 +32,12 @@ final class ExtensionTabRegistry: ObservableObject {
             remove(providerID: providerID)
             return
         }
+        let existing = providers[providerID] ?? []
+        guard existing.map(\.descriptor) != tabs || existing.contains(where: { $0.source !== source }) else { return }
+        let previous = Dictionary(uniqueKeysWithValues: existing.map { ($0.id.localID, $0) })
         let replacement = tabs.map {
-            ExtensionTab(id: ExtensionTabID(providerID: providerID, localID: $0.id), descriptor: $0, source: source)
+            ExtensionTab(id: ExtensionTabID(providerID: providerID, localID: $0.id), descriptor: $0, source: source,
+                         previous: previous[$0.id])
         }
         guard providers[providerID] != replacement else { return }
         if replacement.isEmpty {
@@ -68,15 +72,26 @@ struct ExtensionTab: Identifiable, Equatable {
     let descriptor: ExtensionTabDescriptor
     let source: any ExtensionTabControllerSource
     let systemSymbol: String
+    let iconImage: NSImage?
 
     @MainActor
-    init(id: ExtensionTabID, descriptor: ExtensionTabDescriptor, source: any ExtensionTabControllerSource) {
+    init(id: ExtensionTabID, descriptor: ExtensionTabDescriptor, source: any ExtensionTabControllerSource,
+         previous: ExtensionTab? = nil) {
         self.id = id
         self.descriptor = descriptor
         self.source = source
         // Resolve once for this registration. Rendering a large tab strip
         // must not repeatedly load SF Symbols just to validate their names.
-        systemSymbol = descriptor.systemSymbol
+        if let previous, previous.descriptor.symbol == descriptor.symbol {
+            systemSymbol = previous.systemSymbol
+        } else {
+            systemSymbol = descriptor.systemSymbol
+        }
+        if let previous, previous.descriptor.iconPNG == descriptor.iconPNG {
+            iconImage = previous.iconImage
+        } else {
+            iconImage = ExtensionTabIcon.decode(descriptor.iconPNG)
+        }
     }
 
     @MainActor func supports(_ presentation: ExtensionTabPresentation) -> Bool {

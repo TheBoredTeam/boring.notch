@@ -53,6 +53,38 @@ private final class InputTabSource: ExtensionTabControllerSource {
 
 @MainActor
 final class ExtensionTabRegistryTests: XCTestCase {
+    func testPublisherIconCachingFallbackAndContentIdentity() throws {
+        let registry = ExtensionTabRegistry()
+        let source = TabSource()
+        let png = try TabIconFixture.png()
+        let value = ExtensionTabDescriptor(id: "tasks", title: "Tasks", symbol: "square", iconPNG: png)
+        registry.replace(providerID: "example", tabs: [value], source: source)
+        let initial = try XCTUnwrap(registry.tabs.first)
+        let image = try XCTUnwrap(initial.iconImage)
+        let identity = initial.contentIdentity(context: context())
+        for _ in 0..<100 { registry.replace(providerID: "example", tabs: [value], source: source) }
+        XCTAssertTrue(registry.tabs.first?.iconImage === image, "Repeated metadata must not decode another image")
+        registry.replace(providerID: "example", tabs: [
+            .init(id: "tasks", title: "Renamed", symbol: "circle", iconPNG: png)
+        ], source: source)
+        XCTAssertTrue(registry.tabs.first?.iconImage === image, "Title and symbol changes reuse the static image")
+        XCTAssertEqual(registry.tabs.first?.contentIdentity(context: context()), identity)
+        registry.replace(providerID: "example", tabs: [
+            .init(id: "tasks", title: "Tasks", symbol: "circle", iconPNG: try TabIconFixture.png(alpha: 0.5))
+        ], source: source)
+        XCTAssertNotNil(registry.tabs.first?.iconImage)
+        XCTAssertFalse(registry.tabs.first?.iconImage === image)
+        XCTAssertEqual(registry.tabs.first?.contentIdentity(context: context()), identity, "Icon changes do not remount content")
+        registry.replace(providerID: "example", tabs: [
+            .init(id: "tasks", title: "Tasks", symbol: "circle", iconPNG: "invalid")
+        ], source: source)
+        XCTAssertEqual(registry.tabs.count, 1)
+        XCTAssertNil(registry.tabs.first?.iconImage)
+        XCTAssertEqual(registry.tabs.first?.systemSymbol, "circle")
+        XCTAssertEqual(registry.tabs.first?.contentIdentity(context: context()), identity)
+        XCTAssertTrue(source.requests.isEmpty, "Icon registration cannot create controllers or take focus")
+    }
+
     private func descriptor(_ id: String = "tasks", title: String = "Tasks", symbol: String = "checklist") -> ExtensionTabDescriptor {
         .init(id: id, title: title, symbol: symbol)
     }

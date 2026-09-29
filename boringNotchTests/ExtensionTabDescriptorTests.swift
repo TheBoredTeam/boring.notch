@@ -1,9 +1,56 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import XCTest
+import AppKit
+import ImageIO
 @testable import boringNotch
 
 final class ExtensionTabDescriptorTests: XCTestCase {
+    @MainActor
+    func testOptionalPublisherIconDecodesAsBoundedTemplate() throws {
+        let png = try TabIconFixture.png(width: 128, height: 64)
+        let json = try JSONSerialization.data(withJSONObject: ["tabs": [["id": "tasks", "title": "Tasks", "symbol": "checklist", "iconPNG": png]]])
+        let snapshot = try JSONDecoder().decode(ExtensionTabSnapshot.self, from: json)
+        try snapshot.validate()
+        XCTAssertEqual(snapshot.tabs.first?.iconPNG, png)
+        let icon = try XCTUnwrap(ExtensionTabIcon.decode(png))
+        XCTAssertTrue(icon.isTemplate)
+        XCTAssertEqual(icon.size, NSSize(width: 16, height: 8))
+    }
+
+    @MainActor
+    func testInvalidOptionalIconPreservesTabAndSymbolFallback() throws {
+        let values: [Any] = [NSNull(), 42, [:], "", "not base64", "data:image/png;base64,AA==",
+                             String(repeating: "A", count: ExtensionTabIcon.maximumEncodedBytes + 1)]
+        for value in values {
+            let json = try JSONSerialization.data(withJSONObject: ["tabs": [["id": "tasks", "title": "Tasks", "symbol": "house.fill", "iconPNG": value]]])
+            let snapshot = try JSONDecoder().decode(ExtensionTabSnapshot.self, from: json)
+            try snapshot.validate()
+            XCTAssertEqual(snapshot.tabs.count, 1)
+            XCTAssertEqual(snapshot.tabs[0].systemSymbol, "house.fill")
+            XCTAssertNil(ExtensionTabIcon.decode(snapshot.tabs[0].iconPNG))
+        }
+        let atLimit = String(repeating: "A", count: ExtensionTabIcon.maximumEncodedBytes)
+        XCTAssertEqual(ExtensionTabDescriptor(id: "tasks", title: "Tasks", symbol: "square", iconPNG: atLimit).iconPNG, atLimit)
+        XCTAssertNil(ExtensionTabDescriptor(id: "tasks", title: "Tasks", symbol: "square", iconPNG: atLimit + "A").iconPNG)
+    }
+
+    @MainActor
+    func testIconRejectsLargeAnimatedTruncatedNonPNGAndConcatenatedImages() throws {
+        XCTAssertNil(ExtensionTabIcon.decode(try TabIconFixture.png(width: 129, height: 1)))
+        XCTAssertNil(ExtensionTabIcon.decode(try TabIconFixture.png(width: 1, height: 129)))
+        XCTAssertNil(ExtensionTabIcon.decode(try TabIconFixture.png(width: 8, height: 8, type: "public.jpeg")))
+        let bytes = try XCTUnwrap(Data(base64Encoded: TabIconFixture.png(width: 72, height: 72)))
+        XCTAssertNil(ExtensionTabIcon.decode(bytes.prefix(24).base64EncodedString()))
+        XCTAssertNil(ExtensionTabIcon.decode((bytes + bytes).base64EncodedString()))
+        var animated = bytes
+        animated.insert(contentsOf: [0, 0, 0, 8, 97, 99, 84, 76, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], at: 33)
+        XCTAssertNil(ExtensionTabIcon.decode(animated.base64EncodedString()), "Even one-frame APNG is outside static chrome")
+        var oversizedHeader = bytes
+        oversizedHeader.replaceSubrange(16..<20, with: [0x7f, 0xff, 0xff, 0xff])
+        XCTAssertNil(ExtensionTabIcon.decode(oversizedHeader.base64EncodedString()), "Inspect dimensions before allocating image pixels")
+    }
+
     func testWireContractAndUnknownFields() throws {
         let snapshot = try JSONDecoder().decode(ExtensionTabSnapshot.self, from: Data(
             #"{"tabs":[{"id":"tasks-1","title":"Tasks","symbol":"checklist","future":true}]}"#.utf8))
@@ -78,5 +125,20 @@ final class ExtensionTabDescriptorTests: XCTestCase {
                            "puzzlepiece.extension")
         }
         XCTAssertEqual(ExtensionTabDescriptor(id: "tasks", title: "Tasks", symbol: "house.fill").systemSymbol, "house.fill")
+    }
+}
+
+enum TabIconFixture {
+    static func png(width: Int = 72, height: Int = 72, alpha: CGFloat = 1, type: String = "public.png") throws -> String {
+        let context = try XCTUnwrap(CGContext(data: nil, width: width, height: height, bitsPerComponent: 8,
+            bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.setFillColor(CGColor(gray: 1, alpha: alpha))
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        let bitmap = try XCTUnwrap(context.makeImage())
+        let data = NSMutableData()
+        let destination = try XCTUnwrap(CGImageDestinationCreateWithData(data, type as CFString, 1, nil))
+        CGImageDestinationAddImage(destination, bitmap, nil)
+        XCTAssertTrue(CGImageDestinationFinalize(destination))
+        return (data as Data).base64EncodedString()
     }
 }
