@@ -6,6 +6,7 @@
 //
 
 import AppKit
+import Carbon.HIToolbox
 import Defaults
 import Observation
 import SwiftUI
@@ -32,6 +33,17 @@ final class FloatingShelfPanel: NSPanel {
 
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
+
+    /// Only reaches the panel while it is key, which is the shortcut-opened case.
+    var onEscape: (() -> Void)?
+
+    override func keyDown(with event: NSEvent) {
+        if event.keyCode == UInt16(kVK_Escape) {
+            onEscape?()
+        } else {
+            super.keyDown(with: event)
+        }
+    }
 
     func resetAppearance() {
         dropInteraction.dragDetectorTargeting = false

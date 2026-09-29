@@ -280,6 +280,7 @@ final class FloatingShelfController {
             return panel
         }
         let panel = FloatingShelfPanel()
+        panel.onEscape = { [weak self] in self?.dismiss() }
         self.panel = panel
         return panel
     }
