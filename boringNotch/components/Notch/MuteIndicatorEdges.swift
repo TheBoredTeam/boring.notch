@@ -68,7 +68,7 @@ private struct MuteGlow: View {
                 .init(color: red.opacity(min(1, 0.9 * intensity)), location: 0),
                 .init(color: red.opacity(min(1, 0.68 * intensity)), location: 0.375),
                 .init(color: red.opacity(min(1, 0.18 * intensity)), location: 0.625),
-                .init(color: red.opacity(0), location: 1),
+                .init(color: red.opacity(0), location: 1)
             ],
             startPoint: edge == .leading ? .leading : .trailing,
             endPoint: edge == .leading ? .trailing : .leading
