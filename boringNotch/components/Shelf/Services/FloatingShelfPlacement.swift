@@ -79,7 +79,8 @@ enum FloatingShelfTriggerPolicy {
 }
 
 enum FloatingShelfDismissPolicy {
-    static func shouldClose(pointerInside: Bool, sharingActive: Bool) -> Bool {
-        !pointerInside && !sharingActive
+    /// A shortcut open has not been visited yet, so the pointer starting outside the panel must not close it.
+    static func shouldClose(hasVisited: Bool, pointerInside: Bool, sharingActive: Bool) -> Bool {
+        hasVisited && !pointerInside && !sharingActive
     }
 }

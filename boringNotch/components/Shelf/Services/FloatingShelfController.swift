@@ -183,6 +183,7 @@ final class FloatingShelfController {
             return
         }
         present(near: cursor)
+        scheduleNotchStyleDismiss(hasVisited: false)
     }
 
     private func shortcutIsHeld(_ held: HeldModifiers) -> Bool {
@@ -285,25 +286,35 @@ final class FloatingShelfController {
         }
     }
 
-    private func scheduleNotchStyleDismiss() {
+    /// `hasVisited` starts false for a shortcut open. A drop already happened on the panel, so that path starts visited.
+    private func scheduleNotchStyleDismiss(hasVisited: Bool = true) {
         dismissTask?.cancel()
         dismissTask = Task { @MainActor in
+            var hasVisited = hasVisited
             while !Task.isCancelled, self.isPresented {
-                let stillOpen = !FloatingShelfDismissPolicy.shouldClose(
+                if self.pointerIsInsidePanel() {
+                    hasVisited = true
+                }
+                let readyToClose = FloatingShelfDismissPolicy.shouldClose(
+                    hasVisited: hasVisited,
                     pointerInside: self.pointerIsInsidePanel(),
                     sharingActive: SharingStateManager.shared.preventNotchClose
                 )
-                if stillOpen {
+                if !readyToClose {
                     try? await Task.sleep(for: .milliseconds(50))
                     continue
                 }
                 try? await Task.sleep(for: .milliseconds(hoverExitDelayMilliseconds))
                 guard !Task.isCancelled, self.isPresented else { return }
-                let readyToClose = FloatingShelfDismissPolicy.shouldClose(
+                if self.pointerIsInsidePanel() {
+                    hasVisited = true
+                }
+                let stillReady = FloatingShelfDismissPolicy.shouldClose(
+                    hasVisited: hasVisited,
                     pointerInside: self.pointerIsInsidePanel(),
                     sharingActive: SharingStateManager.shared.preventNotchClose
                 )
-                guard readyToClose else { continue }
+                guard stillReady else { continue }
                 self.dismiss()
                 return
             }
