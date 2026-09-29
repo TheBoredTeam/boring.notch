@@ -76,8 +76,9 @@ enum FloatingShelfDismissPolicy {
         hasVisited: Bool,
         pointerInside: Bool,
         sharingActive: Bool,
-        grabbingItem: Bool
+        grabbingItem: Bool,
+        menuOpen: Bool
     ) -> Bool {
-        hasVisited && !pointerInside && !sharingActive && !grabbingItem
+        hasVisited && !pointerInside && !sharingActive && !grabbingItem && !menuOpen
     }
 }

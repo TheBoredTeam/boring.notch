@@ -139,16 +139,33 @@ final class FloatingShelfTests: XCTestCase {
         ))
     }
 
-    func testDismissWaitsWhileHoveringOrSharing() {
-        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(hasVisited: true, pointerInside: true, sharingActive: false, grabbingItem: false))
-        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(hasVisited: true, pointerInside: false, sharingActive: true, grabbingItem: false))
-        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(hasVisited: true, pointerInside: false, sharingActive: false, grabbingItem: true))
-        XCTAssertTrue(FloatingShelfDismissPolicy.shouldClose(hasVisited: true, pointerInside: false, sharingActive: false, grabbingItem: false))
+    func testDismissWaitsWhileHoveringSharingGrabbingOrInAMenu() {
+        XCTAssertFalse(closing(pointerInside: true))
+        XCTAssertFalse(closing(sharingActive: true))
+        XCTAssertFalse(closing(grabbingItem: true))
+        XCTAssertFalse(closing(menuOpen: true))
+        XCTAssertTrue(closing())
     }
 
     func testDismissWaitsUntilThePointerHasVisited() {
-        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(hasVisited: false, pointerInside: false, sharingActive: false, grabbingItem: false))
-        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(hasVisited: false, pointerInside: true, sharingActive: false, grabbingItem: false))
+        XCTAssertFalse(closing(hasVisited: false))
+        XCTAssertFalse(closing(hasVisited: false, pointerInside: true))
+    }
+
+    private func closing(
+        hasVisited: Bool = true,
+        pointerInside: Bool = false,
+        sharingActive: Bool = false,
+        grabbingItem: Bool = false,
+        menuOpen: Bool = false
+    ) -> Bool {
+        FloatingShelfDismissPolicy.shouldClose(
+            hasVisited: hasVisited,
+            pointerInside: pointerInside,
+            sharingActive: sharingActive,
+            grabbingItem: grabbingItem,
+            menuOpen: menuOpen
+        )
     }
 
     func testEachTriggerCanPresentOnItsOwn() {

@@ -47,7 +47,6 @@ final class FloatingShelfPanel: NSPanel {
         ignoresMouseEvents = false
         if !isVisible {
             alphaValue = 0
-            presentation.isShown = false
         }
         orderFrontRegardless()
         withAnimation(StandardAnimations.open) {

@@ -32,6 +32,10 @@ final class FloatingShelfController {
     private var mouseDownMonitor: Any?
     private var mouseDraggedMonitor: Any?
     private var mouseUpMonitor: Any?
+    private var menuObservers: [NSObjectProtocol] = []
+    /// A context menu opened over the panel. The pointer leaves the panel to pick an item,
+    /// so the close timer must wait for the menu rather than read the pointer.
+    private var panelMenu: NSMenu?
     private let dragPasteboard = NSPasteboard(name: .drag)
     private var isNotchOpen: () -> Bool = { false }
 
@@ -84,6 +88,26 @@ final class FloatingShelfController {
                 self?.handleMouseUp()
             }
         }
+
+        // Delivered synchronously: a queued block would not run until the menu's tracking loop ends.
+        menuObservers = [
+            NotificationCenter.default.addObserver(
+                forName: NSMenu.didBeginTrackingNotification, object: nil, queue: nil
+            ) { [weak self] notification in
+                let menu = notification.object as? NSMenu
+                MainActor.assumeIsolated {
+                    self?.menuDidBeginTracking(menu)
+                }
+            },
+            NotificationCenter.default.addObserver(
+                forName: NSMenu.didEndTrackingNotification, object: nil, queue: nil
+            ) { [weak self] notification in
+                let menu = notification.object as? NSMenu
+                MainActor.assumeIsolated {
+                    self?.menuDidEndTracking(menu)
+                }
+            },
+        ]
     }
 
     private func removeMonitors() {
@@ -95,6 +119,18 @@ final class FloatingShelfController {
         mouseDownMonitor = nil
         mouseDraggedMonitor = nil
         mouseUpMonitor = nil
+        menuObservers.forEach(NotificationCenter.default.removeObserver)
+        menuObservers = []
+    }
+
+    private func menuDidBeginTracking(_ menu: NSMenu?) {
+        guard isPresented, panelMenu == nil,
+              panel?.frame.contains(NSEvent.mouseLocation) == true else { return }
+        panelMenu = menu
+    }
+
+    private func menuDidEndTracking(_ menu: NSMenu?) {
+        if menu === panelMenu { panelMenu = nil }
     }
 
     private func handleMouseDown() {
@@ -320,7 +356,8 @@ final class FloatingShelfController {
             hasVisited: hasVisited,
             pointerInside: pointerInside,
             sharingActive: SharingStateManager.shared.preventNotchClose,
-            grabbingItem: ShelfSelectionModel.shared.isDragging
+            grabbingItem: ShelfSelectionModel.shared.isDragging,
+            menuOpen: panelMenu != nil
         )
     }
 
