@@ -36,7 +36,6 @@ final class FloatingShelfPanel: NSPanel {
     }
 
     private func configureWindow() {
-        isFloatingPanel = true
         isOpaque = false
         hasShadow = true
         backgroundColor = .clear
@@ -46,8 +45,6 @@ final class FloatingShelfPanel: NSPanel {
         // screenSaver level draws the panel but the drag passes through it.
         level = .floating
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
-        titleVisibility = .hidden
-        titlebarAppearsTransparent = true
     }
 }
 

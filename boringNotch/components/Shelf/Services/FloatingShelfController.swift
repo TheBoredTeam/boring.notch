@@ -14,6 +14,8 @@ import KeyboardShortcuts
 final class FloatingShelfController {
     static let shared = FloatingShelfController()
 
+    private static let chordModifiers: NSEvent.ModifierFlags = [.shift, .control, .option, .command]
+
     private var shakeDetector = PointerShakeDetector()
     private var panel: FloatingShelfPanel?
     private var isPresented = false
@@ -22,7 +24,7 @@ final class FloatingShelfController {
     private var pasteboardChangeCount = -1
     private var dismissTask: Task<Void, Never>?
     private var keyboardPoll: Task<Void, Never>?
-    /// True once the pointer has hovered the share tile during this drag.
+    /// `dropZoneTargeting` clears before the mouse-up handler runs, so a share hover is latched here.
     private var shareDropArmed = false
     /// Hardware poll only toggles on the press, not on every sample while the keys stay down.
     private var shortcutWasHeld = false
@@ -39,7 +41,6 @@ final class FloatingShelfController {
         installMonitors()
         // Create the panel before any drag so its drop registration already exists.
         _ = ensurePanel()
-        migrateShowShelfShortcutIfNeeded()
         KeyboardShortcuts.onKeyDown(for: .showFloatingShelf) { [weak self] in
             Task { @MainActor in
                 self?.handleShortcut()
@@ -102,19 +103,10 @@ final class FloatingShelfController {
         guard isContentDragging, !ShelfSelectionModel.shared.isDragging else { return }
 
         let shaken = shakeDetector.add(sample)
-        let held = HeldModifiers.readHardware()
-        // Option-Shift-Space includes Shift. While that chord is down, Shift must not reopen the shelf.
-        let shortcutHeld = shortcutIsHeld(held)
-        guard FloatingShelfTriggerPolicy.shouldPresent(
-            shelfEnabled: Defaults[.boringShelf],
-            floatingShelfEnabled: Defaults[.floatingShelf],
-            contentDragActive: true,
-            shake: shaken,
-            shiftHeld: held.shift && !shortcutHeld,
-            shortcutPressed: false
-        ) else { return }
-
-        present(near: sample.point)
+        let held = Self.hardwareModifiers()
+        if dragTriggerFires(shake: shaken, held: held, shortcutHeld: shortcutIsHeld(held)) {
+            present(near: sample.point)
+        }
     }
 
     private func handleShortcut() {
@@ -130,24 +122,15 @@ final class FloatingShelfController {
         keyboardPoll?.cancel()
         keyboardPoll = nil
         shakeDetector.reset()
-
-        // onDrop sets dropEvent on this mouse-up, but that can land after the monitor.
+        noteShareHover()
         scheduleDropReleaseCheck()
-    }
-
-    /// The first build of this feature used Control-Shift-Space. Dropover's new-shelf
-    /// shortcut is Option-Shift-Space, and a saved copy of the old default should follow it.
-    private func migrateShowShelfShortcutIfNeeded() {
-        let previousDefault = KeyboardShortcuts.Shortcut(.space, modifiers: [.control, .shift])
-        guard KeyboardShortcuts.getShortcut(for: .showFloatingShelf) == previousDefault else { return }
-        KeyboardShortcuts.setShortcut(.init(.space, modifiers: [.option, .shift]), for: .showFloatingShelf)
     }
 
     /// Carbon hotkeys are not delivered while another app is tracking a drag, so the
     /// configured shortcut is sampled from the hardware keyboard until the button comes up.
     private func startKeyboardPoll() {
         keyboardPoll?.cancel()
-        shortcutWasHeld = shortcutIsHeld(HeldModifiers.readHardware())
+        shortcutWasHeld = shortcutIsHeld(Self.hardwareModifiers())
         keyboardPoll = Task { @MainActor in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(100))
@@ -155,48 +138,64 @@ final class FloatingShelfController {
                 self.noteContentDragIfNeeded()
                 self.noteShareHover()
                 guard !ShelfSelectionModel.shared.isDragging else { continue }
-                let held = HeldModifiers.readHardware()
+                let held = Self.hardwareModifiers()
                 let shortcutHeld = self.shortcutIsHeld(held)
                 let shortcutPressed = shortcutHeld && !self.shortcutWasHeld
                 self.shortcutWasHeld = shortcutHeld
                 if shortcutPressed {
                     self.toggleFromShortcut(near: NSEvent.mouseLocation)
-                    continue
+                } else if self.dragTriggerFires(shake: false, held: held, shortcutHeld: shortcutHeld) {
+                    self.present(near: NSEvent.mouseLocation)
                 }
-                guard FloatingShelfTriggerPolicy.shouldPresent(
-                    shelfEnabled: Defaults[.boringShelf],
-                    floatingShelfEnabled: Defaults[.floatingShelf],
-                    contentDragActive: self.isContentDragging,
-                    shake: false,
-                    shiftHeld: held.shift && !shortcutHeld,
-                    shortcutPressed: false
-                ) else { continue }
-                self.present(near: NSEvent.mouseLocation)
             }
         }
     }
 
+    /// Option-Shift-Space includes Shift. While that chord is down, Shift must not reopen the shelf.
+    private func dragTriggerFires(shake: Bool, held: NSEvent.ModifierFlags, shortcutHeld: Bool) -> Bool {
+        FloatingShelfTriggerPolicy.shouldPresent(
+            shelfEnabled: Defaults[.boringShelf],
+            floatingShelfEnabled: Defaults[.floatingShelf],
+            contentDragActive: isContentDragging,
+            shake: shake,
+            shiftHeld: held.contains(.shift) && !shortcutHeld,
+            shortcutPressed: false
+        )
+    }
+
     private func toggleFromShortcut(near cursor: CGPoint) {
-        guard Defaults[.boringShelf], Defaults[.floatingShelf] else { return }
         if isPresented {
             dismiss()
             return
         }
+        guard FloatingShelfTriggerPolicy.shouldPresent(
+            shelfEnabled: Defaults[.boringShelf],
+            floatingShelfEnabled: Defaults[.floatingShelf],
+            contentDragActive: isContentDragging,
+            shake: false,
+            shiftHeld: false,
+            shortcutPressed: true
+        ) else { return }
         present(near: cursor)
+        // A background app's cursor changes only apply over its key window. During a file
+        // drag this must not run, since moving key status would cancel the drag.
+        if !isContentDragging {
+            panel?.makeKey()
+        }
         scheduleNotchStyleDismiss(hasVisited: false)
     }
 
-    private func shortcutIsHeld(_ held: HeldModifiers) -> Bool {
-        guard let shortcut = KeyboardShortcuts.getShortcut(for: .showFloatingShelf) else { return false }
-        let required = HeldModifiers(
-            shift: shortcut.modifiers.contains(.shift),
-            control: shortcut.modifiers.contains(.control),
-            option: shortcut.modifiers.contains(.option),
-            command: shortcut.modifiers.contains(.command)
-        )
-        guard held == required else { return false }
-        let keyCode = CGKeyCode(shortcut.carbonKeyCode)
-        return CGEventSource.keyState(.hidSystemState, key: keyCode)
+    /// A drag owned by another app does not update `NSEvent.modifierFlags`.
+    /// `CGEventFlags` uses the same bits for these four keys.
+    private static func hardwareModifiers() -> NSEvent.ModifierFlags {
+        let flags = CGEventSource.flagsState(.hidSystemState)
+        return NSEvent.ModifierFlags(rawValue: UInt(flags.rawValue)).intersection(chordModifiers)
+    }
+
+    private func shortcutIsHeld(_ held: NSEvent.ModifierFlags) -> Bool {
+        guard let shortcut = KeyboardShortcuts.getShortcut(for: .showFloatingShelf),
+              held == shortcut.modifiers.intersection(Self.chordModifiers) else { return false }
+        return CGEventSource.keyState(.hidSystemState, key: CGKeyCode(shortcut.carbonKeyCode))
     }
 
     private func noteContentDragIfNeeded() {
@@ -204,6 +203,12 @@ final class FloatingShelfController {
         guard pasteboardChanged, !isContentDragging, DragPasteboardContent.isDroppable(dragPasteboard) else { return }
         isContentDragging = true
         shakeDetector.reset()
+    }
+
+    private func noteShareHover() {
+        if panel?.dropInteraction.dropZoneTargeting == true {
+            shareDropArmed = true
+        }
     }
 
     private func present(near cursor: CGPoint) {
@@ -216,11 +221,6 @@ final class FloatingShelfController {
         let frame = FloatingShelfPlacement.frame(cursor: cursor, screenFrame: screen.frame)
         panel.setFrame(frame, display: true)
         panel.orderFrontRegardless()
-        // An incoming file drag must not move key status. A shortcut open should already be key
-        // so the first press on an item starts a drag.
-        if !isContentDragging {
-            panel.makeKey()
-        }
         isPresented = true
         Log.shelf.debug("Presented floating shelf")
     }
@@ -234,34 +234,23 @@ final class FloatingShelfController {
         return panel
     }
 
+    /// onDrop sets `dropEvent` on this mouse-up, but that can land after the global monitor.
+    /// The notch waits the same 500ms before reading it.
     private func scheduleDropReleaseCheck() {
         dismissTask?.cancel()
         dismissTask = Task { @MainActor in
-            var shareTargeted = self.panel?.dropInteraction.dropZoneTargeting == true
-            let deadline = ContinuousClock.now.advanced(by: .milliseconds(500))
-            while !Task.isCancelled, ContinuousClock.now < deadline {
-                if self.panel?.dropInteraction.dropZoneTargeting == true {
-                    shareTargeted = true
-                }
-                try? await Task.sleep(for: .milliseconds(20))
-            }
+            try? await Task.sleep(for: .milliseconds(500))
             guard !Task.isCancelled else { return }
-            self.finishDragRelease(shareTargeted: shareTargeted || self.shareDropArmed)
+            self.finishDragRelease()
         }
     }
 
-    private func noteShareHover() {
-        if panel?.dropInteraction.dropZoneTargeting == true {
-            shareDropArmed = true
-        }
-    }
-
-    private func finishDragRelease(shareTargeted: Bool) {
+    private func finishDragRelease() {
         guard isPresented else { return }
         let dropped = panel?.dropInteraction.dropEvent == true
         panel?.dropInteraction.dropEvent = false
         if dropped {
-            if shareTargeted || SharingStateManager.shared.preventNotchClose {
+            if shareDropArmed || SharingStateManager.shared.preventNotchClose {
                 scheduleDismissAfterSharing()
             } else {
                 scheduleNotchStyleDismiss()
@@ -274,6 +263,8 @@ final class FloatingShelfController {
         dismiss()
     }
 
+    /// Loading the dropped files and presenting the picker is asynchronous, so allow a few
+    /// seconds for the share session to begin before falling back to the hover rule.
     private func scheduleDismissAfterSharing() {
         dismissTask?.cancel()
         dismissTask = Task { @MainActor in
@@ -297,40 +288,31 @@ final class FloatingShelfController {
         dismissTask = Task { @MainActor in
             var hasVisited = hasVisited
             while !Task.isCancelled, self.isPresented {
-                if self.pointerIsInsidePanel() {
-                    hasVisited = true
-                }
-                let readyToClose = FloatingShelfDismissPolicy.shouldClose(
-                    hasVisited: hasVisited,
-                    pointerInside: self.pointerIsInsidePanel(),
-                    sharingActive: SharingStateManager.shared.preventNotchClose,
-                    grabbingItem: ShelfSelectionModel.shared.isDragging
-                )
-                if !readyToClose {
+                guard self.readyToClose(hasVisited: &hasVisited) else {
                     try? await Task.sleep(for: .milliseconds(50))
                     continue
                 }
                 try? await Task.sleep(for: .milliseconds(hoverExitDelayMilliseconds))
                 guard !Task.isCancelled, self.isPresented else { return }
-                if self.pointerIsInsidePanel() {
-                    hasVisited = true
+                if self.readyToClose(hasVisited: &hasVisited) {
+                    self.dismiss()
+                    return
                 }
-                let stillReady = FloatingShelfDismissPolicy.shouldClose(
-                    hasVisited: hasVisited,
-                    pointerInside: self.pointerIsInsidePanel(),
-                    sharingActive: SharingStateManager.shared.preventNotchClose,
-                    grabbingItem: ShelfSelectionModel.shared.isDragging
-                )
-                guard stillReady else { continue }
-                self.dismiss()
-                return
             }
         }
     }
 
-    private func pointerIsInsidePanel() -> Bool {
-        guard let panel else { return false }
-        return panel.frame.contains(NSEvent.mouseLocation)
+    private func readyToClose(hasVisited: inout Bool) -> Bool {
+        let pointerInside = panel?.frame.contains(NSEvent.mouseLocation) == true
+        if pointerInside {
+            hasVisited = true
+        }
+        return FloatingShelfDismissPolicy.shouldClose(
+            hasVisited: hasVisited,
+            pointerInside: pointerInside,
+            sharingActive: SharingStateManager.shared.preventNotchClose,
+            grabbingItem: ShelfSelectionModel.shared.isDragging
+        )
     }
 
     private func dismiss() {

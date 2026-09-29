@@ -118,14 +118,6 @@ final class FloatingShelfTests: XCTestCase {
         XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(hasVisited: false, pointerInside: true, sharingActive: false, grabbingItem: false))
     }
 
-    func testControlShiftChordIsNotShiftAlone() {
-        let shiftOnly = HeldModifiers(shift: true)
-        let controlShift = HeldModifiers(shift: true, control: true)
-        XCTAssertNotEqual(shiftOnly, controlShift)
-        XCTAssertTrue(shiftOnly.shift)
-        XCTAssertFalse(shiftOnly.control)
-    }
-
     func testEachTriggerCanPresentOnItsOwn() {
         XCTAssertTrue(presenting(shake: true, shiftHeld: false, shortcutPressed: false))
         XCTAssertTrue(presenting(shake: false, shiftHeld: true, shortcutPressed: false))

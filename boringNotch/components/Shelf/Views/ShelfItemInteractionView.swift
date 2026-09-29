@@ -77,7 +77,7 @@ struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
         private var draggedURLs: [URL] = []
         private var draggedItems: [ShelfItem] = []
 
-        /// The floating shelf can become key. Without this, AppKit uses the first
+        /// A shelf opened during a drag is not key. Without this, AppKit uses the first
         /// click only to focus the panel, and the drag does not start until the next press.
         override func acceptsFirstMouse(for event: NSEvent?) -> Bool {
             true
