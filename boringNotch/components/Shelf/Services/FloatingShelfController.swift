@@ -66,7 +66,11 @@ final class FloatingShelfController {
     func notchDidOpen() {
         guard !SharingStateManager.shared.preventNotchClose,
               !ShelfSelectionModel.shared.isDragging else { return }
-        dismiss()
+        // Called from the notch's SwiftUI update. Starting the close animation there lets it
+        // land in the same frame as that update, so the panel vanishes instead of animating.
+        Task { @MainActor [weak self] in
+            self?.dismiss()
+        }
     }
 
     private func installMonitors() {
