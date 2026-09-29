@@ -281,7 +281,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         KeyboardShortcuts.onKeyDown(for: .toggleMicrophone) {
-            MicrophoneManager.shared.toggleMuteAction()
+            MicrophoneManager.shared.toggleMute()
         }
 
         KeyboardShortcuts.onKeyDown(for: .toggleNotchOpen) { [weak self] in

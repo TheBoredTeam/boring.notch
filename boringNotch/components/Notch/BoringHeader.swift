@@ -12,7 +12,6 @@ struct BoringHeader: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @ObservedObject var microphoneManager = MicrophoneManager.shared
     @StateObject var shelfState = ShelfStateViewModel.shared
     var body: some View {
         HStack(spacing: 0) {
@@ -65,44 +64,7 @@ struct BoringHeader: View {
                             .buttonStyle(PlainButtonStyle())
                         }
                         if Defaults[.showMicrophoneButtonInNotch] {
-                            Button(action: {
-                                MicrophoneManager.shared.toggleMuteAction()
-                            }) {
-                                Capsule()
-                                    .fill(.black)
-                                    .frame(width: 30, height: 30)
-                                    .overlay {
-                                        Image(systemName: microphoneManager.isMuted ? "mic.slash" : "mic")
-                                            .foregroundColor(microphoneManager.isMuted ? .red : .white)
-                                            .padding()
-                                            .imageScale(.medium)
-                                    }
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            .contextMenu {
-                                if microphoneManager.availableInputDevices.isEmpty {
-                                    Button("No Input Devices Available") {}
-                                        .disabled(true)
-                                } else {
-                                    ForEach(microphoneManager.availableInputDevices) { device in
-                                        Button(action: {
-                                            microphoneManager.setDefaultInputDevice(device.id)
-                                        }) {
-                                            if device.isCurrentDefault {
-                                                Label(device.name, systemImage: "checkmark")
-                                            } else {
-                                                Text(device.name)
-                                            }
-                                        }
-                                    }
-                                }
-
-                                Divider()
-
-                                Button("Sound Settings…") {
-                                    microphoneManager.openInputSoundSettings()
-                                }
-                            }
+                            MicrophoneButton()
                         }
                         if Defaults[.settingsIconInNotch] {
                             Button(action: {
@@ -147,9 +109,6 @@ struct BoringHeader: View {
         }
         .foregroundColor(.gray)
         .environmentObject(vm)
-        .onAppear {
-            microphoneManager.refreshAvailableInputDevices()
-        }
     }
 
     func isOSDType(_ type: SneakContentType) -> Bool {
@@ -158,6 +117,53 @@ struct BoringHeader: View {
             return true
         default:
             return false
+        }
+    }
+}
+
+/// Mutes the microphone; right-click to pick the input device.
+private struct MicrophoneButton: View {
+    @ObservedObject private var microphone = MicrophoneManager.shared
+
+    var body: some View {
+        Button {
+            microphone.toggleMute()
+        } label: {
+            Capsule()
+                .fill(.black)
+                .frame(width: 30, height: 30)
+                .overlay {
+                    Image(systemName: "mic")
+                        .symbolVariant(microphone.isMuted ? .slash : .none)
+                        .contentTransition(.symbolEffect(.replace))
+                        .foregroundStyle(microphone.isMuted ? Color.red : Color.white)
+                        .padding()
+                        .imageScale(.medium)
+                        .animation(.smooth(duration: 0.25), value: microphone.isMuted)
+                }
+        }
+        .buttonStyle(PlainButtonStyle())
+        .contextMenu {
+            if microphone.devices.isEmpty {
+                Button("No Input Devices Available") {}
+                    .disabled(true)
+            } else {
+                Picker("Input", selection: Binding(
+                    get: { microphone.activeDeviceID },
+                    set: { microphone.selectInputDevice($0) }
+                )) {
+                    ForEach(microphone.devices) { device in
+                        Text(device.name).tag(device.id)
+                    }
+                }
+                .pickerStyle(.inline)
+            }
+
+            Divider()
+
+            Button("Sound Settings…") {
+                microphone.openSoundSettings()
+            }
         }
     }
 }
