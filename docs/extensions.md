@@ -119,10 +119,13 @@ The host handles camera clearance, width animation, display eligibility, selecti
 
 ## Native tabs
 
-Declare `"capabilities":["tabs"]` for tabs alone, or `["liveActivities","tabs"]` for both, and export:
+Declare `"capabilities":["tabs"]` for tabs alone, or `["liveActivities","tabs"]` for both. Publish tab metadata and supply a view factory:
 
 ```c
 const char *bn_extension_tabs_v1(void *instance);
+void *bn_extension_tab_view_v2(void *instance, const char *tab_id,
+                              const char *context_json);
+// Optional regular-layout compatibility for hosts predating v2:
 void *bn_extension_tab_view_v1(void *instance, const char *tab_id,
                               const char *display_id);
 ```
@@ -130,17 +133,29 @@ void *bn_extension_tab_view_v1(void *instance, const char *tab_id,
 The snapshot uses the same main-thread, borrowed-pointer, and 65,536-byte rules as activity publication:
 
 ```json
-{"tabs":[{"id":"focus","title":"Focus","symbol":"timer"}]}
+{"tabs":[{"id":"focus","title":"Focus","symbol":"timer","presentations":["regular","compact"]}]}
 ```
 
 Each provider may register up to eight tabs with unique local IDs using the activity ID grammar. Titles are nonblank, contain no control characters, and occupy at most 64 UTF-8 bytes. `symbol` is an SF Symbol name of at most 128 bytes; the host supplies a puzzle-piece fallback when the symbol is unavailable. The signed bundle ID namespaces each tab, so two developers can both use a local `focus` ID. Keep IDs stable while updating titles or icons.
 
-Call `tabs.changed` after metadata or membership changes. The host reconciles after the ABI call returns and preserves mounted content identity when only metadata changes. Return `{"tabs":[]}` to withdraw tabs. Removing, disabling, uninstalling, or replacing the selected tab's provider returns selection to Home. Registering a tab never steals selection. Tabs appear beside Home and Shelf, with scrolling and an overflow menu for large collections. In compact mode, the same switcher floats below the opened notch: Home keeps its compact player, while Shelf and extension tabs receive the full workspace. The detached strip and its gap belong to the notch's hover region, so moving between content and tabs keeps it open. Extension tabs never appear on the lock screen.
+`presentations` is an explicit, nonempty list containing `"regular"`, `"compact"`, or both, without duplicates. Omit it for the backward-compatible `["regular"]` behavior. A compact tab must declare `"compact"` **and** export `tab_view_v2`; the host never squeezes a regular-only extension into compact mode. Declaring compact without providing v2 leaves the tab hidden in compact mode while any valid regular presentation remains usable. A v2-only bundle works with current hosts; retain v1 when supporting older hosts, which ignore the new metadata and request regular content through v1.
+
+Call `tabs.changed` after metadata or membership changes. The host reconciles after the ABI call returns and preserves mounted content identity when only metadata changes. Return `{"tabs":[]}` to withdraw tabs. Removing, disabling, uninstalling, or replacing the selected tab's provider returns selection to Home. Registering a tab never steals selection. Tabs appear beside Home and Shelf, with scrolling and an overflow menu for large collections. In compact mode, the same switcher floats below the opened notch and offers only tabs supporting compact presentation. Selecting compact mode while a regular-only tab is active returns to Home. The detached strip and its gap belong to the notch's hover region, so moving between content and tabs keeps it open. Extension tabs never appear on the lock screen.
+
+The v2 factory receives borrowed JSON describing **this mount**, including the actual available content size in macOS points:
+
+```json
+{"presentation":"compact","displayID":null,"contentSize":{"width":336,"height":132}}
+```
+
+`presentation` is `"regular"` or `"compact"`. `displayID` is a display UUID string or null. Decode the context during the call, validate finite dimensions, and ignore unknown keys. The dimensions above illustrate the current compact viewport; they are not an ABI promise. Render inside the supplied bounds for the requested mode. If v2 exists, the host prefers it for both modes; a null v2 result displays unavailable content and never calls v1 as a fallback. A bundle exporting only v1 supports regular mode only.
 
 For every `tab_view` call, return a **fresh, +1 retained NSViewController** or null for unavailable content. The host takes ownership and mounts only selected tab content, separately per display. It provides finite content bounds clear of the physical notch and clips to them; preferred size cannot resize the whole notch. Inside that area the extension owns its entire layout: buttons, text input, charts, progress, lists, and other native controls. Use an `NSHostingController` for SwiftUI or an AppKit controller. No host-defined widget schema is required.
 
-Update your observable model or AppKit views directly on the main thread to change live content. Do not republish tab descriptors for every progress tick or recreate controllers for content changes. Use native appear/disappear lifecycle to suspend hidden UI work. Switching tabs or closing the notch unmounts the controller; keep durable navigation and feature state in your plugin model so a new controller can restore it. Controllers must retain the state they need through removal transitions; destroy must silence commands, cancel work, and leave surviving views inert.
+Each declared presentation needs an intentional layout. A regular view can place detail and controls side by side; a compact view can prioritize a summary and arrange its controls below. Share model state and reusable controls between them. Do not add camera spacers or host chrome, depend on oversized preferred/intrinsic sizes, or scale a desktop layout down to fit. Use scrolling within the supplied viewport when content needs it. The tab API does not offer window creation, host resizing, or control over other tabs. These are hosting rules, not a sandbox: signed native code still runs inside the host process.
+
+Update your observable model or AppKit views directly on the main thread to change live content. Do not republish tab descriptors for every progress tick or recreate controllers for content changes. Use native appear/disappear lifecycle to suspend hidden UI work. Switching tabs, changing presentation or content bounds, or closing the notch remounts/unmounts the controller; keep durable navigation and feature state in your plugin model so a new controller can restore it. Controllers must retain the state they need through removal transitions; destroy must silence commands, cancel work, and leave surviving views inert.
 
 While a native tab is shown, its controls receive scrolling and drag/drop instead of the host's whole-notch pan/drop handlers. The panel becomes eligible for keyboard input when a control such as a text field requests focus; mounting a tab does not take focus from another app. Unmounting releases that input eligibility and any owned field editor.
 
-The separately compiled [Focus Timer example](../examples/live-activity-extension) supplies both a live activity and a native progress/control tab backed by one extension-owned model. Its smoke tests load the signed bundle, verify live content updates and controller identity, and install/disable/update/uninstall it through the real host manager. The example also opts out of media snapshots without withdrawing either contribution.
+The separately compiled [Focus Timer example](../examples/live-activity-extension) supplies a live activity and separate regular/compact native tab layouts backed by one extension-owned model. Its smoke tests load the signed bundle, verify context delivery and shared live updates in both layouts, and install/disable/update/uninstall it through the real host manager. The example also opts out of media snapshots without withdrawing either contribution.

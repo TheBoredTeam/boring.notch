@@ -117,17 +117,14 @@ struct ContentView: View {
     /// their expanded content, in both standard and compact modes.
     private var isExtensionTabVisible: Bool {
         guard vm.notchState == .open, notificationManager.activeNotification == nil,
-              case .extensionTab = coordinator.currentView else { return false }
-        return true
+              case .extensionTab(let id) = coordinator.currentView else { return false }
+        return extensionTabs.tab(for: id, presentation: tabPresentation) != nil
     }
 
     /// A notification is a glance, not a workspace — it doesn't need the full
     /// height the home/shelf tabs are sized for, and stretching to fill it
     /// just surrounds two lines of text with empty black.
-    /// nil means "size to content".
-    ///
-    /// Compact Home sizes to its player. Other tabs keep finite workspace
-    /// bounds, so flexible native content cannot size the host's chrome.
+    /// Every compact tab receives the same finite content region.
     private var openNotchHeight: CGFloat? {
         if notificationManager.activeNotification != nil { return 132 }
         return workspaceLayout.notchHeight
@@ -136,12 +133,13 @@ struct ContentView: View {
     private var workspaceLayout: NotchWorkspaceLayout {
         NotchWorkspaceLayout(
             compactMode: compactMode,
-            selection: coordinator.currentView,
             standardSize: vm.notchSize,
             horizontalInset: openedInsets.top + 12,
             topClearance: compactMode ? (vm.hasNotch ? displayClosedNotchHeight : 11) : max(38, displayClosedNotchHeight)
         )
     }
+
+    private var tabPresentation: ExtensionTabPresentation { compactMode ? .compact : .regular }
 
     /// Compact mode moves the shared tab strip beneath the notch, leaving
     /// the music player narrow and the physical cutout unobstructed.
@@ -154,7 +152,7 @@ struct ContentView: View {
     private var showsFloatingTabs: Bool {
         vm.notchState == .open && compactMode
             && notificationManager.activeNotification == nil
-            && (shelfEnabled || !extensionTabs.tabs.isEmpty)
+            && (shelfEnabled || !extensionTabs.tabs(for: .compact).isEmpty)
     }
 
     private enum ClosedNotchContent: Equatable {
@@ -310,7 +308,7 @@ struct ContentView: View {
                         //                    .keyboardShortcut("E", modifiers: .command)
                     }
                 if showsFloatingTabs {
-                    TabSelectionView(presentation: .floating(maximumWidth: NotchWorkspaceLayout.compactHomeWidth))
+                    TabSelectionView(presentation: .floating(maximumWidth: NotchWorkspaceLayout.compactContentWidth))
                         .shadow(color: Defaults[.enableShadow] ? .black.opacity(0.45) : .clear, radius: 6, y: 2)
                         .onHover { isHoveringTabs = $0 }
                         .onDisappear { isHoveringTabs = false }
@@ -472,7 +470,7 @@ struct ContentView: View {
                                     albumArtNamespace: albumArtNamespace,
                                     horizontalMediaGestureFeedback: horizontalMediaGestureFeedback
                                 )
-                                .frame(width: workspaceLayout.contentWidth)
+                                .frame(width: workspaceLayout.contentWidth, height: workspaceLayout.contentHeight)
                                 .onHover { isHoveringMusicArea = $0 }
                                 .onDisappear { isHoveringMusicArea = false }
                             } else {
@@ -485,13 +483,15 @@ struct ContentView: View {
                         case .shelf:
                             ShelfView(
                                 dropInteraction: vm.dropInteraction,
-                                animation: vm.animation
+                                animation: vm.animation,
+                                compact: compactMode
                             )
                             .conditionalModifier(compactMode) { view in
                                 view.frame(width: workspaceLayout.contentWidth, height: workspaceLayout.contentHeight)
+                                    .clipped()
                             }
                         case .extensionTab(let id):
-                            ExtensionTabContent(id: id, displayID: activityContext.displayID)
+                            ExtensionTabContent(id: id, displayID: activityContext.displayID, presentation: tabPresentation)
                                 .frame(
                                     width: workspaceLayout.contentWidth,
                                     height: workspaceLayout.contentHeight

@@ -35,6 +35,9 @@ final class ExtensionRuntime {
     typealias TabView = @convention(c) (
         UnsafeMutableRawPointer, UnsafePointer<CChar>, UnsafePointer<CChar>?
     ) -> UnsafeMutableRawPointer?
+    typealias TabViewV2 = @convention(c) (
+        UnsafeMutableRawPointer, UnsafePointer<CChar>, UnsafePointer<CChar>
+    ) -> UnsafeMutableRawPointer?
 
     let manifest: ExtensionManifest
     private let handle: UnsafeMutableRawPointer
@@ -48,6 +51,7 @@ final class ExtensionRuntime {
     private let activityView: ActivityView?
     private let tabs: Activities?
     private let tabView: TabView?
+    private let tabViewV2: TabViewV2?
 
     init(url: URL, command: Command) throws {
         let (manifest, executable) = try ExtensionPackage.inspect(url)
@@ -70,6 +74,10 @@ final class ExtensionRuntime {
             guard let address = dlsym(handle, name) else { throw ExtensionError.incompatibleBinary }
             return unsafeBitCast(address, to: T.self)
         }
+        func optionalSymbol<T>(_ name: String, _: T.Type) -> T? {
+            guard let address = dlsym(handle, name) else { return nil }
+            return unsafeBitCast(address, to: T.self)
+        }
         let create = try symbol("bn_extension_create_v1", Create.self)
         destroy = try symbol("bn_extension_destroy_v1", Destroy.self)
         update = try symbol("bn_extension_update_v1", Update.self)
@@ -84,10 +92,13 @@ final class ExtensionRuntime {
         }
         if manifest.capabilities?.contains("tabs") == true {
             tabs = try symbol("bn_extension_tabs_v1", Activities.self)
-            tabView = try symbol("bn_extension_tab_view_v1", TabView.self)
+            tabView = optionalSymbol("bn_extension_tab_view_v1", TabView.self)
+            tabViewV2 = optionalSymbol("bn_extension_tab_view_v2", TabViewV2.self)
+            guard tabView != nil || tabViewV2 != nil else { throw ExtensionError.incompatibleBinary }
         } else {
             tabs = nil
             tabView = nil
+            tabViewV2 = nil
         }
         Self.commandContexts.append(commandContext)
         guard let instance = create(Unmanaged.passUnretained(commandContext).toOpaque(), command) else {
@@ -154,13 +165,33 @@ final class ExtensionRuntime {
         return Unmanaged<NSViewController>.fromOpaque(pointer).takeRetainedValue()
     }
 
-    func tabController(id: String, displayID: String?) -> NSViewController? {
-        guard let instance, let tabView else { return nil }
-        let pointer = id.withCString { tabID in
-            if let displayID {
-                return displayID.withCString { tabView(instance, tabID, $0) }
+    func supportsTabPresentation(_ presentation: ExtensionTabPresentation) -> Bool {
+        guard instance != nil else { return false }
+        return tabViewV2 != nil || (presentation == .regular && tabView != nil)
+    }
+
+    func tabController(id: String, context: ExtensionTabLayoutContext) -> NSViewController? {
+        guard let instance, context.isValid, supportsTabPresentation(context.presentation),
+              let descriptor = try? tabSnapshot().tabs.first(where: { $0.id == id }),
+              descriptor.supports(context.presentation) else { return nil }
+        let pointer: UnsafeMutableRawPointer?
+        if let tabViewV2 {
+            guard let data = try? JSONEncoder().encode(context),
+                  let json = String(data: data, encoding: .utf8) else { return nil }
+            pointer = id.withCString { tabID in
+                json.withCString { tabViewV2(instance, tabID, $0) }
             }
-            return tabView(instance, tabID, nil)
+        } else if context.presentation == .regular, let tabView {
+            pointer = id.withCString { tabID in
+                if let displayID = context.displayID {
+                    return displayID.withCString { tabView(instance, tabID, $0) }
+                }
+                return tabView(instance, tabID, nil)
+            }
+        } else {
+            // A legacy renderer never receives a compact request, even if its
+            // metadata incorrectly claims to support that presentation.
+            return nil
         }
         guard let pointer else { return nil }
         return Unmanaged<NSViewController>.fromOpaque(pointer).takeRetainedValue()

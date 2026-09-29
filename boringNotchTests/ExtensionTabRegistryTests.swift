@@ -8,12 +8,19 @@ import XCTest
 
 @MainActor
 private final class TabSource: ExtensionTabControllerSource {
-    struct Request: Equatable { let id: String; let displayID: String? }
+    struct Request: Equatable {
+        let id: String
+        let context: ExtensionTabLayoutContext
+        var displayID: String? { context.displayID }
+    }
+    var presentations: Set<ExtensionTabPresentation> = [.regular]
     var requests: [Request] = []
     var controllers: [NSViewController] = []
 
-    func tabController(id: String, displayID: String?) -> NSViewController? {
-        requests.append(Request(id: id, displayID: displayID))
+    func supportsTabPresentation(_ presentation: ExtensionTabPresentation) -> Bool { presentations.contains(presentation) }
+
+    func tabController(id: String, context: ExtensionTabLayoutContext) -> NSViewController? {
+        requests.append(Request(id: id, context: context))
         let controller = NSViewController()
         controller.view = NSTextField(labelWithString: "Live content")
         controller.preferredContentSize = NSSize(width: 10_000, height: 10_000)
@@ -33,7 +40,7 @@ private final class InputTabPanel: NSPanel, ExtensionTabInputHosting {
 private final class InputTabSource: ExtensionTabControllerSource {
     var field: NSTextField?
 
-    func tabController(id: String, displayID: String?) -> NSViewController? {
+    func tabController(id: String, context: ExtensionTabLayoutContext) -> NSViewController? {
         let controller = NSViewController()
         let field = NSTextField(string: "Draft")
         field.frame = NSRect(x: 8, y: 8, width: 240, height: 24)
@@ -48,6 +55,11 @@ private final class InputTabSource: ExtensionTabControllerSource {
 final class ExtensionTabRegistryTests: XCTestCase {
     private func descriptor(_ id: String = "tasks", title: String = "Tasks", symbol: String = "checklist") -> ExtensionTabDescriptor {
         .init(id: id, title: title, symbol: symbol)
+    }
+
+    private func context(_ displayID: String? = "display", presentation: ExtensionTabPresentation = .regular,
+                         size: CGSize = CGSize(width: 320, height: 128)) -> ExtensionTabLayoutContext {
+        ExtensionTabLayoutContext(presentation: presentation, displayID: displayID, contentSize: size)
     }
 
     func testNamespacesAndDeterministicProviderOrder() throws {
@@ -71,15 +83,15 @@ final class ExtensionTabRegistryTests: XCTestCase {
         let observer = registry.$tabs.sink { _ in publications += 1 }
         defer { observer.cancel() }
         registry.replace(providerID: "example", tabs: [descriptor()], source: source)
-        let initial = try XCTUnwrap(registry.tabs.first).contentIdentity(displayID: "display")
+        let initial = try XCTUnwrap(registry.tabs.first).contentIdentity(context: context())
         registry.replace(providerID: "example", tabs: [descriptor()], source: source)
         XCTAssertEqual(publications, 2) // Initial empty state and registration.
         registry.replace(providerID: "example", tabs: [descriptor(title: "Running", symbol: "play.fill")], source: source)
         XCTAssertEqual(publications, 3)
         XCTAssertEqual(registry.tabs.first?.descriptor.title, "Running")
-        XCTAssertEqual(registry.tabs.first?.contentIdentity(displayID: "display"), initial)
+        XCTAssertEqual(registry.tabs.first?.contentIdentity(context: context()), initial)
         registry.replace(providerID: "example", tabs: [descriptor()], source: TabSource())
-        XCTAssertNotEqual(registry.tabs.first?.contentIdentity(displayID: "display"), initial)
+        XCTAssertNotEqual(registry.tabs.first?.contentIdentity(context: context()), initial)
     }
 
     func testSelectionOnlyFallsBackWhenSelectedTabIsRemoved() throws {
@@ -123,14 +135,106 @@ final class ExtensionTabRegistryTests: XCTestCase {
         let source = TabSource()
         registry.replace(providerID: "example", tabs: [descriptor()], source: source)
         let tab = try XCTUnwrap(registry.tabs.first)
-        let first = try XCTUnwrap(tab.makeController(displayID: "display-a"))
-        let second = try XCTUnwrap(tab.makeController(displayID: "display-b"))
-        let third = try XCTUnwrap(tab.makeController(displayID: "display-a"))
+        let first = try XCTUnwrap(tab.makeController(context: context("display-a")))
+        let second = try XCTUnwrap(tab.makeController(context: context("display-b")))
+        let third = try XCTUnwrap(tab.makeController(context: context("display-a")))
         XCTAssertFalse(first === second)
         XCTAssertFalse(first === third)
         XCTAssertEqual(source.requests.map(\.displayID), ["display-a", "display-b", "display-a"])
         XCTAssertEqual(source.requests.map(\.id), ["tasks", "tasks", "tasks"])
-        XCTAssertNotEqual(tab.contentIdentity(displayID: "display-a"), tab.contentIdentity(displayID: "display-b"))
+        XCTAssertNotEqual(tab.contentIdentity(context: context("display-a")), tab.contentIdentity(context: context("display-b")))
+    }
+
+    func testRegistryRequiresDeclarationAndRendererSupportForCompact() throws {
+        let registry = ExtensionTabRegistry()
+        let legacy = TabSource()
+        let modern = TabSource()
+        modern.presentations = [.regular, .compact]
+        let both = ExtensionTabDescriptor(id: "both", title: "Both", symbol: "square", presentations: [.regular, .compact])
+        let compact = ExtensionTabDescriptor(id: "compact", title: "Compact", symbol: "square", presentations: [.compact])
+        registry.replace(providerID: "legacy", tabs: [descriptor(), both], source: legacy)
+        registry.replace(providerID: "modern", tabs: [descriptor(), both, compact], source: modern)
+        XCTAssertEqual(registry.tabs(for: .compact).map(\.id), [
+            .init(providerID: "modern", localID: "both"), .init(providerID: "modern", localID: "compact")
+        ])
+        XCTAssertEqual(registry.tabs(for: .regular).count, 4)
+        XCTAssertNil(registry.tab(for: .init(providerID: "legacy", localID: "both"), presentation: .compact))
+        XCTAssertNil(registry.tab(for: .init(providerID: "modern", localID: "compact"), presentation: .regular))
+        let legacyTab = try XCTUnwrap(registry.tab(for: .init(providerID: "legacy", localID: "both")))
+        XCTAssertNil(legacyTab.makeController(context: context(presentation: .compact)))
+        XCTAssertTrue(legacy.requests.isEmpty, "A compact request must never invoke a legacy renderer")
+        let modernTab = try XCTUnwrap(registry.tab(for: .init(providerID: "modern", localID: "both"), presentation: .compact))
+        XCTAssertNil(modernTab.makeController(context: context(presentation: .compact, size: .zero)))
+        XCTAssertNil(modernTab.makeController(context: context(presentation: .compact, size: CGSize(width: 337, height: 132))))
+        XCTAssertNil(modernTab.makeController(context: context(presentation: .compact, size: CGSize(width: 336, height: 133))))
+        XCTAssertTrue(modern.requests.isEmpty, "Invalid geometry must never reach extension code")
+        XCTAssertNotNil(modernTab.makeController(context: context(presentation: .compact, size: CGSize(width: 336, height: 132))))
+        XCTAssertEqual(modern.requests.last?.context.contentSize.width, 336)
+        XCTAssertNotEqual(modernTab.contentIdentity(context: context()),
+                          modernTab.contentIdentity(context: context(presentation: .compact)))
+        XCTAssertNotEqual(modernTab.contentIdentity(context: context()),
+                          modernTab.contentIdentity(context: context(size: CGSize(width: 321, height: 128))))
+    }
+
+    func testNativePresentationAndBoundsRemountWithoutMetadataChurn() throws {
+        _ = NSApplication.shared
+        let registry = ExtensionTabRegistry()
+        let source = TabSource()
+        source.presentations = [.regular, .compact]
+        let value = ExtensionTabDescriptor(id: "tasks", title: "Tasks", symbol: "checklist", presentations: [.regular, .compact])
+        registry.replace(providerID: "example", tabs: [value], source: source)
+        let id = try XCTUnwrap(registry.tabs.first).id
+        let hostingView = NSHostingView(rootView:
+            ExtensionTabContent(id: id, displayID: "display", presentation: .regular, registry: registry)
+                .frame(width: 578, height: 132))
+        let window = NSWindow(contentRect: NSRect(x: -10_000, y: -10_000, width: 578, height: 132),
+                              styleMask: .borderless, backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        window.contentView = hostingView
+        defer { window.contentView = nil; window.close() }
+        settle(hostingView)
+        XCTAssertEqual(source.requests.map(\.context), [context(size: CGSize(width: 578, height: 132))])
+        let original = try XCTUnwrap(source.controllers.first)
+        registry.replace(providerID: "example", tabs: [
+            .init(id: "tasks", title: "Renamed", symbol: "play", presentations: [.regular, .compact])
+        ], source: source)
+        settle(hostingView)
+        XCTAssertEqual(source.requests.count, 1)
+        hostingView.rootView = ExtensionTabContent(id: id, displayID: "display", presentation: .compact, registry: registry)
+            .frame(width: 336, height: 132)
+        window.setContentSize(NSSize(width: 336, height: 132))
+        settle(hostingView)
+        XCTAssertEqual(source.requests.count, 2)
+        XCTAssertEqual(source.requests.last?.context, context(presentation: .compact, size: CGSize(width: 336, height: 132)))
+        XCTAssertNil(original.view.window)
+        let compact = try XCTUnwrap(source.controllers.last)
+        XCTAssertEqual(compact.view.bounds.size, CGSize(width: 336, height: 132))
+        hostingView.rootView = ExtensionTabContent(id: id, displayID: "display", presentation: .compact, registry: registry)
+            .frame(width: 300, height: 116)
+        window.setContentSize(NSSize(width: 300, height: 116))
+        settle(hostingView)
+        XCTAssertEqual(source.requests.count, 3)
+        XCTAssertEqual(source.requests.last?.context, context(presentation: .compact, size: CGSize(width: 300, height: 116)))
+        XCTAssertNil(compact.view.window)
+    }
+
+    func testUnsupportedCompactNativeMountDoesNotCreateContentOrPermitInput() throws {
+        _ = NSApplication.shared
+        let registry = ExtensionTabRegistry()
+        let source = TabSource()
+        registry.replace(providerID: "example", tabs: [descriptor()], source: source)
+        let id = try XCTUnwrap(registry.tabs.first).id
+        let hostingView = NSHostingView(rootView:
+            ExtensionTabContent(id: id, displayID: "display", presentation: .compact, registry: registry)
+                .frame(width: 336, height: 132))
+        let panel = InputTabPanel(contentRect: NSRect(x: -10_000, y: -10_000, width: 336, height: 132),
+                                  styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        panel.isReleasedWhenClosed = false
+        panel.contentView = hostingView
+        defer { panel.contentView = nil; panel.close() }
+        settle(hostingView)
+        XCTAssertTrue(source.requests.isEmpty)
+        XCTAssertFalse(panel.canBecomeKey)
     }
 
     func testNativeMountKeepsControllerForMetadataAndLiveContentUpdates() throws {

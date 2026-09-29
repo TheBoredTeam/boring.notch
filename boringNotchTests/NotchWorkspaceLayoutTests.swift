@@ -4,49 +4,41 @@ import XCTest
 @testable import boringNotch
 
 final class NotchWorkspaceLayoutTests: XCTestCase {
-    private let extensionTab = NotchViews.extensionTab(.init(providerID: "org.example.focus", localID: "focus"))
+    func testEveryCompactTabSharesAStrictlySmallerFiniteRegion() {
+        let layout = layout(compact: true)
 
-    func testCompactHomeKeepsNaturalHeightAndNarrowPlayer() {
-        let layout = layout(compact: true, selection: .home)
-
-        XCTAssertTrue(layout.usesCompactHome)
         XCTAssertEqual(layout.contentWidth, 336)
-        XCTAssertNil(layout.contentHeight)
-        XCTAssertNil(layout.notchHeight)
-    }
-
-    func testCompactShelfAndExtensionGetTheSameFiniteWorkspace() {
-        for selection in [NotchViews.shelf, extensionTab] {
-            let layout = layout(compact: true, selection: selection)
-
-            XCTAssertFalse(layout.usesCompactHome)
-            XCTAssertEqual(layout.notchHeight, 190)
-            XCTAssertEqual(layout.contentWidth, 546)
-            XCTAssertEqual(layout.contentHeight, 132)
-        }
+        XCTAssertEqual(layout.contentHeight, 132)
+        XCTAssertEqual(layout.notchHeight, 190)
+        XCTAssertLessThan(layout.contentWidth + 2 * layout.horizontalInset, layout.standardSize.width)
     }
 
     func testRegularModeKeepsExistingContentBoundsForEveryTab() {
-        for selection in [NotchViews.home, .shelf, extensionTab] {
-            let layout = layout(compact: false, selection: selection)
+        let layout = layout(compact: false)
 
-            XCTAssertFalse(layout.usesCompactHome)
-            XCTAssertEqual(layout.notchHeight, 190)
-            XCTAssertEqual(layout.contentWidth, 578)
-            XCTAssertEqual(layout.contentHeight, 132)
-        }
+        XCTAssertEqual(layout.notchHeight, 190)
+        XCTAssertEqual(layout.contentWidth, 578)
+        XCTAssertEqual(layout.contentHeight, 132)
     }
 
     func testCompactExternalDisplayUsesSpaceBelowItsOwnClearance() {
-        let layout = NotchWorkspaceLayout(compactMode: true, selection: extensionTab,
+        let layout = NotchWorkspaceLayout(compactMode: true,
             standardSize: CGSize(width: 640, height: 190), horizontalInset: 47, topClearance: 11)
 
-        XCTAssertEqual(layout.contentHeight, 159)
+        XCTAssertEqual(layout.contentHeight, 132)
+        XCTAssertEqual(layout.notchHeight, 163)
+    }
+
+    func testExtraNotchClearanceCanOnlyReduceCompactContent() {
+        let layout = NotchWorkspaceLayout(compactMode: true,
+            standardSize: CGSize(width: 640, height: 190), horizontalInset: 47, topClearance: 80)
+
+        XCTAssertEqual(layout.contentHeight, 90)
         XCTAssertEqual(layout.notchHeight, 190)
     }
 
     func testShrinkingWorkspaceNeverOffersNegativeNativeBounds() {
-        let layout = NotchWorkspaceLayout(compactMode: true, selection: extensionTab,
+        let layout = NotchWorkspaceLayout(compactMode: true,
             standardSize: CGSize(width: 70, height: 38), horizontalInset: 47, topClearance: 38)
 
         XCTAssertEqual(layout.contentWidth, 0)
@@ -60,8 +52,8 @@ final class NotchWorkspaceLayoutTests: XCTestCase {
         XCTAssertEqual(NotchTabStripMetrics.floatingContentWidth(tabCount: 0, maximumWidth: 336), 0)
     }
 
-    private func layout(compact: Bool, selection: NotchViews) -> NotchWorkspaceLayout {
-        NotchWorkspaceLayout(compactMode: compact, selection: selection,
+    private func layout(compact: Bool) -> NotchWorkspaceLayout {
+        NotchWorkspaceLayout(compactMode: compact,
             standardSize: CGSize(width: 640, height: 190), horizontalInset: compact ? 47 : 31,
             topClearance: 38)
     }

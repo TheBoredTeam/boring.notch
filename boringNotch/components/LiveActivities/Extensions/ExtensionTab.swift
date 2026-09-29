@@ -60,13 +60,16 @@ final class ExtensionTabInputScope {
 struct ExtensionTabContent: View {
     let id: ExtensionTabID
     let displayID: String?
+    var presentation: ExtensionTabPresentation = .regular
     @ObservedObject var registry: ExtensionTabRegistry = .shared
 
     var body: some View {
         GeometryReader { geometry in
-            if let tab = registry.tab(for: id) {
-                ExtensionTabController(tab: tab, displayID: displayID)
-                    .id(tab.contentIdentity(displayID: displayID))
+            let context = ExtensionTabLayoutContext(presentation: presentation, displayID: displayID,
+                                                    contentSize: geometry.size)
+            if context.isValid, let tab = registry.tab(for: id, presentation: presentation) {
+                ExtensionTabController(tab: tab, layoutContext: context)
+                    .id(tab.contentIdentity(context: context))
                     .frame(width: geometry.size.width, height: geometry.size.height)
                     .clipped()
                     .accessibilityLabel(tab.descriptor.title)
@@ -78,10 +81,10 @@ struct ExtensionTabContent: View {
 
 private struct ExtensionTabController: NSViewControllerRepresentable {
     let tab: ExtensionTab
-    let displayID: String?
+    let layoutContext: ExtensionTabLayoutContext
 
     func makeNSViewController(context: Context) -> NSViewController {
-        let content = tab.makeController(displayID: displayID) ?? NSHostingController(rootView:
+        let content = tab.makeController(context: layoutContext) ?? NSHostingController(rootView:
             ContentUnavailableView {
                 Label("Content unavailable", systemImage: "puzzlepiece.extension")
                     .font(.callout)

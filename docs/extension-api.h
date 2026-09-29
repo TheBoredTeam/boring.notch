@@ -79,11 +79,18 @@ void *bn_extension_activity_view_v1(void *instance, const char *activity_id,
  * Borrowed NUL-terminated UTF-8 JSON, at most 65,536 bytes. Same lifetime and
  * main-thread rules as activities_v1. Return {"tabs":[]} to withdraw all tabs.
  *
- * {"tabs":[{"id":"focus","title":"Focus","symbol":"timer"}]}
+ * {"tabs":[{"id":"focus","title":"Focus","symbol":"timer",
+ *   "presentations":["regular","compact"]}]}
  *
  * At most 8 tabs per provider. IDs follow the activity local-ID grammar.
  * title is nonblank and at most 64 UTF-8 bytes. symbol is an SF Symbol name at
  * most 128 UTF-8 bytes; unavailable symbols render a host fallback icon.
+ * Optional presentations is a nonempty, unique array of "regular"/"compact".
+ * Omitting it means ["regular"], preserving existing bundles. Compact support
+ * requires both explicit declaration and tab_view_v2 below; it is never inferred
+ * from a preferred size or supplied by scaling a regular controller. The host
+ * hides unsupported tabs in the current presentation and falls back to Home if
+ * the selected tab becomes unavailable. Tabs never appear on the lock screen.
  * The signed manifest ID supplies the namespace. Keep IDs stable across title
  * and icon changes. command(context, "tabs.changed", 0) requests reconciliation
  * on the next main runloop turn. Registration never steals the selected tab.
@@ -96,11 +103,39 @@ const char *bn_extension_tabs_v1(void *instance);
  * native content layout, controls, state, and live updates. Views may use AppKit
  * or SwiftUI and must remain safe through removal/destroy transitions. The host
  * mounts selected content only; use native visibility lifecycle to suspend work.
- * Tabs appear in the regular expanded desktop notch, never on the lock screen.
+ * This legacy factory supplies REGULAR desktop content only. It remains useful
+ * for bundles supporting hosts predating tab_view_v2. A new host prefers v2 when
+ * present and does not fall back to v1 after a v2 NULL result. Export at least
+ * one of tab_view_v1 or tab_view_v2 when declaring the tabs capability.
  * No host Swift module, extension source, or static linking is required.
  */
 void *bn_extension_tab_view_v1(void *instance, const char *tab_id,
                               const char *display_id);
+
+/* Optional context-aware factory, REQUIRED to opt in to compact tabs. Same
+ * main-thread and NEW +1 controller ownership rules as tab_view_v1. context_json
+ * is borrowed NUL-terminated UTF-8 JSON; copy/decode during this call and ignore
+ * unknown fields. NULL means unavailable content, not a request for v1 fallback.
+ *
+ * {"presentation":"compact","displayID":null,
+ *  "contentSize":{"width":336,"height":132}}
+ *
+ * presentation is "regular" or "compact"; displayID is a string or null.
+ * contentSize supplies the actual finite content bounds in macOS points. Decode
+ * and validate these values. The dimensions above are an example, not a fixed
+ * ABI constant. Author intentional layouts for every declared presentation.
+ * Both may share one observable model; returning a controller for another mode
+ * or scaling the regular UI is not a compact implementation.
+ *
+ * Host-owned chrome and camera clearance sit outside these bounds. The host
+ * clips the native view and ignores preferred size for tab sizing. This factory
+ * has no API for resizing the notch or detaching content into another window.
+ * It remounts content when presentation, display, or available bounds change;
+ * ordinary metadata updates preserve the current controller. Retain navigation,
+ * progress, and other durable state in the extension model across remounts.
+ */
+void *bn_extension_tab_view_v2(void *instance, const char *tab_id,
+                              const char *context_json);
 
 #ifdef __cplusplus
 }

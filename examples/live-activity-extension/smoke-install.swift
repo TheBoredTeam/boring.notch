@@ -57,6 +57,7 @@ struct InstallSmoke {
         try require(manager.enabledIDs.contains(manifest.id), "Installed extension was not enabled.")
         try require(hasActivity(manifest.id), "Installed extension did not publish through the real service.")
         try require(hasTab(manifest.id), "Installed extension did not publish its native tab after opting out of media.")
+        try require(hasCompactTab(manifest.id), "Installed v2 extension did not expose its declared compact tab.")
 
         let wrongRequirements = [
             ExtensionInstallation.Requirement(id: "org.example.wrong", version: manifest.version, publisherTeamID: "development"),
@@ -100,6 +101,7 @@ struct InstallSmoke {
         try require(manager.enabledIDs.contains(manifest.id), "Enable did not create a fresh instance.")
         try require(hasActivity(manifest.id), "The fresh instance did not publish its activity.")
         try require(hasTab(manifest.id), "The fresh instance did not publish its tab.")
+        try require(hasCompactTab(manifest.id), "The fresh instance lost its compact tab support.")
 
         manager.install(from: source)
         try await finishInstall(manager)
@@ -129,6 +131,10 @@ struct InstallSmoke {
 
     @MainActor private static func hasTab(_ providerID: String) -> Bool {
         ExtensionTabRegistry.shared.tabs.contains { $0.id.providerID == providerID }
+    }
+
+    @MainActor private static func hasCompactTab(_ providerID: String) -> Bool {
+        ExtensionTabRegistry.shared.tabs(for: .compact).contains { $0.id.providerID == providerID }
     }
 
     @MainActor private static func finishInstall(_ manager: ExtensionManager) async throws {

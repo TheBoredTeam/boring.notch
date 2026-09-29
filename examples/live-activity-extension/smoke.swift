@@ -24,18 +24,34 @@ struct ExtensionSmoke {
         let tabRegistry = ExtensionTabRegistry()
         let tabs = try runtime.tabSnapshot()
         try require(tabs.tabs.count == 1 && tabs.tabs.first?.title == "Focus", "native tab publication")
+        try require(tabs.tabs.first?.presentations == [.regular, .compact], "explicit regular and compact support")
         tabRegistry.replace(providerID: runtime.manifest.id, tabs: tabs.tabs, runtime: runtime)
         let tabID = ExtensionTabID(providerID: runtime.manifest.id, localID: "focus")
-        guard let firstTab = runtime.tabController(id: "focus", displayID: "display-a"),
-              let secondTab = runtime.tabController(id: "focus", displayID: "display-b") else {
+        let regularContext = ExtensionTabLayoutContext(presentation: .regular, displayID: "display-a",
+                                                       contentSize: CGSize(width: 578, height: 132))
+        let compactContext = ExtensionTabLayoutContext(presentation: .compact, displayID: "display-b",
+                                                       contentSize: CGSize(width: 336, height: 132))
+        let customContext = ExtensionTabLayoutContext(presentation: .regular, displayID: nil,
+                                                      contentSize: CGSize(width: 520, height: 120))
+        guard let firstTab = runtime.tabController(id: "focus", context: regularContext),
+              let secondTab = runtime.tabController(id: "focus", context: compactContext),
+              let customTab = runtime.tabController(id: "focus", context: customContext) else {
             throw SmokeFailure.failed("missing tab controllers")
         }
         try require(firstTab !== secondTab && firstTab.view !== secondTab.view, "independent native tab controllers")
-        try require(runtime.tabController(id: "missing", displayID: nil) == nil, "unknown tab rejected")
-        let tabHost = makeTabHost(id: tabID, registry: tabRegistry)
-        defer { tabHost.window.close() }
-        settle([tabHost.view])
+        try require(firstTab.view.identifier?.rawValue == "focus-tab-regular"
+                    && secondTab.view.identifier?.rawValue == "focus-tab-compact", "v2 receives requested presentation")
+        try require(secondTab.preferredContentSize == CGSize(width: 336, height: 132)
+                    && customTab.preferredContentSize == CGSize(width: 520, height: 120), "v2 receives actual content bounds")
+        try require(runtime.tabController(id: "missing", context: regularContext) == nil, "unknown tab rejected")
+        try verifyLegacyAndInvalidContexts(bundle: bundle)
+        let tabHost = makeTabHost(id: tabID, registry: tabRegistry, presentation: .regular)
+        let compactTabHost = makeTabHost(id: tabID, registry: tabRegistry, presentation: .compact)
+        defer { tabHost.window.close(); compactTabHost.window.close() }
+        settle([tabHost.view, compactTabHost.view])
         let runningTab = try capture(tabHost.view, name: "focus-tab-running")
+        let runningCompactTab = try capture(compactTabHost.view, name: "focus-tab-compact-running")
+        try require(runningTab != runningCompactTab, "separate regular and compact layouts render")
         let initial = try runtime.activitySnapshot()
         try require(initial.activities.count == 1, "initial activity")
         guard let descriptor = initial.activities.first else { throw SmokeFailure.failed("missing initial descriptor") }
@@ -70,9 +86,11 @@ struct ExtensionSmoke {
                     "native preferred-size-only shrink")
         runtime.send(snapshot: Data("{\"unknownFutureField\":true}".utf8))
         runtime.send(event: "example.focus.togglePause")
-        settle([tabHost.view])
+        settle([tabHost.view, compactTabHost.view])
         let pausedTab = try capture(tabHost.view, name: "focus-tab-paused")
+        let pausedCompactTab = try capture(compactTabHost.view, name: "focus-tab-compact-paused")
         try require(runningTab != pausedTab, "mounted tab updates from plugin-owned observable state")
+        try require(runningCompactTab != pausedCompactTab, "compact tab observes the same paused timer model")
         let paused = try runtime.activitySnapshot()
         try require(paused.activities.first?.id == id && paused.activities.first?.expiresAt == nil,
                     "stable identity while pausing")
@@ -90,11 +108,11 @@ struct ExtensionSmoke {
         try require(try runtime.activitySnapshot().activities.isEmpty, "withdrawal")
         runtime.send(event: "example.focus.start")
         try require(try runtime.activitySnapshot().activities.first?.id != id, "new session gets new identity")
-        let identity = tabRegistry.tab(for: tabID)?.contentIdentity(displayID: "display-a")
+        let identity = tabRegistry.tab(for: tabID)?.contentIdentity(context: regularContext)
         runtime.send(event: "example.tab.rename")
         tabRegistry.replace(providerID: runtime.manifest.id, tabs: try runtime.tabSnapshot().tabs, runtime: runtime)
         try require(tabRegistry.tab(for: tabID)?.descriptor.title == "Session", "live tab metadata update")
-        try require(tabRegistry.tab(for: tabID)?.contentIdentity(displayID: "display-a") == identity,
+        try require(tabRegistry.tab(for: tabID)?.contentIdentity(context: regularContext) == identity,
                     "metadata preserves mounted content identity")
         runtime.send(event: "example.tab.hide")
         tabRegistry.replace(providerID: runtime.manifest.id, tabs: try runtime.tabSnapshot().tabs, runtime: runtime)
@@ -121,19 +139,74 @@ struct ExtensionSmoke {
         secondHost.view.layoutSubtreeIfNeeded()
         runtime.send(event: "example.focus.start")
         try require(SmokeCommands.values == commandsBeforeStop, "no callbacks after destruction")
-        print("PASS: standalone ABI, signed package, native live tab/progress, tab metadata and withdrawal, independent views, native size 337→417→337, SwiftUI size 337→353→337, safe teardown")
+        print("PASS: standalone ABI, signed package, v2 presentation/bounds, regular and compact shared live state, legacy v1 layout, invalid context rejection, tab metadata and withdrawal, independent views, native size 337→417→337, SwiftUI size 337→353→337, safe teardown")
     }
 
     @MainActor
-    private static func makeTabHost(id: ExtensionTabID, registry: ExtensionTabRegistry) -> (window: NSWindow, view: NSView) {
-        let view = NSHostingView(rootView: ExtensionTabContent(id: id, displayID: "display-a", registry: registry)
-            .frame(width: 578, height: 132).background(.black).preferredColorScheme(.dark))
-        let window = NSWindow(contentRect: NSRect(x: -10_000, y: -10_000, width: 578, height: 132),
+    private static func makeTabHost(id: ExtensionTabID, registry: ExtensionTabRegistry,
+                                    presentation: ExtensionTabPresentation) -> (window: NSWindow, view: NSView) {
+        let width: CGFloat = presentation == .compact ? 336 : 578
+        let view = NSHostingView(rootView: ExtensionTabContent(id: id, displayID: "display-a",
+                                                             presentation: presentation, registry: registry)
+            .frame(width: width, height: 132).background(.black).preferredColorScheme(.dark))
+        let window = NSWindow(contentRect: NSRect(x: -10_000, y: -10_000, width: width, height: 132),
                               styleMask: .borderless, backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
         window.contentView = view
         window.orderBack(nil)
         return (window, view)
+    }
+
+    /// Exercise the public C exports as an old host would, and feed malformed
+    /// contexts directly to the independently compiled decoder. This creates
+    /// another instance of the same loaded image, not a second copy of Swift code.
+    @MainActor
+    private static func verifyLegacyAndInvalidContexts(bundle: URL) throws {
+        typealias Command = @convention(c) (UnsafeMutableRawPointer?, UnsafePointer<CChar>?, Double) -> Void
+        typealias Create = @convention(c) (UnsafeMutableRawPointer?, Command) -> UnsafeMutableRawPointer?
+        typealias Destroy = @convention(c) (UnsafeMutableRawPointer) -> Void
+        typealias LegacyView = @convention(c) (UnsafeMutableRawPointer, UnsafePointer<CChar>, UnsafePointer<CChar>?) -> UnsafeMutableRawPointer?
+        typealias ContextView = @convention(c) (UnsafeMutableRawPointer, UnsafePointer<CChar>, UnsafePointer<CChar>) -> UnsafeMutableRawPointer?
+        guard let executable = Bundle(url: bundle)?.executableURL,
+              let handle = dlopen(executable.path, RTLD_NOW | RTLD_LOCAL) else {
+            throw SmokeFailure.failed("cannot inspect example C exports")
+        }
+        defer { dlclose(handle) }
+        let create: Create = try symbol("bn_extension_create_v1", in: handle)
+        let destroy: Destroy = try symbol("bn_extension_destroy_v1", in: handle)
+        let legacyView: LegacyView = try symbol("bn_extension_tab_view_v1", in: handle)
+        let contextView: ContextView = try symbol("bn_extension_tab_view_v2", in: handle)
+        guard let instance = create(nil, { _, _, _ in }) else { throw SmokeFailure.failed("legacy create") }
+        defer { destroy(instance) }
+        guard let legacyPointer = "focus".withCString({ legacyView(instance, $0, nil) }) else {
+            throw SmokeFailure.failed("legacy regular factory")
+        }
+        let legacy = Unmanaged<NSViewController>.fromOpaque(legacyPointer).takeRetainedValue()
+        try require(legacy.view.identifier?.rawValue == "focus-tab-regular", "old host receives regular layout through v1")
+        let invalidContexts = [
+            #"{"presentation":"unknown","displayID":null,"contentSize":{"width":336,"height":132}}"#,
+            #"{"presentation":"compact","displayID":null,"contentSize":{"width":-1,"height":132}}"#,
+            #"{"presentation":"compact","contentSize":{"width":336,"height":0}}"#,
+            #"{"presentation":"compact","contentSize":{"width":"NaN","height":132}}"#,
+            String(repeating: " ", count: 65_537)
+        ]
+        for json in invalidContexts {
+            let pointer = "focus".withCString { id in json.withCString { contextView(instance, id, $0) } }
+            if let pointer { _ = Unmanaged<NSViewController>.fromOpaque(pointer).takeRetainedValue() }
+            try require(pointer == nil, "invalid compact context rejected")
+        }
+        let valid = #"{"presentation":"compact","displayID":null,"contentSize":{"width":319,"height":128},"futureField":true}"#
+        guard let pointer = "focus".withCString({ id in valid.withCString { contextView(instance, id, $0) } }) else {
+            throw SmokeFailure.failed("valid compact context with unknown key rejected")
+        }
+        let compact = Unmanaged<NSViewController>.fromOpaque(pointer).takeRetainedValue()
+        try require(compact.view.identifier?.rawValue == "focus-tab-compact"
+                    && compact.preferredContentSize == CGSize(width: 319, height: 128), "forward compatible context decoder")
+    }
+
+    private static func symbol<T>(_ name: String, in handle: UnsafeMutableRawPointer) throws -> T {
+        guard let address = dlsym(handle, name) else { throw SmokeFailure.failed("missing \(name)") }
+        return unsafeBitCast(address, to: T.self)
     }
 
     @MainActor

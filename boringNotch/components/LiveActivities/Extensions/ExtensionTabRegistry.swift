@@ -5,7 +5,12 @@ import Combine
 
 @MainActor
 protocol ExtensionTabControllerSource: AnyObject {
-    func tabController(id: String, displayID: String?) -> NSViewController?
+    func supportsTabPresentation(_ presentation: ExtensionTabPresentation) -> Bool
+    func tabController(id: String, context: ExtensionTabLayoutContext) -> NSViewController?
+}
+
+extension ExtensionTabControllerSource {
+    func supportsTabPresentation(_ presentation: ExtensionTabPresentation) -> Bool { presentation == .regular }
 }
 
 extension ExtensionRuntime: ExtensionTabControllerSource {}
@@ -44,8 +49,12 @@ final class ExtensionTabRegistry: ObservableObject {
         publish()
     }
 
-    func tab(for id: ExtensionTabID) -> ExtensionTab? {
-        providers[id.providerID]?.first { $0.id == id }
+    func tabs(for presentation: ExtensionTabPresentation) -> [ExtensionTab] {
+        tabs.filter { $0.supports(presentation) }
+    }
+
+    func tab(for id: ExtensionTabID, presentation: ExtensionTabPresentation = .regular) -> ExtensionTab? {
+        providers[id.providerID]?.first { $0.id == id && $0.supports(presentation) }
     }
 
     private func publish() {
@@ -59,12 +68,17 @@ struct ExtensionTab: Identifiable, Equatable {
     let descriptor: ExtensionTabDescriptor
     let source: any ExtensionTabControllerSource
 
-    @MainActor func contentIdentity(displayID: String?) -> ExtensionTabContentID {
-        ExtensionTabContentID(tab: id, source: ObjectIdentifier(source), displayID: displayID)
+    @MainActor func supports(_ presentation: ExtensionTabPresentation) -> Bool {
+        descriptor.supports(presentation) && source.supportsTabPresentation(presentation)
     }
 
-    @MainActor func makeController(displayID: String?) -> NSViewController? {
-        source.tabController(id: id.localID, displayID: displayID)
+    @MainActor func contentIdentity(context: ExtensionTabLayoutContext) -> ExtensionTabContentID {
+        ExtensionTabContentID(tab: id, source: ObjectIdentifier(source), context: context)
+    }
+
+    @MainActor func makeController(context: ExtensionTabLayoutContext) -> NSViewController? {
+        guard context.isValid, supports(context.presentation) else { return nil }
+        return source.tabController(id: id.localID, context: context)
     }
 
     static func == (lhs: Self, rhs: Self) -> Bool {
@@ -75,5 +89,5 @@ struct ExtensionTab: Identifiable, Equatable {
 struct ExtensionTabContentID: Hashable {
     let tab: ExtensionTabID
     let source: ObjectIdentifier
-    let displayID: String?
+    let context: ExtensionTabLayoutContext
 }

@@ -27,6 +27,8 @@ private final class FocusState: ObservableObject {
         String(format: "%02d:%02d", remainingSeconds / 60, remainingSeconds % 60)
     }
 
+    var statusText: String { isActive ? (isRunning ? "In progress" : "Paused") : "Ready" }
+
     func start() {
         guard isAvailable else { return }
         session += 1
@@ -141,36 +143,116 @@ private struct FocusSettings: View {
     }
 }
 
-/// A full native tab with its own layout and observable state. Progress, buttons,
-/// and timers belong to this independently built plugin, not the host app.
+/// Decode the public JSON contract locally; this bundle imports no host types.
+/// Unknown keys remain forward compatible, but unsupported layouts or invalid
+/// geometry cannot accidentally mount the regular layout in a compact viewport.
+private struct TabLayoutContext: Decodable {
+    enum Presentation: String, Decodable { case regular, compact }
+    struct ContentSize: Decodable {
+        let width: CGFloat
+        let height: CGFloat
+        var isValid: Bool { width.isFinite && height.isFinite && width > 0 && height > 0 }
+        var size: CGSize { CGSize(width: width, height: height) }
+    }
+
+    let presentation: Presentation
+    let displayID: String?
+    let contentSize: ContentSize
+
+    static let legacy = Self(presentation: .regular, displayID: nil,
+                             contentSize: ContentSize(width: 578, height: 132))
+
+    static func decode(_ json: UnsafePointer<CChar>) -> Self? {
+        let maximumBytes = 65_536
+        let count = strnlen(json, maximumBytes + 1)
+        guard count <= maximumBytes,
+              let context = try? JSONDecoder().decode(Self.self, from: Data(bytes: json, count: count)),
+              context.contentSize.isValid else { return nil }
+        return context
+    }
+}
+
+/// Both presentations share their state and controls. Compact deliberately
+/// moves the timer beside its heading and the controls below its progress bar;
+/// it does not scale down the regular desktop layout.
 @MainActor
 private struct FocusTab: View {
     @ObservedObject var state: FocusState
+    let presentation: TabLayoutContext.Presentation
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Label("Focus timer", systemImage: "timer").font(.headline)
-                Spacer()
-                Text(state.isActive ? (state.isRunning ? "In progress" : "Paused") : "Ready")
-                    .font(.caption).foregroundStyle(.secondary)
+        Group {
+            switch presentation {
+            case .regular: regularLayout
+            case .compact: compactLayout
             }
-            HStack {
-                Text(state.clockText).font(.system(size: 32, weight: .medium, design: .monospaced))
-                    .monospacedDigit()
-                Spacer()
-                Button("Start") { state.start() }.disabled(state.isActive)
-                Button(state.isRunning ? "Pause" : "Resume") { state.togglePause() }.disabled(!state.isActive)
-                Button("End") { state.end() }.disabled(!state.isActive)
-            }
-            .controlSize(.small)
-            ProgressView(value: Double(25 * 60 - state.remainingSeconds), total: 25 * 60)
-                .tint(.orange)
-                .accessibilityLabel("Session progress")
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .disabled(!state.isAvailable)
+    }
+
+    private var regularLayout: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Label("Focus timer", systemImage: "timer").font(.headline)
+                Spacer()
+                status
+            }
+            HStack {
+                clock(size: 32)
+                Spacer()
+                FocusControls(state: state)
+            }
+            progress
+        }
+    }
+
+    private var compactLayout: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Label("Focus", systemImage: "timer").font(.subheadline.weight(.semibold))
+                    status
+                }
+                Spacer(minLength: 12)
+                clock(size: 28)
+            }
+            progress
+            HStack {
+                Spacer(minLength: 0)
+                FocusControls(state: state)
+            }
+        }
+    }
+
+    private var status: some View {
+        Text(state.statusText).font(.caption).foregroundStyle(.secondary)
+    }
+
+    private func clock(size: CGFloat) -> some View {
+        Text(state.clockText).font(.system(size: size, weight: .medium, design: .monospaced))
+            .monospacedDigit()
+    }
+
+    private var progress: some View {
+        ProgressView(value: Double(25 * 60 - state.remainingSeconds), total: 25 * 60)
+            .tint(.orange)
+            .accessibilityLabel("Session progress")
+    }
+}
+
+@MainActor
+private struct FocusControls: View {
+    @ObservedObject var state: FocusState
+
+    var body: some View {
+        HStack {
+            Button("Start") { state.start() }.disabled(state.isActive)
+            Button(state.isRunning ? "Pause" : "Resume") { state.togglePause() }.disabled(!state.isActive)
+            Button("End") { state.end() }.disabled(!state.isActive)
+        }
+        .controlSize(.small)
     }
 }
 
@@ -213,7 +295,8 @@ private final class FocusPlugin {
     }
 
     func tabSnapshot() -> UnsafePointer<CChar>? {
-        encodeSnapshot(["tabs": tabVisible ? [["id": "focus", "title": tabTitle, "symbol": "timer"]] : []])
+        encodeSnapshot(["tabs": tabVisible ? [["id": "focus", "title": tabTitle, "symbol": "timer",
+                                               "presentations": ["regular", "compact"]]] : []])
     }
 
     private func encodeSnapshot(_ value: [String: Any]) -> UnsafePointer<CChar>? {
@@ -229,10 +312,13 @@ private final class FocusPlugin {
         return FocusRegionController(state: state, region: region)
     }
 
-    func tabController(id: String) -> NSViewController? {
+    func tabController(id: String, layout: TabLayoutContext = .legacy) -> NSViewController? {
         guard tabVisible, state.isAvailable, id == "focus" else { return nil }
-        let controller = NSHostingController(rootView: FocusTab(state: state))
-        controller.preferredContentSize = NSSize(width: 578, height: 132)
+        let controller = NSHostingController(rootView: FocusTab(state: state, presentation: layout.presentation))
+        controller.preferredContentSize = layout.contentSize.size
+        // A stable native identifier also lets the standalone smoke harness
+        // verify which presentation the real runtime requested.
+        controller.view.identifier = NSUserInterfaceItemIdentifier("focus-tab-\(layout.presentation.rawValue)")
         return controller
     }
 
@@ -356,5 +442,16 @@ public func tabViewFocusPlugin(
     guard Thread.isMainThread else { return nil }
     guard let controller = Unmanaged<FocusPlugin>.fromOpaque(pointer).takeUnretainedValue()
         .tabController(id: String(cString: tabID)) else { return nil }
+    return Unmanaged.passRetained(controller).toOpaque()
+}
+
+@_cdecl("bn_extension_tab_view_v2")
+@MainActor
+public func tabViewFocusPluginV2(
+    _ pointer: UnsafeMutableRawPointer, _ tabID: UnsafePointer<CChar>, _ contextJSON: UnsafePointer<CChar>
+) -> UnsafeMutableRawPointer? {
+    guard Thread.isMainThread, let layout = TabLayoutContext.decode(contextJSON),
+          let controller = Unmanaged<FocusPlugin>.fromOpaque(pointer).takeUnretainedValue()
+            .tabController(id: String(cString: tabID), layout: layout) else { return nil }
     return Unmanaged.passRetained(controller).toOpaque()
 }

@@ -57,7 +57,7 @@ struct CompactHomeView: View {
                 .frame(height: albumArtWidth)
 
             progressRow
-                .padding(.top, 6)
+                .padding(.top, 3)
 
             transport
                 .padding(.top, 2)

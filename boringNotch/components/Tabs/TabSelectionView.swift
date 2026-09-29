@@ -22,6 +22,7 @@ struct TabSelectionView: View {
     }
 
     var presentation: Presentation = .embedded
+    @Default(.compactMode) private var compactMode
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var registry = ExtensionTabRegistry.shared
     @Default(.boringShelf) private var shelfEnabled
@@ -31,7 +32,7 @@ struct TabSelectionView: View {
     private var tabs: [TabModel] {
         var result = [TabModel(label: "Home", icon: "house.fill", view: .home)]
         if shelfEnabled { result.append(TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)) }
-        result += registry.tabs.map {
+        result += registry.tabs(for: compactMode ? .compact : .regular).map {
             TabModel(label: $0.descriptor.title, icon: $0.descriptor.systemSymbol, view: .extensionTab($0.id))
         }
         return result
@@ -116,6 +117,9 @@ struct TabSelectionView: View {
     }
 
     private func select(_ tab: NotchViews) {
+        // A menu can outlive a metadata or mode change. Resolve against the
+        // current registry again instead of selecting a stale hidden entry.
+        guard tabs.contains(where: { $0.view == tab }) else { return }
         withAnimation(reduceMotion ? nil : .smooth) { coordinator.currentView = tab }
     }
 }

@@ -177,7 +177,7 @@ struct NotchSettingsView: View {
         } header: {
             Text("Behavior")
         } footer: {
-            Text("Shows a smaller music player with floating tabs below the notch. Shelf and extension tabs open their full workspace.")
+            Text("Keeps every tab in a smaller notch with floating tabs below it. Extensions appear here when they support a compact layout.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

@@ -12,6 +12,7 @@ import UniformTypeIdentifiers
 
 struct FileShareView: View {
     let dropInteraction: DropInteractionState
+    var compact: Bool = false
     @StateObject private var quickShare = QuickShareService.shared
     @Default(.quickShareProvider) var quickShareProvider: String
 
@@ -65,7 +66,7 @@ struct FileShareView: View {
                         .fill(Color.white.opacity(
                             dropInteraction.dropZoneTargeting ? 0.11 : 0.09
                         ))
-                        .frame(width: 55, height: 55)
+                        .frame(width: compact ? 40 : 55, height: compact ? 40 : 55)
                     Group {
                         if let icon = quickShare.icon(for: selectedProvider.id, size: 34) {
                             Image(nsImage: icon)
@@ -74,7 +75,7 @@ struct FileShareView: View {
                             Image(systemName: "square.and.arrow.up")
                         }
                     }
-                    .frame(width: 34, height: 34)
+                    .frame(width: compact ? 24 : 34, height: compact ? 24 : 34)
                         .foregroundStyle(
                             dropInteraction.dropZoneTargeting ? Color.accentColor : Color.gray
                         )
@@ -85,11 +86,12 @@ struct FileShareView: View {
                 }
 
                 Text(selectedProvider.id)
-                    .font(.system(.headline, design: .rounded))
+                    .font(.system(compact ? .caption : .headline, design: .rounded))
                     .foregroundColor(.white.opacity(0.8))
                     .multilineTextAlignment(.center)
+                    .lineLimit(compact ? 2 : nil)
             }
-            .padding(18)
+            .padding(compact ? 6 : 18)
 
             // Loading overlay
             if isProcessing || quickShare.isPickerOpen {

@@ -2,23 +2,26 @@
 
 import Foundation
 
-/// The host chooses the workspace bounds; a compact Home does not constrain
-/// Shelf or a third-party tab to the music player's smaller content area.
+/// Compact is a bounded presentation shared by every tab. Selecting content
+/// never changes the host's size; providers adapt their own controls to it.
 struct NotchWorkspaceLayout {
-    static let compactHomeWidth: CGFloat = 336
+    static let compactContentWidth: CGFloat = 336
+    static let compactContentHeight: CGFloat = 132
     let compactMode: Bool
-    let selection: NotchViews
     let standardSize: CGSize
     let horizontalInset: CGFloat
     let topClearance: CGFloat
 
-    var usesCompactHome: Bool { compactMode && selection == .home }
-    var notchHeight: CGFloat? { usesCompactHome ? nil : standardSize.height }
-    var contentWidth: CGFloat {
-        usesCompactHome ? Self.compactHomeWidth : max(0, standardSize.width - 2 * horizontalInset)
+    var notchHeight: CGFloat {
+        compactMode ? min(standardSize.height, topClearance + 20 + contentHeight) : standardSize.height
     }
-    var contentHeight: CGFloat? {
-        usesCompactHome ? nil : max(0, standardSize.height - topClearance - 20)
+    var contentWidth: CGFloat {
+        let available = max(0, standardSize.width - 2 * horizontalInset)
+        return compactMode ? min(Self.compactContentWidth, available) : available
+    }
+    var contentHeight: CGFloat {
+        let available = max(0, standardSize.height - topClearance - 20)
+        return compactMode ? min(Self.compactContentHeight, available) : available
     }
 }
 

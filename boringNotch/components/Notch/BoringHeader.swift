@@ -17,7 +17,7 @@ struct BoringHeader: View {
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if !extensionTabs.tabs.isEmpty || ((!shelfState.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf]) {
+                if !extensionTabs.tabs(for: .regular).isEmpty || ((!shelfState.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf]) {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()
