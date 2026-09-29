@@ -1,0 +1,158 @@
+name: "Reusable Build"
+on:
+  workflow_call:
+    inputs:
+      source_sha:
+        required: true
+        type: string
+      version:
+        required: false
+        type: string
+      build_number:
+        required: true
+        type: string
+      xcode_version:
+        required: false
+        type: string
+        default: "26.6"
+      code_sign_identity:
+        required: false
+        type: string
+        default: "Apple Development"
+      update_channel:
+        required: false
+        type: string
+        default: "stable"
+    secrets:
+      BUILD_CERTIFICATE_BASE64:
+        required: true
+      P12_PASSWORD:
+        required: true
+      KEYCHAIN_PASSWORD:
+        required: true
+
+jobs:
+  build:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    env:
+      PROJECT_NAME: boringNotch
+      APP_NAME: Boring Notch
+      EXPORT_METHOD: development
+      VERSION_INPUT: ${{ inputs.version }}
+      BUILD_NUMBER_INPUT: ${{ inputs.build_number }}
+      UPDATE_CHANNEL: ${{ inputs.update_channel }}
+      DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
+      CODE_SIGN_IDENTITY: ${{ inputs.code_sign_identity }}
+      XCODE_VERSION: ${{ inputs.xcode_version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -project "$PROJECT_NAME.xcodeproj"
+
+      - name: Install Apple certificate
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          CERT_PATH="$RUNNER_TEMP/build_certificate.p12"
+          KC="$RUNNER_TEMP/app-signing.keychain-db"
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
+          security import "$CERT_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KC"
+          security list-keychain -d user -s "$KC"
+
+      - name: Select Xcode ${{ env.XCODE_VERSION }}
+        run: |
+          XCODE_PATH="/Applications/Xcode_${XCODE_VERSION}.app"
+          if [[ ! -d "$XCODE_PATH" ]]; then
+            echo "::error::Xcode ${XCODE_VERSION} not found at ${XCODE_PATH}"
+            echo "Available Xcode versions:"
+            ls -d /Applications/Xcode*.app 2>/dev/null || echo "  (none found)"
+            exit 1
+          fi
+          sudo xcode-select -s "$XCODE_PATH"
+          xcodebuild -version
+
+      - name: Set version and build number
+        run: |
+          set -euo pipefail
+          PBXPROJ="$PROJECT_NAME.xcodeproj/project.pbxproj"
+          VERSION="$VERSION_INPUT"
+          if [[ -z "$BUILD_NUMBER_INPUT" ]]; then
+            echo "::error::A reserved build number must be provided by the caller"
+            exit 1
+          fi
+          BUILD_NUMBER="$BUILD_NUMBER_INPUT"
+          python3 .github/scripts/stamp_version.py \
+            --pbxproj "$PBXPROJ" \
+            --version "$VERSION" \
+            --build-number "$BUILD_NUMBER" \
+            --info-plist "$PROJECT_NAME/Info.plist" \
+            --update-channel "$UPDATE_CHANNEL"
+
+      - name: Build and archive
+        run: |
+          xcodebuild clean archive \
+            -project "$PROJECT_NAME.xcodeproj" \
+            -scheme "$PROJECT_NAME" \
+            -archivePath "$PROJECT_NAME" \
+            -destination "generic/platform=macOS" \
+            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
+            ONLY_ACTIVE_ARCH=NO \
+            -allowProvisioningUpdates
+
+      - name: Export app
+        run: |
+          cat > "$RUNNER_TEMP/export_options.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>${EXPORT_METHOD}</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>teamID</key>
+            <string>${DEVELOPMENT_TEAM}</string>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "$PROJECT_NAME.xcarchive" \
+            -exportPath Release \
+            -exportOptionsPlist "$RUNNER_TEMP/export_options.plist"
+
+      - name: Create DMG
+        run: |
+          VENV_DIR="$RUNNER_TEMP/venv"
+          python3 -m venv "$VENV_DIR"
+          source "$VENV_DIR/bin/activate"
+          python3 -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install --require-hashes -r Configuration/dmg/requirements.txt
+          chmod +x Configuration/dmg/create_dmg.sh
+          ./Configuration/dmg/create_dmg.sh \
+            "Release/$APP_NAME.app" \
+            "Release/$PROJECT_NAME.dmg" \
+            "$APP_NAME $VERSION_INPUT"
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ env.PROJECT_NAME }}.dmg
+          path: Release/${{ env.PROJECT_NAME }}.dmg
+
+      - name: Upload .app
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ env.APP_NAME }}.app
+          path: Release/${{ env.APP_NAME }}.app

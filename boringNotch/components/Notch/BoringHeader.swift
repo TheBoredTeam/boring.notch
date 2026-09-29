@@ -13,11 +13,11 @@ struct BoringHeader: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var microphoneManager = MicrophoneManager.shared
-    @StateObject var tvm = ShelfStateViewModel.shared
+    @StateObject var shelfState = ShelfStateViewModel.shared
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if (!tvm.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
+                if (!shelfState.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()
@@ -39,11 +39,16 @@ struct BoringHeader: View {
 
             HStack(spacing: 4) {
                 if vm.notchState == .open {
-                    if isHUDType(coordinator.sneakPeek.type) && coordinator.sneakPeek.show && Defaults[.showOpenNotchHUD] {
-                        OpenNotchHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon)
+                    if isOSDType(coordinator.sneakPeekState(for: vm.screenUUID).type) && coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.showOpenNotchOSD] {
+                        OpenNotchOSD(
+                             type: coordinator.binding(for: vm.screenUUID).type,
+                             value: coordinator.binding(for: vm.screenUUID).value,
+                             icon: coordinator.binding(for: vm.screenUUID).icon,
+                             accent: coordinator.binding(for: vm.screenUUID).accent
+                        )
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
                     } else {
-                        if Defaults[.showMirror] {
+                        if Defaults[.showMirror] && coordinator.currentView == .home {
                             Button(action: {
                                 vm.toggleCameraPreview()
                             }) {
@@ -101,7 +106,9 @@ struct BoringHeader: View {
                         }
                         if Defaults[.settingsIconInNotch] {
                             Button(action: {
-                                SettingsWindowController.shared.showWindow()
+                                DispatchQueue.main.async {
+                                    SettingsWindowController.shared.showWindow()
+                                }
                             }) {
                                 Capsule()
                                     .fill(.black)
@@ -124,6 +131,8 @@ struct BoringHeader: View {
                                 levelBattery: batteryModel.levelBattery,
                                 maxCapacity: batteryModel.maxCapacity,
                                 timeToFullCharge: batteryModel.timeToFullCharge,
+                                timeToDischarge: batteryModel.timeToDischarge,
+                                maxAdapterWatts: batteryModel.maxAdapterWatts,
                                 isForNotification: false
                             )
                         }
@@ -143,7 +152,7 @@ struct BoringHeader: View {
         }
     }
 
-    func isHUDType(_ type: SneakContentType) -> Bool {
+    func isOSDType(_ type: SneakContentType) -> Bool {
         switch type {
         case .volume, .brightness, .backlight, .mic:
             return true
@@ -154,5 +163,5 @@ struct BoringHeader: View {
 }
 
 #Preview {
-    BoringHeader().environmentObject(BoringViewModel())
+    BoringHeader().environmentObject(BoringViewModel(camera: CameraModel()))
 }

@@ -9,48 +9,79 @@ import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
 
+private enum SettingsTab: String, CaseIterable, Identifiable {
+    case general
+    case notch
+    case appearance
+    case media
+    case calendar
+    case shelf
+    case mirror
+    case battery
+    case osd
+    case notifications
+    case shortcuts
+    case about
+
+    enum Icon {
+        case system(String)
+        case custom(String)
+    }
+
+    var id: Self { self }
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .general: "General"
+        case .notch: "Notch"
+        case .appearance: "Appearance"
+        case .media: "Media"
+        case .calendar: "Calendar"
+        case .shelf: "Shelf"
+        case .mirror: "Mirror"
+        case .battery: "Battery"
+        case .osd: "OSD"
+        case .notifications: "Notifications"
+        case .shortcuts: "Shortcuts"
+        case .about: "About"
+        }
+    }
+
+    var icon: Icon {
+        switch self {
+        case .general: .system("gear")
+        case .notch: .custom("notch")
+        case .appearance: .system("paintbrush")
+        case .media: .system("play.rectangle")
+        case .calendar: .system("calendar")
+        case .shelf: .system("tray.and.arrow.down")
+        case .mirror: .system("video")
+        case .battery: .system("battery.100.bolt")
+        case .osd: .system("dial.medium.fill")
+        case .notifications: .system("bell.badge")
+        case .shortcuts: .system("keyboard")
+        case .about: .system("info.circle")
+        }
+    }
+}
+
 struct SettingsView: View {
-    @State private var selectedTab = "General"
+    @State private var selectedTab: SettingsTab = .general
     @State private var accentColorUpdateTrigger = UUID()
 
     let updaterController: SPUStandardUpdaterController?
+    let camera: CameraModel
 
-    init(updaterController: SPUStandardUpdaterController? = nil) {
+    init(updaterController: SPUStandardUpdaterController? = nil, camera: CameraModel) {
         self.updaterController = updaterController
+        self.camera = camera
     }
 
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedTab) {
-                NavigationLink(value: "General") {
-                    Label("General", systemImage: "gear")
-                }
-                NavigationLink(value: "Appearance") {
-                    Label("Appearance", systemImage: "eye")
-                }
-                NavigationLink(value: "Media") {
-                    Label("Media", systemImage: "play.laptopcomputer")
-                }
-                NavigationLink(value: "Calendar") {
-                    Label("Calendar", systemImage: "calendar")
-                }
-                NavigationLink(value: "HUD") {
-                    Label("HUDs", systemImage: "dial.medium.fill")
-                }
-                NavigationLink(value: "Battery") {
-                    Label("Battery", systemImage: "battery.100.bolt")
-                }
-                NavigationLink(value: "Shelf") {
-                    Label("Shelf", systemImage: "books.vertical")
-                }
-                NavigationLink(value: "Shortcuts") {
-                    Label("Shortcuts", systemImage: "keyboard")
-                }
-                NavigationLink(value: "Advanced") {
-                    Label("Advanced", systemImage: "gearshape.2")
-                }
-                NavigationLink(value: "About") {
-                    Label("About", systemImage: "info.circle")
+                ForEach(SettingsTab.allCases) { tab in
+                    tabItem(tab)
                 }
             }
             .listStyle(SidebarListStyle())
@@ -60,36 +91,38 @@ struct SettingsView: View {
         } detail: {
             Group {
                 switch selectedTab {
-                case "General":
+                case .general:
                     GeneralSettings()
-                case "Appearance":
-                    Appearance()
-                case "Media":
-                    Media()
-                case "Calendar":
+                case .notch:
+                    NotchSettingsView()
+                case .appearance:
+                    AppearanceSettingsView()
+                case .media:
+                    MediaSettingsView()
+                case .notifications:
+                    NotificationSettingsView()
+                case .calendar:
                     CalendarSettings()
-                case "HUD":
-                    HUD()
-                case "Battery":
-                    Charge()
-                case "Shelf":
-                    Shelf()
-                case "Shortcuts":
-                    Shortcuts()
-                case "Advanced":
-                    Advanced()
-                case "About":
+                case .osd:
+                    OSDSettings()
+                case .battery:
+                    BatterySettingsView()
+                case .shelf:
+                    ShelfSettingsView()
+                case .mirror:
+                    WebcamSettingsView(camera: camera)
+                case .shortcuts:
+                    ShortcutsSettingsView()
+                case .about:
                     if let controller = updaterController {
-                        About(updaterController: controller)
+                        AboutView(updaterController: controller)
                     } else {
                         // Fallback with a default controller
-                        About(
+                        AboutView(
                             updaterController: SPUStandardUpdaterController(
                                 startingUpdater: false, updaterDelegate: nil,
                                 userDriverDelegate: nil))
                     }
-                default:
-                    GeneralSettings()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -111,5 +144,20 @@ struct SettingsView: View {
         .onReceive(NotificationCenter.default.publisher(for: .accentColorChanged)) { _ in
             accentColorUpdateTrigger = UUID()
         }
+    }
+
+    private func tabItem(_ tab: SettingsTab) -> some View {
+        Label {
+            Text(tab.title)
+        } icon: {
+            switch tab.icon {
+            case .system(let imageName):
+                Image(systemName: imageName)
+
+            case .custom(let imageName):
+                Image(imageName)
+            }
+        }
+        .tag(tab)
     }
 }

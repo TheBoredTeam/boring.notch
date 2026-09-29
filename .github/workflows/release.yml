@@ -1,545 +1,717 @@
 name: "Deploy Boring Notch"
+
 on:
-  issue_comment:
-    types: [created]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (for example 2.8.0 or 2.8.0-rc.1)"
+        required: true
+        type: string
 
 concurrency:
-  group: build-boringnotch-${{ github.ref }}
-  cancel-in-progress: true
+  group: dev-publication
+  cancel-in-progress: false
+  queue: max
 
-env:
-  projname: boringNotch
-  beta-channel-name: "beta"
-  EXPORT_METHOD: "development"
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
+
+env:
+  PROJECT_NAME: boringNotch
+  APP_NAME: Boring Notch
+  BETA_CHANNEL_NAME: beta
 
 jobs:
   preparation:
-    name: Preparation job
-    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/release') }}
+    name: Preparation
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract_version.outputs.version }}
+      is_beta: ${{ steps.extract_version.outputs.is_beta }}
+      title: ${{ steps.release_notes.outputs.title }}
+      release_notes: ${{ steps.release_notes.outputs.release_notes }}
+      release_notes_github: ${{ steps.release_notes.outputs.release_notes_github }}
+      pr_number: ${{ steps.release_state.outputs.pr_number }}
+      source_sha: ${{ steps.release_state.outputs.source_sha }}
+      resume: ${{ steps.release_state.outputs.resume }}
+      build_number: ${{ steps.release_state.outputs.resume == 'false' && steps.build_number.outputs.build_number || '' }}
+    steps:
+      - name: Require protected release workflow
+        env:
+          WORKFLOW_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [[ "$WORKFLOW_REF" != "refs/heads/main" ]]; then
+            echo "::error::Run releases from the protected main workflow, not ${WORKFLOW_REF}"
+            exit 1
+          fi
+
+      - name: Authorize release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ACTOR: ${{ github.triggering_actor }}
+        run: |
+          set -euo pipefail
+          PERM=$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" --jq '.permission')
+          if [[ "$PERM" != "admin" ]]; then
+            echo "::error::${ACTOR} is not an admin (permission: ${PERM})"
+            exit 1
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Extract requested version
+        id: extract_version
+        env:
+          VERSION_INPUT: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          OUTPUT=$(python3 .github/scripts/extract_version.py -c "$VERSION_INPUT")
+          VERSION=$(awk -F= '/^version=/{print $2; exit}' <<<"$OUTPUT")
+          IS_BETA=$(awk -F= '/^is_beta=/{print $2; exit}' <<<"$OUTPUT")
+          if [[ -z "$VERSION" || ( "$VERSION_INPUT" != "$VERSION" && "$VERSION_INPUT" != "v$VERSION" ) ]]; then
+            echo "::error::Version must be a complete semantic version, optionally prefixed with v"
+            exit 1
+          fi
+          {
+            echo "version=$VERSION"
+            echo "is_beta=$IS_BETA"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Determine release state
+        id: release_state
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          VERSION: ${{ steps.extract_version.outputs.version }}
+        run: |
+          set -euo pipefail
+          OWNER="${REPO%%/*}"
+          TAG="v${VERSION}"
+          LOOKUP_ERROR="$RUNNER_TEMP/release-lookup-error"
+
+          # A published release for this version means the workflow already ran
+          # to completion; re-running it is not a recovery path.
+          # Draft releases are invisible to the /releases/tags REST endpoint
+          # (it 404s for drafts even with write access), so the probe goes
+          # through gh release view, which resolves drafts via the list API.
+          if RELEASE_JSON="$(gh release view "$TAG" --repo "$REPO" --json isDraft,targetCommitish 2>"$LOOKUP_ERROR")"; then
+            IS_DRAFT="$(jq -r '.isDraft' <<< "$RELEASE_JSON")"
+            if [[ "$IS_DRAFT" != "true" ]]; then
+              echo "::error::Version v${VERSION} is already published"
+              exit 1
+            fi
+            SOURCE_SHA="$(jq -r '.targetCommitish' <<< "$RELEASE_JSON")"
+            if [[ ! "$SOURCE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+              echo "::error::Draft release for v${VERSION} has an invalid target commit"
+              exit 1
+            fi
+            {
+              echo "resume=true"
+              echo "source_sha=$SOURCE_SHA"
+              echo "pr_number="
+            } >> "$GITHUB_OUTPUT"
+            echo "Resuming release v${VERSION} from draft target ${SOURCE_SHA}."
+            exit 0
+          fi
+
+          if ! grep -q 'release not found' "$LOOKUP_ERROR"; then
+            cat "$LOOKUP_ERROR" >&2
+            echo "::error::Could not determine whether v${VERSION} already exists"
+            exit 1
+          fi
+
+          # Fresh release: exactly one open same-repository dev-to-main PR is
+          # the reviewed source of truth. Its head is the build source.
+          # gh api switches to POST when parameters are supplied, which is not
+          # the list operation; pin the method to GET explicitly.
+          PR_CANDIDATES=$(gh api -X GET "repos/${REPO}/pulls" \
+            -f state=open -f base=main -f head="${OWNER}:dev" -f per_page=5 \
+            --jq '[.[].number]')
+          PR_COUNT="$(jq length <<< "$PR_CANDIDATES")"
+          if [[ "$PR_COUNT" != "1" ]]; then
+            echo "::error::Expected exactly one open dev-to-main release PR, found ${PR_COUNT}"
+            exit 1
+          fi
+          PR_NUMBER=$(jq -r '.[0]' <<< "$PR_CANDIDATES")
+          PR_DATA=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" \
+            --jq '{head_ref: .head.ref, head_sha: .head.sha, base_ref: .base.ref, head_repo: .head.repo.full_name, base_repo: .base.repo.full_name, is_draft: .draft, mergeable: .mergeable}')
+          HEAD_REF=$(echo "$PR_DATA" | jq -r '.head_ref')
+          HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head_sha')
+          BASE_REF=$(echo "$PR_DATA" | jq -r '.base_ref')
+          HEAD_REPO=$(echo "$PR_DATA" | jq -r '.head_repo')
+          BASE_REPO=$(echo "$PR_DATA" | jq -r '.base_repo')
+          IS_DRAFT=$(echo "$PR_DATA" | jq -r '.is_draft')
+          MERGEABLE=$(echo "$PR_DATA" | jq -r '.mergeable')
+
+          if [[ "$HEAD_REPO" != "$REPO" || "$BASE_REPO" != "$REPO" || "$HEAD_REF" != "dev" || "$BASE_REF" != "main" || \
+                ! "$HEAD_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error::Release PR must be a same-repository dev-to-main PR with an immutable head SHA"
+            exit 1
+          fi
+          if [[ "$IS_DRAFT" == "true" || "$MERGEABLE" != "true" ]]; then
+            echo "::error::PR #${PR_NUMBER} is not ready to merge (draft=${IS_DRAFT}, mergeable=${MERGEABLE})"
+            exit 1
+          fi
+          {
+            echo "resume=false"
+            echo "source_sha=$HEAD_SHA"
+            echo "pr_number=$PR_NUMBER"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Derive build number
+        id: build_number
+        if: steps.release_state.outputs.resume == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ steps.release_state.outputs.source_sha }}
+          VERSION: ${{ steps.extract_version.outputs.version }}
+          PBXPROJ_PATH: ${{ env.PROJECT_NAME }}.xcodeproj/project.pbxproj
+        run: |
+          set -euo pipefail
+          # Same derivation as the nightly pipeline: one above the highest
+          # version already released through Sparkle, floored by the number
+          # committed in the Xcode project. Stable and beta items live in the
+          # main-branch appcast while nightly items live in the dev appcast,
+          # so the ceiling is the max across both and every channel outranks
+          # the last release on any channel. The dev appcast belongs to the
+          # built source snapshot, but stable/beta must be read from live main:
+          # the release source is a dev PR head and can predate a beta commit.
+          APPCAST_SOURCES="updater/appcast-dev.xml@${SOURCE_SHA} updater/appcast.xml@main"
+          RELEASED="$(for APPCAST_SOURCE in ${APPCAST_SOURCES}; do
+            APPCAST="${APPCAST_SOURCE%@*}"
+            APPCAST_REF="${APPCAST_SOURCE##*@}"
+            gh api "repos/${REPO}/contents/${APPCAST}?ref=${APPCAST_REF}" \
+              --jq '.content' 2>/dev/null | base64 --decode \
+              | grep -Eo 'sparkle:version(="|>)[0-9]+' | grep -Eo '[0-9]+$'
+          done | sort -n | tail -1 || true)"
+          PBXPROJ="$RUNNER_TEMP/project.pbxproj"
+          gh api -H "Accept: application/vnd.github.raw+json" \
+            "repos/${REPO}/contents/${PBXPROJ_PATH}?ref=${SOURCE_SHA}" > "$PBXPROJ"
+          BASE_BUILD="$(grep -Eo 'CURRENT_PROJECT_VERSION = [0-9]+' "$PBXPROJ" \
+            | grep -Eo '[0-9]+$' | sort -n | tail -1)"
+          BASE_BUILD="${BASE_BUILD:-0}"
+          BUILD_NUMBER="$(( RELEASED > BASE_BUILD ? RELEASED + 1 : BASE_BUILD + 1 ))"
+          echo "v${VERSION} -> build ${BUILD_NUMBER} (appcast: ${RELEASED:-none}, project: ${BASE_BUILD})"
+
+          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Generate release notes
+        id: release_notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.release_state.outputs.pr_number }}
+          VERSION: ${{ steps.extract_version.outputs.version }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$PR_NUMBER" ]]; then
+            TITLE=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.title // "Release"')
+            BODY=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.body // "- No release notes provided"')
+          else
+            # The resume path must read a draft release, which the
+            # /releases/tags endpoint cannot see; gh release view can.
+            TITLE=$(gh release view "v${VERSION}" --repo "$REPO" --json name --jq '.name // "Release"')
+            BODY=$(gh release view "v${VERSION}" --repo "$REPO" --json body --jq '.body // "- No release notes provided"')
+          fi
+
+          BODY_GITHUB=$(printf '%s' "$BODY" | sed '/^# /d' | perl -pe 's#<h1[^>]*>.*?</h1>##gi')
+
+          TITLE_DELIM="TITLE_$(uuidgen | tr -d '-')"
+          NOTES_DELIM="RELEASE_NOTES_$(uuidgen | tr -d '-')"
+          GH_NOTES_DELIM="RELEASE_NOTES_GH_$(uuidgen | tr -d '-')"
+          {
+            echo "title<<${TITLE_DELIM}"
+            printf '%s\n' "$TITLE"
+            echo "${TITLE_DELIM}"
+            echo "release_notes<<${NOTES_DELIM}"
+            printf '%s\n' "$BODY"
+            echo "${NOTES_DELIM}"
+            echo "release_notes_github<<${GH_NOTES_DELIM}"
+            printf '%s\n' "$BODY_GITHUB"
+            echo "${GH_NOTES_DELIM}"
+          } >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build and sign
+    if: ${{ needs.preparation.outputs.resume == 'false' }}
+    needs: preparation
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build_reusable.yml
+    with:
+      source_sha: ${{ needs.preparation.outputs.source_sha }}
+      version: ${{ needs.preparation.outputs.version }}
+      build_number: ${{ needs.preparation.outputs.build_number }}
+      update_channel: ${{ needs.preparation.outputs.is_beta == 'true' && 'beta' || 'stable' }}
+    secrets:
+      BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+      P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+
+  publish:
+    name: Publish draft release and appcast
+    needs: [preparation, build]
+    if: ${{ !cancelled() && needs.preparation.result == 'success' && (needs.preparation.outputs.resume == 'true' || needs.build.result == 'success') }}
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    env:
+      VERSION: ${{ needs.preparation.outputs.version }}
+      IS_BETA: ${{ needs.preparation.outputs.is_beta }}
+      SOURCE_SHA: ${{ needs.preparation.outputs.source_sha }}
+      RESUME: ${{ needs.preparation.outputs.resume }}
+      TITLE: ${{ needs.preparation.outputs.title }}
+      NOTES: ${{ needs.preparation.outputs.release_notes_github }}
+      RELEASE_NOTES: ${{ needs.preparation.outputs.release_notes }}
+    steps:
+      - name: Create release app token
+        id: release_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          persist-credentials: false
+
+      - name: Download release artifact
+        if: ${{ needs.preparation.outputs.resume == 'true' }}
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          gh release download "v${VERSION}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern "$PROJECT_NAME.dmg" \
+            --dir Release
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        if: ${{ needs.preparation.outputs.resume == 'false' }}
+        with:
+          name: ${{ env.PROJECT_NAME }}.dmg
+          path: Release
+
+      - name: Create embedded release notes
+        run: printf '%s' "$RELEASE_NOTES" > "Release/${PROJECT_NAME}.html"
+
+      - name: Fetch Sparkle generate_appcast
+        uses: ./.github/actions/fetch-generate-appcast
+
+      - name: Generate signed appcast
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
+        run: |
+          set -euo pipefail
+          test -x "$RUNNER_TEMP/generate_appcast" || {
+            echo "::error::$RUNNER_TEMP/generate_appcast missing or not executable"; exit 1;
+          }
+          if [[ "$IS_BETA" == "true" ]]; then
+            APPCAST_OUT="appcast-beta.xml"
+            CHANNEL_ARGS=(--channel "$BETA_CHANNEL_NAME")
+          else
+            APPCAST_OUT="appcast-stable.xml"
+            CHANNEL_ARGS=()
+          fi
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | "$RUNNER_TEMP/generate_appcast" \
+            --ed-key-file - \
+            --link "https://github.com/TheBoredTeam/boring.notch/releases" \
+            --download-url-prefix "https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/" \
+            --embed-release-notes \
+            "${CHANNEL_ARGS[@]}" \
+            -o "$APPCAST_OUT" \
+            Release/
+
+      - name: Upload generated appcast
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: appcast-${{ env.IS_BETA }}
+          path: appcast-*.xml
+
+      - name: Create or refresh draft release
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          TAG="v${VERSION}"
+          if [[ "$RESUME" == "true" ]]; then
+            echo "Resumed existing draft release ${TAG}."
+            exit 0
+          fi
+          RELEASE_FLAGS=(--draft)
+          if [[ "$IS_BETA" == "true" ]]; then
+            RELEASE_FLAGS+=(--prerelease)
+          fi
+          gh release create "$TAG" "Release/$PROJECT_NAME.dmg" \
+            --target "$SOURCE_SHA" \
+            --title "${TAG} - ${TITLE}" \
+            --notes "$NOTES" \
+            "${RELEASE_FLAGS[@]}"
+          echo "Created draft release ${TAG} targeting ${SOURCE_SHA}."
+
+  merge_release:
+    name: Merge release PR
+    if: ${{ needs.preparation.outputs.is_beta == 'false' && needs.publish.result == 'success' }}
+    needs: [preparation, publish]
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
-    outputs:
-      is_beta: ${{ steps.extract-version.outputs.is_beta }}
-      version: ${{ steps.extract-version.outputs.version }}
-      build_number: ${{ steps.extract-version.outputs.build_number }}
-      title: ${{ steps.generate-release-notes.outputs.title }}
-      release_notes: ${{ steps.generate-release-notes.outputs.release_notes }}
-      release_notes_github: ${{ steps.generate-release-notes.outputs.release_notes_github }}
+      contents: read
     steps:
-      - uses: xt0rted/pull-request-comment-branch@v1
-        id: comment-branch
-
-      - name: Add reaction to comment
-        uses: peter-evans/create-or-update-comment@v4
+      - name: Create release app token
+        id: release_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
-          comment-id: ${{ github.event.comment.id }}
-          reactions: eyes
-          
-      - uses: actions/github-script@v6
-        with:
-          result-encoding: string
-          script: |
-            const commenter = context.payload.comment.user.login;
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
 
-            // Check the commenter's repository permission level (need write or admin)
-            try {
-              const perm = await github.rest.repos.getCollaboratorPermissionLevel({ owner, repo, username: commenter });
-              const level = perm.data.permission; // admin, write, read, none
-              if (level !== 'admin') {
-                core.setFailed("Commenter is not an admin on the repository");
-              }
-            } catch (err) {
-              core.setFailed("Failed to determine collaborator permission level: " + err.message);
-            }
-
-            // Check if the PR is ready to be merged
-              const pr = await github.rest.pulls.get({
-                owner: owner,
-                repo: repo,
-                pull_number: context.issue.number,
-              });
-              if (pr.data.draft || !pr.data.mergeable) {
-                core.setFailed("PR is not ready to be merged");
-              }
-      - uses: actions/checkout@v3
-        if: success()
-        with:
-          ref: ${{ steps.comment-branch.outputs.head_ref }}
-          
-      - name: Ensure scripts directory exists
+      - name: Merge release PR
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ needs.preparation.outputs.source_sha }}
         run: |
-          if [ ! -f ".github/scripts/extract_version.py" ]; then
-            echo "Script not found in PR branch, fetching from base branch"
-            git fetch origin ${{ steps.comment-branch.outputs.base_ref }}
-            git checkout origin/${{ steps.comment-branch.outputs.base_ref }} -- .github/scripts/
+          set -euo pipefail
+          OWNER="${REPO%%/*}"
+          # gh api switches to POST when parameters are supplied, which is not
+          # the list operation; pin the method to GET explicitly.
+          PR_LIST=$(gh api -X GET "repos/${REPO}/pulls" \
+            -f state=open -f base=main -f head="${OWNER}:dev" -f per_page=5 \
+            --jq '[.[].number]')
+          PR_COUNT="$(jq length <<< "$PR_LIST")"
+          if [[ "$PR_COUNT" -gt 1 ]]; then
+            echo "::error::Expected at most one open dev-to-main release PR"
+            exit 1
           fi
-          
-      - name: Extract version from comment or Xcode project
-        id: extract-version
+          if [[ "$PR_COUNT" == "1" ]]; then
+            PR_NUMBER="$(jq -r '.[0]' <<< "$PR_LIST")"
+            HEAD_SHA="$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.head.sha')"
+            if [[ "$HEAD_SHA" != "$SOURCE_SHA" ]]; then
+              echo "::error::PR head moved to ${HEAD_SHA}; rebuild before merging"
+              exit 1
+            fi
+            gh pr merge "$PR_NUMBER" --repo "$REPO" --merge --match-head-commit "$SOURCE_SHA"
+            echo "Merged release PR #${PR_NUMBER}."
+          else
+            echo "No open release PR; assuming it was merged in a previous run."
+          fi
+
+          MAIN_SHA="$(gh api "repos/${REPO}/git/ref/heads/main" --jq '.object.sha')"
+          MAIN_RELATION="$(gh api "repos/${REPO}/compare/${SOURCE_SHA}...${MAIN_SHA}" --jq '.status')"
+          if [[ "$MAIN_RELATION" != "ahead" && "$MAIN_RELATION" != "identical" ]]; then
+            echo "::error::Release source ${SOURCE_SHA} is not contained in main"
+            exit 1
+          fi
+          echo "Verified release source ${SOURCE_SHA} is contained in main."
+
+  publish_stable:
+    name: Publish stable release
+    if: ${{ needs.preparation.outputs.is_beta == 'false' && needs.publish.result == 'success' && needs.merge_release.result == 'success' }}
+    needs: [preparation, publish, merge_release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      VERSION: ${{ needs.preparation.outputs.version }}
+    steps:
+      - name: Create release app token
+        id: release_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          token: ${{ steps.release_app_token.outputs.token }}
+          persist-credentials: false
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: appcast-false
+          path: .
+
+      - name: Commit appcast to main
+        env:
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cp appcast-stable.xml updater/appcast.xml
+          git add updater/appcast.xml
+          if git diff --cached --quiet; then
+            echo "Appcast already up to date; nothing to commit."
+            exit 0
+          fi
+          git commit -m "Update appcast for v${VERSION}"
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$AUTH_HEADER" push origin main
+
+      - name: Publish stable release
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          TAG="v${VERSION}"
+          # Draft releases are invisible to the /releases/tags REST endpoint
+          # (it 404s for drafts even with write access); probe with
+          # gh release view instead.
+          if ! IS_DRAFT="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft' 2>/dev/null)"; then
+            echo "::error::Release ${TAG} does not exist; expected the draft created by the publish job"
+            exit 1
+          fi
+          if [[ "$IS_DRAFT" != "true" ]]; then
+            echo "Stable release ${TAG} is already published."
+            exit 0
+          fi
+          for attempt in 1 2 3 4 5; do
+            if gh release edit "$TAG" --draft=false; then
+              echo "Published stable release ${TAG}."
+              exit 0
+            fi
+            echo "Stable release publication failed; retrying (${attempt}/5)"
+            sleep $((attempt * 2))
+          done
+          echo "::error::Could not publish stable ${VERSION} after 5 attempts"
+          exit 1
+
+  publish_beta:
+    name: Publish beta release
+    if: ${{ needs.preparation.outputs.is_beta == 'true' && needs.publish.result == 'success' }}
+    needs: [preparation, publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      VERSION: ${{ needs.preparation.outputs.version }}
+    steps:
+      - name: Create release app token
+        id: release_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: boring.notch
+          permission-contents: write
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          token: ${{ steps.release_app_token.outputs.token }}
+          persist-credentials: false
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: appcast-true
+          path: .
+
+      - name: Merge beta appcast into main
+        env:
+          RELEASE_APP_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          python3 .github/scripts/merge_appcast_channel.py \
+            updater/appcast.xml \
+            appcast-beta.xml \
+            "$BETA_CHANNEL_NAME"
+          git add updater/appcast.xml
+          if git diff --cached --quiet; then
+            echo "Published appcast already contains v${VERSION}."
+            exit 0
+          fi
+          git commit -m "Update appcast with beta release for v${VERSION}"
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$RELEASE_APP_TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$AUTH_HEADER" push origin main
+
+      - name: Publish beta release
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          TAG="v${VERSION}"
+          # Draft releases are invisible to the /releases/tags REST endpoint
+          # (it 404s for drafts even with write access); probe with
+          # gh release view instead.
+          if ! IS_DRAFT="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft' 2>/dev/null)"; then
+            echo "::error::Release ${TAG} does not exist; expected the draft created by the publish job"
+            exit 1
+          fi
+          if [[ "$IS_DRAFT" != "true" ]]; then
+            echo "Beta release ${TAG} is already published."
+            exit 0
+          fi
+          for attempt in 1 2 3 4 5; do
+            if gh release edit "$TAG" --draft=false; then
+              echo "Published beta release ${TAG}."
+              exit 0
+            fi
+            echo "Beta release publication failed; retrying (${attempt}/5)"
+            sleep $((attempt * 2))
+          done
+          echo "::error::Could not publish beta ${VERSION} after 5 attempts"
+          exit 1
+
+  upgrade-brew:
+    name: Update Homebrew cask
+    if: ${{ always() && needs.preparation.result == 'success' && ((needs.preparation.outputs.is_beta == 'true' && needs.publish_beta.result == 'success') || (needs.preparation.outputs.is_beta == 'false' && needs.publish_stable.result == 'success')) }}
+    needs: [preparation, publish, publish_beta, publish_stable]
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.preparation.outputs.version }}
+      IS_BETA: ${{ needs.preparation.outputs.is_beta }}
+    steps:
+      - name: Generate cask files
+        run: |
+          set -euo pipefail
+          DMG_URL="https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/${PROJECT_NAME}.dmg"
+
+          # Retry SHA calculation (release may need a moment to propagate)
+          for attempt in 1 2 3; do
+            if SHA256=$(curl -sL --fail "$DMG_URL" | shasum -a 256 | cut -d' ' -f1); then break; fi
+            echo "Attempt $attempt failed, retrying in 10s..."; sleep 10
+          done
+          [[ -n "${SHA256:-}" ]] || { echo "::error::Failed to download DMG for SHA256"; exit 1; }
+
+          write_cask() {
+            local CASK_NAME="$1" DISPLAY_NAME="$2" DESC="$3"
+            cat <<CASK
+          cask "${CASK_NAME}" do
+            version "${VERSION}"
+            sha256 "${SHA256}"
+            url "${DMG_URL}"
+            name "${DISPLAY_NAME}"
+            desc "${DESC}"
+            homepage "https://github.com/TheBoredTeam/boring.notch"
+            livecheck do
+              url :url
+              strategy :github_latest
+            end
+            auto_updates true
+            depends_on macos: :sonoma
+            app "Boring Notch.app"
+
+            postflight do
+              app_path = appdir/"Boring Notch.app"
+              next unless app_path.exist?
+              system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", app_path]
+            end
+
+            uninstall quit: "theboringteam.boringnotch"
+
+            zap trash: [
+              "~/Library/Application Scripts/theboringteam.boringnotch/",
+              "~/Library/Containers/theboringteam.boringnotch/",
+            ]
+          end
+          CASK
+          }
+
+          write_cask "boring-notch@rc" "Boring Notch RC" \
+            "Not so boring notch That Rocks (Release Candidate)" > boring-notch@rc.rb
+          if [[ "${IS_BETA}" == "false" ]]; then
+            write_cask "boring-notch" "Boring Notch" \
+              "Not so boring notch That Rocks" > boring-notch.rb
+          fi
+
+      - name: Upload cask artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: homebrew-cask-${{ env.VERSION }}
+          path: boring-notch*.rb
+
+      - name: Create Homebrew tap app token
+        id: tap_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          repositories: homebrew-boring-notch
+          permission-contents: write
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: TheBoredTeam/homebrew-boring-notch
+          path: homebrew-tap
+          persist-credentials: false
+
+      - name: Update casks in tap
+        id: update_casks
+        run: |
+          set -euo pipefail
+          cp boring-notch@rc.rb homebrew-tap/Casks/boring-notch@rc.rb
+          COMMIT_MSG="Update boring-notch@rc to v${VERSION}"
+          if [[ "${IS_BETA}" == "false" ]]; then
+            cp boring-notch.rb homebrew-tap/Casks/boring-notch.rb
+            COMMIT_MSG="Update boring-notch and boring-notch@rc to v${VERSION}"
+          fi
+          cd homebrew-tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            echo "casks_changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "$COMMIT_MSG"
+            echo "casks_changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push casks to tap
+        if: steps.update_casks.outputs.casks_changed == 'true'
+        env:
+          TAP_APP_TOKEN: ${{ steps.tap_app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TAP_APP_TOKEN" | base64 | tr -d '\n')"
+          cd homebrew-tap
+          git -c http.extraheader="$AUTH_HEADER" push origin "HEAD:refs/heads/$(git symbolic-ref --short HEAD)"
+
+  ending:
+    name: Finalize
+    if: ${{ always() && needs.preparation.result != 'skipped' }}
+    needs: [preparation, build, publish, merge_release, publish_stable, publish_beta, upgrade-brew]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      ALL_RESULTS: ${{ join(needs.*.result, ',') }}
+      RELEASE_SUCCEEDED: ${{ !contains(join(needs.*.result, ','), 'failure') && !contains(join(needs.*.result, ','), 'cancelled') }}
+      IS_BETA: ${{ needs.preparation.outputs.is_beta }}
+      VERSION: ${{ needs.preparation.outputs.version }}
+      BUILD_NUMBER: ${{ needs.preparation.outputs.build_number }}
+    steps:
+      - name: Summary
         shell: bash
         run: |
           set -euo pipefail
-
-          # Ensure semver is installed deterministically
-          python3 -m pip install --upgrade --no-cache-dir semver
-
-          export COMMENT="${{ github.event.comment.body }}"
-          export projname="${{ env.projname }}"
-
-          # Run script: if it exits non-zero, this step will fail and stop the job
-          OUTPUT=$(python3 .github/scripts/extract_version.py -c "$COMMENT")
-
-          # Parse outputs (script prints version=... and is_beta=...)
-          VERSION=$(echo "$OUTPUT" | grep -m1 '^version=' | sed 's/^version=//')
-          IS_BETA=$(echo "$OUTPUT" | grep -m1 '^is_beta=' | sed 's/^is_beta=//')
-
-          BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
-
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "is_beta=$IS_BETA" >> $GITHUB_OUTPUT
-          echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
-          echo "Using Actions run number as build number: $BUILD_NUMBER for version: $VERSION"
-
-      - name: Generate release notes and title
-        id: generate-release-notes
-        uses: actions/github-script@v6
-        with:
-          result-encoding: string
-          script: |
-            // Fetch the PR and use its title/body for release notes
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const prNumber = context.issue.number;
-
-            const pr = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
-            const title = pr.data.title || ( (context.payload.comment && context.payload.comment.body && context.payload.comment.body.includes('beta')) ? 'Beta Release' : 'Release');
-            const body = pr.data.body || "- No release notes provided";
-
-            // Create a separate version for GitHub release notes (remove H1 tags and their content)
-            let bodyGithub = body;
-            bodyGithub = bodyGithub.replace(/^#\s+.*$/gm, '');
-            bodyGithub = bodyGithub.replace(/<h1[^>]*>[\s\S]*?<\/h1>/gi, '');
-            bodyGithub = bodyGithub.trim();
-
-            // Set step outputs for downstream jobs
-            core.setOutput('title', title);
-            core.setOutput('release_notes', body);
-            core.setOutput('release_notes_github', bodyGithub);
-
-            // Also write the release notes to a file for tools that expect a file
-            const fs = require('fs');
-            fs.writeFileSync('release_notes.md', body);
-
-      - name: Check if version already released
-        run: |
-          NEW_VERSION="v${{ steps.extract-version.outputs.version }}"
-          git fetch --tags
-
-          if git rev-parse "$NEW_VERSION" >/dev/null 2>&1; then
-            echo "Version $NEW_VERSION already exists as a tag" >> $GITHUB_STEP_SUMMARY
-            exit 1
-          else
-            echo "Version $NEW_VERSION not found in tags, continuing..."
-          fi
-
-      - name: Sync branch (for stable releases)
-        if: ${{ steps.extract-version.outputs.is_beta == 'false' }}
-        uses: devmasx/merge-branch@master
-        with:
-          type: now
-          from_branch: ${{ steps.comment-branch.outputs.base_ref }}
-          target_branch: ${{ steps.comment-branch.outputs.head_ref }}
-          github_token: ${{ secrets.RELEASE_TOKEN }}
-          message: "Sync branch before release"
-
-  build:
-    name: Build and sign app
-    permissions:
-      contents: write
-    runs-on: macos-latest
-    needs: preparation
-    env:
-      DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
-      CODE_SIGN_IDENTITY: "Apple Development"
-    steps:
-      - uses: xt0rted/pull-request-comment-branch@v1
-        id: comment-branch
-      - uses: actions/checkout@v3
-        if: success()
-        with:
-          ref: ${{ steps.comment-branch.outputs.head_ref }}
-          persist-credentials: true
-      - name: Resolve Swift packages
-        run: xcodebuild -resolvePackageDependencies -project ${{ env.projname }}.xcodeproj
-      - name: Install Apple certificate
-        env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-        run: |
-          CERT_PATH=$RUNNER_TEMP/build_certificate.p12
-          KC=$RUNNER_TEMP/app-signing.keychain-db
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
-          security set-keychain-settings -lut 21600 "$KC"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
-          security import "$CERT_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KC"
-          security list-keychain -d user -s "$KC"
-      - name: Switch Xcode version
-        run: |
-          sudo xcode-select -s "/Applications/Xcode_16.4.app"
-          /usr/bin/xcodebuild -version
-      - name: Set version and build number in project
-        run: |
-          sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${{ needs.preparation.outputs.version }}/g" ${{ env.projname }}.xcodeproj/project.pbxproj
-          sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = ${{ needs.preparation.outputs.build_number }}/g" ${{ env.projname }}.xcodeproj/project.pbxproj
-
-      - name: Commit version changes
-        run: |
-          git add ${{ env.projname }}.xcodeproj/project.pbxproj
-          git commit -m "Set version to v${{ needs.preparation.outputs.version }} (build ${{ needs.preparation.outputs.build_number }})" || echo "No changes to commit"
-          git push origin HEAD:${{ steps.comment-branch.outputs.head_ref }} || true
-      - name: Build and archive
-        run: |
-          xcodebuild clean archive \
-            -project ${{ env.projname }}.xcodeproj \
-            -scheme ${{ env.projname }} \
-            -archivePath ${{ env.projname }} \
-            -destination "generic/platform=macOS" \
-            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
-            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
-            ONLY_ACTIVE_ARCH=NO \
-            -allowProvisioningUpdates
-      - name: Export app
-        env:
-          DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
-        run: |
-          TEMP_PLIST="$RUNNER_TEMP/export_options.plist"
-          cat > "$TEMP_PLIST" <<EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>${EXPORT_METHOD}</string>
-            <key>signingStyle</key>
-            <string>automatic</string>
-            <key>teamID</key>
-            <string>$DEVELOPMENT_TEAM</string>
-          </dict>
-          </plist>
-          EOF
-          xcodebuild -exportArchive -archivePath "${{ env.projname }}.xcarchive" -exportPath Release -exportOptionsPlist "$TEMP_PLIST"
-      - name: Check for generate_appcast in repository
-        run: |
-          TOOL_PATH="Configuration/sparkle/generate_appcast"
-          if [ ! -x "$TOOL_PATH" ]; then
-            echo "Configuration/sparkle/generate_appcast missing or not executable" >&2
-            exit 1
-          fi
-          echo "Found generate_appcast at $TOOL_PATH"
-      - name: Create DMG
-        run: |
-          cd Release
-          hdiutil create -volname "boringNotch ${{ needs.preparation.outputs.version }}" \
-                          -srcfolder "${{ env.projname }}.app" \
-                          -ov -format UDZO \
-                          "${{ env.projname }}.dmg"
-      - name: Upload DMG artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.projname }}.dmg
-          path: Release/${{ env.projname }}.dmg
-
-      - name: Upload .app artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.projname }}.app
-          path: Release/${{ env.projname }}.app
-
-  publish:
-    name: Publish Release
-    runs-on: macos-latest
-    needs: [preparation, build]
-    permissions:
-      contents: write
-    steps:
-      - uses: xt0rted/pull-request-comment-branch@v1
-        id: comment-branch
-      - uses: actions/checkout@v3
-        if: success()
-        with:
-          ref: ${{ steps.comment-branch.outputs.head_ref }}
-      - name: Download DMG artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ env.projname }}.dmg
-          path: Release
-      - name: Create embedded release notes fragment
-        env:
-          RELEASE_NOTES: ${{ needs.preparation.outputs.release_notes }}
-        run: |
-          mkdir -p Release
-          # Write release notes to file for Sparkle embedding
-          printf "%s" "$RELEASE_NOTES" > Release/boringNotch.html
-      - name: Check for generate_appcast in repository
-        run: |
-          TOOL_PATH="Configuration/sparkle/generate_appcast"
-          if [ ! -x "$TOOL_PATH" ]; then
-            echo "Configuration/sparkle/generate_appcast missing or not executable" >&2
-            exit 1
-          fi
-          echo "Found generate_appcast at $TOOL_PATH"
-      - name: Generate signed appcast
-        run: |
-          set -euo pipefail
-          GITHUB_REPO="https://github.com/TheBoredTeam/boring.notch/releases"
-          DOWNLOAD_PREFIX="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/"
-
-          CHANNEL_ARG=""
-          if [[ "${{ needs.preparation.outputs.is_beta }}" == "true" ]]; then
-            CHANNEL_ARG="--channel ${{ env.beta-channel-name }}"
-          fi
-
-          printf '%s' "${{ secrets.PRIVATE_SPARKLE_KEY }}" | ./Configuration/sparkle/generate_appcast \
-            --ed-key-file - \
-            --link "$GITHUB_REPO" \
-            --download-url-prefix "$DOWNLOAD_PREFIX" \
-            --embed-release-notes \
-            $CHANNEL_ARG \
-            -o updater/appcast.xml \
-            Release/
-      - name: Commit appcast (and pbxproj for stable)
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add updater/appcast.xml
-          if [[ "${{ needs.preparation.outputs.is_beta }}" == "false" ]]; then
-            git add ${{ env.projname }}.xcodeproj/project.pbxproj || true
-            git commit -m "Update version to v${{ needs.preparation.outputs.version }} and appcast" || echo "No changes to commit"
-            git push origin HEAD:${{ steps.comment-branch.outputs.head_ref }} || true
-          else
-            git checkout main
-            git add updater/appcast.xml
-            git commit -m "Update appcast with beta release for v${{ needs.preparation.outputs.version }}" || echo "No changes to commit"
-            git push origin main
-          fi
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: v${{ needs.preparation.outputs.version }} - ${{ needs.preparation.outputs.title }}
-          tag_name: v${{ needs.preparation.outputs.version }}
-          fail_on_unmatched_files: true
-          body: ${{ needs.preparation.outputs.release_notes_github }}
-          files: Release/boringNotch.dmg
-          prerelease: ${{ needs.preparation.outputs.is_beta }}
-          draft: false
-
-  upgrade-brew:
-    name: Upgrade Homebrew formula
-    runs-on: macos-latest
-    needs: [preparation, publish]
-    if: ${{ needs.preparation.outputs.is_beta == 'false' }}
-    steps:
-      - name: Generate Homebrew stable cask
-        run: |
-          DMG_URL="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/boringNotch.dmg"
-          NEW_SHA256=$(curl -sL "$DMG_URL" | shasum -a 256 | cut -d' ' -f1)
-          cat > boring-notch.rb <<EOF
-          cask "boring-notch" do
-            version "${{ needs.preparation.outputs.version }}"
-            sha256 "$NEW_SHA256"
-
-            url "$DMG_URL"
-            name "Boring Notch"
-            desc "Not so boring notch That Rocks 🎸🎶 "
-            homepage "https://github.com/TheBoredTeam/boring.notch"
-
-            livecheck do
-              url :url
-              strategy :github_latest
-            end
-
-            auto_updates true
-            depends_on macos: ">= :sonoma"
-
-            app "boringNotch.app"
-
-            zap trash: [
-              "~/Library/Application Scripts/theboringteam.boringnotch/",
-              "~/Library/Containers/theboringteam.boringnotch/",
-            ]
-          end
-          EOF
-
-      - name: Generate Homebrew RC cask (same as stable for stable releases)
-        run: |
-          DMG_URL="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/boringNotch.dmg"
-          NEW_SHA256=$(curl -sL "$DMG_URL" | shasum -a 256 | cut -d' ' -f1)
-          cat > boring-notch@rc.rb <<EOF
-          cask "boring-notch@rc" do
-            version "${{ needs.preparation.outputs.version }}"
-            sha256 "$NEW_SHA256"
-
-            url "$DMG_URL"
-            name "Boring Notch RC"
-            desc "Not so boring notch That Rocks 🎸🎶 (Release Candidate)"
-            homepage "https://github.com/TheBoredTeam/boring.notch"
-
-            livecheck do
-              url :url
-              strategy :github_latest
-            end
-
-            auto_updates true
-            depends_on macos: ">= :sonoma"
-
-            app "boringNotch.app"
-
-            zap trash: [
-              "~/Library/Application Scripts/theboringteam.boringnotch/",
-              "~/Library/Containers/theboringteam.boringnotch/",
-            ]
-          end
-          EOF
-
-      - name: Upload Homebrew cask artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: homebrew-cask-${{ needs.preparation.outputs.version }}
-          path: |
-            boring-notch.rb
-            boring-notch@rc.rb
-
-      - name: Checkout Homebrew tap
-        uses: actions/checkout@v3
-        with:
-          repository: TheBoredTeam/homebrew-boring-notch
-          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          path: homebrew-tap
-
-      - name: Update both casks in tap
-        run: |
-          cp boring-notch.rb homebrew-tap/Casks/boring-notch.rb
-          cp boring-notch@rc.rb homebrew-tap/Casks/boring-notch@rc.rb
-          cd homebrew-tap
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Casks/boring-notch.rb Casks/boring-notch@rc.rb
-          git commit -m "Update boring-notch and boring-notch@rc to v${{ needs.preparation.outputs.version }}" || echo "No changes to commit"
-          git push
-
-  upgrade-brew-beta:
-    name: Upgrade Homebrew beta formula
-    runs-on: macos-latest
-    needs: [preparation, publish]
-    if: ${{ needs.preparation.outputs.is_beta == 'true' }}
-    steps:
-      - name: Generate Homebrew beta cask
-        run: |
-          DMG_URL="https://github.com/TheBoredTeam/boring.notch/releases/download/v${{ needs.preparation.outputs.version }}/boringNotch.dmg"
-          NEW_SHA256=$(curl -sL "$DMG_URL" | shasum -a 256 | cut -d' ' -f1)
-          cat > boring-notch@rc.rb <<EOF
-          cask "boring-notch@rc" do
-            version "${{ needs.preparation.outputs.version }}"
-            sha256 "$NEW_SHA256"
-
-            url "$DMG_URL"
-            name "Boring Notch RC"
-            desc "Not so boring notch That Rocks 🎸🎶 (Release Candidate)"
-            homepage "https://github.com/TheBoredTeam/boring.notch"
-
-            livecheck do
-              url :url
-              strategy :github_latest
-            end
-
-            auto_updates true
-            depends_on macos: ">= :sonoma"
-
-            app "boringNotch.app"
-
-            zap trash: [
-              "~/Library/Application Scripts/theboringteam.boringnotch/",
-              "~/Library/Containers/theboringteam.boringnotch/",
-            ]
-          end
-          EOF
-      - name: Upload Homebrew beta cask artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: homebrew-cask-${{ needs.preparation.outputs.version }}
-          path: boring-notch@rc.rb
-
-      - name: Checkout Homebrew tap
-        uses: actions/checkout@v3
-        with:
-          repository: TheBoredTeam/homebrew-boring-notch
-          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          path: homebrew-tap
-
-      - name: Update beta cask in tap
-        run: |
-          cp boring-notch@rc.rb homebrew-tap/Casks/boring-notch@rc.rb
-          cd homebrew-tap
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Casks/boring-notch@rc.rb
-          git commit -m "Update boring-notch@rc to v${{ needs.preparation.outputs.version }}" || echo "No changes to commit"
-          git push
-
-  ending:
-    name: Ending job
-    if: ${{ always() && github.event.issue.pull_request && (contains(github.event.comment.body, '/build') || contains(github.event.comment.body, '/release')) }}
-    runs-on: ubuntu-latest
-    needs: [preparation, build, publish, upgrade-brew]
-    steps:
-      - uses: xt0rted/pull-request-comment-branch@v1
-        id: comment-branch
-      - uses: actions/checkout@v3
-        if: ${{ contains(join(needs.*.result, ','), 'success') }}
-        with:
-          ref: ${{ steps.comment-branch.outputs.head_ref }}
-      - name: Merge PR (for stable releases)
-        uses: devmasx/merge-branch@master
-        if: ${{ needs.preparation.outputs.is_beta == 'false' && contains(join(needs.*.result, ','), 'success') }}
-        with:
-          type: now
-          from_branch: ${{ steps.comment-branch.outputs.head_ref }}
-          target_branch: ${{ steps.comment-branch.outputs.base_ref }}
-          github_token: ${{ secrets.RELEASE_TOKEN }}
-          message: "Release version v${{ needs.preparation.outputs.version }}"
-      - name: Add success reactions
-        if: ${{ !contains(join(needs.*.result, ','), 'failure') }}
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          comment-id: ${{ github.event.comment.id }}
-          reactions: rocket
-      - name: Add negative reaction
-        if: ${{ contains(join(needs.*.result, ','), 'failure') }}
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          comment-id: ${{ github.event.comment.id }}
-          reactions: confused
-      - name: Create summary
-        run: |
-          BUILD_TYPE="stable"
-          if [[ "${{ needs.preparation.outputs.is_beta }}" == "true" ]]; then
+          if [[ "${IS_BETA}" == "true" ]]; then
             BUILD_TYPE="beta"
-          fi
-          ALL_RESULTS="${{ join(needs.*.result, ',') }}"
-
-          if [[ "${ALL_RESULTS}" != *"failure"* ]]; then
-            echo "✅ Successfully released boringNotch v${{ needs.preparation.outputs.version }} ($BUILD_TYPE build ${{ needs.preparation.outputs.build_number }})" >> $GITHUB_STEP_SUMMARY
-            echo "🍺 Homebrew cask updated" >> $GITHUB_STEP_SUMMARY
-            echo "📱 Sparkle appcast updated" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ Release failed for boringNotch v${{ needs.preparation.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+            BUILD_TYPE="stable"
           fi
+          {
+            if [[ "${RELEASE_SUCCEEDED}" == "true" ]]; then
+              echo "✅ Released Boring Notch v${VERSION} (${BUILD_TYPE} build ${BUILD_NUMBER})"
+              echo "🍺 Homebrew cask updated"
+              echo "📱 Sparkle appcast updated"
+            else
+              echo "❌ Release failed${VERSION:+ for Boring Notch v${VERSION}}"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

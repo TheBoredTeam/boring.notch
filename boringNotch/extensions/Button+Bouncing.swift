@@ -10,7 +10,7 @@ import Defaults
 struct BouncingButtonStyle: ButtonStyle {
     let vm: BoringViewModel
     @State private var isPressed = false
-    
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .padding(12)

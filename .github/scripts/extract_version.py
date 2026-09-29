@@ -5,13 +5,21 @@ from __future__ import annotations
 import json
 import os
 import re
-import semver
 import subprocess
 import sys
 from argparse import ArgumentParser
 
 
 SEMVER_RE = re.compile(r"v?[0-9]+\.[0-9]+(?:\.[0-9]+)?(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?")
+NUMERIC_IDENTIFIER = r"(?:0|[1-9][0-9]*)"
+ALPHANUMERIC_IDENTIFIER = r"(?:[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)"
+PRERELEASE_IDENTIFIER = rf"(?:{NUMERIC_IDENTIFIER}|{ALPHANUMERIC_IDENTIFIER})"
+BUILD_IDENTIFIER = r"(?:[0-9A-Za-z-]+)"
+NORMALIZED_SEMVER_RE = re.compile(
+    rf"^({NUMERIC_IDENTIFIER})\.({NUMERIC_IDENTIFIER})\.({NUMERIC_IDENTIFIER})"
+    rf"(?:-({PRERELEASE_IDENTIFIER}(?:\.{PRERELEASE_IDENTIFIER})*))?"
+    rf"(?:\+({BUILD_IDENTIFIER}(?:\.{BUILD_IDENTIFIER})*))?$"
+)
 
 
 def find_first_valid(text: str):
@@ -20,11 +28,9 @@ def find_first_valid(text: str):
         # Normalize for parsing: 2.7 -> 2.7.0, 2.7-beta -> 2.7.0-beta
         # Regex: look for X.Y at start, not followed by .Z
         normalized = re.sub(r"^([0-9]+\.[0-9]+)(?![0-9]*\.)", r"\1.0", s)
-        try:
-            parsed = semver.VersionInfo.parse(normalized)
+        parsed = NORMALIZED_SEMVER_RE.fullmatch(normalized)
+        if parsed:
             return s, parsed
-        except Exception:
-            continue
     return None, None
 
 
@@ -51,7 +57,7 @@ def main(argv=None) -> int:
 
     version, parsed = find_first_valid(comment)
 
-    beta = getattr(parsed, "prerelease", None)
+    beta = bool(parsed and parsed.group(4))
 
     # Write GitHub Actions outputs if available (GITHUB_OUTPUT)
     write_github_output(version, bool(beta))
