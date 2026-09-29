@@ -17,6 +17,16 @@ struct ShortcutsSettingsView: View {
                 Text("Notch")
             }
             Section {
+                KeyboardShortcuts.Recorder("Show floating shelf:", name: .showFloatingShelf)
+            } header: {
+                Text("Shelf")
+            } footer: {
+                Text("Also opens while dragging if you shake the pointer or hold Shift.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            Section {
                 KeyboardShortcuts.Recorder("Toggle Sneak Peek:", name: .toggleSneakPeek)
             } header: {
                 Text("Media")

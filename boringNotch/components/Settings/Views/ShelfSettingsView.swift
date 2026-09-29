@@ -24,6 +24,9 @@ struct ShelfSettingsView: View {
                 Defaults.Toggle(key: .boringShelf) {
                     Text("Enable shelf")
                 }
+                Defaults.Toggle(key: .floatingShelf) {
+                    Text("Floating shelf")
+                }
                 Defaults.Toggle(key: .openShelfByDefault) {
                     Text("Open shelf by default if items are present")
                 }
@@ -47,6 +50,10 @@ struct ShelfSettingsView: View {
                 }
             } header: {
                 Text("General")
+            } footer: {
+                Text("While dragging files, shake the pointer or hold Shift to open a shelf beside the cursor. Files land in the shelf.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
 
             Section {

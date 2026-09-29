@@ -11,4 +11,5 @@ import SwiftUI
 extension KeyboardShortcuts.Name {
     static let toggleSneakPeek = Self("toggleSneakPeek", initial: .init(.h, modifiers: [.command, .shift]))
     static let toggleNotchOpen = Self("toggleNotchOpen", initial: .init(.i, modifiers: [.command, .shift]))
+    static let showFloatingShelf = Self("showFloatingShelf", initial: .init(.space, modifiers: [.control, .shift]))
 }
