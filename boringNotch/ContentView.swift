@@ -15,6 +15,7 @@ import SwiftUIIntrospect
 
 @MainActor
 struct ContentView: View {
+    let extensionTabInput: ExtensionTabInputScope?
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
@@ -52,6 +53,10 @@ struct ContentView: View {
     /// Matches the popovers' dismiss delay; long enough to reach a control
     /// inside the panel without closing under the pointer.
     private let hoverExitDelayMilliseconds = 350
+
+    init(extensionTabInput: ExtensionTabInputScope? = nil) {
+        self.extensionTabInput = extensionTabInput
+    }
 
     // MARK: - Corner Radius Scaling
     private var cornerRadiusScaleFactor: CGFloat? {
@@ -299,6 +304,10 @@ struct ContentView: View {
                         scheduleCloseIfNotHovering(overNotch: vm)
                     }
                     .onChange(of: vm.isPopoverActive) { _, _ in
+                        scheduleCloseIfNotHovering(overNotch: vm)
+                    }
+                    .onReceive(extensionTabInput?.interactionChanges.eraseToAnyPublisher()
+                               ?? Empty<Void, Never>().eraseToAnyPublisher()) { _ in
                         scheduleCloseIfNotHovering(overNotch: vm)
                     }
                     .sensoryFeedback(.alignment, trigger: haptics)
@@ -638,7 +647,8 @@ extension ContentView {
     private func scheduleCloseIfNotHovering(overNotch notchViewModel: BoringViewModel) {
         guard notchViewModel.notchState == .open,
               !isHovering,
-              !notchViewModel.isPopoverActive else { return }
+              !notchViewModel.isPopoverActive,
+              extensionTabInput?.keepsNotchOpen != true else { return }
         hoverTask?.cancel()
         hoverTask = Task {
             try? await Task.sleep(for: .milliseconds(hoverExitDelayMilliseconds))
@@ -647,6 +657,7 @@ extension ContentView {
                 if self.vm.notchState == .open,
                    !self.isHovering,
                    !self.vm.isPopoverActive,
+                   self.extensionTabInput?.keepsNotchOpen != true,
                    !SharingStateManager.shared.preventNotchClose {
                     self.vm.close()
                 }
@@ -709,6 +720,7 @@ extension ContentView {
 
                     if self.vm.notchState == .open,
                        !self.vm.isPopoverActive,
+                       self.extensionTabInput?.keepsNotchOpen != true,
                        !SharingStateManager.shared.preventNotchClose {
                         self.vm.close()
                     }

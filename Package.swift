@@ -35,6 +35,7 @@ let package = Package(
                       "ExtensionPackageTests.swift", "ExtensionActivityDescriptorTests.swift", "LiveActivityCenterTests.swift",
                       "ExtensionCatalogTests.swift", "ExtensionStoreTransferTests.swift", "LockedLiveActivityViewTests.swift",
                       "ExtensionTabDescriptorTests.swift", "ExtensionTabRegistryTests.swift", "ExtensionTabScaleTests.swift",
+                      "ExtensionTabInteractionTests.swift",
                       "NotchWorkspaceLayoutTests.swift"]
         )
     ]

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import AppKit
+import Combine
 import SwiftUI
 
 /// A mounted native tab permits the nonactivating panel to accept keyboard
@@ -12,9 +13,31 @@ protocol ExtensionTabInputHosting: AnyObject {
 
 @MainActor
 final class ExtensionTabInputScope {
+    /// Emitted after AppKit's interaction state changes, never on a timer.
+    let interactionChanges = PassthroughSubject<Void, Never>()
     private weak var owner: NSView?
     private weak var panel: NSPanel?
     private var previousKeyOnlyIfNeeded = false
+    private let existingChildren = NSHashTable<NSWindow>.weakObjects()
+    private var observations = Set<AnyCancellable>()
+    private var popovers: [ObjectIdentifier: WeakPopover] = [:]
+    private var wasKeepingOpen = false
+
+    private final class WeakPopover {
+        weak var value: NSPopover?
+        init(_ value: NSPopover) { self.value = value }
+    }
+
+    /// Merely mounting a tab or making a button first responder is not a hold.
+    /// Only this mount's visible child windows or active native text input count.
+    var keepsNotchOpen: Bool {
+        guard let owner, let panel, owner.window === panel, panel.isVisible else { return false }
+        if !ownedChildren(in: panel).filter(\.isVisible).isEmpty { return true }
+        guard panel.isKeyWindow, owns(panel.firstResponder, inside: owner) else { return false }
+        if let text = panel.firstResponder as? NSTextView { return text.isEditable }
+        if let field = panel.firstResponder as? NSTextField { return field.isEditable }
+        return panel.firstResponder is any NSTextInputClient
+    }
 
     func allowsKey(in window: NSWindow) -> Bool {
         panel === window && owner?.window === window
@@ -25,23 +48,90 @@ final class ExtensionTabInputScope {
         if let owner { unmount(owner) }
         owner = view
         self.panel = panel
+        (panel.childWindows ?? []).forEach { existingChildren.add($0) }
         previousKeyOnlyIfNeeded = panel.becomesKeyOnlyIfNeeded
         // AppKit asks the clicked control's needsPanelToBecomeKey. A button
         // does not steal focus; a text field can enter the responder chain.
         panel.becomesKeyOnlyIfNeeded = true
+        observeInteractions(in: panel)
+        interactionDidChange()
     }
 
     func unmount(_ view: NSView) {
         // A disappearing old tab must not revoke its replacement's input.
         guard owner === view, let panel else { return }
+        let children = ownedChildren(in: panel)
+        let shownPopovers = popovers.values.compactMap(\.value)
+        observations.removeAll()
+        popovers.removeAll()
         if owns(panel.firstResponder, inside: view) {
             panel.endEditing(for: nil)
             panel.makeFirstResponder(nil)
         }
         owner = nil
         self.panel = nil
+        existingChildren.removeAllObjects()
         panel.becomesKeyOnlyIfNeeded = previousKeyOnlyIfNeeded
+        // An anchored presentation cannot outlive the tab that created it.
+        shownPopovers.forEach { $0.close() }
+        for child in children.reversed() {
+            child.sheetParent?.endSheet(child)
+            child.parent?.removeChildWindow(child)
+            if child.isVisible {
+                child.orderOut(nil)
+                child.close()
+            }
+        }
         if panel.isKeyWindow && !panel.canBecomeKey { panel.resignKey() }
+        interactionDidChange()
+    }
+
+    private func ownedChildren(in window: NSWindow) -> [NSWindow] {
+        (window.childWindows ?? []).filter { !existingChildren.contains($0) }
+            .flatMap { [$0] + ownedChildren(in: $0) }
+    }
+
+    private func observeInteractions(in panel: NSPanel) {
+        // firstResponder is explicitly KVO compliant in AppKit. Key-window
+        // notifications complete the distinction between editing and focus left
+        // behind after the user switches to another app or window.
+        panel.publisher(for: \.firstResponder)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.interactionDidChange() }
+            .store(in: &observations)
+        let events: [Notification.Name] = [
+            NSWindow.didBecomeKeyNotification, NSWindow.didResignKeyNotification,
+            NSWindow.didUpdateNotification, NSWindow.didChangeOcclusionStateNotification,
+            NSWindow.willCloseNotification, NSWindow.didEndSheetNotification,
+            NSPopover.didShowNotification, NSPopover.didCloseNotification
+        ]
+        Publishers.MergeMany(events.map { NotificationCenter.default.publisher(for: $0) })
+            .receive(on: RunLoop.main)
+            .sink { [weak self] notification in
+                guard let self, let panel = self.panel, let owner = self.owner else { return }
+                if notification.name == NSWindow.willCloseNotification, notification.object as? NSWindow === panel {
+                    self.unmount(owner)
+                    return
+                }
+                if let popover = notification.object as? NSPopover {
+                    let id = ObjectIdentifier(popover)
+                    if notification.name == NSPopover.didCloseNotification {
+                        self.popovers.removeValue(forKey: id)
+                    } else if let window = popover.contentViewController?.viewIfLoaded?.window,
+                              self.ownedChildren(in: panel).contains(where: { $0 === window }) {
+                        self.popovers[id] = WeakPopover(popover)
+                    }
+                }
+                self.interactionDidChange()
+            }
+            .store(in: &observations)
+    }
+
+    private func interactionDidChange() {
+        let current = keepsNotchOpen
+        guard wasKeepingOpen != current else { return }
+        wasKeepingOpen = current
+        interactionChanges.send()
     }
 
     private func owns(_ responder: NSResponder?, inside root: NSView) -> Bool {

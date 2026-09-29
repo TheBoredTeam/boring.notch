@@ -186,7 +186,7 @@ final class NotchWindowManager {
         window.disableSkyLight()
 
         window.contentView = NSHostingView(
-            rootView: ContentView()
+            rootView: ContentView(extensionTabInput: window.extensionTabInput)
                 .environmentObject(viewModel)
         )
 
