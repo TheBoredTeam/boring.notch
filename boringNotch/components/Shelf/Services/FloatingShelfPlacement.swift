@@ -27,6 +27,14 @@ enum FloatingShelfPlacement {
         return CGRect(origin: origin, size: panelSize)
     }
 
+    /// Point in the panel nearest the pointer, in unit coordinates with y measured from the top
+    /// (SwiftUI's convention), so the open animation grows out from the cursor.
+    static func growthAnchor(cursor: CGPoint, frame: CGRect) -> CGPoint {
+        let x = clamp((cursor.x - frame.minX) / frame.width, lower: 0, upper: 1)
+        let y: CGFloat = frame.maxY <= cursor.y ? 0 : 1
+        return CGPoint(x: x, y: y)
+    }
+
     private static func clampedOrigin(_ origin: CGPoint, panelSize: CGSize, screenFrame: CGRect) -> CGPoint {
         let minX = screenFrame.minX + screenMargin
         let minY = screenFrame.minY + screenMargin

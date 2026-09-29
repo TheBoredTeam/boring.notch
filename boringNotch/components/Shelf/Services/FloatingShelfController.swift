@@ -231,7 +231,7 @@ final class FloatingShelfController {
         let panel = ensurePanel()
         let frame = FloatingShelfPlacement.frame(cursor: cursor, screenFrame: screen.frame)
         panel.setFrame(frame, display: true)
-        panel.orderFrontRegardless()
+        panel.show(growingFrom: FloatingShelfPlacement.growthAnchor(cursor: cursor, frame: frame))
         isPresented = true
         Log.shelf.debug("Presented floating shelf")
     }
@@ -325,8 +325,7 @@ final class FloatingShelfController {
         dismissTask?.cancel()
         dismissTask = nil
         guard isPresented else { return }
-        panel?.orderOut(nil)
-        panel?.resetAppearance()
         isPresented = false
+        panel?.hide { [weak panel] in panel?.resetAppearance() }
     }
 }

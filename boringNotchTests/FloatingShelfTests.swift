@@ -75,6 +75,24 @@ final class FloatingShelfTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(frame.minY, 20 + FloatingShelfPlacement.cursorGap)
     }
 
+    func testShelfGrowsFromTheEdgeNearestThePointer() {
+        let below = CGPoint(x: 720, y: 450)
+        let belowAnchor = FloatingShelfPlacement.growthAnchor(
+            cursor: below,
+            frame: FloatingShelfPlacement.frame(cursor: below, screenFrame: screen)
+        )
+        XCTAssertEqual(belowAnchor.x, 0.5, accuracy: 0.01)
+        XCTAssertEqual(belowAnchor.y, 0)
+
+        let nearBottomLeft = CGPoint(x: 0, y: 20)
+        let aboveAnchor = FloatingShelfPlacement.growthAnchor(
+            cursor: nearBottomLeft,
+            frame: FloatingShelfPlacement.frame(cursor: nearBottomLeft, screenFrame: screen)
+        )
+        XCTAssertEqual(aboveAnchor.x, 0)
+        XCTAssertEqual(aboveAnchor.y, 1)
+    }
+
     func testShelfClampsToTheLeftAndRightEdges() {
         let left = FloatingShelfPlacement.frame(cursor: CGPoint(x: 0, y: 450), screenFrame: screen)
         let right = FloatingShelfPlacement.frame(cursor: CGPoint(x: screen.maxX, y: 450), screenFrame: screen)

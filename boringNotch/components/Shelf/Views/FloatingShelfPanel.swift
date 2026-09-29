@@ -6,6 +6,8 @@
 //
 
 import AppKit
+import Defaults
+import Observation
 import SwiftUI
 
 /// Drop target shown beside the pointer. It must be allowed to become key:
@@ -13,6 +15,7 @@ import SwiftUI
 @MainActor
 final class FloatingShelfPanel: NSPanel {
     let dropInteraction = DropInteractionState()
+    private let presentation = FloatingShelfPresentation()
 
     init() {
         super.init(
@@ -22,7 +25,9 @@ final class FloatingShelfPanel: NSPanel {
             defer: false
         )
         configureWindow()
-        contentView = FirstMouseHostingView(rootView: FloatingShelfChrome(dropInteraction: dropInteraction))
+        contentView = FirstMouseHostingView(
+            rootView: FloatingShelfChrome(dropInteraction: dropInteraction, presentation: presentation)
+        )
     }
 
     override var canBecomeKey: Bool { true }
@@ -33,6 +38,47 @@ final class FloatingShelfPanel: NSPanel {
         dropInteraction.generalDropTargeting = false
         dropInteraction.dropZoneTargeting = false
         dropInteraction.dropEvent = false
+    }
+
+    /// The content scales in SwiftUI; the window alpha fades separately because the
+    /// window shadow does not follow SwiftUI content as it scales.
+    func show(growingFrom anchor: CGPoint) {
+        presentation.anchor = UnitPoint(x: anchor.x, y: anchor.y)
+        ignoresMouseEvents = false
+        if !isVisible {
+            alphaValue = 0
+            presentation.isShown = false
+        }
+        orderFrontRegardless()
+        withAnimation(StandardAnimations.open) {
+            presentation.isShown = true
+        }
+        fade(to: 1, completion: nil)
+    }
+
+    func hide(completion: @escaping () -> Void) {
+        ignoresMouseEvents = true
+        withAnimation(StandardAnimations.close) {
+            presentation.isShown = false
+        }
+        fade(to: 0) { [weak self] in
+            // A show() during the fade takes the panel back, so it must stay on screen.
+            guard let self, !self.presentation.isShown else { return }
+            self.orderOut(nil)
+            completion()
+        }
+    }
+
+    private func fade(to alpha: CGFloat, completion: (@MainActor () -> Void)?) {
+        let duration = Defaults[.enableOpeningAnimation] ? 0.2 / Defaults[.animationSpeedMultiplier] : 0
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = duration
+            animator().alphaValue = alpha
+        } completionHandler: {
+            MainActor.assumeIsolated {
+                completion?()
+            }
+        }
     }
 
     private func configureWindow() {
@@ -48,6 +94,12 @@ final class FloatingShelfPanel: NSPanel {
     }
 }
 
+@Observable
+private final class FloatingShelfPresentation {
+    var isShown = false
+    var anchor: UnitPoint = .top
+}
+
 /// Clicks on the shelf background also count, so a grab does not require a focus click first.
 private final class FirstMouseHostingView<Content: View>: NSHostingView<Content> {
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
@@ -55,6 +107,7 @@ private final class FirstMouseHostingView<Content: View>: NSHostingView<Content>
 
 private struct FloatingShelfChrome: View {
     let dropInteraction: DropInteractionState
+    let presentation: FloatingShelfPresentation
 
     var body: some View {
         ShelfView(dropInteraction: dropInteraction, animation: nil)
@@ -69,5 +122,6 @@ private struct FloatingShelfChrome: View {
             .clipShape(
                 RoundedRectangle(cornerRadius: cornerRadiusInsets.opened.bottom, style: .continuous)
             )
+            .scaleEffect(presentation.isShown ? 1 : 0.9, anchor: presentation.anchor)
     }
 }
