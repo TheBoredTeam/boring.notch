@@ -9,6 +9,32 @@ import SwiftUI
 
 protocol ShelfItemInteractionSurface: AnyObject {}
 
+/// Cursor rects only apply in the active app's key window. The shelf panels never
+/// activate the app, so hover is tracked with `activeAlways` instead.
+class PointingHandCursorView: NSView {
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        trackingAreas.forEach(removeTrackingArea)
+        addTrackingArea(NSTrackingArea(
+            rect: .zero,
+            options: [.mouseEnteredAndExited, .mouseMoved, .activeAlways, .inVisibleRect],
+            owner: self
+        ))
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        NSCursor.pointingHand.set()
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        NSCursor.pointingHand.set()
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        NSCursor.arrow.set()
+    }
+}
+
 /// A narrow AppKit bridge for Shelf pointer and native drag interactions.
 struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
     let item: ShelfItem
@@ -40,7 +66,7 @@ struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
         return renderer.nsImage ?? viewModel.thumbnail ?? item.icon
     }
 
-    final class InteractionView: NSView, NSDraggingSource, ShelfItemInteractionSurface {
+    final class InteractionView: PointingHandCursorView, NSDraggingSource, ShelfItemInteractionSurface {
         var item: ShelfItem!
         var dragPreviewProvider: (() -> NSImage)?
         var onPrimaryClick: ((NSEvent, NSView) -> Void)?
@@ -50,6 +76,12 @@ struct ShelfItemInteractionView<DragPreview: View>: NSViewRepresentable {
         private var mouseDownEvent: NSEvent?
         private var draggedURLs: [URL] = []
         private var draggedItems: [ShelfItem] = []
+
+        /// The floating shelf can become key. Without this, AppKit uses the first
+        /// click only to focus the panel, and the drag does not start until the next press.
+        override func acceptsFirstMouse(for event: NSEvent?) -> Bool {
+            true
+        }
 
         override func rightMouseDown(with event: NSEvent) {
             onContextClick?(event, self)

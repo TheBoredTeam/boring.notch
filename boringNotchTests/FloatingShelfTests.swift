@@ -107,14 +107,15 @@ final class FloatingShelfTests: XCTestCase {
     }
 
     func testDismissWaitsWhileHoveringOrSharing() {
-        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(hasVisited: true, pointerInside: true, sharingActive: false))
-        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(hasVisited: true, pointerInside: false, sharingActive: true))
-        XCTAssertTrue(FloatingShelfDismissPolicy.shouldClose(hasVisited: true, pointerInside: false, sharingActive: false))
+        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(hasVisited: true, pointerInside: true, sharingActive: false, grabbingItem: false))
+        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(hasVisited: true, pointerInside: false, sharingActive: true, grabbingItem: false))
+        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(hasVisited: true, pointerInside: false, sharingActive: false, grabbingItem: true))
+        XCTAssertTrue(FloatingShelfDismissPolicy.shouldClose(hasVisited: true, pointerInside: false, sharingActive: false, grabbingItem: false))
     }
 
     func testDismissWaitsUntilThePointerHasVisited() {
-        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(hasVisited: false, pointerInside: false, sharingActive: false))
-        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(hasVisited: false, pointerInside: true, sharingActive: false))
+        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(hasVisited: false, pointerInside: false, sharingActive: false, grabbingItem: false))
+        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(hasVisited: false, pointerInside: true, sharingActive: false, grabbingItem: false))
     }
 
     func testControlShiftChordIsNotShiftAlone() {

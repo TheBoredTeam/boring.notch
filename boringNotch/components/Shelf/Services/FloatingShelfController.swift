@@ -216,6 +216,11 @@ final class FloatingShelfController {
         let frame = FloatingShelfPlacement.frame(cursor: cursor, screenFrame: screen.frame)
         panel.setFrame(frame, display: true)
         panel.orderFrontRegardless()
+        // An incoming file drag must not move key status. A shortcut open should already be key
+        // so the first press on an item starts a drag.
+        if !isContentDragging {
+            panel.makeKey()
+        }
         isPresented = true
         Log.shelf.debug("Presented floating shelf")
     }
@@ -298,7 +303,8 @@ final class FloatingShelfController {
                 let readyToClose = FloatingShelfDismissPolicy.shouldClose(
                     hasVisited: hasVisited,
                     pointerInside: self.pointerIsInsidePanel(),
-                    sharingActive: SharingStateManager.shared.preventNotchClose
+                    sharingActive: SharingStateManager.shared.preventNotchClose,
+                    grabbingItem: ShelfSelectionModel.shared.isDragging
                 )
                 if !readyToClose {
                     try? await Task.sleep(for: .milliseconds(50))
@@ -312,7 +318,8 @@ final class FloatingShelfController {
                 let stillReady = FloatingShelfDismissPolicy.shouldClose(
                     hasVisited: hasVisited,
                     pointerInside: self.pointerIsInsidePanel(),
-                    sharingActive: SharingStateManager.shared.preventNotchClose
+                    sharingActive: SharingStateManager.shared.preventNotchClose,
+                    grabbingItem: ShelfSelectionModel.shared.isDragging
                 )
                 guard stillReady else { continue }
                 self.dismiss()

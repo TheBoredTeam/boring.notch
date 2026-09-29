@@ -22,7 +22,7 @@ final class FloatingShelfPanel: NSPanel {
             defer: false
         )
         configureWindow()
-        contentView = NSHostingView(rootView: FloatingShelfChrome(dropInteraction: dropInteraction))
+        contentView = FirstMouseHostingView(rootView: FloatingShelfChrome(dropInteraction: dropInteraction))
     }
 
     override var canBecomeKey: Bool { true }
@@ -49,6 +49,11 @@ final class FloatingShelfPanel: NSPanel {
         titleVisibility = .hidden
         titlebarAppearsTransparent = true
     }
+}
+
+/// Clicks on the shelf background also count, so a grab does not require a focus click first.
+private final class FirstMouseHostingView<Content: View>: NSHostingView<Content> {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 }
 
 private struct FloatingShelfChrome: View {
