@@ -21,7 +21,7 @@ struct ShortcutsSettingsView: View {
             } header: {
                 Text("Shelf")
             } footer: {
-                Text("Opens a shelf beside the pointer, including when nothing is being dragged. Press it again to close. While dragging, shake the pointer or hold Shift.")
+                Text("Opens a shelf beside the pointer, including when nothing is being dragged. Press it again to close. Shake and Shift triggers are in Shelf settings.")
                     .multilineTextAlignment(.trailing)
                     .foregroundStyle(.secondary)
                     .font(.caption)
