@@ -12,6 +12,7 @@ struct ShelfSettingsView: View {
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
     @Default(.quickShareProvider) var quickShareProvider
     @Default(.expandedDragDetection) var expandedDragDetection: Bool
+    @Default(.floatingShelf) var floatingShelf: Bool
     @StateObject private var quickShareService = QuickShareService.shared
 
     private var selectedProvider: QuickShareProvider? {
@@ -27,6 +28,14 @@ struct ShelfSettingsView: View {
                 Defaults.Toggle(key: .floatingShelf) {
                     Text("Floating shelf")
                 }
+                Defaults.Toggle(key: .floatingShelfShakeTrigger) {
+                    Text("Open floating shelf by shaking while dragging")
+                }
+                .disabled(!floatingShelf)
+                Defaults.Toggle(key: .floatingShelfShiftTrigger) {
+                    Text("Open floating shelf by holding Shift while dragging")
+                }
+                .disabled(!floatingShelf)
                 Defaults.Toggle(key: .openShelfByDefault) {
                     Text("Open shelf by default if items are present")
                 }

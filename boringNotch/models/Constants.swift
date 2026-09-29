@@ -509,6 +509,8 @@ extension Defaults.Keys {
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
     static let reverseShelfOrdering = Key<Bool>("reverseShelfOrdering", default: false)
     static let floatingShelf = Key<Bool>("floatingShelf", default: true)
+    static let floatingShelfShakeTrigger = Key<Bool>("floatingShelfShakeTrigger", default: true)
+    static let floatingShelfShiftTrigger = Key<Bool>("floatingShelfShiftTrigger", default: true)
 
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)

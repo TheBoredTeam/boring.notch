@@ -204,8 +204,8 @@ final class FloatingShelfController {
             floatingShelfEnabled: Defaults[.floatingShelf],
             notchOpen: isNotchOpen(),
             contentDragActive: isContentDragging,
-            shake: shake,
-            shiftHeld: held.contains(.shift) && !shortcutHeld,
+            shake: shake && Defaults[.floatingShelfShakeTrigger],
+            shiftHeld: Defaults[.floatingShelfShiftTrigger] && held.contains(.shift) && !shortcutHeld,
             shortcutPressed: false
         )
     }
