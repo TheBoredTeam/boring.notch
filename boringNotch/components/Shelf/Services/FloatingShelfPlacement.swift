@@ -45,6 +45,25 @@ enum FloatingShelfPlacement {
     }
 }
 
+/// Modifier keys currently held, ignoring Caps Lock and Fn.
+struct HeldModifiers: Equatable {
+    var shift = false
+    var control = false
+    var option = false
+    var command = false
+
+    /// Hardware state. A drag owned by another app does not update `NSEvent.modifierFlags`.
+    static func readHardware() -> HeldModifiers {
+        let flags = CGEventSource.flagsState(.hidSystemState)
+        return HeldModifiers(
+            shift: flags.contains(.maskShift),
+            control: flags.contains(.maskControl),
+            option: flags.contains(.maskAlternate),
+            command: flags.contains(.maskCommand)
+        )
+    }
+}
+
 /// When a content drag is allowed to summon the floating shelf.
 enum FloatingShelfTriggerPolicy {
     static func shouldPresent(

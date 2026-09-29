@@ -22,6 +22,7 @@ final class FloatingShelfController {
     private var isContentDragging = false
     private var pasteboardChangeCount = -1
     private var dismissTask: Task<Void, Never>?
+    private var keyboardPoll: Task<Void, Never>?
 
     private var mouseDownMonitor: Any?
     private var mouseDraggedMonitor: Any?
@@ -43,6 +44,8 @@ final class FloatingShelfController {
     }
 
     func stop() {
+        keyboardPoll?.cancel()
+        keyboardPoll = nil
         removeMonitors()
         dismiss()
     }
@@ -56,9 +59,8 @@ final class FloatingShelfController {
 
         mouseDraggedMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDragged]) { [weak self] _ in
             let sample = PointerSample(point: NSEvent.mouseLocation, time: ProcessInfo.processInfo.systemUptime)
-            let shiftHeld = NSEvent.modifierFlags.intersection(.deviceIndependentFlagsMask).contains(.shift)
             Task { @MainActor in
-                self?.handleMouseDragged(sample: sample, shiftHeld: shiftHeld)
+                self?.handleMouseDragged(sample: sample)
             }
         }
 
@@ -85,21 +87,23 @@ final class FloatingShelfController {
         isDragging = true
         isContentDragging = false
         shakeDetector.reset()
+        startKeyboardPoll()
     }
 
-    private func handleMouseDragged(sample: PointerSample, shiftHeld: Bool) {
+    private func handleMouseDragged(sample: PointerSample) {
         guard isDragging else { return }
         noteContentDragIfNeeded()
         guard isContentDragging, !ShelfSelectionModel.shared.isDragging else { return }
 
         let shaken = shakeDetector.add(sample)
+        let held = HeldModifiers.readHardware()
         guard FloatingShelfTriggerPolicy.shouldPresent(
             shelfEnabled: Defaults[.boringShelf],
             floatingShelfEnabled: Defaults[.floatingShelf],
             contentDragActive: true,
             shake: shaken,
-            shiftHeld: shiftHeld,
-            shortcutPressed: false
+            shiftHeld: held.shift,
+            shortcutPressed: shortcutIsHeld(held)
         ) else { return }
 
         present(near: sample.point)
@@ -122,11 +126,50 @@ final class FloatingShelfController {
         guard isDragging else { return }
         isDragging = false
         isContentDragging = false
+        keyboardPoll?.cancel()
+        keyboardPoll = nil
         shakeDetector.reset()
 
         // onDrop sets dropEvent on this mouse-up, but that can land after the monitor.
         // The notch waits the same 500ms, then stays open when the drop actually landed.
         scheduleDropReleaseCheck()
+    }
+
+    /// Carbon hotkeys are not delivered while another app is tracking a drag, so the
+    /// configured shortcut is sampled from the hardware keyboard until the button comes up.
+    private func startKeyboardPoll() {
+        keyboardPoll?.cancel()
+        keyboardPoll = Task { @MainActor in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(100))
+                guard !Task.isCancelled, self.isDragging else { return }
+                self.noteContentDragIfNeeded()
+                guard self.isContentDragging, !ShelfSelectionModel.shared.isDragging else { continue }
+                let held = HeldModifiers.readHardware()
+                guard FloatingShelfTriggerPolicy.shouldPresent(
+                    shelfEnabled: Defaults[.boringShelf],
+                    floatingShelfEnabled: Defaults[.floatingShelf],
+                    contentDragActive: true,
+                    shake: false,
+                    shiftHeld: held.shift,
+                    shortcutPressed: self.shortcutIsHeld(held)
+                ) else { continue }
+                self.present(near: NSEvent.mouseLocation)
+            }
+        }
+    }
+
+    private func shortcutIsHeld(_ held: HeldModifiers) -> Bool {
+        guard let shortcut = KeyboardShortcuts.getShortcut(for: .showFloatingShelf) else { return false }
+        let required = HeldModifiers(
+            shift: shortcut.modifiers.contains(.shift),
+            control: shortcut.modifiers.contains(.control),
+            option: shortcut.modifiers.contains(.option),
+            command: shortcut.modifiers.contains(.command)
+        )
+        guard held == required else { return false }
+        let keyCode = CGKeyCode(shortcut.carbonKeyCode)
+        return CGEventSource.keyState(.hidSystemState, key: keyCode)
     }
 
     private func noteContentDragIfNeeded() {
