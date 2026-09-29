@@ -32,6 +32,9 @@ final class ExtensionRuntime {
     typealias ActivityView = @convention(c) (
         UnsafeMutableRawPointer, UnsafePointer<CChar>, Int32, UnsafePointer<CChar>?
     ) -> UnsafeMutableRawPointer?
+    typealias TabView = @convention(c) (
+        UnsafeMutableRawPointer, UnsafePointer<CChar>, UnsafePointer<CChar>?
+    ) -> UnsafeMutableRawPointer?
 
     let manifest: ExtensionManifest
     private let handle: UnsafeMutableRawPointer
@@ -43,6 +46,8 @@ final class ExtensionRuntime {
     private let settings: Settings
     private let activities: Activities?
     private let activityView: ActivityView?
+    private let tabs: Activities?
+    private let tabView: TabView?
 
     init(url: URL, command: Command) throws {
         let (manifest, executable) = try ExtensionPackage.inspect(url)
@@ -77,6 +82,13 @@ final class ExtensionRuntime {
             activities = nil
             activityView = nil
         }
+        if manifest.capabilities?.contains("tabs") == true {
+            tabs = try symbol("bn_extension_tabs_v1", Activities.self)
+            tabView = try symbol("bn_extension_tab_view_v1", TabView.self)
+        } else {
+            tabs = nil
+            tabView = nil
+        }
         Self.commandContexts.append(commandContext)
         guard let instance = create(Unmanaged.passUnretained(commandContext).toOpaque(), command) else {
             throw ExtensionError.incompatibleBinary
@@ -108,13 +120,24 @@ final class ExtensionRuntime {
 
     func activitySnapshot() throws -> ExtensionActivitySnapshot {
         guard let instance, let activities else { return ExtensionActivitySnapshot(activities: []) }
-        guard let pointer = activities(instance) else { throw ExtensionError.invalidPackage }
+        let snapshot: ExtensionActivitySnapshot = try decodeSnapshot(activities(instance))
+        try snapshot.validate()
+        return snapshot
+    }
+
+    func tabSnapshot() throws -> ExtensionTabSnapshot {
+        guard let instance, let tabs else { return ExtensionTabSnapshot(tabs: []) }
+        let snapshot: ExtensionTabSnapshot = try decodeSnapshot(tabs(instance))
+        try snapshot.validate()
+        return snapshot
+    }
+
+    private func decodeSnapshot<Snapshot: Decodable>(_ pointer: UnsafePointer<CChar>?) throws -> Snapshot {
+        guard let pointer else { throw ExtensionError.invalidPackage }
         let maximumBytes = 65_536
         let count = strnlen(pointer, maximumBytes + 1)
         guard count <= maximumBytes else { throw ExtensionError.invalidPackage }
-        let snapshot = try JSONDecoder().decode(ExtensionActivitySnapshot.self, from: Data(bytes: pointer, count: count))
-        try snapshot.validate()
-        return snapshot
+        return try JSONDecoder().decode(Snapshot.self, from: Data(bytes: pointer, count: count))
     }
 
     func activityController(id: String, region: Int32, displayID: String?) -> NSViewController? {
@@ -128,6 +151,18 @@ final class ExtensionRuntime {
         guard let pointer else { return nil }
         // Each call creates an independently owned controller; two display
         // windows must never try to reparent the same AppKit view.
+        return Unmanaged<NSViewController>.fromOpaque(pointer).takeRetainedValue()
+    }
+
+    func tabController(id: String, displayID: String?) -> NSViewController? {
+        guard let instance, let tabView else { return nil }
+        let pointer = id.withCString { tabID in
+            if let displayID {
+                return displayID.withCString { tabView(instance, tabID, $0) }
+            }
+            return tabView(instance, tabID, nil)
+        }
+        guard let pointer else { return nil }
         return Unmanaged<NSViewController>.fromOpaque(pointer).takeRetainedValue()
     }
 

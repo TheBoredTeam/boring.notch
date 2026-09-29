@@ -17,5 +17,8 @@ xcrun swiftc -swift-version 5 -strict-concurrency=complete -D DEBUG -parse-as-li
   "$source/Extensions/ExtensionActivityDescriptor.swift" \
   "$source/Extensions/ExtensionActivity.swift" \
   "$source/Extensions/ExtensionRuntime.swift" smoke.swift \
+  "$source/Extensions/ExtensionTabDescriptor.swift" \
+  "$source/Extensions/ExtensionTabRegistry.swift" \
+  "$source/Extensions/ExtensionTab.swift" \
   -o "$scratch/focus-extension-smoke"
 BN_ALLOW_DEVELOPMENT_EXTENSIONS=1 "$scratch/focus-extension-smoke" "$bundle"

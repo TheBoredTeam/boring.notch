@@ -20,6 +20,21 @@ enum LiveActivityPresentation: Sendable {
     case background
 }
 
+/// Content must explicitly opt into the locked surface. Ordinary activities,
+/// including system interrupts, never cross this boundary implicitly.
+enum LiveActivitySurface: String, Codable, CaseIterable, Hashable, Sendable {
+    case desktop
+    case lockScreen
+}
+
+struct LiveActivitySessionState: Equatable, Sendable {
+    var isLocked = false
+    var isAwake = true
+    var isSessionActive = true
+
+    var canPresentOnLockScreen: Bool { isLocked && isAwake && isSessionActive }
+}
+
 enum LiveActivityLifetime: Equatable, Sendable {
     case persistent
     case until(Date)
@@ -44,6 +59,7 @@ struct LiveActivityDescriptor: Equatable, Sendable, Identifiable {
     var presentation: LiveActivityPresentation
     var lifetime: LiveActivityLifetime
     var displayScope: LiveActivityDisplayScope
+    var surface: LiveActivitySurface
     var participatesInCycling: Bool
 
     init(
@@ -52,6 +68,7 @@ struct LiveActivityDescriptor: Equatable, Sendable, Identifiable {
         presentation: LiveActivityPresentation = .activity,
         lifetime: LiveActivityLifetime = .persistent,
         displayScope: LiveActivityDisplayScope = .all,
+        surface: LiveActivitySurface = .desktop,
         participatesInCycling: Bool = true
     ) {
         self.id = id
@@ -59,16 +76,19 @@ struct LiveActivityDescriptor: Equatable, Sendable, Identifiable {
         self.presentation = presentation
         self.lifetime = lifetime
         self.displayScope = displayScope
+        self.surface = surface
         self.participatesInCycling = participatesInCycling
     }
 }
 
 struct LiveActivityContext: Equatable, Sendable {
     let displayID: String?
+    let surface: LiveActivitySurface
     var isPresentationEnabled: Bool
 
-    init(displayID: String?, isPresentationEnabled: Bool = true) {
+    init(displayID: String?, surface: LiveActivitySurface = .desktop, isPresentationEnabled: Bool = true) {
         self.displayID = displayID
+        self.surface = surface
         self.isPresentationEnabled = isPresentationEnabled
     }
 }

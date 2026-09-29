@@ -17,7 +17,13 @@ typedef void (*BNExtensionCommand)(void *context, const char *command, double va
 /* Required exports. The instance pointer belongs to the extension. */
 void *bn_extension_create_v1(void *context, BNExtensionCommand command);
 void bn_extension_destroy_v1(void *instance);
-/* JSON bytes are borrowed for this call only. Unknown fields must be ignored. */
+/* JSON bytes are borrowed for this call only. Unknown fields must be ignored.
+ * activitySurfaces advertises the supported native surfaces, currently
+ * ["desktop","lockScreen"]. If absent, assume desktop only. Check support
+ * before publishing lockScreen content: older v1 hosts ignore unknown fields.
+ * presentationAllowed reports the routine snapshot lifecycle gate; it does not
+ * remove registered live activities.
+ */
 void bn_extension_update_v1(void *instance, const uint8_t *json, intptr_t byte_count);
 void bn_extension_event_v1(void *instance, const char *event);
 /* Borrowed NSViewController pointer, valid until destroy. Host retains it while
@@ -40,6 +46,10 @@ void *bn_extension_settings_v1(void *instance);
  * Optional expiresAt is finite UNIX time in seconds. Optional displays is at
  * most 32 nonempty display IDs, each at most 128 bytes; omit for all displays.
  * An empty displays array means no eligible displays.
+ * Optional surface is "desktop" (default) or "lockScreen". Desktop content is
+ * never promoted to the secure locked window. Lock-screen regions are
+ * noninteractive and hidden while asleep or the session is inactive. Publish
+ * only content intended to be visible on a locked Mac.
  *
  * Publish a change by command(context, "activities.changed", 0). The host
  * reconciles on its next main runloop turn. Keep an ID stable for content
@@ -63,6 +73,34 @@ enum BNExtensionActivityRegion {
  */
 void *bn_extension_activity_view_v1(void *instance, const char *activity_id,
                                    int32_t region, const char *display_id);
+
+/* Required when manifest capabilities includes "tabs". Tabs are independent of
+ * liveActivities; a bundle can provide either capability or both.
+ * Borrowed NUL-terminated UTF-8 JSON, at most 65,536 bytes. Same lifetime and
+ * main-thread rules as activities_v1. Return {"tabs":[]} to withdraw all tabs.
+ *
+ * {"tabs":[{"id":"focus","title":"Focus","symbol":"timer"}]}
+ *
+ * At most 8 tabs per provider. IDs follow the activity local-ID grammar.
+ * title is nonblank and at most 64 UTF-8 bytes. symbol is an SF Symbol name at
+ * most 128 UTF-8 bytes; unavailable symbols render a host fallback icon.
+ * The signed manifest ID supplies the namespace. Keep IDs stable across title
+ * and icon changes. command(context, "tabs.changed", 0) requests reconciliation
+ * on the next main runloop turn. Registration never steals the selected tab.
+ */
+const char *bn_extension_tabs_v1(void *instance);
+
+/* NEW +1 retained NSViewController for every request/display. NULL produces an
+ * unavailable-content placeholder. The host consumes the retain and owns tab
+ * chrome, navigation, and available bounds. The extension owns the complete
+ * native content layout, controls, state, and live updates. Views may use AppKit
+ * or SwiftUI and must remain safe through removal/destroy transitions. The host
+ * mounts selected content only; use native visibility lifecycle to suspend work.
+ * Tabs appear in the regular expanded desktop notch, never on the lock screen.
+ * No host Swift module, extension source, or static linking is required.
+ */
+void *bn_extension_tab_view_v1(void *instance, const char *tab_id,
+                              const char *display_id);
 
 #ifdef __cplusplus
 }

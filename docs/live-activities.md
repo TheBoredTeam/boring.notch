@@ -9,7 +9,9 @@ Boring Notch owns presentation. An activity supplies a leading view, a trailing 
 - `NotchActivityHost` measures both regions, gives them equal bounded space around the centered camera exclusion area, clips each independently, and animates width changes. Reduced Motion disables its inherited and local animations. Its measured width also sizes the parent's chin/hover area.
 - `BuiltinLiveActivitySource` adapts existing managers into registrations. Music, notification, battery, inline OSD, and the idle face use the same host. `ExtensionManager` is another adapter; it is not part of the scheduler.
 
-The center and built-in source live for the application session. Recreating a window for a display or lock transition does not end activities. Selection is keyed by display UUID. A display context can suppress ordinary content in fullscreen while still allowing system interrupts.
+The center and built-in source live for the application session. Recreating a window for a display or lock transition does not end activities. Selection is keyed by display UUID and surface. A desktop context can suppress ordinary content in fullscreen while still allowing system interrupts.
+
+Descriptors and contexts default to `.desktop`. An activity must explicitly choose `.lockScreen` to render in `LockedLiveActivityView`, which has no route to desktop providers, expanded UI, or gesture handlers. `NotchWindowManager` closes ordinary windows before showing a separate noninteractive secure window, using the same two-side geometry. Only a locked, awake, active session can show that window. Publisher withdrawal removes it; the existing lock-screen setting can retain an empty shape. Display and preference changes reconcile secure windows without creating a second provider instance for unchanged geometry.
 
 ## Implementing an in-process provider
 

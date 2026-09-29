@@ -20,7 +20,22 @@ struct ExtensionSmoke {
             }
         }
         defer { runtime.stop() }
-        try require(runtime.manifest.capabilities == ["liveActivities"], "capability manifest")
+        try require(runtime.manifest.capabilities == ["liveActivities", "tabs"], "capability manifest")
+        let tabRegistry = ExtensionTabRegistry()
+        let tabs = try runtime.tabSnapshot()
+        try require(tabs.tabs.count == 1 && tabs.tabs.first?.title == "Focus", "native tab publication")
+        tabRegistry.replace(providerID: runtime.manifest.id, tabs: tabs.tabs, runtime: runtime)
+        let tabID = ExtensionTabID(providerID: runtime.manifest.id, localID: "focus")
+        guard let firstTab = runtime.tabController(id: "focus", displayID: "display-a"),
+              let secondTab = runtime.tabController(id: "focus", displayID: "display-b") else {
+            throw SmokeFailure.failed("missing tab controllers")
+        }
+        try require(firstTab !== secondTab && firstTab.view !== secondTab.view, "independent native tab controllers")
+        try require(runtime.tabController(id: "missing", displayID: nil) == nil, "unknown tab rejected")
+        let tabHost = makeTabHost(id: tabID, registry: tabRegistry)
+        defer { tabHost.window.close() }
+        settle([tabHost.view])
+        let runningTab = try capture(tabHost.view, name: "focus-tab-running")
         let initial = try runtime.activitySnapshot()
         try require(initial.activities.count == 1, "initial activity")
         guard let descriptor = initial.activities.first else { throw SmokeFailure.failed("missing initial descriptor") }
@@ -55,6 +70,9 @@ struct ExtensionSmoke {
                     "native preferred-size-only shrink")
         runtime.send(snapshot: Data("{\"unknownFutureField\":true}".utf8))
         runtime.send(event: "example.focus.togglePause")
+        settle([tabHost.view])
+        let pausedTab = try capture(tabHost.view, name: "focus-tab-paused")
+        try require(runningTab != pausedTab, "mounted tab updates from plugin-owned observable state")
         let paused = try runtime.activitySnapshot()
         try require(paused.activities.first?.id == id && paused.activities.first?.expiresAt == nil,
                     "stable identity while pausing")
@@ -72,11 +90,28 @@ struct ExtensionSmoke {
         try require(try runtime.activitySnapshot().activities.isEmpty, "withdrawal")
         runtime.send(event: "example.focus.start")
         try require(try runtime.activitySnapshot().activities.first?.id != id, "new session gets new identity")
+        let identity = tabRegistry.tab(for: tabID)?.contentIdentity(displayID: "display-a")
+        runtime.send(event: "example.tab.rename")
+        tabRegistry.replace(providerID: runtime.manifest.id, tabs: try runtime.tabSnapshot().tabs, runtime: runtime)
+        try require(tabRegistry.tab(for: tabID)?.descriptor.title == "Session", "live tab metadata update")
+        try require(tabRegistry.tab(for: tabID)?.contentIdentity(displayID: "display-a") == identity,
+                    "metadata preserves mounted content identity")
+        runtime.send(event: "example.tab.hide")
+        tabRegistry.replace(providerID: runtime.manifest.id, tabs: try runtime.tabSnapshot().tabs, runtime: runtime)
+        try require(tabRegistry.tabs.isEmpty, "tab withdrawal")
+        try require(NotchViews.extensionTab(tabID).reconciled(availableExtensionTabs: []) == .home, "selected removed tab falls back home")
+        runtime.send(event: "example.tab.show")
+        tabRegistry.replace(providerID: runtime.manifest.id, tabs: try runtime.tabSnapshot().tabs, runtime: runtime)
+        try require(tabRegistry.tabs.count == 1, "tab can be registered again")
         let commandsBeforeStop = SmokeCommands.values
-        try require(commandsBeforeStop.count == 4 && commandsBeforeStop.allSatisfy { $0 == "activities.changed" },
-                    "activity change callbacks")
+        try require(commandsBeforeStop.filter { $0 == "activities.changed" }.count == 4
+                    && commandsBeforeStop.filter { $0 == "tabs.changed" }.count == 3, "contribution change callbacks")
         runtime.stop()
         try require(try runtime.activitySnapshot().activities.isEmpty, "stopped runtime has no activities")
+        try require(try runtime.tabSnapshot().tabs.isEmpty, "stopped runtime has no tabs")
+        firstTab.view.layoutSubtreeIfNeeded()
+        secondTab.view.layoutSubtreeIfNeeded()
+        tabRegistry.remove(providerID: runtime.manifest.id)
         // Retain and lay out both controllers after plugin destruction. The SwiftUI
         // model must outlive the C instance without accessing its old host context.
         first.view.layoutSubtreeIfNeeded()
@@ -86,7 +121,35 @@ struct ExtensionSmoke {
         secondHost.view.layoutSubtreeIfNeeded()
         runtime.send(event: "example.focus.start")
         try require(SmokeCommands.values == commandsBeforeStop, "no callbacks after destruction")
-        print("PASS: standalone ABI, signed package, independent views, native size 337→417→337, SwiftUI size 337→353→337, withdrawal and safe teardown")
+        print("PASS: standalone ABI, signed package, native live tab/progress, tab metadata and withdrawal, independent views, native size 337→417→337, SwiftUI size 337→353→337, safe teardown")
+    }
+
+    @MainActor
+    private static func makeTabHost(id: ExtensionTabID, registry: ExtensionTabRegistry) -> (window: NSWindow, view: NSView) {
+        let view = NSHostingView(rootView: ExtensionTabContent(id: id, displayID: "display-a", registry: registry)
+            .frame(width: 578, height: 132).background(.black).preferredColorScheme(.dark))
+        let window = NSWindow(contentRect: NSRect(x: -10_000, y: -10_000, width: 578, height: 132),
+                              styleMask: .borderless, backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        window.contentView = view
+        window.orderBack(nil)
+        return (window, view)
+    }
+
+    @MainActor
+    private static func capture(_ view: NSView, name: String) throws -> Data {
+        view.layoutSubtreeIfNeeded()
+        guard let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds) else {
+            throw SmokeFailure.failed("tab bitmap unavailable")
+        }
+        view.cacheDisplay(in: view.bounds, to: bitmap)
+        guard let data = bitmap.representation(using: .png, properties: [:]) else {
+            throw SmokeFailure.failed("tab image unavailable")
+        }
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("boring-native-tabs-validation")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try data.write(to: directory.appendingPathComponent(name + ".png"))
+        return data
     }
 
     @MainActor

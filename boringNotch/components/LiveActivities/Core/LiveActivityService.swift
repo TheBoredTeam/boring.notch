@@ -63,8 +63,18 @@ final class LiveActivityService: ObservableObject {
         var expiration: AnyCancellable?
     }
 
+    private struct SelectionContext: Hashable {
+        let displayID: String?
+        let surface: LiveActivitySurface
+
+        init(_ context: LiveActivityContext) {
+            displayID = context.displayID
+            surface = context.surface
+        }
+    }
+
     private var entries: [LiveActivityID: Entry] = [:]
-    private var userSelections: [String?: LiveActivityUserSelection] = [:]
+    private var userSelections: [SelectionContext: LiveActivityUserSelection] = [:]
     private var activationOrder: UInt64 = 0
     private let policy: any LiveActivitySelectionPolicy
     private let scheduler: any LiveActivityScheduling
@@ -95,7 +105,7 @@ final class LiveActivityService: ObservableObject {
         let candidates = eligibleCandidates(in: context)
         let ordered = policy.orderedCandidates(candidates)
         let requestedID = policy.selectedID(
-            from: candidates, userSelection: userSelections[context.displayID]
+            from: candidates, userSelection: userSelections[SelectionContext(context)]
         )
         // A custom policy cannot resurrect an ineligible or expired activity.
         let selectedID = requestedID.flatMap { id in
@@ -109,7 +119,7 @@ final class LiveActivityService: ObservableObject {
         let current = snapshot(in: context)
         guard current.selectedActivity?.presentation != .interrupt,
               current.cyclingActivities.contains(where: { $0.id == id }) else { return false }
-        userSelections[context.displayID] = LiveActivityUserSelection(
+        userSelections[SelectionContext(context)] = LiveActivityUserSelection(
             id: id, acknowledgedActivationOrder: activationOrder
         )
         publishChange()
@@ -130,7 +140,9 @@ final class LiveActivityService: ObservableObject {
 
     /// Forget UI state when a display permanently departs, without ending providers.
     func forgetSelection(for displayID: String?) {
-        guard userSelections.removeValue(forKey: displayID) != nil else { return }
+        let previousCount = userSelections.count
+        userSelections = userSelections.filter { $0.key.displayID != displayID }
+        guard userSelections.count != previousCount else { return }
         publishChange()
     }
 
@@ -206,6 +218,7 @@ final class LiveActivityService: ObservableObject {
     private func eligibleCandidates(in context: LiveActivityContext) -> [LiveActivityCandidate] {
         let candidates = entries.values.compactMap { entry -> LiveActivityCandidate? in
             guard let descriptor = entry.descriptor,
+                  descriptor.surface == context.surface,
                   descriptor.displayScope.includes(context.displayID),
                   context.isPresentationEnabled || descriptor.presentation == .interrupt,
                   !hasExpired(descriptor) else { return nil }

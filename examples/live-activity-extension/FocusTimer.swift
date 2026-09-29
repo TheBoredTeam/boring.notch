@@ -141,6 +141,39 @@ private struct FocusSettings: View {
     }
 }
 
+/// A full native tab with its own layout and observable state. Progress, buttons,
+/// and timers belong to this independently built plugin, not the host app.
+@MainActor
+private struct FocusTab: View {
+    @ObservedObject var state: FocusState
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Label("Focus timer", systemImage: "timer").font(.headline)
+                Spacer()
+                Text(state.isActive ? (state.isRunning ? "In progress" : "Paused") : "Ready")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            HStack {
+                Text(state.clockText).font(.system(size: 32, weight: .medium, design: .monospaced))
+                    .monospacedDigit()
+                Spacer()
+                Button("Start") { state.start() }.disabled(state.isActive)
+                Button(state.isRunning ? "Pause" : "Resume") { state.togglePause() }.disabled(!state.isActive)
+                Button("End") { state.end() }.disabled(!state.isActive)
+            }
+            .controlSize(.small)
+            ProgressView(value: Double(25 * 60 - state.remainingSeconds), total: 25 * 60)
+                .tint(.orange)
+                .accessibilityLabel("Session progress")
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .disabled(!state.isAvailable)
+    }
+}
+
 @MainActor
 private final class FocusPlugin {
     let state = FocusState()
@@ -149,6 +182,9 @@ private final class FocusPlugin {
     private var ticker: Task<Void, Never>?
     private var jsonBuffer: UnsafeMutablePointer<CChar>?
     private var settings: NSHostingController<FocusSettings>?
+    private var tabVisible = true
+    private var tabTitle = "Focus"
+    private var receivedInitialSnapshot = false
 
     init(context: UnsafeMutableRawPointer?, command: @escaping BNExtensionCommand) {
         self.context = context
@@ -173,6 +209,14 @@ private final class FocusPlugin {
         ]
         if let deadline = state.deadline { activity["expiresAt"] = deadline.timeIntervalSince1970 }
         let value: [String: Any] = ["activities": state.isActive ? [activity] : []]
+        return encodeSnapshot(value)
+    }
+
+    func tabSnapshot() -> UnsafePointer<CChar>? {
+        encodeSnapshot(["tabs": tabVisible ? [["id": "focus", "title": tabTitle, "symbol": "timer"]] : []])
+    }
+
+    private func encodeSnapshot(_ value: [String: Any]) -> UnsafePointer<CChar>? {
         guard let data = try? JSONSerialization.data(withJSONObject: value),
               let json = String(data: data, encoding: .utf8) else { return nil }
         free(jsonBuffer)
@@ -183,6 +227,13 @@ private final class FocusPlugin {
     func controller(activityID: String, region: Int32) -> NSViewController? {
         guard state.isActive, state.activityID == activityID, region == 0 || region == 1 else { return nil }
         return FocusRegionController(state: state, region: region)
+    }
+
+    func tabController(id: String) -> NSViewController? {
+        guard tabVisible, state.isAvailable, id == "focus" else { return nil }
+        let controller = NSHostingController(rootView: FocusTab(state: state))
+        controller.preferredContentSize = NSSize(width: 578, height: 132)
+        return controller
     }
 
     var settingsController: NSViewController {
@@ -202,8 +253,25 @@ private final class FocusPlugin {
         case "example.focus.end": state.end()
         case "example.focus.widen": state.additionalLeadingWidth.send(40)
         case "example.focus.compact": state.additionalLeadingWidth.send(0)
+        case "example.tab.hide":
+            tabVisible = false
+            "tabs.changed".withCString { command(context, $0, 0) }
+        case "example.tab.show":
+            tabVisible = true
+            "tabs.changed".withCString { command(context, $0, 0) }
+        case "example.tab.rename":
+            tabTitle = "Session"
+            "tabs.changed".withCString { command(context, $0, 0) }
         default: break
         }
+    }
+
+    func receiveSnapshot() {
+        guard state.isAvailable, !receivedInitialSnapshot else { return }
+        receivedInitialSnapshot = true
+        // This extension owns its timer. Suspending media delivery leaves both
+        // its registered activity and tab available.
+        "presentation.active".withCString { command(context, $0, 0) }
     }
 
     func stop() {
@@ -236,6 +304,7 @@ public func updateFocusPlugin(_ pointer: UnsafeMutableRawPointer, _ bytes: Unsaf
     // This example has its own state and needs no host media data. Extensions
     // that consume snapshots should copy/parse bytes here and ignore unknown keys.
     guard Thread.isMainThread, count >= 0 else { return }
+    Unmanaged<FocusPlugin>.fromOpaque(pointer).takeUnretainedValue().receiveSnapshot()
 }
 
 @_cdecl("bn_extension_event_v1")
@@ -269,5 +338,23 @@ public func activityViewFocusPlugin(
     guard Thread.isMainThread else { return nil }
     guard let controller = Unmanaged<FocusPlugin>.fromOpaque(pointer).takeUnretainedValue()
         .controller(activityID: String(cString: activityID), region: region) else { return nil }
+    return Unmanaged.passRetained(controller).toOpaque()
+}
+
+@_cdecl("bn_extension_tabs_v1")
+@MainActor
+public func tabsFocusPlugin(_ pointer: UnsafeMutableRawPointer) -> UnsafePointer<CChar>? {
+    guard Thread.isMainThread else { return nil }
+    return Unmanaged<FocusPlugin>.fromOpaque(pointer).takeUnretainedValue().tabSnapshot()
+}
+
+@_cdecl("bn_extension_tab_view_v1")
+@MainActor
+public func tabViewFocusPlugin(
+    _ pointer: UnsafeMutableRawPointer, _ tabID: UnsafePointer<CChar>, _ displayID: UnsafePointer<CChar>?
+) -> UnsafeMutableRawPointer? {
+    guard Thread.isMainThread else { return nil }
+    guard let controller = Unmanaged<FocusPlugin>.fromOpaque(pointer).takeUnretainedValue()
+        .tabController(id: String(cString: tabID)) else { return nil }
     return Unmanaged.passRetained(controller).toOpaque()
 }

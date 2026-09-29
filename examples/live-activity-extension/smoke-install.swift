@@ -56,6 +56,7 @@ struct InstallSmoke {
         try require(manager.installed.count == 1, "Expected one installed package.")
         try require(manager.enabledIDs.contains(manifest.id), "Installed extension was not enabled.")
         try require(hasActivity(manifest.id), "Installed extension did not publish through the real service.")
+        try require(hasTab(manifest.id), "Installed extension did not publish its native tab after opting out of media.")
 
         let wrongRequirements = [
             ExtensionInstallation.Requirement(id: "org.example.wrong", version: manifest.version, publisherTeamID: "development"),
@@ -67,7 +68,7 @@ struct InstallSmoke {
             manager.install(from: source, expected: requirement) { completed = true }
             try await finishInstall(manager)
             try require(completed, "Rejected catalog identity did not complete the installation request.")
-            try require(manager.enabledIDs.contains(manifest.id) && hasActivity(manifest.id) && !manager.needsRestart,
+            try require(manager.enabledIDs.contains(manifest.id) && hasActivity(manifest.id) && hasTab(manifest.id) && !manager.needsRestart,
                         "A mismatched catalog identity replaced or interrupted the installed extension.")
         }
 
@@ -82,7 +83,7 @@ struct InstallSmoke {
             tampered.appendingPathComponent("Contents/Resources/unsealed.txt"))
         manager.install(from: tampered)
         try await finishInstall(manager)
-        try require(manager.enabledIDs.contains(manifest.id) && hasActivity(manifest.id),
+        try require(manager.enabledIDs.contains(manifest.id) && hasActivity(manifest.id) && hasTab(manifest.id),
                     "Rejected package interrupted the installed extension.")
         try require(!manager.needsRestart, "Rejected package changed the restart state.")
         _ = try ExtensionPackage.verifySignature(at: URL(fileURLWithPath: directory)
@@ -92,17 +93,20 @@ struct InstallSmoke {
         try await settle()
         try require(!manager.enabledIDs.contains(manifest.id), "Disable left the runtime enabled.")
         try require(!hasActivity(manifest.id), "Disable did not withdraw the activity.")
+        try require(!hasTab(manifest.id), "Disable did not withdraw the tab.")
 
         manager.enable(manifest)
         try await settle()
         try require(manager.enabledIDs.contains(manifest.id), "Enable did not create a fresh instance.")
         try require(hasActivity(manifest.id), "The fresh instance did not publish its activity.")
+        try require(hasTab(manifest.id), "The fresh instance did not publish its tab.")
 
         manager.install(from: source)
         try await finishInstall(manager)
         try require(manager.needsRestart, "Updating loaded Swift code did not require restart.")
         try require(!manager.enabledIDs.contains(manifest.id), "Update left the old instance enabled.")
         try require(!hasActivity(manifest.id), "Update left the old activity registered.")
+        try require(!hasTab(manifest.id), "Update left the old tab registered.")
         manager.enable(manifest)
         try await settle()
         try require(!manager.enabledIDs.contains(manifest.id), "Updated code was enabled without restart.")
@@ -111,15 +115,20 @@ struct InstallSmoke {
         try await settle()
         try require(manager.installed.isEmpty, "Uninstall did not refresh the installed package list.")
         try require(!hasActivity(manifest.id), "Uninstall left an activity registered.")
+        try require(!hasTab(manifest.id), "Uninstall left a tab registered.")
         try require(!FileManager.default.fileExists(atPath:
             URL(fileURLWithPath: directory).appendingPathComponent(manifest.id + ".bnplugin").path),
             "Uninstall left the bundle in the installation directory.")
-        print("PASS: ZIP install, signed load, ID/version/publisher pinning, tamper rejection preserving installed code, activity publication, disable, fresh enable, update/restart, and uninstall.")
+        print("PASS: ZIP install, signed load, ID/version/publisher pinning, tamper rejection preserving installed code, activity/tab publication with media opt-out, disable, fresh enable, update/restart, and uninstall.")
     }
 
     @MainActor private static func hasActivity(_ namespace: String) -> Bool {
         LiveActivityCenter.shared.service.snapshot(in: LiveActivityContext(displayID: "smoke-display"))
             .activities.contains { $0.id.namespace == namespace }
+    }
+
+    @MainActor private static func hasTab(_ providerID: String) -> Bool {
+        ExtensionTabRegistry.shared.tabs.contains { $0.id.providerID == providerID }
     }
 
     @MainActor private static func finishInstall(_ manager: ExtensionManager) async throws {

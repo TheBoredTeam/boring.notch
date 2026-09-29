@@ -109,6 +109,14 @@ struct ContentView: View {
         activitySnapshot.selectedID.flatMap { activityCenter.activity(for: $0) }
     }
 
+    /// Native extension controls own pointer, scroll, and drop gestures inside
+    /// their expanded content. A notification or compact player replaces it.
+    private var isExtensionTabVisible: Bool {
+        guard vm.notchState == .open, notificationManager.activeNotification == nil,
+              !Defaults[.compactMode], case .extensionTab = coordinator.currentView else { return false }
+        return true
+    }
+
     /// A notification is a glance, not a workspace — it doesn't need the full
     /// height the home/shelf tabs are sized for, and stretching to fill it
     /// just surrounds two lines of text with empty black.
@@ -251,13 +259,13 @@ struct ContentView: View {
                     }
                     .conditionalModifier(Defaults[.enableGestures] && !shouldDisplayNowPlayingFallbackNotice) { view in
                         view
-                            .panGesture(direction: .down) { translation, phase in
+                            .panGesture(direction: .down, enabled: !isExtensionTabVisible) { translation, phase in
                                 handleDownGesture(translation: translation, phase: phase)
                             }
                     }
                     .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures] && !shouldDisplayNowPlayingFallbackNotice) { view in
                         view
-                            .panGesture(direction: .up) { translation, phase in
+                            .panGesture(direction: .up, enabled: !isExtensionTabVisible) { translation, phase in
                                 handleUpGesture(translation: translation, phase: phase)
                             }
                     }
@@ -333,7 +341,7 @@ struct ContentView: View {
                 }
 
                 dropInteraction.dropEvent = false
-                if !SharingStateManager.shared.preventNotchClose {
+                if !isExtensionTabVisible && !SharingStateManager.shared.preventNotchClose {
                     vm.close()
                 }
             }
@@ -461,6 +469,13 @@ struct ContentView: View {
                                 dropInteraction: vm.dropInteraction,
                                 animation: vm.animation
                             )
+                        case .extensionTab(let id):
+                            ExtensionTabContent(id: id, displayID: activityContext.displayID)
+                                .frame(
+                                    width: max(0, vm.notchSize.width - 2 * (openedInsets.top + 12)),
+                                    height: max(0, vm.notchSize.height - max(38, displayClosedNotchHeight) - 20)
+                                )
+                                .clipped()
                         }
                     }
                 }
@@ -474,7 +489,8 @@ struct ContentView: View {
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
         }
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))
+        .onDrop(of: isExtensionTabVisible ? [] : [.fileURL, .url, .utf8PlainText, .plainText, .data],
+                delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))
     }
 
     private func nowPlayingFallbackNotice(_ notice: NowPlayingFallbackNotice) -> some View {
@@ -697,7 +713,7 @@ extension ContentView {
     }
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
+        guard vm.notchState == .open && !vm.isHoveringCalendar && !isExtensionTabVisible else { return }
 
         withAnimation(animationSpring) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20

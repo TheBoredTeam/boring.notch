@@ -32,6 +32,7 @@ struct ExtensionActivityDescriptor: Decodable, Equatable {
     var relevance: Relevance? = nil
     var expiresAt: Double? = nil
     var displays: [String]? = nil
+    var surface: LiveActivitySurface? = nil
 
     func validate() throws {
         guard id.utf8.count <= 100,
@@ -47,7 +48,8 @@ struct ExtensionActivityDescriptor: Decodable, Equatable {
             id: LiveActivityID(namespace: namespace, name: id),
             priority: (relevance ?? .active).priority,
             lifetime: expiresAt.map { .until(Date(timeIntervalSince1970: $0)) } ?? .persistent,
-            displayScope: displays.map { .displays(Set($0)) } ?? .all
+            displayScope: displays.map { .displays(Set($0)) } ?? .all,
+            surface: surface ?? .desktop
         )
     }
 }

@@ -94,6 +94,7 @@ final class BoringViewCoordinator: ObservableObject {
     private var osdSourceCancellables: [AnyCancellable] = []
     private var notificationLiveActivityCancellable: AnyCancellable?
     private var uiEventCancellable: AnyCancellable?
+    private var extensionTabsCancellable: AnyCancellable?
 
     private init() {
         // Perform migration from name-based to UUID-based storage
@@ -116,6 +117,11 @@ final class BoringViewCoordinator: ObservableObject {
         }
 
         selectedScreenUUID = preferredScreenUUID ?? NSScreen.main?.displayUUID ?? ""
+        extensionTabsCancellable = ExtensionTabRegistry.shared.$tabs.sink { [weak self] tabs in
+            guard let self else { return }
+            let next = self.currentView.reconciled(availableExtensionTabs: Set(tabs.map(\.id)))
+            if next != self.currentView { self.currentView = next }
+        }
         // Observe changes to accessibility authorization and react accordingly
         accessibilityObserver = NotificationCenter.default.addObserver(
             forName: Notification.Name.accessibilityAuthorizationChanged,

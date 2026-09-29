@@ -12,6 +12,7 @@ final class ExtensionActivityDescriptorTests: XCTestCase {
         XCTAssertLessThan(descriptor.priority, 100) // app notifications retain their priority
         XCTAssertEqual(descriptor.lifetime, .persistent)
         XCTAssertEqual(descriptor.displayScope, .all)
+        XCTAssertEqual(descriptor.surface, .desktop)
     }
 
     func testWireIDsCannotEscapeTheirNamespaceAndSnapshotRejectsDuplicates() throws {
@@ -34,5 +35,14 @@ final class ExtensionActivityDescriptorTests: XCTestCase {
         let descriptor = value.hostDescriptor(namespace: "org.example.timer")
         XCTAssertEqual(descriptor.lifetime, .until(Date(timeIntervalSince1970: 42)))
         XCTAssertEqual(descriptor.displayScope, .displays(["display-a"]))
+    }
+
+    func testLockedSurfaceIsExplicitAndUnknownSurfaceFailsClosed() throws {
+        let value = try JSONDecoder().decode(ExtensionActivityDescriptor.self, from: Data(
+            #"{"id":"badge","label":"Status","surface":"lockScreen"}"#.utf8))
+        try value.validate()
+        XCTAssertEqual(value.hostDescriptor(namespace: "org.example.status").surface, .lockScreen)
+        XCTAssertThrowsError(try JSONDecoder().decode(ExtensionActivityDescriptor.self, from: Data(
+            #"{"id":"badge","label":"Status","surface":"everywhere"}"#.utf8)))
     }
 }

@@ -17,6 +17,7 @@ struct LiveActivityViewContext {
     let displayID: String?
     let height: CGFloat
     let maximumSideWidth: CGFloat
+    var surface: LiveActivitySurface = .desktop
     var isHovered: Bool = false
     var gestureProgress: CGFloat = 0
 }
@@ -53,6 +54,7 @@ final class LiveActivityCenter: ObservableObject {
     static let shared = LiveActivityCenter()
 
     let service: LiveActivityService
+    @Published private(set) var session = LiveActivitySessionState()
     private var content: [LiveActivityID: AnyNotchLiveActivity] = [:]
     private var owners: [LiveActivityID: UUID] = [:]
     private var subscription: AnyCancellable?
@@ -65,6 +67,14 @@ final class LiveActivityCenter: ObservableObject {
     }
 
     func activity(for id: LiveActivityID) -> AnyNotchLiveActivity? { content[id] }
+
+    func updateSession(locked: Bool? = nil, awake: Bool? = nil, active: Bool? = nil) {
+        var next = session
+        if let locked { next.isLocked = locked }
+        if let awake { next.isAwake = awake }
+        if let active { next.isSessionActive = active }
+        if next != session { session = next }
+    }
 
     func register<Activity: NotchLiveActivity>(_ activity: Activity) throws -> NotchActivityRegistration {
         let registration = try service.register(activity.descriptor)

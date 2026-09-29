@@ -284,4 +284,40 @@ final class LiveActivityServiceTests: XCTestCase {
         defer { firstOwner.unregister(); secondOwner.unregister() }
         XCTAssertEqual(service.snapshot(in: display).selectedID, first.id)
     }
+
+    func testSurfaceBoundaryExcludesDesktopContentIncludingInterrupts() throws {
+        let service = LiveActivityService()
+        let desktop = descriptor("private-notification", priority: 1000, presentation: .interrupt)
+        var badge = descriptor("public-badge", priority: -100)
+        badge.surface = .lockScreen
+        let desktopOwner = try service.register(desktop)
+        let badgeOwner = try service.register(badge)
+        defer { desktopOwner.unregister(); badgeOwner.unregister() }
+        let locked = LiveActivityContext(displayID: "built-in", surface: .lockScreen)
+        XCTAssertEqual(service.snapshot(in: display).activities.map(\.id), [desktop.id])
+        XCTAssertEqual(service.snapshot(in: locked).activities.map(\.id), [badge.id])
+        badgeOwner.unregister()
+        XCTAssertNil(service.snapshot(in: locked).selectedID)
+    }
+
+    func testSelectionIsIndependentForEachSurfaceOnTheSameDisplay() throws {
+        let service = LiveActivityService()
+        let desktopA = descriptor("desktop-a")
+        let desktopB = descriptor("desktop-b")
+        var lockedA = descriptor("locked-a")
+        lockedA.surface = .lockScreen
+        var lockedB = descriptor("locked-b")
+        lockedB.surface = .lockScreen
+        let registrations = try [desktopA, desktopB, lockedA, lockedB].map(service.register)
+        defer { registrations.forEach { $0.unregister() } }
+        let locked = LiveActivityContext(displayID: "built-in", surface: .lockScreen)
+        XCTAssertTrue(service.select(desktopA.id, in: display))
+        XCTAssertTrue(service.select(lockedA.id, in: locked))
+        XCTAssertEqual(service.snapshot(in: display).selectedID, desktopA.id)
+        XCTAssertEqual(service.snapshot(in: locked).selectedID, lockedA.id)
+        XCTAssertFalse(service.select(desktopB.id, in: locked))
+        service.forgetSelection(for: "built-in")
+        XCTAssertEqual(service.snapshot(in: display).selectedID, desktopB.id)
+        XCTAssertEqual(service.snapshot(in: locked).selectedID, lockedB.id)
+    }
 }

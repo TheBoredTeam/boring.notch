@@ -34,7 +34,12 @@ final class ExtensionManager: ObservableObject {
     private var retiredRuntimes: [ExtensionRuntime] = []
     private var activityRegistrations: [String: [String: NotchActivityRegistration]] = [:]
     private var activityValues: [String: [String: ExtensionActivityDescriptor]] = [:]
-    private var pendingActivityUpdates = Set<String>()
+    private enum Contribution: Hashable { case activities, tabs }
+    private struct PendingContribution: Hashable {
+        let providerID: String
+        let kind: Contribution
+    }
+    private var pendingContributionUpdates = Set<PendingContribution>()
     private var disabledIDs: Set<String> {
         get { Set(UserDefaults.standard.stringArray(forKey: "disabledExtensions") ?? []) }
         set { UserDefaults.standard.set(Array(newValue).sorted(), forKey: "disabledExtensions") }
@@ -73,13 +78,21 @@ final class ExtensionManager: ObservableObject {
             ) { [weak self] _ in
                 MainActor.assumeIsolated {
                     switch event {
-                    case "wake": self?.awake = true
-                    case "sleep": self?.awake = false
-                    case "session-active": self?.sessionActive = true
-                    case "session-inactive": self?.sessionActive = false
+                    case "wake":
+                        self?.awake = true
+                        LiveActivityCenter.shared.updateSession(awake: true)
+                    case "sleep":
+                        self?.awake = false
+                        LiveActivityCenter.shared.updateSession(awake: false)
+                    case "session-active":
+                        self?.sessionActive = true
+                        LiveActivityCenter.shared.updateSession(active: true)
+                    case "session-inactive":
+                        self?.sessionActive = false
+                        LiveActivityCenter.shared.updateSession(active: false)
                     default: break
                     }
-                    self?.publishSnapshot()
+                    self?.publishSnapshot(force: true)
                     self?.send(event: event)
                 }
             })
@@ -88,8 +101,17 @@ final class ExtensionManager: ObservableObject {
 
     func setScreenLocked(_ value: Bool) {
         locked = value
-        publishSnapshot()
-        send(event: value ? "lock" : "unlock")
+        if value {
+            LiveActivityCenter.shared.updateSession(locked: true)
+            publishSnapshot(force: true)
+            send(event: "lock")
+        } else {
+            // Providers may capture their own visible region for an independent
+            // exit animation. Keep the secure surface alive through this call.
+            send(event: "unlock")
+            LiveActivityCenter.shared.updateSession(locked: false)
+            publishSnapshot(force: true)
+        }
     }
 
     private func send(event: String) {
@@ -108,7 +130,11 @@ final class ExtensionManager: ObservableObject {
                       value.isFinite else { return }
                 let productID = runtime.manifest.id
                 if name == "activities.changed" {
-                    manager.scheduleActivityUpdate(for: productID)
+                    manager.scheduleContributionUpdate(.activities, for: productID)
+                    return
+                }
+                if name == "tabs.changed" {
+                    manager.scheduleContributionUpdate(.tabs, for: productID)
                     return
                 }
                 if name == "presentation.artwork" {
@@ -135,10 +161,13 @@ final class ExtensionManager: ObservableObject {
         enabledIDs.insert(manifest.id)
         settingsControllers[manifest.id] = runtime.settingsController()
         publishSnapshot(force: true)
-        runtime.send(event: locked ? "lock" : "unlock")
+        // Establish restrictive session gates before the first lock event so a
+        // re-enabled provider cannot briefly show while asleep or inactive.
         runtime.send(event: awake ? "wake" : "sleep")
         runtime.send(event: sessionActive ? "session-active" : "session-inactive")
-        scheduleActivityUpdate(for: manifest.id)
+        runtime.send(event: locked ? "lock" : "unlock")
+        scheduleContributionUpdate(.activities, for: manifest.id)
+        scheduleContributionUpdate(.tabs, for: manifest.id)
     }
 
     private func publishSnapshot(force: Bool = false) {
@@ -179,8 +208,11 @@ final class ExtensionManager: ObservableObject {
         ]
         for (id, runtime) in consumers {
             var extensionSnapshot = snapshot
-            if artworkDisabled.contains(id) || !runtime.manifest.receivesUpdates(
-                locked: locked, awake: awake, sessionActive: sessionActive, requested: !inactiveIDs.contains(id)) {
+            let presentationAllowed = runtime.manifest.receivesUpdates(
+                locked: locked, awake: awake, sessionActive: sessionActive, requested: !inactiveIDs.contains(id))
+            extensionSnapshot["presentationAllowed"] = presentationAllowed
+            extensionSnapshot["activitySurfaces"] = LiveActivitySurface.allCases.map(\.rawValue)
+            if artworkDisabled.contains(id) || !presentationAllowed {
                 extensionSnapshot["artwork"] = ""
             }
             if let data = try? JSONSerialization.data(withJSONObject: extensionSnapshot) { runtime.send(snapshot: data) }
@@ -303,14 +335,29 @@ final class ExtensionManager: ObservableObject {
         } catch { message = error.localizedDescription }
     }
 
-    private func scheduleActivityUpdate(for id: String) {
-        guard pendingActivityUpdates.insert(id).inserted else { return }
+    private func scheduleContributionUpdate(_ kind: Contribution, for id: String) {
+        let contribution = PendingContribution(providerID: id, kind: kind)
+        guard pendingContributionUpdates.insert(contribution).inserted else { return }
         // Commands can originate during an ABI call. Reconcile after it returns
         // to avoid reentrant lifecycle mutation and to coalesce bursts of updates.
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            self.pendingActivityUpdates.remove(id)
-            self.reconcileActivities(for: id)
+            self.pendingContributionUpdates.remove(contribution)
+            switch kind {
+            case .activities: self.reconcileActivities(for: id)
+            case .tabs: self.reconcileTabs(for: id)
+            }
+        }
+    }
+
+    private func reconcileTabs(for id: String) {
+        guard let runtime = runtimes[id] else { return }
+        do {
+            let snapshot = try runtime.tabSnapshot()
+            ExtensionTabRegistry.shared.replace(providerID: id, tabs: snapshot.tabs, runtime: runtime)
+        } catch {
+            ExtensionTabRegistry.shared.remove(providerID: id)
+            message = "\(runtime.manifest.name) published invalid tabs."
         }
     }
 
@@ -348,7 +395,8 @@ final class ExtensionManager: ObservableObject {
 
     private func stopRuntime(_ id: String) {
         clearActivities(for: id)
-        pendingActivityUpdates.remove(id)
+        ExtensionTabRegistry.shared.remove(providerID: id)
+        pendingContributionUpdates = pendingContributionUpdates.filter { $0.providerID != id }
         settingsControllers.removeValue(forKey: id)
         enabledIDs.remove(id)
         inactiveIDs.remove(id)

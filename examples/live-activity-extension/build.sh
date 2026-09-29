@@ -30,7 +30,7 @@ identifier = 'org.example.boringnotch.focus-timer'
 }))
 (bundle / 'Contents/Resources/manifest.json').write_text(json.dumps({
     'id': identifier, 'name': 'Focus Timer', 'version': '1.0.0',
-    'apiVersion': 1, 'activation': 'always', 'capabilities': ['liveActivities']
+    'apiVersion': 1, 'activation': 'always', 'capabilities': ['liveActivities', 'tabs']
 }, indent=2) + '\n')
 PY
 

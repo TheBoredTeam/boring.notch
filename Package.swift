@@ -14,9 +14,12 @@ let package = Package(
             exclude: ["BoringBattery.swift", "MarqueeTextView.swift", "BuiltinLiveActivitySource.swift",
                       "BuiltinLiveActivityViews.swift", "Extensions/ExtensionManager.swift"],
             sources: ["Core", "LiveActivityCenter.swift", "NotchActivityHost.swift", "NotchActivityLayoutMetrics.swift",
+                      "LockedLiveActivityView.swift",
                       "Extensions/ExtensionActivity.swift", "Extensions/ExtensionActivityDescriptor.swift",
                       "Extensions/ExtensionArchive.swift", "Extensions/ExtensionInstallation.swift",
                       "Extensions/ExtensionPackage.swift", "Extensions/ExtensionRuntime.swift",
+                      "Extensions/ExtensionTabDescriptor.swift", "Extensions/ExtensionTabRegistry.swift",
+                      "Extensions/ExtensionTab.swift",
                       "Extensions/ExtensionCatalog.swift", "Extensions/ExtensionStore.swift",
                       "Extensions/ExtensionStoreTransfer.swift"]
         ),
@@ -30,7 +33,8 @@ let package = Package(
                       "PreferenceCompatibilityTests.swift"],
             sources: ["LiveActivityServiceTests.swift", "NotchActivityLayoutTests.swift", "ExtensionArchiveTests.swift",
                       "ExtensionPackageTests.swift", "ExtensionActivityDescriptorTests.swift", "LiveActivityCenterTests.swift",
-                      "ExtensionCatalogTests.swift", "ExtensionStoreTransferTests.swift"]
+                      "ExtensionCatalogTests.swift", "ExtensionStoreTransferTests.swift", "LockedLiveActivityViewTests.swift",
+                      "ExtensionTabDescriptorTests.swift", "ExtensionTabRegistryTests.swift"]
         )
     ]
 )

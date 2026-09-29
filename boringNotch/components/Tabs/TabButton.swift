@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct TabButton: View {
+    static let width: CGFloat = 44
     let label: String
     let icon: String
     let selected: Bool
@@ -16,10 +17,13 @@ struct TabButton: View {
     var body: some View {
         Button(action: onClick) {
             Image(systemName: icon)
-                .padding(.horizontal, 15)
+                .frame(width: Self.width, height: 26)
                 .contentShape(Capsule())
         }
         .buttonStyle(PlainButtonStyle())
+        .help(label)
+        .accessibilityLabel(label)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 
