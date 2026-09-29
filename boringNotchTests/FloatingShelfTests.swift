@@ -122,7 +122,6 @@ final class FloatingShelfTests: XCTestCase {
         pasteboard.clearContents()
         pasteboard.setString("notes", forType: .string)
         XCTAssertTrue(DragPasteboardContent.isDroppable(pasteboard))
-        XCTAssertFalse(DragPasteboardContent.itemProviders(from: pasteboard).isEmpty)
     }
 
     func testImageWithoutTextOrFileIsNotDroppable() {
@@ -130,17 +129,6 @@ final class FloatingShelfTests: XCTestCase {
         pasteboard.clearContents()
         pasteboard.setData(Data([0, 1, 2, 3]), forType: .tiff)
         XCTAssertFalse(DragPasteboardContent.isDroppable(pasteboard))
-    }
-
-    func testFileURLBecomesProvider() async {
-        let pasteboard = makePasteboard()
-        pasteboard.clearContents()
-        let url = URL(fileURLWithPath: "/tmp")
-        pasteboard.writeObjects([url as NSURL])
-
-        let providers = DragPasteboardContent.itemProviders(from: pasteboard)
-        let extracted = await providers.first?.extractFileURL()
-        XCTAssertEqual(extracted?.standardizedFileURL.path, url.standardizedFileURL.path)
     }
 
     // MARK: - Helpers

@@ -24,24 +24,4 @@ enum DragPasteboardContent {
             item.types.contains { droppableTypes.contains($0) }
         }
     }
-
-    static func itemProviders(from pasteboard: NSPasteboard) -> [NSItemProvider] {
-        guard let items = pasteboard.pasteboardItems else { return [] }
-        return items.compactMap(itemProvider(from:))
-    }
-
-    private static func itemProvider(from item: NSPasteboardItem) -> NSItemProvider? {
-        let provider = NSItemProvider()
-        var didRegister = false
-        for type in item.types {
-            guard let data = item.data(forType: type) else { continue }
-            provider.registerDataRepresentation(forTypeIdentifier: type.rawValue, visibility: .all) { completion in
-                completion(data, nil)
-                return nil
-            }
-            didRegister = true
-        }
-        guard didRegister else { return nil }
-        return provider
-    }
 }
