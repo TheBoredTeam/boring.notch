@@ -194,6 +194,20 @@ final class FloatingShelfTests: XCTestCase {
         ))
     }
 
+    func testDisabledTriggersDoNotPresent() {
+        XCTAssertFalse(presenting(shake: true, shakeTriggerEnabled: false, shiftHeld: false, shortcutPressed: false))
+        XCTAssertFalse(presenting(shake: false, shiftHeld: true, shiftTriggerEnabled: false, shortcutPressed: false))
+        XCTAssertTrue(presenting(shake: true, shakeTriggerEnabled: false, shiftHeld: true, shortcutPressed: false))
+    }
+
+    func testShortcutIgnoresTheDragTriggerSettings() {
+        XCTAssertTrue(presenting(
+            shake: false, shakeTriggerEnabled: false,
+            shiftHeld: false, shiftTriggerEnabled: false,
+            shortcutPressed: true
+        ))
+    }
+
     // MARK: - Pasteboard
 
     func testEmptyPasteboardIsNotDroppable() {
@@ -249,14 +263,22 @@ final class FloatingShelfTests: XCTestCase {
         return triggered
     }
 
-    private func presenting(shake: Bool, shiftHeld: Bool, shortcutPressed: Bool) -> Bool {
+    private func presenting(
+        shake: Bool,
+        shakeTriggerEnabled: Bool = true,
+        shiftHeld: Bool,
+        shiftTriggerEnabled: Bool = true,
+        shortcutPressed: Bool
+    ) -> Bool {
         FloatingShelfTriggerPolicy.shouldPresent(
             shelfEnabled: true,
             floatingShelfEnabled: true,
             notchOpen: false,
             contentDragActive: true,
             shake: shake,
+            shakeTriggerEnabled: shakeTriggerEnabled,
             shiftHeld: shiftHeld,
+            shiftTriggerEnabled: shiftTriggerEnabled,
             shortcutPressed: shortcutPressed
         )
     }

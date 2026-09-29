@@ -59,14 +59,16 @@ enum FloatingShelfTriggerPolicy {
         notchOpen: Bool,
         contentDragActive: Bool,
         shake: Bool,
+        shakeTriggerEnabled: Bool = true,
         shiftHeld: Bool,
+        shiftTriggerEnabled: Bool = true,
         shortcutPressed: Bool
     ) -> Bool {
         // The open notch already shows the shelf, so a second one is never stacked beside it.
         guard shelfEnabled, floatingShelfEnabled, !notchOpen else { return false }
         if shortcutPressed { return true }
         guard contentDragActive else { return false }
-        return shake || shiftHeld
+        return (shake && shakeTriggerEnabled) || (shiftHeld && shiftTriggerEnabled)
     }
 }
 
