@@ -177,7 +177,7 @@ struct NotchSettingsView: View {
         } header: {
             Text("Behavior")
         } footer: {
-            Text("Shows a smaller opened notch with just the music player — no tabs, calendar or mirror.")
+            Text("Shows a smaller music player with floating tabs below the notch. Shelf and extension tabs open their full workspace.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

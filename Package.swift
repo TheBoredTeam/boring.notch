@@ -34,7 +34,7 @@ let package = Package(
             sources: ["LiveActivityServiceTests.swift", "NotchActivityLayoutTests.swift", "ExtensionArchiveTests.swift",
                       "ExtensionPackageTests.swift", "ExtensionActivityDescriptorTests.swift", "LiveActivityCenterTests.swift",
                       "ExtensionCatalogTests.swift", "ExtensionStoreTransferTests.swift", "LockedLiveActivityViewTests.swift",
-                      "ExtensionTabDescriptorTests.swift", "ExtensionTabRegistryTests.swift"]
+                      "ExtensionTabDescriptorTests.swift", "ExtensionTabRegistryTests.swift", "NotchWorkspaceLayoutTests.swift"]
         )
     ]
 )

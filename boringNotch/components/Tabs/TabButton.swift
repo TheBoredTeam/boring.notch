@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TabButton: View {
-    static let width: CGFloat = 44
+    static let width = NotchTabStripMetrics.buttonWidth
     let label: String
     let icon: String
     let selected: Bool
@@ -17,7 +17,7 @@ struct TabButton: View {
     var body: some View {
         Button(action: onClick) {
             Image(systemName: icon)
-                .frame(width: Self.width, height: 26)
+                .frame(width: Self.width, height: NotchTabStripMetrics.buttonHeight)
                 .contentShape(Capsule())
         }
         .buttonStyle(PlainButtonStyle())

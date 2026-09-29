@@ -16,6 +16,12 @@ struct TabModel: Identifiable {
 }
 
 struct TabSelectionView: View {
+    enum Presentation {
+        case embedded
+        case floating(maximumWidth: CGFloat)
+    }
+
+    var presentation: Presentation = .embedded
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var registry = ExtensionTabRegistry.shared
     @Default(.boringShelf) private var shelfEnabled
@@ -32,12 +38,28 @@ struct TabSelectionView: View {
     }
 
     var body: some View {
+        Group {
+            switch presentation {
+            case .embedded:
+                measuredStrip
+            case .floating(let maximumWidth):
+                measuredStrip
+                    .frame(width: NotchTabStripMetrics.floatingContentWidth(tabCount: tabs.count, maximumWidth: maximumWidth))
+                    .padding(.horizontal, NotchTabStripMetrics.horizontalPadding)
+                    .padding(.vertical, NotchTabStripMetrics.verticalPadding)
+                    .background(.black, in: Capsule())
+                    .overlay { Capsule().strokeBorder(.white.opacity(0.1), lineWidth: 0.5) }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Notch tabs")
+    }
+
+    private var measuredStrip: some View {
         GeometryReader { geometry in
             tabStrip(showsOverflow: CGFloat(tabs.count) * TabButton.width > geometry.size.width)
         }
-        .frame(height: 26)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("Notch tabs")
+        .frame(height: NotchTabStripMetrics.buttonHeight)
     }
 
     private func tabStrip(showsOverflow: Bool) -> some View {
@@ -49,7 +71,7 @@ struct TabSelectionView: View {
                             TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view) {
                                 select(tab.view)
                             }
-                            .frame(height: 26)
+                            .frame(height: NotchTabStripMetrics.buttonHeight)
                             .foregroundStyle(tab.view == coordinator.currentView ? .white : .gray)
                             .background {
                                 if tab.view == coordinator.currentView {
@@ -82,7 +104,7 @@ struct TabSelectionView: View {
                 } label: {
                     Image(systemName: "chevron.down")
                         .font(.system(size: 9, weight: .semibold))
-                        .frame(width: 22, height: 26)
+                        .frame(width: 22, height: NotchTabStripMetrics.buttonHeight)
                 }
                 .menuStyle(.borderlessButton)
                 .menuIndicator(.hidden)
