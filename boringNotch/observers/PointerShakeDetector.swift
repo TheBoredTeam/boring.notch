@@ -73,7 +73,6 @@ struct PointerShakeDetector {
         return reversals
     }
 
-    /// Counts a reversal when this stroke flips direction on the axis already in motion.
     private static func recordSign(of delta: CGFloat, lastSign: inout Int) -> Int {
         let sign = delta > 0 ? 1 : -1
         defer { lastSign = sign }

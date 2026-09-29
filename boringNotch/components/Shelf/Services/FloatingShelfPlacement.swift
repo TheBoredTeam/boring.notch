@@ -7,7 +7,6 @@
 
 import CoreGraphics
 
-/// Where the floating shelf sits relative to the pointer, in AppKit coordinates (origin at the bottom left).
 enum FloatingShelfPlacement {
     /// Slightly under the open notch (640×190). Insets match the open tray, so the shelf row stays about the same height.
     static let panelSize = CGSize(width: 544, height: 164)
@@ -45,7 +44,6 @@ enum FloatingShelfPlacement {
     }
 }
 
-/// Modifier keys currently held, ignoring Caps Lock and Fn.
 struct HeldModifiers: Equatable {
     var shift = false
     var control = false
@@ -64,7 +62,6 @@ struct HeldModifiers: Equatable {
     }
 }
 
-/// When a content drag is allowed to summon the floating shelf.
 enum FloatingShelfTriggerPolicy {
     static func shouldPresent(
         shelfEnabled: Bool,
@@ -74,7 +71,15 @@ enum FloatingShelfTriggerPolicy {
         shiftHeld: Bool,
         shortcutPressed: Bool
     ) -> Bool {
-        guard shelfEnabled, floatingShelfEnabled, contentDragActive else { return false }
-        return shake || shiftHeld || shortcutPressed
+        guard shelfEnabled, floatingShelfEnabled else { return false }
+        if shortcutPressed { return true }
+        guard contentDragActive else { return false }
+        return shake || shiftHeld
+    }
+}
+
+enum FloatingShelfDismissPolicy {
+    static func shouldClose(pointerInside: Bool, sharingActive: Bool) -> Bool {
+        !pointerInside && !sharingActive
     }
 }

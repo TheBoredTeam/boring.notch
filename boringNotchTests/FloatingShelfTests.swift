@@ -95,8 +95,21 @@ final class FloatingShelfTests: XCTestCase {
         ))
         XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
             shelfEnabled: true, floatingShelfEnabled: true, contentDragActive: false,
-            shake: true, shiftHeld: true, shortcutPressed: true
+            shake: true, shiftHeld: true, shortcutPressed: false
         ))
+    }
+
+    func testShortcutOpensWithoutADrag() {
+        XCTAssertTrue(FloatingShelfTriggerPolicy.shouldPresent(
+            shelfEnabled: true, floatingShelfEnabled: true, contentDragActive: false,
+            shake: false, shiftHeld: false, shortcutPressed: true
+        ))
+    }
+
+    func testDismissWaitsWhileHoveringOrSharing() {
+        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(pointerInside: true, sharingActive: false))
+        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(pointerInside: false, sharingActive: true))
+        XCTAssertTrue(FloatingShelfDismissPolicy.shouldClose(pointerInside: false, sharingActive: false))
     }
 
     func testControlShiftChordIsNotShiftAlone() {

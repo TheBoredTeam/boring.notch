@@ -16,7 +16,6 @@ enum DragPasteboardContent {
         .string
     ]
 
-    /// True when every dragged item can be stored on the shelf.
     /// An item may advertise extra formats alongside a supported one.
     static func isDroppable(_ pasteboard: NSPasteboard) -> Bool {
         guard let items = pasteboard.pasteboardItems, !items.isEmpty else { return false }

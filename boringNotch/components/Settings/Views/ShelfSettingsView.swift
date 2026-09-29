@@ -51,7 +51,7 @@ struct ShelfSettingsView: View {
             } header: {
                 Text("General")
             } footer: {
-                Text("While dragging files, shake the pointer or hold Shift to open a shelf beside the cursor. Files land in the shelf.")
+                Text("While dragging files, shake the pointer or hold Shift to open a shelf beside the cursor. The shelf shortcut opens it anytime and closes it again. Files land in the shelf.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
