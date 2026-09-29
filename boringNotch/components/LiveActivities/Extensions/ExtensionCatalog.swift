@@ -7,7 +7,7 @@ import Foundation
 struct ExtensionCatalog: Decodable, Sendable {
     static let maximumBytes = 2_000_000
     static let maximumItems = 500
-    static let defaultURL = URL(string: "https://raw.githubusercontent.com/TheBoredTeam/boring.extensions/main/catalog.plist")
+    static let defaultURL = URL(string: "https://raw.githubusercontent.com/TheBoredTeam/boring-notch-extensions/main/catalog.json")
     static var officialURL: URL? {
         sourceURL(configuredValue: Bundle.main.object(forInfoDictionaryKey: "BoringNotchExtensionCatalogURL") as? String)
     }
@@ -25,8 +25,8 @@ struct ExtensionCatalog: Decodable, Sendable {
         guard data.count <= maximumBytes else { throw ExtensionStoreError.catalogTooLarge }
         let catalog: ExtensionCatalog
         do {
-            // Existing JSON catalogs remain readable during migration. New
-            // catalogs use native XML or binary property lists generated in CI.
+            // The registry compiles reviewed TOML sources into one JSON catalog.
+            // XML and binary property lists remain readable for older sources.
             let firstByte = data.first { ![0x20, 0x09, 0x0a, 0x0d].contains($0) }
             if firstByte == 0x7b {
                 catalog = try JSONDecoder().decode(Self.self, from: data)

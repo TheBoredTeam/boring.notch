@@ -120,16 +120,18 @@ final class ExtensionCatalogTests: XCTestCase {
         }
     }
 
-    func testXMLAndBinaryPlistsAcceptCanonicalPublicDownloadURL() throws {
+    func testGeneratedJSONAndLegacyPlistsAcceptCanonicalPublicDownloadURL() throws {
         var item = StoreCatalogFixture.item()
         var artifact = try XCTUnwrap(item["artifact"] as? [String: Any])
         artifact["downloadURL"] = artifact.removeValue(forKey: "url")
         item["artifact"] = artifact
         item["icon"] = "https://raw.githubusercontent.com/example/catalog/main/icons/focus.png"
         item["artwork"] = "https://publisher.example.org/focus.png"
-        for format in [PropertyListSerialization.PropertyListFormat.xml, .binary] {
-            let bytes = try PropertyListSerialization.data(fromPropertyList: ["schemaVersion": 1, "extensions": [item]],
-                                                          format: format, options: 0)
+        let legacyPlists = try [PropertyListSerialization.PropertyListFormat.xml, .binary].map { format in
+            try PropertyListSerialization.data(fromPropertyList: ["schemaVersion": 1, "extensions": [item]],
+                                               format: format, options: 0)
+        }
+        for bytes in [try StoreCatalogFixture.data([item])] + legacyPlists {
             let decoded = try XCTUnwrap(ExtensionCatalog.decode(bytes).extensions.first)
             XCTAssertEqual(decoded.installableArtifact?.url.absoluteString, "https://downloads.example.org/focus.zip")
             XCTAssertEqual(decoded.iconURL?.host, "raw.githubusercontent.com")
@@ -159,10 +161,11 @@ final class ExtensionCatalogTests: XCTestCase {
 
     func testEndpointConfigurationUsesGitHubDefaultAndRejectsUnsafeOverrides() {
         XCTAssertEqual(ExtensionCatalog.sourceURL(configuredValue: nil)?.absoluteString,
-                       "https://raw.githubusercontent.com/TheBoredTeam/boring.extensions/main/catalog.plist")
+                       "https://raw.githubusercontent.com/TheBoredTeam/boring-notch-extensions/main/catalog.json")
+        XCTAssertEqual(ExtensionCatalog.sourceURL(configuredValue: "https://example.org/catalog.json")?.host, "example.org")
         XCTAssertEqual(ExtensionCatalog.sourceURL(configuredValue: "https://example.org/catalog.plist")?.host, "example.org")
-        for invalid in ["", "file:///tmp/catalog.plist", "http://example.org/catalog.plist",
-                        "https://user:secret@example.org/catalog.plist", "https://example.org/catalog.plist#fragment"] {
+        for invalid in ["", "file:///tmp/catalog.json", "http://example.org/catalog.json",
+                        "https://user:secret@example.org/catalog.json", "https://example.org/catalog.json#fragment"] {
             XCTAssertNil(ExtensionCatalog.sourceURL(configuredValue: invalid))
         }
     }

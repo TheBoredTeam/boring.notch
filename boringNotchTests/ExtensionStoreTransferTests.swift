@@ -250,12 +250,12 @@ final class ExtensionStoreTransferTests: XCTestCase {
     }
 
     @MainActor
-    func testValidatedPlistCacheSurvivesRecreationAndRevalidatesConditionally() async throws {
+    func testGeneratedJSONSurvivesNativeCacheRecreationAndRevalidatesConditionally() async throws {
         let directory = try temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
         let cache = directory.appendingPathComponent("catalog-cache.plist")
-        let endpoint = try XCTUnwrap(URL(string: "https://registry.example.org/catalog.plist"))
-        let bytes = try plistCatalog([StoreCatalogFixture.item(status: "preview", artifact: false)])
+        let endpoint = try XCTUnwrap(ExtensionCatalog.defaultURL)
+        let bytes = try StoreCatalogFixture.data([StoreCatalogFixture.item(status: "preview", artifact: false)])
         var date = Date(timeIntervalSince1970: 1_800_000_000)
         StoreTestURLProtocol.configure {
             XCTAssertEqual($0.request.url, endpoint)
@@ -301,13 +301,13 @@ final class ExtensionStoreTransferTests: XCTestCase {
         let directory = try temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
         let cache = directory.appendingPathComponent("catalog-cache.plist")
-        let bytes = try plistCatalog([StoreCatalogFixture.item(status: "preview", artifact: false)])
+        let bytes = try StoreCatalogFixture.data([StoreCatalogFixture.item(status: "preview", artifact: false)])
         StoreTestURLProtocol.configure { $0.respond(headers: ["ETag": "\"trusted\""], chunks: [bytes]) }
         let store = ExtensionStore(sessionConfiguration: configuration(), cacheURL: cache)
         await store.refresh()
         let validItems = store.items
         let validCache = try Data(contentsOf: cache)
-        StoreTestURLProtocol.configure { $0.respond(headers: ["ETag": "\"invalid\""], chunks: [Data("broken plist".utf8)]) }
+        StoreTestURLProtocol.configure { $0.respond(headers: ["ETag": "\"invalid\""], chunks: [Data("broken catalog".utf8)]) }
         await store.refresh(force: true)
         XCTAssertEqual(store.items, validItems)
         XCTAssertNotNil(store.errorMessage)
@@ -327,26 +327,45 @@ final class ExtensionStoreTransferTests: XCTestCase {
     }
 
     @MainActor
-    func testCacheIsSourceBoundAndItsContentIsRevalidated() async throws {
+    func testRepositoryMigrationDropsOldPlistApprovalsAndRevalidatesNewJSONCache() async throws {
         let directory = try temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
         let cache = directory.appendingPathComponent("catalog-cache.plist")
-        let firstURL = try XCTUnwrap(URL(string: "https://first.example.org/catalog.plist"))
-        let secondURL = try XCTUnwrap(URL(string: "https://second.example.org/catalog.plist"))
-        let bytes = try plistCatalog([StoreCatalogFixture.item(status: "preview", artifact: false)])
-        StoreTestURLProtocol.configure { $0.respond(headers: ["ETag": "\"source-one\""], chunks: [bytes]) }
+        let firstURL = try XCTUnwrap(URL(string: "https://raw.githubusercontent.com/TheBoredTeam/boring.extensions/main/catalog.plist"))
+        let secondURL = try XCTUnwrap(ExtensionCatalog.defaultURL)
+        let oldBytes = try plistCatalog([StoreCatalogFixture.item()])
+        var newItem = StoreCatalogFixture.item(status: "preview", artifact: false)
+        newItem["id"] = "org.example.newcatalog"
+        newItem["slug"] = "new-catalog"
+        let newBytes = try StoreCatalogFixture.data([newItem])
+        StoreTestURLProtocol.configure {
+            $0.respond(headers: ["ETag": "\"source-one\"", "Last-Modified": "Tue, 29 Sep 2026 12:00:00 GMT"], chunks: [oldBytes])
+        }
         let first = ExtensionStore(sessionConfiguration: configuration(), catalogURL: firstURL, cacheURL: cache)
         await first.refresh()
+        let oldApprovedItem = try XCTUnwrap(first.items.first)
+        XCTAssertNotNil(oldApprovedItem.installableArtifact)
         let second = ExtensionStore(sessionConfiguration: configuration(), catalogURL: secondURL, cacheURL: cache)
         XCTAssertTrue(second.items.isEmpty, "A new catalog source must not inherit another source's approved listings")
+        do { _ = try await second.download(oldApprovedItem); XCTFail("Old repository approval survived the source change") }
+        catch { XCTAssertEqual(error as? ExtensionStoreError, .unavailable) }
         StoreTestURLProtocol.configure {
             XCTAssertEqual($0.request.url, secondURL)
             XCTAssertNil($0.request.value(forHTTPHeaderField: "If-None-Match"))
-            $0.respond(chunks: [bytes])
+            XCTAssertNil($0.request.value(forHTTPHeaderField: "If-Modified-Since"))
+            $0.respond(chunks: [newBytes])
         }
         await second.refresh()
-        XCTAssertEqual(second.items.count, 1)
+        XCTAssertEqual(second.items.map(\.id), ["org.example.newcatalog"])
+        XCTAssertNil(second.errorMessage)
+        let restored = ExtensionStore(sessionConfiguration: configuration(), catalogURL: secondURL, cacheURL: cache)
+        XCTAssertEqual(restored.items, second.items)
+        await restored.refresh()
+        XCTAssertEqual(StoreTestURLProtocol.requestCount, 1, "The new repository's JSON catalog should restore from the native cache")
+        let oldSource = ExtensionStore(sessionConfiguration: configuration(), catalogURL: firstURL, cacheURL: cache)
+        XCTAssertTrue(oldSource.items.isEmpty, "Repository binding also applies when reverting the configured source")
         var snapshot = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: cache), options: [], format: nil) as? [String: Any])
+        XCTAssertEqual(snapshot["data"] as? Data, newBytes, "Cache serialization must preserve the validated JSON payload")
         snapshot["data"] = Data("corrupted cached catalog".utf8)
         try PropertyListSerialization.data(fromPropertyList: snapshot, format: .binary, options: 0).write(to: cache)
         let corrupt = ExtensionStore(sessionConfiguration: configuration(), catalogURL: secondURL, cacheURL: cache)
@@ -364,7 +383,7 @@ final class ExtensionStoreTransferTests: XCTestCase {
         try Data(repeating: 0, count: ExtensionCatalog.maximumBytes + 8_193).write(to: cache)
         let oversized = ExtensionStore(sessionConfiguration: configuration(), cacheURL: cache)
         XCTAssertTrue(oversized.items.isEmpty)
-        let bytes = try plistCatalog([StoreCatalogFixture.item(status: "preview", artifact: false)])
+        let bytes = try StoreCatalogFixture.data([StoreCatalogFixture.item(status: "preview", artifact: false)])
         StoreTestURLProtocol.configure { $0.respond(chunks: [bytes]) }
         await oversized.refresh()
         XCTAssertEqual(oversized.items.count, 1)
@@ -379,7 +398,7 @@ final class ExtensionStoreTransferTests: XCTestCase {
     func testUnavailableCacheDoesNotPreventValidatedInMemoryCatalog() async throws {
         let directory = try temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
-        let bytes = try plistCatalog([StoreCatalogFixture.item(status: "preview", artifact: false)])
+        let bytes = try StoreCatalogFixture.data([StoreCatalogFixture.item(status: "preview", artifact: false)])
         StoreTestURLProtocol.configure { $0.respond(chunks: [bytes]) }
         // A directory in place of the cache file deterministically rejects writes.
         let store = ExtensionStore(sessionConfiguration: configuration(), cacheURL: directory)
@@ -394,7 +413,7 @@ final class ExtensionStoreTransferTests: XCTestCase {
     @MainActor
     func testCatalogRemovalInvalidatesStaleInstallAndCachesValidEmptySnapshot() async throws {
         let item = try downloadItem(checksum: String(repeating: "a", count: 64))
-        let empty = try plistCatalog([])
+        let empty = try StoreCatalogFixture.data([])
         let store = ExtensionStore(items: [item], sessionConfiguration: configuration())
         StoreTestURLProtocol.configure { $0.respond(headers: ["ETag": "\"empty\""], chunks: [empty]) }
         await store.refresh(force: true)
