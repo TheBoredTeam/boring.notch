@@ -419,7 +419,7 @@ extension Defaults.Keys {
     static let mirrorCameraID = Key<String?>("mirrorCameraID", default: nil)
     static let settingsIconInNotch = Key<Bool>("settingsIconInNotch", default: true)
     static let showMicrophoneButtonInNotch = Key<Bool>("showMicrophoneButtonInNotch", default: true)
-    static let showMuteIndicator = Key<Bool>("showMuteIndicatorDot", default: true)
+    static let showMuteIndicator = Key<Bool>("showMuteIndicator", default: true)
     static let lightingEffect = Key<Bool>("lightingEffect", default: true)
     static let enableShadow = Key<Bool>("enableShadow", default: true)
     static let cornerRadiusScaling = Key<Bool>("cornerRadiusScaling", default: true)

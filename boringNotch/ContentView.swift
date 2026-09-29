@@ -21,14 +21,12 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
-    @ObservedObject var microphoneManager = MicrophoneManager.shared
     @ObservedObject var notificationManager = SystemNotificationManager.shared
     /// Which entry of the closed-notch activity stack is on top.
     @State private var activityIndex: Int = 0
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
-    @State private var muteIndicatorBurstTrigger: UInt = 0
 
     @State private var gestureProgress: CGFloat = .zero
     @State private var horizontalMediaGestureTriggered = false
@@ -279,15 +277,7 @@ struct ContentView: View {
                     }
                     .overlay {
                         if showMuteIndicator && !isNotchHeightZero {
-                            MuteIndicatorEdges(
-                                isMuted: microphoneManager.isMuted,
-                                notchState: vm.notchState,
-                                closedNotchHeight: displayClosedNotchHeight,
-                                burstTrigger: muteIndicatorBurstTrigger
-                            )
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .mask(currentNotchShape)
-                            .allowsHitTesting(false)
+                            MuteIndicatorEdges(isNotchClosed: vm.notchState == .closed, shape: currentNotchShape)
                         }
                     }
                     .shadow(
@@ -425,10 +415,6 @@ struct ContentView: View {
                     vm.close()
                 }
             }
-        }
-        .onChange(of: microphoneManager.isMuted) { oldValue, newValue in
-            guard !oldValue, newValue, microphoneManager.shouldShowOverlay else { return }
-            muteIndicatorBurstTrigger &+= 1
         }
     }
 
