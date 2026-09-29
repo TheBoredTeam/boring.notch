@@ -67,6 +67,17 @@ struct ExtensionTab: Identifiable, Equatable {
     let id: ExtensionTabID
     let descriptor: ExtensionTabDescriptor
     let source: any ExtensionTabControllerSource
+    let systemSymbol: String
+
+    @MainActor
+    init(id: ExtensionTabID, descriptor: ExtensionTabDescriptor, source: any ExtensionTabControllerSource) {
+        self.id = id
+        self.descriptor = descriptor
+        self.source = source
+        // Resolve once for this registration. Rendering a large tab strip
+        // must not repeatedly load SF Symbols just to validate their names.
+        systemSymbol = descriptor.systemSymbol
+    }
 
     @MainActor func supports(_ presentation: ExtensionTabPresentation) -> Bool {
         descriptor.supports(presentation) && source.supportsTabPresentation(presentation)

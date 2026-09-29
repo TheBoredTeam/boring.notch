@@ -23,7 +23,9 @@ struct ContentView: View {
     @ObservedObject var notificationManager = SystemNotificationManager.shared
     @ObservedObject private var activityCenter = LiveActivityCenter.shared
     @ObservedObject private var extensionTabs = ExtensionTabRegistry.shared
+    @ObservedObject private var shelfState = ShelfStateViewModel.shared
     @Default(.compactMode) private var compactMode
+    @Default(.floatingTabsInStandardMode) private var floatingTabsInStandardMode
     @Default(.boringShelf) private var shelfEnabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var activityWidth: CGFloat = 0
@@ -141,8 +143,8 @@ struct ContentView: View {
 
     private var tabPresentation: ExtensionTabPresentation { compactMode ? .compact : .regular }
 
-    /// Compact mode moves the shared tab strip beneath the notch, leaving
-    /// the music player narrow and the physical cutout unobstructed.
+    /// The standard header retains its controls and clearance even when the
+    /// tab switcher moves below the notch, preserving native content bounds.
     private var showsHeader: Bool {
         vm.notchState == .open
             && notificationManager.activeNotification == nil
@@ -150,10 +152,16 @@ struct ContentView: View {
     }
 
     private var showsFloatingTabs: Bool {
-        vm.notchState == .open && compactMode
+        vm.notchState == .open && usesFloatingTabs
             && notificationManager.activeNotification == nil
-            && (shelfEnabled || !extensionTabs.tabs(for: .compact).isEmpty)
+            && NotchTabVisibility.shouldShow(
+                compactMode: compactMode, shelfEnabled: shelfEnabled, shelfIsEmpty: shelfState.isEmpty,
+                alwaysShowTabs: coordinator.alwaysShowTabs,
+                hasExtensionTabs: !extensionTabs.tabs(for: tabPresentation).isEmpty
+            )
     }
+
+    private var usesFloatingTabs: Bool { compactMode || floatingTabsInStandardMode }
 
     private enum ClosedNotchContent: Equatable {
         case hello
@@ -401,7 +409,7 @@ struct ContentView: View {
                            // and the header spans the full notch width,
                            // which is what was stretching the whole panel
                            // out around a short message.
-                           BoringHeader()
+                           BoringHeader(showsTabs: !usesFloatingTabs)
                                .frame(height: max(38, displayClosedNotchHeight))
                                .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
                        }

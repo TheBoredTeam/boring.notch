@@ -52,6 +52,31 @@ final class NotchWorkspaceLayoutTests: XCTestCase {
         XCTAssertEqual(NotchTabStripMetrics.floatingContentWidth(tabCount: 0, maximumWidth: 336), 0)
     }
 
+    func testBothStandardPlacementsRespectShelfAndAlwaysShowTabsPreferences() {
+        XCTAssertFalse(NotchTabVisibility.shouldShow(compactMode: false, shelfEnabled: true,
+            shelfIsEmpty: true, alwaysShowTabs: false, hasExtensionTabs: false))
+        XCTAssertTrue(NotchTabVisibility.shouldShow(compactMode: false, shelfEnabled: true,
+            shelfIsEmpty: true, alwaysShowTabs: true, hasExtensionTabs: false))
+        XCTAssertTrue(NotchTabVisibility.shouldShow(compactMode: false, shelfEnabled: true,
+            shelfIsEmpty: false, alwaysShowTabs: false, hasExtensionTabs: false))
+        XCTAssertFalse(NotchTabVisibility.shouldShow(compactMode: false, shelfEnabled: false,
+            shelfIsEmpty: false, alwaysShowTabs: true, hasExtensionTabs: false))
+    }
+
+    func testCompactKeepsEnabledShelfAvailableWithoutAlwaysShowTabs() {
+        XCTAssertTrue(NotchTabVisibility.shouldShow(compactMode: true, shelfEnabled: true,
+            shelfIsEmpty: true, alwaysShowTabs: false, hasExtensionTabs: false))
+        XCTAssertFalse(NotchTabVisibility.shouldShow(compactMode: true, shelfEnabled: false,
+            shelfIsEmpty: true, alwaysShowTabs: true, hasExtensionTabs: false))
+    }
+
+    func testEligibleExtensionsKeepTabsVisibleInEitherMode() {
+        for compactMode in [false, true] {
+            XCTAssertTrue(NotchTabVisibility.shouldShow(compactMode: compactMode, shelfEnabled: false,
+                shelfIsEmpty: true, alwaysShowTabs: false, hasExtensionTabs: true))
+        }
+    }
+
     private func layout(compact: Bool) -> NotchWorkspaceLayout {
         NotchWorkspaceLayout(compactMode: compact,
             standardSize: CGSize(width: 640, height: 190), horizontalInset: compact ? 47 : 31,

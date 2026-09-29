@@ -25,6 +25,15 @@ struct NotchWorkspaceLayout {
     }
 }
 
+/// Placement does not change visibility preferences. Compact keeps Shelf
+/// available, while both standard placements honor “Always show tabs”.
+enum NotchTabVisibility {
+    static func shouldShow(compactMode: Bool, shelfEnabled: Bool, shelfIsEmpty: Bool,
+                           alwaysShowTabs: Bool, hasExtensionTabs: Bool) -> Bool {
+        hasExtensionTabs || (shelfEnabled && (compactMode || !shelfIsEmpty || alwaysShowTabs))
+    }
+}
+
 /// Shared by the inline strip, detached pill, and host window reservation.
 enum NotchTabStripMetrics {
     static let buttonWidth: CGFloat = 44

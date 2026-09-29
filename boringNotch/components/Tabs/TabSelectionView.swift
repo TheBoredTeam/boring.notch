@@ -33,18 +33,21 @@ struct TabSelectionView: View {
         var result = [TabModel(label: "Home", icon: "house.fill", view: .home)]
         if shelfEnabled { result.append(TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)) }
         result += registry.tabs(for: compactMode ? .compact : .regular).map {
-            TabModel(label: $0.descriptor.title, icon: $0.descriptor.systemSymbol, view: .extensionTab($0.id))
+            TabModel(label: $0.descriptor.title, icon: $0.systemSymbol, view: .extensionTab($0.id))
         }
         return result
     }
 
     var body: some View {
+        let tabs = self.tabs
+        let selection = coordinator.currentView
+
         Group {
             switch presentation {
             case .embedded:
-                measuredStrip
+                measuredStrip(tabs: tabs, selection: selection)
             case .floating(let maximumWidth):
-                measuredStrip
+                measuredStrip(tabs: tabs, selection: selection)
                     .frame(width: NotchTabStripMetrics.floatingContentWidth(tabCount: tabs.count, maximumWidth: maximumWidth))
                     .padding(.horizontal, NotchTabStripMetrics.horizontalPadding)
                     .padding(.vertical, NotchTabStripMetrics.verticalPadding)
@@ -56,26 +59,27 @@ struct TabSelectionView: View {
         .accessibilityLabel("Notch tabs")
     }
 
-    private var measuredStrip: some View {
+    private func measuredStrip(tabs: [TabModel], selection: NotchViews) -> some View {
         GeometryReader { geometry in
-            tabStrip(showsOverflow: CGFloat(tabs.count) * TabButton.width > geometry.size.width)
+            tabStrip(tabs: tabs, selection: selection,
+                     showsOverflow: CGFloat(tabs.count) * TabButton.width > geometry.size.width)
         }
         .frame(height: NotchTabStripMetrics.buttonHeight)
     }
 
-    private func tabStrip(showsOverflow: Bool) -> some View {
+    private func tabStrip(tabs: [TabModel], selection: NotchViews, showsOverflow: Bool) -> some View {
         HStack(spacing: 0) {
             ScrollViewReader { proxy in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 0) {
+                    LazyHStack(spacing: 0) {
                         ForEach(tabs) { tab in
-                            TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view) {
+                            TabButton(label: tab.label, icon: tab.icon, selected: selection == tab.view) {
                                 select(tab.view)
                             }
                             .frame(height: NotchTabStripMetrics.buttonHeight)
-                            .foregroundStyle(tab.view == coordinator.currentView ? .white : .gray)
+                            .foregroundStyle(tab.view == selection ? .white : .gray)
                             .background {
-                                if tab.view == coordinator.currentView {
+                                if tab.view == selection {
                                     Capsule()
                                         .fill(Color(nsColor: .secondarySystemFill))
                                         .matchedGeometryEffect(id: "capsule", in: animation)
@@ -86,16 +90,16 @@ struct TabSelectionView: View {
                     }
                 }
                 .clipShape(Capsule())
-                .onAppear { proxy.scrollTo(coordinator.currentView, anchor: .center) }
-                .onChange(of: coordinator.currentView) { _, selection in
-                    withAnimation(reduceMotion ? nil : .smooth) { proxy.scrollTo(selection, anchor: .center) }
+                .onAppear { proxy.scrollTo(selection, anchor: .center) }
+                .onChange(of: selection) { _, newSelection in
+                    withAnimation(reduceMotion ? nil : .smooth) { proxy.scrollTo(newSelection, anchor: .center) }
                 }
             }
             if showsOverflow {
                 Menu {
                     ForEach(tabs) { tab in
                         Button { select(tab.view) } label: {
-                            if tab.view == coordinator.currentView {
+                            if tab.view == selection {
                                 Label(tab.label, systemImage: "checkmark")
                             } else {
                                 Label(tab.label, systemImage: tab.icon)
@@ -119,7 +123,16 @@ struct TabSelectionView: View {
     private func select(_ tab: NotchViews) {
         // A menu can outlive a metadata or mode change. Resolve against the
         // current registry again instead of selecting a stale hidden entry.
-        guard tabs.contains(where: { $0.view == tab }) else { return }
+        switch tab {
+        case .home:
+            break
+        case .shelf:
+            guard Defaults[.boringShelf] else { return }
+        case .extensionTab(let id):
+            let mode: ExtensionTabPresentation = Defaults[.compactMode] ? .compact : .regular
+            guard registry.tab(for: id, presentation: mode) != nil else { return }
+        }
+        guard coordinator.currentView != tab else { return }
         withAnimation(reduceMotion ? nil : .smooth) { coordinator.currentView = tab }
     }
 }

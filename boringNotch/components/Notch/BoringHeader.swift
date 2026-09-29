@@ -9,6 +9,8 @@ import Defaults
 import SwiftUI
 
 struct BoringHeader: View {
+    var showsTabs: Bool = true
+    @Default(.boringShelf) private var shelfEnabled
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
@@ -17,7 +19,11 @@ struct BoringHeader: View {
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if !extensionTabs.tabs(for: .regular).isEmpty || ((!shelfState.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf]) {
+                if showsTabs && NotchTabVisibility.shouldShow(
+                    compactMode: false, shelfEnabled: shelfEnabled, shelfIsEmpty: shelfState.isEmpty,
+                    alwaysShowTabs: coordinator.alwaysShowTabs,
+                    hasExtensionTabs: !extensionTabs.tabs(for: .regular).isEmpty
+                ) {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()
