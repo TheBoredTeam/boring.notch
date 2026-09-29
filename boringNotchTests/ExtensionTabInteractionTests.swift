@@ -16,6 +16,22 @@ private final class InteractionPanel: NSPanel, ExtensionTabInputHosting {
 }
 
 @MainActor
+private final class KeyboardNavigationTable: NSTableView {
+    override var acceptsFirstResponder: Bool { isEnabled }
+    override var needsPanelToBecomeKey: Bool { isEnabled }
+}
+
+@MainActor
+private final class NavigationRows: NSObject, NSTableViewDataSource {
+    func numberOfRows(in tableView: NSTableView) -> Int { 3 }
+}
+
+@MainActor
+private final class FocusableButton: NSButton {
+    override var acceptsFirstResponder: Bool { true }
+}
+
+@MainActor
 private final class PopoverModel: ObservableObject {
     @Published var isPresented = false
     @Published var draft = ""
@@ -175,6 +191,64 @@ final class ExtensionTabInteractionTests: XCTestCase {
         panel.extensionTabInput.unmount(owner)
         XCTAssertFalse(panel.extensionTabInput.keepsNotchOpen)
         XCTAssertNil(field.currentEditor())
+    }
+
+    func testSearchToNativeKeyboardNavigationRetainsOnlyTheMountedInteraction() throws {
+        _ = NSApplication.shared
+        let panel = makePanel()
+        panel.simulatedKey = false
+        defer { panel.contentView = nil; panel.close() }
+        let root = try XCTUnwrap(panel.contentView)
+        let owner = NSView(frame: CGRect(x: 0, y: 0, width: 200, height: 128))
+        root.addSubview(owner)
+        let search = NSSearchField(frame: CGRect(x: 5, y: 100, width: 190, height: 22))
+        owner.addSubview(search)
+        let rows = NavigationRows()
+        let table = KeyboardNavigationTable(frame: CGRect(x: 5, y: 25, width: 190, height: 66))
+        table.addTableColumn(NSTableColumn(identifier: .init("result")))
+        table.headerView = nil
+        table.dataSource = rows
+        owner.addSubview(table)
+        table.reloadData()
+        table.selectRowIndexes(IndexSet(integer: 0), byExtendingSelection: false)
+        let button = FocusableButton(frame: CGRect(x: 5, y: 0, width: 100, height: 22))
+        owner.addSubview(button)
+        let outside = KeyboardNavigationTable(frame: CGRect(x: 205, y: 25, width: 110, height: 66))
+        root.addSubview(outside)
+        let scope = panel.extensionTabInput
+        let previousKey = NSApp.keyWindow
+        scope.mount(owner, in: panel)
+        XCTAssertFalse(scope.keepsNotchOpen)
+        XCTAssertTrue(NSApp.keyWindow === previousKey, "Mounting does not acquire keyboard focus")
+        var holds: [Bool] = []
+        let observer = scope.interactionChanges.sink { holds.append(scope.keepsNotchOpen) }
+        defer { observer.cancel() }
+        panel.simulatedKey = true
+        XCTAssertTrue(panel.makeFirstResponder(search))
+        XCTAssertNotNil(search.currentEditor())
+        XCTAssertTrue(settle { holds.last == true })
+        XCTAssertTrue(panel.makeFirstResponder(table))
+        XCTAssertTrue(panel.firstResponder === table)
+        XCTAssertTrue(scope.keepsNotchOpen, "Leaving the search editor for result navigation must retain the hold")
+        let down = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [],
+            timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: panel.windowNumber,
+            context: nil, characters: "\u{f701}", charactersIgnoringModifiers: "\u{f701}", isARepeat: false, keyCode: 125))
+        table.keyDown(with: down)
+        XCTAssertEqual(table.selectedRow, 1, "The focused native control receives navigation keys")
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.02))
+        XCTAssertEqual(holds, [true], "Responder transfer must not emit a release to the hover-close scheduler")
+        XCTAssertTrue(panel.makeFirstResponder(button))
+        XCTAssertFalse(scope.keepsNotchOpen, "A focusable button without panel keyboard intent does not hold")
+        XCTAssertTrue(panel.makeFirstResponder(outside))
+        XCTAssertFalse(scope.keepsNotchOpen, "Another subtree's navigation control cannot hold this tab")
+        XCTAssertTrue(panel.makeFirstResponder(table))
+        panel.simulatedKey = false
+        XCTAssertFalse(scope.keepsNotchOpen, "An inactive window's last navigation responder does not hold")
+        panel.simulatedKey = true
+        table.isEnabled = false
+        XCTAssertFalse(scope.keepsNotchOpen, "A disabled navigation control no longer requests keyboard input")
+        scope.unmount(owner)
+        XCTAssertFalse(scope.keepsNotchOpen)
     }
 
     private func makePanel() -> InteractionPanel {

@@ -29,14 +29,19 @@ final class ExtensionTabInputScope {
     }
 
     /// Merely mounting a tab or making a button first responder is not a hold.
-    /// Only this mount's visible child windows or active native text input count.
+    /// Only this mount's visible child windows or active native keyboard input count.
     var keepsNotchOpen: Bool {
         guard let owner, let panel, owner.window === panel, panel.isVisible else { return false }
         if !ownedChildren(in: panel).filter(\.isVisible).isEmpty { return true }
         guard panel.isKeyWindow, owns(panel.firstResponder, inside: owner) else { return false }
         if let text = panel.firstResponder as? NSTextView { return text.isEditable }
         if let field = panel.firstResponder as? NSTextField { return field.isEditable }
-        return panel.firstResponder is any NSTextInputClient
+        if panel.firstResponder is any NSTextInputClient { return true }
+        // AppKit controls declare whether they need panel keyboard focus.
+        // Honor that contract for navigation as well as editing, without
+        // retaining the notch for ordinary buttons or inactive windows.
+        guard let view = panel.firstResponder as? NSView else { return false }
+        return view.acceptsFirstResponder && view.needsPanelToBecomeKey
     }
 
     func allowsKey(in window: NSWindow) -> Bool {
