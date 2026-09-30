@@ -74,7 +74,7 @@ struct ShelfSettingsView: View {
             } header: {
                 Text("Floating shelf")
             } footer: {
-                Text("Opens a shelf beside the pointer while you drag files or text. The floating shelf shortcut in Shortcuts toggles it anytime, and Escape closes it.")
+                Text("Opens a shelf beside the pointer while you drag files or text. The floating shelf shortcut in Shortcuts toggles it anytime, and Escape closes it. Opened from the shortcut, it stays up until you drop a file, share, drag an item out, or choose a menu action, then closes when the pointer leaves.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

@@ -73,14 +73,17 @@ enum FloatingShelfTriggerPolicy {
 }
 
 enum FloatingShelfDismissPolicy {
-    /// A shortcut open has not been visited yet, so the pointer starting outside the panel must not close it.
+    /// A shortcut open with nothing being dragged stays up through hovers until the shelf is used.
+    /// A drag-opened shelf, and a shortcut open during a drag, still close once the pointer has visited and left.
     static func shouldClose(
         hasVisited: Bool,
         pointerInside: Bool,
         sharingActive: Bool,
         grabbingItem: Bool,
-        menuOpen: Bool
+        menuOpen: Bool,
+        awaitsUse: Bool = false
     ) -> Bool {
-        hasVisited && !pointerInside && !sharingActive && !grabbingItem && !menuOpen
+        guard !awaitsUse else { return false }
+        return hasVisited && !pointerInside && !sharingActive && !grabbingItem && !menuOpen
     }
 }

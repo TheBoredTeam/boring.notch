@@ -168,19 +168,27 @@ final class FloatingShelfTests: XCTestCase {
         XCTAssertFalse(closing(hasVisited: false, pointerInside: true))
     }
 
+    func testShortcutShelfStaysUntilItHasBeenUsed() {
+        XCTAssertFalse(closing(hasVisited: true, awaitsUse: true))
+        XCTAssertFalse(closing(hasVisited: true, pointerInside: true, awaitsUse: true))
+        XCTAssertTrue(closing(awaitsUse: false))
+    }
+
     private func closing(
         hasVisited: Bool = true,
         pointerInside: Bool = false,
         sharingActive: Bool = false,
         grabbingItem: Bool = false,
-        menuOpen: Bool = false
+        menuOpen: Bool = false,
+        awaitsUse: Bool = false
     ) -> Bool {
         FloatingShelfDismissPolicy.shouldClose(
             hasVisited: hasVisited,
             pointerInside: pointerInside,
             sharingActive: sharingActive,
             grabbingItem: grabbingItem,
-            menuOpen: menuOpen
+            menuOpen: menuOpen,
+            awaitsUse: awaitsUse
         )
     }
 

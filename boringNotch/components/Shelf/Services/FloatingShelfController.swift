@@ -36,6 +36,10 @@ final class FloatingShelfController {
     /// A context menu opened over the panel. The pointer leaves the panel to pick an item,
     /// so the close timer must wait for the menu rather than read the pointer.
     private var panelMenu: NSMenu?
+    /// Set when a panel menu item is chosen. Opening the menu and dismissing it is not a use.
+    private var menuActionChosen = false
+    /// Shortcut open with nothing being dragged. Hovering, and clicks that are not a drop, are not a use.
+    private var awaitsUse = false
     private let dragPasteboard = NSPasteboard(name: .drag)
     private var isNotchOpen: () -> Bool = { false }
 
@@ -111,6 +115,14 @@ final class FloatingShelfController {
                     self?.menuDidEndTracking(menu)
                 }
             },
+            NotificationCenter.default.addObserver(
+                forName: NSMenu.didSendActionNotification, object: nil, queue: nil
+            ) { [weak self] notification in
+                let menu = notification.object as? NSMenu
+                MainActor.assumeIsolated {
+                    self?.menuDidSendAction(menu)
+                }
+            },
         ]
     }
 
@@ -135,6 +147,20 @@ final class FloatingShelfController {
 
     private func menuDidEndTracking(_ menu: NSMenu?) {
         if menu === panelMenu { panelMenu = nil }
+    }
+
+    private func menuDidSendAction(_ menu: NSMenu?) {
+        guard menuBelongsToPanel(menu) else { return }
+        menuActionChosen = true
+    }
+
+    private func menuBelongsToPanel(_ menu: NSMenu?) -> Bool {
+        var current = menu
+        while let menu = current {
+            if menu === panelMenu { return true }
+            current = menu.supermenu
+        }
+        return false
     }
 
     private func handleMouseDown() {
@@ -230,10 +256,12 @@ final class FloatingShelfController {
             shiftHeld: false,
             shortcutPressed: true
         ) else { return }
+        let openedDuringDrag = isContentDragging
         present(near: cursor)
         // A background app's cursor changes only apply over its key window. During a file
         // drag this must not run, since moving key status would cancel the drag.
-        if !isContentDragging {
+        if !openedDuringDrag {
+            awaitsUse = true
             panel?.makeKey()
         }
         scheduleNotchStyleDismiss(hasVisited: false)
@@ -275,6 +303,8 @@ final class FloatingShelfController {
         panel.setFrame(frame, display: true)
         panel.show(growingFrom: FloatingShelfPlacement.growthAnchor(cursor: cursor, frame: frame))
         isPresented = true
+        awaitsUse = false
+        menuActionChosen = false
         if Defaults[.enableHaptics] {
             NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
         }
@@ -307,9 +337,14 @@ final class FloatingShelfController {
         let dropped = panel?.dropInteraction.dropEvent == true
         panel?.dropInteraction.dropEvent = false
         if SharingStateManager.shared.preventNotchClose || (dropped && shareDropArmed) {
+            noteShelfWasUsed()
             scheduleDismissAfterSharing()
         } else if dropped {
+            noteShelfWasUsed()
             scheduleNotchStyleDismiss()
+        } else if awaitsUse {
+            // Clicking elsewhere to go and fetch a file is not a use.
+            scheduleNotchStyleDismiss(hasVisited: false)
         } else {
             dismiss()
         }
@@ -334,7 +369,7 @@ final class FloatingShelfController {
         }
     }
 
-    /// `hasVisited` starts false for a shortcut open. A drop already happened on the panel, so that path starts visited.
+    /// `hasVisited` starts false for a shortcut open during a drag. A drop already happened on the panel, so that path starts visited.
     private func scheduleNotchStyleDismiss(hasVisited: Bool = true) {
         dismissTask?.cancel()
         dismissTask = Task { @MainActor in
@@ -354,23 +389,39 @@ final class FloatingShelfController {
         }
     }
 
+    /// A drop, a share, dragging an item out, or choosing a context-menu action.
+    private func noteShelfWasUsed() {
+        awaitsUse = false
+        menuActionChosen = false
+    }
+
     private func readyToClose(hasVisited: inout Bool) -> Bool {
         let pointerInside = panel?.frame.contains(NSEvent.mouseLocation) == true
-        if pointerInside {
+        let grabbingItem = ShelfSelectionModel.shared.isDragging
+        let sharingActive = SharingStateManager.shared.preventNotchClose
+        if awaitsUse, grabbingItem || sharingActive || menuActionChosen {
+            noteShelfWasUsed()
+            hasVisited = true
+        }
+        // Hovering an unused shortcut shelf must not arm the close.
+        if !awaitsUse, pointerInside {
             hasVisited = true
         }
         return FloatingShelfDismissPolicy.shouldClose(
             hasVisited: hasVisited,
             pointerInside: pointerInside,
-            sharingActive: SharingStateManager.shared.preventNotchClose,
-            grabbingItem: ShelfSelectionModel.shared.isDragging,
-            menuOpen: panelMenu != nil
+            sharingActive: sharingActive,
+            grabbingItem: grabbingItem,
+            menuOpen: panelMenu != nil,
+            awaitsUse: awaitsUse
         )
     }
 
     private func dismiss() {
         dismissTask?.cancel()
         dismissTask = nil
+        awaitsUse = false
+        menuActionChosen = false
         guard isPresented else { return }
         isPresented = false
         panel?.hide { [weak panel] in panel?.resetAppearance() }
