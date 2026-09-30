@@ -41,36 +41,41 @@ struct AboutView: View {
     }
 
     var body: some View {
-        VStack {
-            Form {
-                Section {
-                    HStack {
-                        Text("Release name")
-                        Spacer()
-                        Text(Defaults[.releaseName])
-                            .foregroundStyle(.secondary)
-                    }
-                    HStack {
-                        Text("Version")
-                        Spacer()
-                        if showBuildNumber {
-                            Text("(\(Bundle.main.buildVersionNumber ?? ""))")
-                                .foregroundStyle(.secondary)
-                        }
-                        Text(Bundle.main.releaseVersionNumber ?? "unkown")
-                            .foregroundStyle(.secondary)
-                    }
-                    .onTapGesture {
-                        withAnimation {
-                            showBuildNumber.toggle()
-                        }
-                    }
-                } header: {
-                    Text("Version info")
-                }
+        Form {
+            Section {
+                appHeader
+            }
 
-                UpdaterSettingsView(updater: updaterController.updater)
+            UpdaterSettingsView(updater: updaterController.updater)
 
+            Section {
+                creditRow(
+                    title: "boringCode",
+                    detail: "Renan Sousa (@reesoousa)",
+                    systemImage: "person.crop.circle",
+                    url: "https://github.com/reesoousa"
+                )
+                creditRow(
+                    title: "Boring Notch",
+                    detail: String(localized: "TheBoredTeam — the base of the app and its design"),
+                    systemImage: "rectangle.topthird.inset.filled",
+                    url: "https://github.com/TheBoredTeam/boring.notch"
+                )
+                creditRow(
+                    title: "Open Island",
+                    detail: String(localized: "Octane0411 — reference for the AI agents integration"),
+                    systemImage: "sparkles.rectangle.stack",
+                    url: "https://github.com/Octane0411/open-vibe-island"
+                )
+            } header: {
+                Text("Credits")
+            } footer: {
+                Text("Open source under the GPL-3.0 license, like the projects it's based on.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
                 HStack(spacing: 30) {
                     Spacer(minLength: 0)
                     Button {
@@ -105,24 +110,68 @@ struct AboutView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
             }
-            VStack(spacing: 0) {
-                Divider()
-                Text("Made with 🫶🏻 by not so boring not.people")
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 5)
-                Text("boringCode is based on [Boring Notch](https://github.com/TheBoredTeam/boring.notch) by TheBoredTeam, with ideas from [Open Island](https://github.com/Octane0411/open-vibe-island). GPL-3.0.")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-                    .padding(.top, 2)
-                    .padding(.bottom, 7)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 10)
-            }
-            .frame(maxWidth: .infinity, alignment: .center)
         }
         .toolbar {
             CheckForUpdatesView(updater: updaterController.updater)
         }
         .navigationTitle("About")
     }
+
+    /// Cabeçalho no padrão "Sobre este app" da Apple: ícone grande, nome, versão.
+    private var appHeader: some View {
+        VStack(spacing: 6) {
+            Image(nsImage: NSApp.applicationIconImage)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 112, height: 112)
+                .accessibilityHidden(true)
+            Text("boringCode")
+                .font(.system(size: 22, weight: .semibold))
+            Text("Version \(Bundle.main.releaseVersionNumber ?? "–") (\(BoringCodeRelease.name))")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .onTapGesture { withAnimation { showBuildNumber.toggle() } }
+            if showBuildNumber {
+                Text("Build \(Bundle.main.buildVersionNumber ?? "–")")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            Text("Made for not-so-boring people.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .padding(.top, 2)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+    }
+
+    private func creditRow(title: String, detail: String, systemImage: String, url: String) -> some View {
+        Button {
+            if let link = URL(string: url) { NSWorkspace.shared.open(link) }
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 16))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 22)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title)
+                    Text(detail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "arrow.up.right.square")
+                    .foregroundStyle(.tertiary)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(url)
+    }
+}
+
+/// Nome da versão do boringCode (cada versão ganha um apelido, como no Boring Notch).
+enum BoringCodeRelease {
+    static let name = "Astronaut Cat 🐱🚀"
 }

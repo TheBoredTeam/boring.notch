@@ -85,7 +85,7 @@ struct DynamicNotchApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra("boringCode", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
+        MenuBarExtra("boringCode", image: "menubarIcon", isInserted: $showMenuBarIcon) {
             Button("Settings") {
                 DispatchQueue.main.async {
                     SettingsWindowController.shared.showWindow()

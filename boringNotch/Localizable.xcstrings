@@ -31692,6 +31692,76 @@
           }
         }
       }
+    },
+    "TheBoredTeam — the base of the app and its design" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TheBoredTeam — a base do app e do design"
+          }
+        }
+      }
+    },
+    "Octane0411 — reference for the AI agents integration" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Octane0411 — referência para a integração com agentes de IA"
+          }
+        }
+      }
+    },
+    "Credits" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créditos"
+          }
+        }
+      }
+    },
+    "Open source under the GPL-3.0 license, like the projects it's based on." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Código aberto sob a licença GPL-3.0, como os projetos em que se baseia."
+          }
+        }
+      }
+    },
+    "Version %@ (%@)" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versão %@ (%@)"
+          }
+        }
+      }
+    },
+    "Build %@" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Build %@"
+          }
+        }
+      }
+    },
+    "Made for not-so-boring people." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feito para pessoas não tão chatas assim."
+          }
+        }
+      }
     }
   },
   "version" : "1.1"
