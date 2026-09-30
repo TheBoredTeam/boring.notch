@@ -266,6 +266,8 @@ final class AgentSessionStore: ObservableObject {
                 break
             }
         case "Stop":
+            // Só avisa se algo estava de fato em andamento (não num Stop repetido).
+            if session.status.isActive { AgentCompletionSound.play() }
             dropPermissions(of: &session)
             session.status = .done
             session.activity = nil

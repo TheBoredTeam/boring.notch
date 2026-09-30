@@ -31602,6 +31602,26 @@
           }
         }
       }
+    },
+    "Play a subtle sound when an agent finishes" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocar um som sutil quando um agente terminar"
+          }
+        }
+      }
+    },
+    "Sound" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Som"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

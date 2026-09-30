@@ -11,6 +11,8 @@ import SwiftUI
 struct AgentsSettingsView: View {
     @ObservedObject private var store = AgentSessionStore.shared
     @Default(.agentsEnabled) private var agentsEnabled
+    @Default(.agentsCompletionSound) private var completionSound
+    @Default(.agentsCompletionSoundName) private var completionSoundName
 
     var body: some View {
         Form {
@@ -30,6 +32,17 @@ struct AgentsSettingsView: View {
                     Text("Open the notch when an agent needs approval")
                 }
                 .disabled(!agentsEnabled)
+                Defaults.Toggle(key: .agentsCompletionSound) {
+                    Text("Play a subtle sound when an agent finishes")
+                }
+                .disabled(!agentsEnabled)
+                Picker("Sound", selection: $completionSoundName) {
+                    ForEach(AgentCompletionSound.availableSounds, id: \.self) { name in
+                        Text(name).tag(name)
+                    }
+                }
+                .disabled(!agentsEnabled || !completionSound)
+                .onChange(of: completionSoundName) { _, name in AgentCompletionSound.preview(name) }
             } header: {
                 Text("General")
             } footer: {
