@@ -24,7 +24,7 @@ recursos do [Open Island](https://github.com/Octane0411/open-vibe-island): monit
 | Nome / executável | `Boring Notch` | `boringCode` |
 | Bundle ID | `theboringteam.boringnotch` | `com.reesoousa.boringcode` |
 | Helper XPC | `theboringteam.boringnotch.BoringNotchXPCHelper` | `com.reesoousa.boringcode.BoringNotchXPCHelper` |
-| Sparkle feed | appcast do upstream | `https://reesoousa.github.io/boring.notch/appcast.xml` (ainda não existe) |
+| Sparkle feed | appcast do upstream | `https://reesoousa.github.io/boringCode/appcast.xml` (ainda não existe) |
 
 `PRODUCT_MODULE_NAME` continua `boringNotch` (os testes usam `@testable import boringNotch`).
 O nome do serviço XPC é derivado do bundle ID em `XPCHelperClient.swift`.
@@ -81,9 +81,9 @@ xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -derivedDataPath b
 - **Nunca** commitar direto em `main` nem `dev`. Uma branch por feature: `feat/...`
   (ou `fix/...`, `chore/...`), partindo da `dev` atualizada.
 - **Conventional Commits em pt-BR** (`feat: adiciona aba de agentes`).
-- Commit e push livres nas branches de feature. PR → `dev` do **fork** (`reesoousa/boring.notch`).
+- Commit e push livres nas branches de feature. PR → `dev` do **fork** (`reesoousa/boringCode`).
 - **Sem** force-push, rebase de branch publicada ou rewrite de histórico sem perguntar.
-- Remotes: `origin` = fork (`reesoousa/boring.notch`), `upstream` = `TheBoredTeam/boring.notch`.
+- Remotes: `origin` = fork (`reesoousa/boringCode`), `upstream` = `TheBoredTeam/boring.notch`.
   Sincronizar: `git fetch upstream && git merge upstream/dev` (numa branch, nunca direto na `dev`).
 - `reference/` nunca entra no git.
 
