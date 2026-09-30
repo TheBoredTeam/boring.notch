@@ -405,5 +405,14 @@ final class AgentSessionStore: ObservableObject {
             }
         }
         if sessions.count != before { log.debug("removidas \(before - self.sessions.count) sessões") }
+
+        // "Rodando" sem nenhum evento há 90s e sem processo para confirmar: provavelmente
+        // parou sem avisar. Fica parado (sem animação) em vez de chamar atenção à toa.
+        for index in sessions.indices where sessions[index].status == .running
+            && sessions[index].agentPID == nil
+            && now.timeIntervalSince(sessions[index].updatedAt) > 90 {
+            sessions[index].status = .idle
+            sessions[index].activity = nil
+        }
     }
 }

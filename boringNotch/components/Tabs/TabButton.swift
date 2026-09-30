@@ -15,9 +15,16 @@ struct TabButton: View {
 
     var body: some View {
         Button(action: onClick) {
-            Image(systemName: icon)
-                .padding(.horizontal, 15)
-                .contentShape(Capsule())
+            Group {
+                if icon == AgentPromptGlyph.iconName {
+                    AgentPromptGlyph()
+                        .frame(width: 17, height: 14)
+                } else {
+                    Image(systemName: icon)
+                }
+            }
+            .padding(.horizontal, 15)
+            .contentShape(Capsule())
         }
         .buttonStyle(PlainButtonStyle())
     }

@@ -55,11 +55,9 @@ struct AgentsTabView: View {
     @ViewBuilder
     private var emptyState: some View {
         VStack(spacing: 8) {
-            Image(systemName: "apple.terminal")
-                .symbolVariant(.fill)
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(.white, .gray)
-                .imageScale(.large)
+            AgentPromptGlyph(lineWidth: 2.6)
+                .foregroundStyle(.white)
+                .frame(width: 26, height: 21)
 
             Text("No active Claude Code sessions")
                 .foregroundStyle(.gray)

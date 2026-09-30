@@ -847,6 +847,9 @@ struct ContentView: View {
 extension ContentView {
     @discardableResult
     private func doOpen() -> Bool {
+        if vm.notchState == .closed, pointerIsOverAgentSide() {
+            coordinator.currentView = .agents
+        }
         var didOpen = false
         withAnimation(animationSpring) {
             didOpen = vm.open()
@@ -874,6 +877,24 @@ extension ContentView {
                     self.vm.close()
                 }
             }
+        }
+    }
+
+    /// O ponteiro está no lado do notch fechado que mostra o agente? Decide pela
+    /// posição horizontal, não por hover no ícone — assim chegar por baixo ou
+    /// pela lateral dá no mesmo. Com música, só o lado direito é do agente; sem
+    /// música, os dois lados são. O centro (notch físico) segue o normal.
+    private func pointerIsOverAgentSide() -> Bool {
+        guard Defaults[.agentsEnabled], Defaults[.agentsHoverOpensTab],
+              agentIndicatorStatus != nil,
+              let activity = selectedActivity,
+              let screenUUID = vm.screenUUID, let screen = NSScreen.screen(withUUID: screenUUID) else { return false }
+        let offset = NSEvent.mouseLocation.x - screen.frame.midX
+        let notchHalf = vm.closedNotchSize.width / 2
+        switch activity {
+        case .music: return offset > notchHalf - 4
+        case .agents: return abs(offset) > notchHalf - 4
+        case .notification: return false
         }
     }
 

@@ -24,7 +24,6 @@ struct AgentLiveActivity: View {
         HStack {
             AgentStatusIndicator(status: status, size: itemSize * 0.8)
                 .frame(width: itemSize, height: itemSize)
-                .opensAgentsTabOnHover()
 
             Rectangle()
                 .fill(.black)
@@ -32,7 +31,6 @@ struct AgentLiveActivity: View {
 
             AgentSessionCells(sessions: store.sessions, size: itemSize)
                 .frame(width: itemSize, height: itemSize)
-                .opensAgentsTabOnHover()
         }
         .frame(height: vm.effectiveClosedNotchHeight)
         .animation(.smooth(duration: 0.25), value: status)
@@ -48,7 +46,6 @@ struct AgentClosedIndicator: View {
         AgentStatusIndicator(status: status, size: max(0, size * 0.8))
             .frame(width: size, height: size)
             .animation(.smooth(duration: 0.25), value: status)
-            .opensAgentsTabOnHover()
     }
 }
 
@@ -113,35 +110,4 @@ private extension AgentSessionStatus {
         default: tint
         }
     }
-}
-
-/// Passar o mouse aqui faz o notch abrir direto na aba Agentes.
-/// Fora dessas áreas, o hover segue o comportamento normal do Boring Notch.
-private struct OpensAgentsTabOnHover: ViewModifier {
-    @EnvironmentObject private var vm: BoringViewModel
-    @ObservedObject private var coordinator = BoringViewCoordinator.shared
-    @State private var viewBeforeHover: NotchViews?
-
-    func body(content: Content) -> some View {
-        content
-            .contentShape(Rectangle())
-            .onHover { hovering in
-                guard Defaults[.agentsHoverOpensTab], vm.notchState == .closed else { return }
-                if hovering {
-                    if coordinator.currentView != .agents { viewBeforeHover = coordinator.currentView }
-                    coordinator.currentView = .agents
-                } else if let previous = viewBeforeHover {
-                    // Saiu sem abrir o notch: volta a aba de antes.
-                    coordinator.currentView = previous
-                    viewBeforeHover = nil
-                }
-            }
-            .onChange(of: vm.notchState) { _, state in
-                if state == .open { viewBeforeHover = nil }
-            }
-    }
-}
-
-extension View {
-    func opensAgentsTabOnHover() -> some View { modifier(OpensAgentsTabOnHover()) }
 }
