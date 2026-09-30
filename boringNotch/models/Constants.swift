@@ -11,7 +11,7 @@ import Defaults
 // MARK: - File System Paths
 let documentsDirectory: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
     ?? URL(fileURLWithPath: NSTemporaryDirectory())
-let bundleIdentifier: String = Bundle.main.bundleIdentifier ?? "theboringteam.boringnotch"
+let bundleIdentifier: String = Bundle.main.bundleIdentifier ?? "com.reesoousa.boringcode"
 let appVersion = "\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""))"
 
 let temporaryDirectory: URL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
@@ -498,6 +498,12 @@ extension Defaults.Keys {
     // Brightness/volume/keyboard source selection
     static let osdBrightnessSource = Key<OSDControlSource>("osdBrightnessSource", default: .builtin)
     static let osdVolumeSource = Key<OSDControlSource>("osdVolumeSource", default: .builtin)
+
+    // MARK: Agents (boringCode)
+    static let agentsEnabled = Key<Bool>("agentsEnabled", default: true)
+    static let agentsShowClosedIndicator = Key<Bool>("agentsShowClosedIndicator", default: true)
+    static let agentsExpandOnApproval = Key<Bool>("agentsExpandOnApproval", default: true)
+    static let agentsHoverOpensTab = Key<Bool>("agentsHoverOpensTab", default: true)
 
     // MARK: Shelf
     static let boringShelf = Key<Bool>("boringShelf", default: true)

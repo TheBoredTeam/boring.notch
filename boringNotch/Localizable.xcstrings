@@ -3287,97 +3287,97 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch"
+            "value" : "boringCode"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch"
+            "value" : "boringCode"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch"
+            "value" : "boringCode"
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch"
+            "value" : "boringCode"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch"
+            "value" : "boringCode"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch"
+            "value" : "boringCode"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch"
+            "value" : "boringCode"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch"
+            "value" : "boringCode"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch"
+            "value" : "boringCode"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch"
+            "value" : "boringCode"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch"
+            "value" : "boringCode"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch"
+            "value" : "boringCode"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch"
+            "value" : "boringCode"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch"
+            "value" : "boringCode"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch"
+            "value" : "boringCode"
           }
         },
         "zh-Hant-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch"
+            "value" : "boringCode"
           }
         }
       }
@@ -3388,67 +3388,73 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch kann im Hintergrund nach Updates suchen. Sie können jederzeit auch manuell über die Menüleiste nach Updates suchen."
+            "value" : "boringCode kann im Hintergrund nach Updates suchen. Sie können jederzeit auch manuell über die Menüleiste nach Updates suchen."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch puede comprobar si hay actualizaciones en segundo plano. Puede comprobar manualmente desde la barra del menú en cualquier momento."
+            "value" : "boringCode puede comprobar si hay actualizaciones en segundo plano. Puede comprobar manualmente desde la barra del menú en cualquier momento."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch peut vérifier les mises à jour en arrière-plan. Vous pouvez toujours vérifier manuellement à partir de la barre de menus à tout moment."
+            "value" : "boringCode peut vérifier les mises à jour en arrière-plan. Vous pouvez toujours vérifier manuellement à partir de la barre de menus à tout moment."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch può controllare gli aggiornamenti in background. È comunque possibile controllare manualmente dalla barra dei menu in qualsiasi momento."
+            "value" : "boringCode può controllare gli aggiornamenti in background. È comunque possibile controllare manualmente dalla barra dei menu in qualsiasi momento."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notchはバックグラウンドでアップデートを確認します。また、メニューバーからいつでも確認することもできます。"
+            "value" : "boringCodeはバックグラウンドでアップデートを確認します。また、メニューバーからいつでも確認することもできます。"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch kan op de achtergrond controleren of er updates beschikbaar zijn. Je kunt dit op elk moment ook handmatig controleren via de menubalk."
+            "value" : "boringCode kan op de achtergrond controleren of er updates beschikbaar zijn. Je kunt dit op elk moment ook handmatig controleren via de menubalk."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Boring Notch pode verificar atualizações em segundo plano. Mesmo assim, você ainda pode verificar manualmente a partir da barra de menus a qualquer momento."
+            "value" : "O boringCode pode verificar atualizações em segundo plano. Mesmo assim, você ainda pode verificar manualmente a partir da barra de menus a qualquer momento."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch может проверить наличие обновлений в фоновом режиме. Вы все еще можете вручную проверить в строке меню в любое время."
+            "value" : "boringCode может проверить наличие обновлений в фоновом режиме. Вы все еще можете вручную проверить в строке меню в любое время."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch arka planda güncellemeleri denetleyebilir. Güncellemeleri menü çubuğundan istediğiniz zaman denetleyebilirsiniz."
+            "value" : "boringCode arka planda güncellemeleri denetleyebilir. Güncellemeleri menü çubuğundan istediğiniz zaman denetleyebilirsiniz."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch може перевіряти наявність оновлень у фоновому режимі. Ви також можете в будь-який момент перевірити їх вручну через інструментальну панель."
+            "value" : "boringCode може перевіряти наявність оновлень у фоновому режимі. Ви також можете в будь-який момент перевірити їх вручну через інструментальну панель."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch 可以在后台检查更新。你也可以随时通过菜单栏手动检查。"
+            "value" : "boringCode 可以在后台检查更新。你也可以随时通过菜单栏手动检查。"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "boringCode can check for updates in the background. You can still check manually from the menu bar at any time."
           }
         }
       }
@@ -3459,25 +3465,25 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch could not verify Now Playing. Try again, or reopen the app if it keeps happening."
+            "value" : "boringCode could not verify Now Playing. Try again, or reopen the app if it keeps happening."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch n'a pas pu vérifier « À l'écoute ». Essayez à nouveau, ou rouvrez l'application si cela continue de se produire."
+            "value" : "boringCode n'a pas pu vérifier « À l'écoute ». Essayez à nouveau, ou rouvrez l'application si cela continue de se produire."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Boring Notch não pôde verificar a Reprodução agora. Tente novamente ou reabra o aplicativo se continuar acontecendo."
+            "value" : "O boringCode não pôde verificar a Reprodução agora. Tente novamente ou reabra o aplicativo se continuar acontecendo."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch, Şu An Çalınan içeriği doğrulayamadı. Tekrar deneyin, sorun sürerse uygulamayı kapatıp yeniden açın."
+            "value" : "boringCode, Şu An Çalınan içeriği doğrulayamadı. Tekrar deneyin, sorun sürerse uygulamayı kapatıp yeniden açın."
           }
         }
       }
@@ -3488,31 +3494,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch lost its Now Playing connection. Reconnecting automatically..."
+            "value" : "boringCode lost its Now Playing connection. Reconnecting automatically..."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch a perdu le lien avec « À l'écoute ». Reconnexion en cours..."
+            "value" : "boringCode a perdu le lien avec « À l'écoute ». Reconnexion en cours..."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch ha perso la connessione alla Riproduzione in corso. Riconessione automatica..."
+            "value" : "boringCode ha perso la connessione alla Riproduzione in corso. Riconessione automatica..."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch perdeu sua conexão com reproduzindo agora. Reconectando automaticamente..."
+            "value" : "O boringCode perdeu a conexão com a Reprodução. Reconectando automaticamente..."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch, Şu An Çalınıyor bağlantısını kaybetti. Otomatik olarak yeniden bağlanılıyor..."
+            "value" : "boringCode, Şu An Çalınıyor bağlantısını kaybetti. Otomatik olarak yeniden bağlanılıyor..."
           }
         }
       }
@@ -3523,31 +3529,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch's Now Playing components are unavailable. Reopen or reinstall the app."
+            "value" : "boringCode's Now Playing components are unavailable. Reopen or reinstall the app."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les composants « À l'écoute » de Boring Notch ne sont pas disponibles. Redémarrez ou réinstallez l'application."
+            "value" : "Les composants « À l'écoute » de boringCode ne sont pas disponibles. Redémarrez ou réinstallez l'application."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I componenti della Riproduzione in corso di Boring Notch non sono disponibili. Riapri o reinstalla l'app."
+            "value" : "I componenti della Riproduzione in corso di boringCode non sono disponibili. Riapri o reinstalla l'app."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Componentes do Notch não estão disponíveis. Reabra ou reinstale o aplicativo."
+            "value" : "Os componentes de Reprodução do boringCode não estão disponíveis. Reabra ou reinstale o app."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch'un Şu An Çalınan bileşenleri şu anda kullanılamıyor. Uygulamayı yeniden açın ya da tekrar yükleyin."
+            "value" : "boringCode'un Şu An Çalınan bileşenleri şu anda kullanılamıyor. Uygulamayı yeniden açın ya da tekrar yükleyin."
           }
         }
       }
@@ -3557,97 +3563,97 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "boring.notch"
+            "value" : "boringCode"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "boring.notch"
+            "value" : "boringCode"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "boring.notch"
+            "value" : "boringCode"
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "boring.notch"
+            "value" : "boringCode"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "boring.notch"
+            "value" : "boringCode"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "boring.notch"
+            "value" : "boringCode"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "boring.notch"
+            "value" : "boringCode"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "boring.notch"
+            "value" : "boringCode"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "boring.notch"
+            "value" : "boringCode"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "boring.notch"
+            "value" : "boringCode"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "boring.notch"
+            "value" : "boringCode"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "boring.notch"
+            "value" : "boringCode"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "boring.notch"
+            "value" : "boringCode"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "boring.notch"
+            "value" : "boringCode"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "boring.notch"
+            "value" : "boringCode"
           }
         },
         "zh-Hant-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "boring.notch"
+            "value" : "boringCode"
           }
         }
       }
@@ -4559,19 +4565,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Das Ändern der App-Sprache erfordert einen Neustart von Boring Notch."
+            "value" : "Das Ändern der App-Sprache erfordert einen Neustart von boringCode."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Changing the app language requires restarting Boring Notch."
+            "value" : "Changing the app language requires restarting boringCode."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cambiar el idioma de la aplicación requiere reiniciar Boring Notch."
+            "value" : "Cambiar el idioma de la aplicación requiere reiniciar boringCode."
           }
         },
         "fr" : {
@@ -4583,49 +4589,49 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La modifica della lingua dell'app richiede il riavvio di Boring Notch."
+            "value" : "La modifica della lingua dell'app richiede il riavvio di boringCode."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "アプリの言語を変更するにはBoring Notchを再起動する必要があります。"
+            "value" : "アプリの言語を変更するにはboringCodeを再起動する必要があります。"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Om de taal van de app te wijzigen, moet je Boring Notch opnieuw opstarten."
+            "value" : "Om de taal van de app te wijzigen, moet je boringCode opnieuw opstarten."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Alterar o idioma do aplicativo requer reiniciar o Boring Notch."
+            "value" : "Mudar o idioma exige reiniciar o boringCode."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Изменение языка приложения требует перезапуска Boring Notch."
+            "value" : "Изменение языка приложения требует перезапуска boringCode."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uygulama dilini değiştirmek için Boring Notch'u yeniden başlatmak gerekir."
+            "value" : "Uygulama dilini değiştirmek için boringCode'u yeniden başlatmak gerekir."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Зміна мови програми вимагає перезапуску Boring Notch."
+            "value" : "Зміна мови програми вимагає перезапуску boringCode."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更改应用语言需要重启 Boring Notch。"
+            "value" : "更改应用语言需要重启 boringCode。"
           }
         }
       }
@@ -14249,67 +14255,73 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Immer Boring Notch aktualisiert haben"
+            "value" : "Immer boringCode aktualisiert haben"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantener Boring Notch actualizado"
+            "value" : "Mantener boringCode actualizado"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Garder Boring Notch à jour"
+            "value" : "Garder boringCode à jour"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantieni Boring Notch aggiornato"
+            "value" : "Mantieni boringCode aggiornato"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notchを最新に保つ"
+            "value" : "boringCodeを最新に保つ"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Houd Boring Notch up-to-date"
+            "value" : "Houd boringCode up-to-date"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantenha o Boring Notch atualizado"
+            "value" : "Mantenha o boringCode atualizado"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Сохранять Boring Notch обновленным"
+            "value" : "Сохранять boringCode обновленным"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch'u Güncel Tut"
+            "value" : "boringCode'u Güncel Tut"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Зберігати Boring Notch оновленим"
+            "value" : "Зберігати boringCode оновленим"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保持 Boring Notch 处于最新版本"
+            "value" : "保持 boringCode 处于最新版本"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep boringCode Updated"
           }
         }
       }
@@ -23243,115 +23255,115 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Restartovat Boring Notch"
+            "value" : "Restartovat boringCode"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch neu starten"
+            "value" : "boringCode neu starten"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Restart Boring Notch"
+            "value" : "Restart boringCode"
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Restart Boring Notch"
+            "value" : "Restart boringCode"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reiniciar Boring Notch"
+            "value" : "Reiniciar boringCode"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Redémarrer Boring Notch"
+            "value" : "Redémarrer boringCode"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "הפעל מחדש את Boring Notch"
+            "value" : "הפעל מחדש את boringCode"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch újraindítása"
+            "value" : "boringCode újraindítása"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Riavvia Boring Notch"
+            "value" : "Riavvia boringCode"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notchを再起動"
+            "value" : "boringCodeを再起動"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch 재시작"
+            "value" : "boringCode 재시작"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Herstart Boring Notch"
+            "value" : "Herstart boringCode"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uruchom ponownie Boring Notch"
+            "value" : "Uruchom ponownie boringCode"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reiniciar o Boring Notch"
+            "value" : "Reiniciar o boringCode"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Перезапустить Boring Notch"
+            "value" : "Перезапустить boringCode"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boring Notch'u yeniden başlat"
+            "value" : "boringCode'u yeniden başlat"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Перезапустити Boring Notch"
+            "value" : "Перезапустити boringCode"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重启 Boring Notch"
+            "value" : "重启 boringCode"
           }
         },
         "zh-Hant-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重啟 Boring Notch"
+            "value" : "重啟 boringCode"
           }
         }
       }
@@ -31117,6 +31129,476 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "YouTube 音樂需要安裝此第三方應用程式: "
+          }
+        }
+      }
+    },
+    "Ready" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pronto"
+          }
+        }
+      }
+    },
+    "Running" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rodando"
+          }
+        }
+      }
+    },
+    "Needs approval" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aguardando aprovação"
+          }
+        }
+      }
+    },
+    "Waiting for you" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aguardando você"
+          }
+        }
+      }
+    },
+    "Done" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Concluído"
+          }
+        }
+      }
+    },
+    "Error" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erro"
+          }
+        }
+      }
+    },
+    "Plan ready for review" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plano pronto para revisão"
+          }
+        }
+      }
+    },
+    "Question for you" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pergunta para você"
+          }
+        }
+      }
+    },
+    "Permission pending" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permissão pendente"
+          }
+        }
+      }
+    },
+    "API request failed" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falha na requisição à API"
+          }
+        }
+      }
+    },
+    "Compacting context" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compactando contexto"
+          }
+        }
+      }
+    },
+    "No active Claude Code sessions" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhuma sessão do Claude Code"
+          }
+        }
+      }
+    },
+    "Start `claude` in a terminal or use Claude in VS Code." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rode `claude` no terminal ou use o Claude no VS Code."
+          }
+        }
+      }
+    },
+    "Claude Code isn't installed on this Mac." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Claude Code não está instalado neste Mac."
+          }
+        }
+      }
+    },
+    "Connect to Claude Code" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectar ao Claude Code"
+          }
+        }
+      }
+    },
+    "Deny" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recusar"
+          }
+        }
+      }
+    },
+    "Allow" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aprovar"
+          }
+        }
+      }
+    },
+    "Go to %@" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ir para %@"
+          }
+        }
+      }
+    },
+    "Remove from list" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remover da lista"
+          }
+        }
+      }
+    },
+    "AI Agents" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agentes de IA"
+          }
+        }
+      }
+    },
+    "Monitor AI agents" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monitorar agentes de IA"
+          }
+        }
+      }
+    },
+    "Show status indicator in the closed notch" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar indicador de status no notch fechado"
+          }
+        }
+      }
+    },
+    "Hovering the indicator opens the Agents tab" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passar o mouse no indicador abre a aba Agentes"
+          }
+        }
+      }
+    },
+    "Open the notch when an agent needs approval" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir o notch quando um agente pedir aprovação"
+          }
+        }
+      }
+    },
+    "While an agent is running, its status replaces the audio spectrum on the right side of the notch." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enquanto um agente estiver rodando, o status dele aparece no lugar do espectro de áudio, do lado direito do notch."
+          }
+        }
+      }
+    },
+    "Reinstall hooks" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reinstalar hooks"
+          }
+        }
+      }
+    },
+    "Install hooks" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalar hooks"
+          }
+        }
+      }
+    },
+    "Remove hooks" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remover hooks"
+          }
+        }
+      }
+    },
+    "Show settings.json" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar settings.json"
+          }
+        }
+      }
+    },
+    "Integrations" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Integrações"
+          }
+        }
+      }
+    },
+    "Adds hooks to ~/.claude/settings.json (a backup is saved first). They work in the terminal, in the Claude extension for VS Code and in the Claude app, and do nothing while boringCode is closed." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adiciona hooks ao ~/.claude/settings.json (um backup é salvo antes). Funcionam no terminal, na extensão do Claude para VS Code e no app Claude, e não fazem nada enquanto o boringCode estiver fechado."
+          }
+        }
+      }
+    },
+    "No sessions right now" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhuma sessão no momento"
+          }
+        }
+      }
+    },
+    "Sessions" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessões"
+          }
+        }
+      }
+    },
+    "Connected — sessions will show up in the notch." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado — as sessões vão aparecer no notch."
+          }
+        }
+      }
+    },
+    "Not connected." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não conectado."
+          }
+        }
+      }
+    },
+    "Hooks are incomplete — reinstall to fix." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hooks incompletos — reinstale para corrigir."
+          }
+        }
+      }
+    },
+    "Claude Code not found (~/.claude is missing)." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code não encontrado (~/.claude não existe)."
+          }
+        }
+      }
+    },
+    "Error: %@" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erro: %@"
+          }
+        }
+      }
+    },
+    "Connected" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado"
+          }
+        }
+      }
+    },
+    "Needs attention" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Precisa de atenção"
+          }
+        }
+      }
+    },
+    "Off" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desligado"
+          }
+        }
+      }
+    },
+    "Agents" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agentes"
+          }
+        }
+      }
+    },
+    "boringCode is based on [Boring Notch](https://github.com/TheBoredTeam/boring.notch) by TheBoredTeam, with ideas from [Open Island](https://github.com/Octane0411/open-vibe-island). GPL-3.0." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O boringCode é baseado no [Boring Notch](https://github.com/TheBoredTeam/boring.notch), do TheBoredTeam, com ideias do [Open Island](https://github.com/Octane0411/open-vibe-island). GPL-3.0."
+          }
+        }
+      }
+    },
+    "Type your answer" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Digite sua resposta"
+          }
+        }
+      }
+    },
+    "Answer in terminal" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Responder no terminal"
+          }
+        }
+      }
+    },
+    "Send" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enviar"
+          }
+        }
+      }
+    },
+    "%lld agent sessions" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld sessões de agente"
           }
         }
       }

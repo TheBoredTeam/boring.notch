@@ -23,11 +23,14 @@ import SwiftUI
 enum LiveActivityItem: Identifiable, Equatable {
     case notification(SystemNotification)
     case music
+    /// Agente de IA rodando sem música tocando (boringCode).
+    case agents
 
     var id: String {
         switch self {
         case .notification(let notification): "notification-\(notification.id)"
         case .music: "music"
+        case .agents: "agents"
         }
     }
 }

@@ -28,7 +28,7 @@ struct AboutView: View {
     /// issue form query parameter API. Keys must match the form field ids;
     /// renaming the template or its version fields breaks shipped apps.
     private var bugReportURL: URL? {
-        var components = URLComponents(string: "https://github.com/TheBoredTeam/boring.notch/issues/new")
+        var components = URLComponents(string: "https://github.com/reesoousa/boringCode/issues/new")
         components?.queryItems = [
             URLQueryItem(name: "template", value: "1-bug-report-form.yml"),
             URLQueryItem(name: "version", value: reportVersion),
@@ -88,7 +88,7 @@ struct AboutView: View {
                     }
                     .help("Open a bug report with your version filled in automatically")
                     Button {
-                        if let url = URL(string: "https://github.com/TheBoredTeam/boring.notch") {
+                        if let url = URL(string: "https://github.com/reesoousa/boringCode") {
                             NSWorkspace.shared.open(url)
                         }
                     } label: {
@@ -110,6 +110,10 @@ struct AboutView: View {
                 Text("Made with 🫶🏻 by not so boring not.people")
                     .foregroundStyle(.secondary)
                     .padding(.top, 5)
+                Text("boringCode is based on [Boring Notch](https://github.com/TheBoredTeam/boring.notch) by TheBoredTeam, with ideas from [Open Island](https://github.com/Octane0411/open-vibe-island). GPL-3.0.")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .padding(.top, 2)
                     .padding(.bottom, 7)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 10)

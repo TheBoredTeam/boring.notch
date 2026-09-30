@@ -5,11 +5,13 @@
 	<key>CFBundleAllowMixedLocalizations</key>
 	<true/>
 	<key>SUBundleName</key>
-	<string>Boring Notch</string>
+	<string>boringCode</string>
 	<key>SUEnableAutomaticChecks</key>
 	<false/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>O boringCode usa automação para focar a aba do Terminal ou iTerm onde o seu agente de IA está rodando.</string>
 	<key>NSAudioCaptureUsageDescription</key>
-	<string>boring.notch analyzes audio from your music app to draw a real-time waveform in the notch. Audio is processed locally and never leaves your Mac.</string>
+	<string>boringCode analyzes audio from your music app to draw a real-time waveform in the notch. Audio is processed locally and never leaves your Mac.</string>
 	<key>BNUpdateChannel</key>
 	<string>stable</string>
 	<key>SUEnableDownloaderService</key>
@@ -17,7 +19,7 @@
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>https://TheBoredTeam.github.io/boring.notch/appcast.xml</string>
+	<string>https://reesoousa.github.io/boringCode/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>B1Y47t8C/v8ImurYA+9arEsuCrpxwJSviekiflMElbI=</string>
 	<key>UTImportedTypeDeclarations</key>

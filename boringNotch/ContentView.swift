@@ -22,6 +22,7 @@ struct ContentView: View {
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
     @ObservedObject var notificationManager = SystemNotificationManager.shared
+    @ObservedObject var agentStore = AgentSessionStore.shared
     /// Which entry of the closed-notch activity stack is on top.
     @State private var activityIndex: Int = 0
     @State private var hoverTask: Task<Void, Never>?
@@ -32,6 +33,8 @@ struct ContentView: View {
     @State private var horizontalMediaGestureTriggered = false
     @State private var horizontalMediaGestureFeedback: CGFloat = .zero
     @State private var isHoveringMusicArea = false
+    /// O notch abriu sozinho por um pedido de aprovação — fecha sozinho quando resolver.
+    @State private var autoOpenedForApproval = false
 
     @State private var haptics: Bool = false
 
@@ -115,9 +118,19 @@ struct ContentView: View {
         // activity is turned off — otherwise the peek never appears.
         if musicIsShowing || showingInlineMusicPeek {
             items.append(.music)
+        } else if agentIndicatorStatus != nil {
+            // Com música, o indicador do agente entra no lugar do espectro
+            // (ver MusicLiveActivity); sem música, vira uma atividade própria.
+            items.append(.agents)
         }
 
         return items
+    }
+
+    /// Status do agente a mostrar no notch fechado; nil = nada (espectro volta).
+    private var agentIndicatorStatus: AgentSessionStatus? {
+        guard Defaults[.agentsEnabled], Defaults[.agentsShowClosedIndicator] else { return nil }
+        return agentStore.closedIndicatorStatus
     }
 
     /// A notification is a glance, not a workspace — it doesn't need the full
@@ -202,7 +215,7 @@ struct ContentView: View {
             // notification is still in the stack leaves the chin at the
             // notification's width.
             switch activity {
-            case .notification:
+            case .notification, .agents:
                 chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
             case .music:
                 chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
@@ -338,6 +351,16 @@ struct ContentView: View {
                     // even if the user had swiped away to music.
                     .onChange(of: notificationManager.activeNotification?.id) { _, newID in
                         if newID != nil { activityIndex = 0 }
+                    }
+                    .onChange(of: agentStore.expandRequest) { _, request in
+                        if request != nil { expandForAgentApproval() }
+                    }
+                    .onChange(of: agentStore.pendingApprovalCount) { _, count in
+                        guard count == 0, autoOpenedForApproval else { return }
+                        autoOpenedForApproval = false
+                        if vm.notchState == .open, !isHovering, !vm.isPopoverActive {
+                            vm.close()
+                        }
                     }
                     // Activities disappear on their own (a notification
                     // expires, music stops). Keep the selection in range so
@@ -478,6 +501,10 @@ struct ContentView: View {
                               case .music:
                                   MusicLiveActivity()
                                       .frame(alignment: .center)
+                              case .agents:
+                                  if let status = agentIndicatorStatus {
+                                      AgentLiveActivity(status: status)
+                                  }
                               }
                           }
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed {
@@ -549,7 +576,7 @@ struct ContentView: View {
                     if let notification = notificationManager.activeNotification {
                         NotificationExpandedView(notification: notification)
                             .id(notification.id)
-                    } else if Defaults[.compactMode] {
+                    } else if Defaults[.compactMode] && coordinator.currentView != .agents {
                         // Player only — no tab switching, so currentView is
                         // ignored here rather than offering a shelf the
                         // compact layout has no room (or tab bar) for.
@@ -580,6 +607,8 @@ struct ContentView: View {
                                 dropInteraction: vm.dropInteraction,
                                 animation: vm.animation
                             )
+                        case .agents:
+                            AgentsTabView()
                         }
                     }
                 }
@@ -762,13 +791,18 @@ struct ContentView: View {
                 .frame(width: musicActivityCenterWidth)
 
             HStack {
-                MusicVisualizer(
-                    isPlaying: musicManager.isPlaying,
-                    tintColor: Defaults[.coloredSpectrogram]
-                    ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
-                    : Color.gray
-                )
-                .frame(width: 18, height: 12)
+                // Agente rodando toma o lugar do mini espectro (boringCode).
+                if let agentStatus = agentIndicatorStatus {
+                    AgentClosedIndicator(status: agentStatus, size: max(0, displayClosedNotchHeight - 12))
+                } else {
+                    MusicVisualizer(
+                        isPlaying: musicManager.isPlaying,
+                        tintColor: Defaults[.coloredSpectrogram]
+                        ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
+                        : Color.gray
+                    )
+                    .frame(width: 18, height: 12)
+                }
             }
             .frame(
                 width: max(
@@ -813,6 +847,9 @@ struct ContentView: View {
 extension ContentView {
     @discardableResult
     private func doOpen() -> Bool {
+        if vm.notchState == .closed, pointerIsOverAgentSide() {
+            coordinator.currentView = .agents
+        }
         var didOpen = false
         withAnimation(animationSpring) {
             didOpen = vm.open()
@@ -843,11 +880,46 @@ extension ContentView {
         }
     }
 
+    /// O ponteiro está no lado do notch fechado que mostra o agente? Decide pela
+    /// posição horizontal, não por hover no ícone — assim chegar por baixo ou
+    /// pela lateral dá no mesmo. Com música, só o lado direito é do agente; sem
+    /// música, os dois lados são. O centro (notch físico) segue o normal.
+    private func pointerIsOverAgentSide() -> Bool {
+        guard Defaults[.agentsEnabled], Defaults[.agentsHoverOpensTab],
+              agentIndicatorStatus != nil,
+              let activity = selectedActivity,
+              let screenUUID = vm.screenUUID, let screen = NSScreen.screen(withUUID: screenUUID) else { return false }
+        let offset = NSEvent.mouseLocation.x - screen.frame.midX
+        let notchHalf = vm.closedNotchSize.width / 2
+        switch activity {
+        case .music: return offset > notchHalf - 4
+        case .agents: return abs(offset) > notchHalf - 4
+        case .notification: return false
+        }
+    }
+
+    /// Pedido de aprovação chegou: abre o notch na aba de agentes (só na tela principal).
+    private func expandForAgentApproval() {
+        guard Defaults[.agentsEnabled], Defaults[.agentsExpandOnApproval],
+              vm.screenUUID == coordinator.selectedScreenUUID,
+              notificationManager.activeNotification == nil,
+              !coordinator.firstLaunch else { return }
+
+        if vm.notchState == .closed {
+            coordinator.currentView = .agents
+            if doOpen() { autoOpenedForApproval = !isHovering }
+        } else if !isHovering {
+            withAnimation(.smooth) { coordinator.currentView = .agents }
+        }
+    }
+
     private func handleHover(_ hovering: Bool) {
         if coordinator.firstLaunch { return }
         hoverTask?.cancel()
 
         if hovering {
+            // Você assumiu o notch: ele volta a fechar pelo hover normal.
+            autoOpenedForApproval = false
             withAnimation(animationSpring) {
                 isHovering = true
             }
