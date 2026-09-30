@@ -11,7 +11,7 @@ import SwiftUI
 extension AgentSessionStatus {
     var tint: Color {
         switch self {
-        case .running: .claudeOrange
+        case .running: .claudeOrange  // por agente: AgentKind.tint
         case .waitingApproval: .yellow
         case .waitingInput: .effectiveAccent
         case .done: .green
@@ -24,10 +24,22 @@ extension AgentSessionStatus {
 extension Color {
     /// Laranja da marca Claude — usado só para "rodando".
     static let claudeOrange = Color(red: 0.851, green: 0.467, blue: 0.341)
+    /// Azul do Codex (mesmo tom do Open Island).
+    static let codexBlue = Color(red: 0.290, green: 0.639, blue: 0.875)
+}
+
+extension AgentKind {
+    var tint: Color {
+        switch self {
+        case .claude: .claudeOrange
+        case .codex: .codexBlue
+        }
+    }
 }
 
 struct AgentStatusIndicator: View {
     let status: AgentSessionStatus
+    var agent: AgentKind = .claude
     var size: CGFloat = 16
 
     @State private var pulse = false
@@ -36,7 +48,7 @@ struct AgentStatusIndicator: View {
         Group {
             switch status {
             case .running:
-                ClaudeSpinner(size: size)
+                ClaudeSpinner(size: size, tint: agent.tint)
             case .waitingApproval:
                 symbol("exclamationmark.circle.fill")
                     .scaleEffect(pulse ? 1.0 : 0.82)
@@ -73,6 +85,7 @@ struct AgentStatusIndicator: View {
 /// O "✻" pulsante do Claude Code no terminal.
 private struct ClaudeSpinner: View {
     let size: CGFloat
+    var tint: Color = .claudeOrange
     private static let frames = ["·", "✢", "✳", "✶", "✻", "✽", "✻", "✶", "✳", "✢"]
 
     var body: some View {
@@ -80,7 +93,7 @@ private struct ClaudeSpinner: View {
             let index = Int(context.date.timeIntervalSinceReferenceDate / 0.12) % Self.frames.count
             Text(Self.frames[index])
                 .font(.system(size: size * 0.95, weight: .semibold))
-                .foregroundStyle(Color.claudeOrange)
+                .foregroundStyle(tint)
                 .frame(width: size, height: size)
         }
     }

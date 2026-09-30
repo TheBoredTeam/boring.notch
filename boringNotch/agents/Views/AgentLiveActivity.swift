@@ -22,7 +22,7 @@ struct AgentLiveActivity: View {
 
     var body: some View {
         HStack {
-            AgentStatusIndicator(status: status, size: itemSize * 0.8)
+            AgentStatusIndicator(status: status, agent: store.closedIndicatorAgent, size: itemSize * 0.8)
                 .frame(width: itemSize, height: itemSize)
 
             Rectangle()
@@ -39,11 +39,12 @@ struct AgentLiveActivity: View {
 
 /// Lado direito do notch fechado com música tocando: entra no lugar do mini espectro.
 struct AgentClosedIndicator: View {
+    @ObservedObject private var store = AgentSessionStore.shared
     let status: AgentSessionStatus
     let size: CGFloat
 
     var body: some View {
-        AgentStatusIndicator(status: status, size: max(0, size * 0.8))
+        AgentStatusIndicator(status: status, agent: store.closedIndicatorAgent, size: max(0, size * 0.8))
             .frame(width: size, height: size)
             .animation(.smooth(duration: 0.25), value: status)
     }
@@ -91,7 +92,7 @@ struct AgentSessionCells: View {
         if let session {
             let waiting = session.needsAnswer || session.status == .waitingInput
             shape
-                .fill(session.status.cellTint)
+                .fill(session.status == .running ? session.agent.tint : session.status.cellTint)
                 .frame(width: cellSize, height: cellSize)
                 .opacity(waiting ? (pulse ? 1 : 0.35) : 1)
                 .animation(waiting ? .easeInOut(duration: 0.7).repeatForever(autoreverses: true) : .default, value: pulse)

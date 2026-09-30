@@ -51,12 +51,31 @@ enum AgentSessionStatus: String, Equatable {
     }
 }
 
+/// Qual agente de IA é a sessão.
+enum AgentKind: String, Equatable, CaseIterable {
+    case claude
+    case codex
+
+    var displayName: String {
+        switch self {
+        case .claude: "Claude"
+        case .codex: "Codex"
+        }
+    }
+
+    /// Caminho do hook (`/hook/<agente>/<evento>`) → agente. Sem agente = Claude (hooks antigos).
+    init(pathComponent: String?) {
+        self = pathComponent.flatMap(AgentKind.init(rawValue:)) ?? .claude
+    }
+}
+
 /// Onde a sessão está rodando — decide como "voltar pra ela".
 enum AgentHost: Equatable {
     case terminal
     case iTerm
     case vsCode(bundleID: String)
     case claudeDesktop
+    case codexDesktop
     case other(name: String, bundleID: String?)
     case unknown
 
@@ -71,6 +90,7 @@ enum AgentHost: Equatable {
             default: "VS Code"
             }
         case .claudeDesktop: "Claude"
+        case .codexDesktop: "Codex"
         case .other(let name, _): name
         case .unknown: "Claude Code"
         }
@@ -82,6 +102,7 @@ enum AgentHost: Equatable {
         case .iTerm: "com.googlecode.iterm2"
         case .vsCode(let bundleID): bundleID
         case .claudeDesktop: "com.anthropic.claudefordesktop"
+        case .codexDesktop: "com.openai.codex"
         case .other(_, let bundleID): bundleID
         case .unknown: nil
         }
@@ -94,6 +115,10 @@ enum AgentHost: Equatable {
 
         if entrypoint == "claude-desktop" || bundle == "com.anthropic.claudefordesktop" {
             return .claudeDesktop
+        }
+        let lowerBundle = bundle.lowercased()
+        if lowerBundle == "com.openai.codex" || (lowerBundle.contains("openai") && lowerBundle.contains("codex")) {
+            return .codexDesktop
         }
         if entrypoint == "claude-vscode" || term.hasPrefix("vscode") {
             let vsBundle = bundle.isEmpty ? "com.microsoft.VSCode" : bundle
@@ -168,6 +193,7 @@ struct AgentPendingQuestion: Equatable {
 
 struct AgentSession: Identifiable, Equatable {
     let id: String
+    var agent: AgentKind = .claude
     var cwd: String
     var status: AgentSessionStatus
     var host: AgentHost
@@ -190,6 +216,14 @@ struct AgentSession: Identifiable, Equatable {
 
     /// Algo esperando você responder no notch (aprovação ou pergunta).
     var needsAnswer: Bool { pendingPermission != nil || pendingQuestion != nil }
+
+    /// "Claude · Terminal", "Codex · iTerm", "Codex" (app), "Claude" (app).
+    var hostLabel: String {
+        switch host {
+        case .claudeDesktop, .codexDesktop, .unknown: agent.displayName
+        default: "\(agent.displayName) · \(host.displayName)"
+        }
+    }
 
     var projectName: String {
         let name = (cwd as NSString).lastPathComponent
@@ -246,9 +280,20 @@ enum JSONValue: Decodable, Equatable {
         else { self = .object(try container.decode([String: JSONValue].self)) }
     }
 
+    /// String do campo — ou, se for lista de strings (o `command` do Codex), o último item
+    /// (`["bash", "-lc", "npm test"]` → "npm test").
     subscript(key: String) -> String? {
-        guard case .object(let dict) = self, case .string(let value)? = dict[key] else { return nil }
-        return value
+        guard case .object(let dict) = self, let value = dict[key] else { return nil }
+        switch value {
+        case .string(let string): return string
+        case .array(let items):
+            let strings = items.compactMap { item -> String? in
+                if case .string(let string) = item { return string }
+                return nil
+            }
+            return strings.last
+        default: return nil
+        }
     }
 }
 

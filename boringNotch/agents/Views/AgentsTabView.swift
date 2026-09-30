@@ -59,25 +59,24 @@ struct AgentsTabView: View {
                 .foregroundStyle(.white)
                 .frame(width: 26, height: 21)
 
-            Text("No active Claude Code sessions")
+            Text("No active agent sessions")
                 .foregroundStyle(.gray)
                 .font(.system(.title3, design: .rounded))
                 .fontWeight(.medium)
 
-            switch store.hookState {
-            case .installed:
-                Text("Start `claude` in a terminal or use Claude in VS Code.")
+            if AgentKind.allCases.contains(where: { store.hookState(for: $0) == .installed }) {
+                Text("Start Claude Code or Codex — in the terminal, VS Code or their apps.")
                     .font(.caption)
                     .foregroundStyle(.gray.opacity(0.8))
-            case .claudeNotFound:
-                Text("Claude Code isn't installed on this Mac.")
+            } else if AgentKind.allCases.allSatisfy({ store.hookState(for: $0) == .agentNotFound }) {
+                Text("Claude Code and Codex aren't installed on this Mac.")
                     .font(.caption)
                     .foregroundStyle(.gray.opacity(0.8))
-            default:
+            } else {
                 Button {
                     store.installHooksIfNeeded()
                 } label: {
-                    Text("Connect to Claude Code")
+                    Text("Connect agents")
                         .font(.caption.weight(.semibold))
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
@@ -107,7 +106,7 @@ private struct AgentSessionRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            AgentStatusIndicator(status: session.status, size: 16)
+            AgentStatusIndicator(status: session.status, agent: session.agent, size: 16)
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
@@ -115,7 +114,7 @@ private struct AgentSessionRow: View {
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(.white)
                         .lineLimit(1)
-                    Text(session.host.displayName)
+                    Text(session.hostLabel)
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(.gray)
                         .padding(.horizontal, 5)
