@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
+  <!-- boringCode: janela do notch + </> (template da barra de menus) -->
+  <rect x="1.75" y="1.75" width="14.5" height="14.5" rx="4.1" fill="none" stroke="#000" stroke-width="1.5"/>
+  <path d="M5.4 1.75 H12.6 V3.6 Q12.6 5.1 11.1 5.1 H6.9 Q5.4 5.1 5.4 3.6 Z" fill="#000"/>
+  <g fill="none" stroke="#000" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="6.5,8.3 4.7,10.2 6.5,12.1"/>
+    <line x1="9.9" y1="7.7" x2="8.2" y2="12.7"/>
+    <polyline points="11.5,8.3 13.3,10.2 11.5,12.1"/>
+  </g>
+</svg>
