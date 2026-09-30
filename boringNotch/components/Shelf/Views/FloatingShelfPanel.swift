@@ -39,7 +39,11 @@ final class FloatingShelfPanel: NSPanel {
 
     override func keyDown(with event: NSEvent) {
         if event.keyCode == UInt16(kVK_Escape) {
-            onEscape?()
+            // Starting the close animation inside key dispatch commits it before the event
+            // returns, so the panel disappears instead of fading.
+            Task { @MainActor in
+                onEscape?()
+            }
         } else {
             super.keyDown(with: event)
         }
