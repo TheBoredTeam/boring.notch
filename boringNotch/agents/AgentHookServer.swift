@@ -14,6 +14,8 @@ import os
 
 final class AgentHookConnection: @unchecked Sendable {  // estado só é tocado na fila serial do servidor
     struct Request {
+        /// Penúltimo trecho do caminho (`/hook/codex/Stop` → "codex"); nil em `/hook/Stop`.
+        let agent: String?
         let event: String
         let headers: [String: String]
         let body: Data
@@ -91,10 +93,12 @@ final class AgentHookConnection: @unchecked Sendable {  // estado só é tocado 
 
         parsedRequest = true
         let path = String(requestLine[1])
-        let event = path.split(separator: "/").last.map(String.init) ?? ""
+        let components = path.split(separator: "/").map(String.init)
+        let event = components.last ?? ""
+        let agent = components.count >= 3 ? components[components.count - 2] : nil
         let body = buffer[bodyStart..<(bodyStart + length)]
         buffer = Data()
-        onRequest?(Request(event: event, headers: headers, body: Data(body)))
+        onRequest?(Request(agent: agent, event: event, headers: headers, body: Data(body)))
     }
 
     /// Responde e fecha. `body == nil` → 204 (hook não imprime nada, Claude segue normal).

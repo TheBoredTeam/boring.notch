@@ -31603,6 +31603,96 @@
         }
       }
     },
+    "Play a subtle sound when an agent finishes" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocar um som sutil quando um agente terminar"
+          }
+        }
+      }
+    },
+    "Sound" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Som"
+          }
+        }
+      }
+    },
+    "No active agent sessions" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhuma sessão de agente"
+          }
+        }
+      }
+    },
+    "Start Claude Code or Codex — in the terminal, VS Code or their apps." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abra o Claude Code ou o Codex — no terminal, no VS Code ou nos apps deles."
+          }
+        }
+      }
+    },
+    "Claude Code and Codex aren't installed on this Mac." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Claude Code e o Codex não estão instalados neste Mac."
+          }
+        }
+      }
+    },
+    "Connect agents" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectar agentes"
+          }
+        }
+      }
+    },
+    "Adds hooks to ~/.claude/settings.json and ~/.codex/hooks.json (a backup is saved first). They work in the terminal, in VS Code and in the Claude and Codex apps, and do nothing while boringCode is closed." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adiciona hooks ao ~/.claude/settings.json e ao ~/.codex/hooks.json (um backup é salvo antes). Funcionam no terminal, no VS Code e nos apps Claude e Codex, e não fazem nada enquanto o boringCode estiver fechado."
+          }
+        }
+      }
+    },
+    "Not found on this Mac." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não encontrado neste Mac."
+          }
+        }
+      }
+    },
+    "Show %@" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar %@"
+          }
+        }
+      }
+    },
     "TheBoredTeam — the base of the app and its design" : {
       "localizations" : {
         "pt-BR" : {

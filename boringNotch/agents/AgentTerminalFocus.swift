@@ -24,6 +24,10 @@ enum AgentTerminalFocus {
         case .vsCode(let bundleID):
             // Abrir a pasta foca a janela que já está com ela aberta.
             openFolder(session.cwd, bundleID: bundleID)
+        case .codexDesktop:
+            // Abre a conversa certa no app do Codex (mesmo link usado pelo Open Island).
+            if let url = URL(string: "codex://threads/\(session.id)"), NSWorkspace.shared.open(url) { return }
+            activate(bundleID: "com.openai.codex")
         case .claudeDesktop, .other, .unknown:
             if let bundleID = session.host.bundleID { activate(bundleID: bundleID) }
         }

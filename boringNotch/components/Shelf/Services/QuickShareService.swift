@@ -14,6 +14,14 @@ struct QuickShareProvider: Identifiable, Hashable, Sendable {
     static let airDropId = "AirDrop"
     static let systemShareMenuId = "System Share Menu"
     static let systemShareMenu = QuickShareProvider(id: systemShareMenuId, supportsRawText: true)
+    /// LocalSend (boringCode): manda para Android/Windows/Linux na mesma rede.
+    /// Não depende da extensão de compartilhamento (que vem desligada no macOS):
+    /// abre os arquivos direto no app, que já cai na aba Enviar com eles selecionados.
+    static let localSendId = "LocalSend"
+    static let localSendBundleID = "org.localsend.localsendApp"
+    /// supportsRawText: true para o texto chegar aqui e virar um .txt que não é apagado
+    /// antes de o LocalSend enviar (o caminho padrão apaga o temporário logo depois).
+    static let localSend = QuickShareProvider(id: localSendId, supportsRawText: true)
 
     var id: String
     var supportsRawText: Bool
@@ -202,6 +210,13 @@ final class QuickShareService: ObservableObject {
             providers.insert(ad, at: 0)
         }
 
+        if NSWorkspace.shared.urlForApplication(withBundleIdentifier: QuickShareProvider.localSendBundleID) != nil,
+           !providers.contains(where: { $0.id == QuickShareProvider.localSendId }) {
+            // Logo depois do AirDrop (que continua sendo o padrão).
+            let index = providers.first?.id == QuickShareProvider.airDropId ? 1 : 0
+            providers.insert(.localSend, at: min(index, providers.count))
+        }
+
         if !providers.contains(where: { $0.id == QuickShareProvider.systemShareMenuId }) {
             providers.append(.systemShareMenu)
         }
@@ -261,6 +276,13 @@ final class QuickShareService: ObservableObject {
         }
         lifecycleDelegate = delegate
 
+        if provider.id == QuickShareProvider.localSendId {
+            // markServiceBegan segura o notch aberto e se encerra sozinho em 2s.
+            delegate.markServiceBegan()
+            await shareWithLocalSend(items)
+            return
+        }
+
         if let svc = cachedServices[provider.id], svc.canPerform(withItems: items) {
             // For direct service path, explicitly mark service interaction start
             delegate.markServiceBegan()
@@ -274,6 +296,33 @@ final class QuickShareService: ObservableObject {
                 picker.show(relativeTo: .zero, of: view, preferredEdge: .minY)
             }
         }
+    }
+
+    /// Abre os itens no LocalSend. Texto e links viram um .txt temporário, já que o app só recebe arquivos.
+    @MainActor
+    private func shareWithLocalSend(_ items: [Any]) async {
+        guard let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: QuickShareProvider.localSendBundleID) else {
+            return
+        }
+        var fileURLs = items.compactMap { $0 as? URL }.filter(\.isFileURL)
+        let textParts = items.compactMap { item -> String? in
+            if let url = item as? URL, !url.isFileURL { return url.absoluteString }
+            return (item as? String) ?? (item as? NSString).map(String.init)
+        }
+        if !textParts.isEmpty,
+           let textURL = await TemporaryFileStorageService.shared.createTempFile(for: .text(textParts.joined(separator: "\n"))) {
+            fileURLs.append(textURL)
+        }
+        guard !fileURLs.isEmpty else { return }
+
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = true
+        do {
+            try await NSWorkspace.shared.open(fileURLs, withApplicationAt: appURL, configuration: configuration)
+        } catch {
+            Log.shelf.error("LocalSend: falha ao abrir arquivos: \(error.localizedDescription)")
+        }
+        stopSharingAccessingURLs()
     }
 
     private func stopSharingAccessingURLs() {

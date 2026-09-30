@@ -11,6 +11,8 @@ import SwiftUI
 struct AgentsSettingsView: View {
     @ObservedObject private var store = AgentSessionStore.shared
     @Default(.agentsEnabled) private var agentsEnabled
+    @Default(.agentsCompletionSound) private var completionSound
+    @Default(.agentsCompletionSoundName) private var completionSoundName
 
     var body: some View {
         Form {
@@ -30,6 +32,17 @@ struct AgentsSettingsView: View {
                     Text("Open the notch when an agent needs approval")
                 }
                 .disabled(!agentsEnabled)
+                Defaults.Toggle(key: .agentsCompletionSound) {
+                    Text("Play a subtle sound when an agent finishes")
+                }
+                .disabled(!agentsEnabled)
+                Picker("Sound", selection: $completionSoundName) {
+                    ForEach(AgentCompletionSound.availableSounds, id: \.self) { name in
+                        Text(name).tag(name)
+                    }
+                }
+                .disabled(!agentsEnabled || !completionSound)
+                .onChange(of: completionSoundName) { _, name in AgentCompletionSound.preview(name) }
             } header: {
                 Text("General")
             } footer: {
@@ -39,36 +52,13 @@ struct AgentsSettingsView: View {
             }
 
             Section {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Claude Code")
-                        Text(hookStateDescription)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    hookStateBadge
-                }
-
-                HStack {
-                    Button(store.hookState == .installed ? "Reinstall hooks" : "Install hooks") {
-                        store.reinstallHooks()
-                    }
-                    .disabled(store.hookState == .claudeNotFound)
-                    Button("Remove hooks", role: .destructive) {
-                        store.uninstallHooks()
-                    }
-                    .disabled(store.hookState == .notInstalled || store.hookState == .claudeNotFound)
-                    Spacer()
-                    Button("Show settings.json") {
-                        NSWorkspace.shared.activateFileViewerSelecting([ClaudeHookInstaller.settingsURL])
-                    }
-                    .buttonStyle(.link)
+                ForEach(AgentKind.allCases, id: \.self) { agent in
+                    AgentIntegrationRow(agent: agent)
                 }
             } header: {
                 Text("Integrations")
             } footer: {
-                Text("Adds hooks to ~/.claude/settings.json (a backup is saved first). They work in the terminal, in the Claude extension for VS Code and in the Claude app, and do nothing while boringCode is closed.")
+                Text("Adds hooks to ~/.claude/settings.json and ~/.codex/hooks.json (a backup is saved first). They work in the terminal, in VS Code and in the Claude and Codex apps, and do nothing while boringCode is closed.")
                     .foregroundStyle(.secondary)
                     .font(.caption)
             }
@@ -82,7 +72,7 @@ struct AgentsSettingsView: View {
                         HStack(spacing: 8) {
                             AgentStatusIndicator(status: session.status, size: 14)
                             Text(session.projectName)
-                            Text(session.host.displayName)
+                            Text(session.hostLabel)
                                 .foregroundStyle(.secondary)
                             Spacer()
                             Text(session.status.label)
@@ -97,27 +87,67 @@ struct AgentsSettingsView: View {
         .onAppear { store.refreshHookState() }
         .navigationTitle("AI Agents")
     }
+}
 
-    private var hookStateDescription: LocalizedStringKey {
-        switch store.hookState {
+private struct AgentIntegrationRow: View {
+    let agent: AgentKind
+    @ObservedObject private var store = AgentSessionStore.shared
+
+    private var state: AgentHookInstaller.State { store.hookState(for: agent) }
+    private var installer: AgentHookInstaller { .installer(for: agent) }
+    private var title: String { agent == .claude ? "Claude Code" : "Codex" }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                    Text(description)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                badge
+            }
+            HStack {
+                Button(state == .installed ? "Reinstall hooks" : "Install hooks") {
+                    store.reinstallHooks(for: agent)
+                }
+                .disabled(state == .agentNotFound)
+                Button("Remove hooks", role: .destructive) {
+                    store.uninstallHooks(for: agent)
+                }
+                .disabled(state == .notInstalled || state == .agentNotFound)
+                Spacer()
+                Button("Show \(installer.fileName)") {
+                    NSWorkspace.shared.activateFileViewerSelecting([installer.fileURL])
+                }
+                .buttonStyle(.link)
+                .disabled(state == .agentNotFound)
+            }
+        }
+    }
+
+    private var description: LocalizedStringKey {
+        switch state {
         case .installed: "Connected — sessions will show up in the notch."
         case .notInstalled: "Not connected."
         case .outdated: "Hooks are incomplete — reinstall to fix."
-        case .claudeNotFound: "Claude Code not found (~/.claude is missing)."
+        case .agentNotFound: "Not found on this Mac."
         case .error(let message): "Error: \(message)"
         }
     }
 
     @ViewBuilder
-    private var hookStateBadge: some View {
-        switch store.hookState {
+    private var badge: some View {
+        switch state {
         case .installed:
             Label("Connected", systemImage: "checkmark.circle.fill")
                 .foregroundStyle(.green)
         case .outdated, .error:
             Label("Needs attention", systemImage: "exclamationmark.triangle.fill")
                 .foregroundStyle(.yellow)
-        case .notInstalled, .claudeNotFound:
+        case .notInstalled, .agentNotFound:
             Label("Off", systemImage: "circle")
                 .foregroundStyle(.secondary)
         }

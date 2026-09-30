@@ -20,7 +20,7 @@ final class AgentSessionStore: ObservableObject {
 
     /// Mais recentes primeiro.
     @Published private(set) var sessions: [AgentSession] = []
-    @Published private(set) var hookState: ClaudeHookInstaller.State = .notInstalled
+    @Published private(set) var hookStates: [AgentKind: AgentHookInstaller.State] = [:]
     /// Muda a cada novo pedido de permissão — o notch observa para se expandir.
     @Published private(set) var expandRequest: UUID?
     /// Última vez que uma sessão terminou (Stop) — o indicador mostra um ✓ rápido.
@@ -71,35 +71,45 @@ final class AgentSessionStore: ObservableObject {
         }
     }
 
+    func hookState(for agent: AgentKind) -> AgentHookInstaller.State {
+        hookStates[agent] ?? .notInstalled
+    }
+
+    /// Instala nos agentes presentes no Mac (e repara instalações incompletas).
     func installHooksIfNeeded() {
-        do {
-            try ClaudeHookInstaller.writeHookScript()
-            switch ClaudeHookInstaller.currentState() {
-            case .notInstalled, .outdated: try ClaudeHookInstaller.install()
+        do { try AgentHookInstaller.writeHookScript() } catch {
+            log.error("falha ao escrever o script de hook: \(error.localizedDescription)")
+        }
+        for installer in AgentHookInstaller.all {
+            switch installer.currentState() {
+            case .notInstalled, .outdated:
+                do { try installer.install() } catch {
+                    log.error("falha ao instalar hooks (\(installer.agent.rawValue)): \(error.localizedDescription)")
+                }
             default: break
             }
-        } catch {
-            log.error("falha ao instalar hooks: \(error.localizedDescription)")
         }
         refreshHookState()
     }
 
-    func reinstallHooks() {
-        do { try ClaudeHookInstaller.install() } catch {
+    func reinstallHooks(for agent: AgentKind) {
+        do { try AgentHookInstaller.installer(for: agent).install() } catch {
             log.error("falha ao reinstalar hooks: \(error.localizedDescription)")
         }
         refreshHookState()
     }
 
-    func uninstallHooks() {
-        do { try ClaudeHookInstaller.uninstall() } catch {
+    func uninstallHooks(for agent: AgentKind) {
+        do { try AgentHookInstaller.installer(for: agent).uninstall() } catch {
             log.error("falha ao remover hooks: \(error.localizedDescription)")
         }
         refreshHookState()
     }
 
     func refreshHookState() {
-        hookState = ClaudeHookInstaller.currentState()
+        var states: [AgentKind: AgentHookInstaller.State] = [:]
+        for installer in AgentHookInstaller.all { states[installer.agent] = installer.currentState() }
+        hookStates = states
     }
 
     // MARK: - Consultas para a UI
@@ -109,6 +119,11 @@ final class AgentSessionStore: ObservableObject {
     /// Aprovações + perguntas esperando resposta no notch.
     var pendingApprovalCount: Int {
         sessions.reduce(0) { $0 + $1.pendingPermissions.count + ($1.pendingQuestion == nil ? 0 : 1) }
+    }
+
+    /// De qual agente é a sessão mais prioritária (cor do ✻ no notch fechado).
+    var closedIndicatorAgent: AgentKind {
+        activeSessions.max(by: { $0.status.priority < $1.status.priority })?.agent ?? sessions.first?.agent ?? .claude
     }
 
     /// O que o indicador do notch fechado deve mostrar (nil = nada, volta o espectro).
@@ -176,9 +191,17 @@ final class AgentSessionStore: ObservableObject {
             return
         }
 
+        let agent = AgentKind(pathComponent: request.agent)
+        // O app do Codex dispara hooks internos (ex.: gerar título) sem transcript — não são sessões.
+        if agent == .codex, (payload.transcriptPath ?? "").isEmpty {
+            connection.respond(nil)
+            return
+        }
+
         let now = Date()
         var session = sessions.first(where: { $0.id == payload.sessionID }) ?? AgentSession(
             id: payload.sessionID,
+            agent: agent,
             cwd: payload.cwd ?? "",
             status: .idle,
             host: .unknown,
@@ -266,6 +289,8 @@ final class AgentSessionStore: ObservableObject {
                 break
             }
         case "Stop":
+            // Só avisa se algo estava de fato em andamento (não num Stop repetido).
+            if session.status.isActive { AgentCompletionSound.play() }
             dropPermissions(of: &session)
             session.status = .done
             session.activity = nil

@@ -504,6 +504,8 @@ extension Defaults.Keys {
     static let agentsShowClosedIndicator = Key<Bool>("agentsShowClosedIndicator", default: true)
     static let agentsExpandOnApproval = Key<Bool>("agentsExpandOnApproval", default: true)
     static let agentsHoverOpensTab = Key<Bool>("agentsHoverOpensTab", default: true)
+    static let agentsCompletionSound = Key<Bool>("agentsCompletionSound", default: true)
+    static let agentsCompletionSoundName = Key<String>("agentsCompletionSoundName", default: "Bottle")
 
     // MARK: Shelf
     static let boringShelf = Key<Bool>("boringShelf", default: true)
