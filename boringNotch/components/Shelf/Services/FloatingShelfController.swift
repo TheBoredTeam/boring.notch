@@ -36,9 +36,9 @@ final class FloatingShelfController {
     /// A context menu opened over the panel. The pointer leaves the panel to pick an item,
     /// so the close timer must wait for the menu rather than read the pointer.
     private var panelMenu: NSMenu?
-    /// Set when a panel menu item is chosen. Opening the menu and dismissing it is not a use.
+    /// Opening the menu and dismissing it is not a use.
     private var menuActionChosen = false
-    /// Shortcut open with nothing being dragged. Hovering, and clicks that are not a drop, are not a use.
+    /// Shortcut open with no drag in progress. Hovering is not a use.
     private var awaitsUse = false
     private let dragPasteboard = NSPasteboard(name: .drag)
     private var isNotchOpen: () -> Bool = { false }
@@ -343,7 +343,6 @@ final class FloatingShelfController {
             noteShelfWasUsed()
             scheduleNotchStyleDismiss()
         } else if awaitsUse {
-            // Clicking elsewhere to go and fetch a file is not a use.
             scheduleNotchStyleDismiss(hasVisited: false)
         } else {
             dismiss()
@@ -389,7 +388,6 @@ final class FloatingShelfController {
         }
     }
 
-    /// A drop, a share, dragging an item out, or choosing a context-menu action.
     private func noteShelfWasUsed() {
         awaitsUse = false
         menuActionChosen = false
@@ -403,7 +401,6 @@ final class FloatingShelfController {
             noteShelfWasUsed()
             hasVisited = true
         }
-        // Hovering an unused shortcut shelf must not arm the close.
         if !awaitsUse, pointerInside {
             hasVisited = true
         }

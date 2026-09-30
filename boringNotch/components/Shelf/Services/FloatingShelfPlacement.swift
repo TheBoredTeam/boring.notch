@@ -73,8 +73,6 @@ enum FloatingShelfTriggerPolicy {
 }
 
 enum FloatingShelfDismissPolicy {
-    /// A shortcut open with nothing being dragged stays up through hovers until the shelf is used.
-    /// A drag-opened shelf, and a shortcut open during a drag, still close once the pointer has visited and left.
     static func shouldClose(
         hasVisited: Bool,
         pointerInside: Bool,
