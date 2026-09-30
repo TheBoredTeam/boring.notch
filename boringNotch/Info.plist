@@ -8,6 +8,8 @@
 	<string>boringCode</string>
 	<key>SUEnableAutomaticChecks</key>
 	<false/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>O boringCode usa automação para focar a aba do Terminal ou iTerm onde o seu agente de IA está rodando.</string>
 	<key>NSAudioCaptureUsageDescription</key>
 	<string>boring.notch analyzes audio from your music app to draw a real-time waveform in the notch. Audio is processed locally and never leaves your Mac.</string>
 	<key>BNUpdateChannel</key>

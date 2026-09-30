@@ -189,6 +189,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         SettingsWindowController.shared.setCamera(camera)
+        AgentSessionStore.shared.start()
 
         NotificationCenter.default.addObserver(
             self,

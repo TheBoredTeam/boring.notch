@@ -95,11 +95,32 @@ Objetivo: forma fácil de mandar pro pessoal da empresa.
 - Sem conta paga: build ad-hoc → cada pessoa libera em Ajustes › Privacidade e Segurança.
 - Updates: Sparkle apontando para appcast próprio no GitHub Pages do fork (gerar nova chave EdDSA).
 
-## Integração com agentes (notas do Open Island)
+## Módulo de agentes (`boringNotch/agents/`)
 
-- Detecção: hooks em `~/.claude/settings.json` chamam um CLI que manda JSON por **Unix socket**
-  para o app; `PermissionRequest` fica bloqueado no socket até o usuário responder.
-- Foco no terminal: AppleScript (`osascript`) casando TTY no Terminal.app/iTerm2.
-- **Atenção sandbox:** o boringCode é sandboxed; escrever em `~/.claude`, abrir socket fora do
-  container e rodar AppleScript em terminais exige entitlements/exceções ou mover isso para o
-  helper XPC / um helper não-sandboxed. Decidir antes de implementar.
+Decisões de produto (definidas pelo dono):
+- **Aba "Agentes"** no notch aberto (ao lado de Home/Shelf). Lista sessões, aprovar/recusar, clique → foca terminal/editor.
+- **Notch fechado:** com agente rodando, o indicador fica **do lado direito, no lugar do mini espectro de áudio**.
+  Sem agente, o espectro volta. Sem música, vira uma live activity própria (contagem | notch | indicador).
+- **Hover no indicador** abre o notch direto na aba Agentes; o resto do hover segue o Boring Notch normal.
+- **Pedido de aprovação** expande o notch sozinho na aba Agentes e fecha sozinho quando resolvido.
+- Tudo **ligado por padrão** (público-alvo: devs). Configurações em Ajustes › "AI Agents".
+- **Hosts suportados:** Claude Code no terminal (Terminal/iTerm), extensão do Claude para VS Code
+  (e Cursor), app Claude (aba Code). Codex fica para depois.
+- **Guardrails de design:** seguir a linguagem visual do Boring Notch (preto, cinza, cantos 12, SF Symbols,
+  mesmas geometrias de live activity). Não alterar layouts existentes além do slot do espectro.
+- Strings: chave em inglês + tradução pt-BR em `Localizable.xcstrings` (script python, preservando ordem).
+
+Arquitetura:
+- `ClaudeHookInstaller` escreve `~/Library/Application Support/boringCode/bin/boringcode-hook` (sh + curl)
+  e adiciona entradas em `~/.claude/settings.json` identificadas por `boringCode/bin/boringcode-hook`
+  (backup `settings.json.boringcode-backup.*`, mantém 5). Não toca hooks de outras ferramentas.
+- O script faz `curl --unix-socket agents.sock` → `AgentHookServer` (HTTP mínimo, POSIX socket).
+  `PermissionRequest` fica pendurado (timeout 86400) até aprovar/recusar; se o hook morrer
+  (respondeu no terminal) o servidor detecta EOF e tira do notch. Fail-open sem o app.
+- `AgentSessionStore` (@MainActor) = reducer de eventos → `AgentSession` (status, atividade, TTY, PID).
+  Poda sessões cujo PID morreu. `AgentTerminalFocus` = AppleScript por TTY / abrir pasta no VS Code.
+- Limite de 104 bytes no caminho do socket (sun_path) — o caminho dentro do container do sandbox
+  estoura (112). **O módulo exige app sem sandbox** (decisão pendente com o dono).
+- Testar o núcleo sem o app: compilar `agents/AgentHookServer.swift`, `AgentModels.swift`,
+  `ClaudeHookInstaller.swift` + um `main.swift` com `swiftc` e usar socket em caminho curto.
+- Convive com Open Island instalado: se os dois estiverem abertos, ambos seguram o PermissionRequest.

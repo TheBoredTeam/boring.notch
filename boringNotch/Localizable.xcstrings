@@ -31120,6 +31120,426 @@
           }
         }
       }
+    },
+    "Ready" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pronto"
+          }
+        }
+      }
+    },
+    "Running" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rodando"
+          }
+        }
+      }
+    },
+    "Needs approval" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aguardando aprovação"
+          }
+        }
+      }
+    },
+    "Waiting for you" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aguardando você"
+          }
+        }
+      }
+    },
+    "Done" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Concluído"
+          }
+        }
+      }
+    },
+    "Error" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erro"
+          }
+        }
+      }
+    },
+    "Plan ready for review" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plano pronto para revisão"
+          }
+        }
+      }
+    },
+    "Question for you" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pergunta para você"
+          }
+        }
+      }
+    },
+    "Permission pending" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permissão pendente"
+          }
+        }
+      }
+    },
+    "API request failed" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falha na requisição à API"
+          }
+        }
+      }
+    },
+    "Compacting context" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compactando contexto"
+          }
+        }
+      }
+    },
+    "No active Claude Code sessions" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhuma sessão do Claude Code"
+          }
+        }
+      }
+    },
+    "Start `claude` in a terminal or use Claude in VS Code." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rode `claude` no terminal ou use o Claude no VS Code."
+          }
+        }
+      }
+    },
+    "Claude Code isn't installed on this Mac." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Claude Code não está instalado neste Mac."
+          }
+        }
+      }
+    },
+    "Connect to Claude Code" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectar ao Claude Code"
+          }
+        }
+      }
+    },
+    "Deny" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recusar"
+          }
+        }
+      }
+    },
+    "Allow" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aprovar"
+          }
+        }
+      }
+    },
+    "Go to %@" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ir para %@"
+          }
+        }
+      }
+    },
+    "Remove from list" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remover da lista"
+          }
+        }
+      }
+    },
+    "AI Agents" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agentes de IA"
+          }
+        }
+      }
+    },
+    "Monitor AI agents" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monitorar agentes de IA"
+          }
+        }
+      }
+    },
+    "Show status indicator in the closed notch" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar indicador de status no notch fechado"
+          }
+        }
+      }
+    },
+    "Hovering the indicator opens the Agents tab" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passar o mouse no indicador abre a aba Agentes"
+          }
+        }
+      }
+    },
+    "Open the notch when an agent needs approval" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir o notch quando um agente pedir aprovação"
+          }
+        }
+      }
+    },
+    "While an agent is running, its status replaces the audio spectrum on the right side of the notch." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enquanto um agente estiver rodando, o status dele aparece no lugar do espectro de áudio, do lado direito do notch."
+          }
+        }
+      }
+    },
+    "Reinstall hooks" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reinstalar hooks"
+          }
+        }
+      }
+    },
+    "Install hooks" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalar hooks"
+          }
+        }
+      }
+    },
+    "Remove hooks" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remover hooks"
+          }
+        }
+      }
+    },
+    "Show settings.json" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar settings.json"
+          }
+        }
+      }
+    },
+    "Integrations" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Integrações"
+          }
+        }
+      }
+    },
+    "Adds hooks to ~/.claude/settings.json (a backup is saved first). They work in the terminal, in the Claude extension for VS Code and in the Claude app, and do nothing while boringCode is closed." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adiciona hooks ao ~/.claude/settings.json (um backup é salvo antes). Funcionam no terminal, na extensão do Claude para VS Code e no app Claude, e não fazem nada enquanto o boringCode estiver fechado."
+          }
+        }
+      }
+    },
+    "No sessions right now" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhuma sessão no momento"
+          }
+        }
+      }
+    },
+    "Sessions" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessões"
+          }
+        }
+      }
+    },
+    "Connected — sessions will show up in the notch." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado — as sessões vão aparecer no notch."
+          }
+        }
+      }
+    },
+    "Not connected." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não conectado."
+          }
+        }
+      }
+    },
+    "Hooks are incomplete — reinstall to fix." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hooks incompletos — reinstale para corrigir."
+          }
+        }
+      }
+    },
+    "Claude Code not found (~/.claude is missing)." : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code não encontrado (~/.claude não existe)."
+          }
+        }
+      }
+    },
+    "Error: %@" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erro: %@"
+          }
+        }
+      }
+    },
+    "Connected" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado"
+          }
+        }
+      }
+    },
+    "Needs attention" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Precisa de atenção"
+          }
+        }
+      }
+    },
+    "Off" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desligado"
+          }
+        }
+      }
+    },
+    "Agents" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agentes"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

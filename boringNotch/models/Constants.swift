@@ -499,6 +499,12 @@ extension Defaults.Keys {
     static let osdBrightnessSource = Key<OSDControlSource>("osdBrightnessSource", default: .builtin)
     static let osdVolumeSource = Key<OSDControlSource>("osdVolumeSource", default: .builtin)
 
+    // MARK: Agents (boringCode)
+    static let agentsEnabled = Key<Bool>("agentsEnabled", default: true)
+    static let agentsShowClosedIndicator = Key<Bool>("agentsShowClosedIndicator", default: true)
+    static let agentsExpandOnApproval = Key<Bool>("agentsExpandOnApproval", default: true)
+    static let agentsHoverOpensTab = Key<Bool>("agentsHoverOpensTab", default: true)
+
     // MARK: Shelf
     static let boringShelf = Key<Bool>("boringShelf", default: true)
     static let openShelfByDefault = Key<Bool>("openShelfByDefault", default: true)
