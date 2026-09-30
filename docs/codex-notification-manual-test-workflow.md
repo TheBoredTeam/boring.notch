@@ -110,3 +110,5 @@ The temporary chat retained a policy that disallowed sandbox approval requests. 
 Remaining live coverage: automatic-review suppression, concurrent permission requests and chats, the full wording/presentation matrix, and independent observation of the Response ready text label. Automated cases cover classification and ordering, but do not substitute for those live checks. No production false-positive or semantic recall target has been established. The implementation and the above live checks are complete; this record does not claim the entire manual matrix passed.
 
 Visual refinement: passive icons and status text now use cyan; permission requests retain orange. The user confirmed the rebuilt cyan UI. PR images in `docs/images/codex-notifications/` are real captures of this Debug app rendered with synthetic context for privacy; they are UI previews, not additional live acceptance evidence.
+
+Final palette: Response ready and Codex update use cyan; Stopped uses violet to distinguish interruption; Permission Required retains orange. Icons and text labels also distinguish states independently of color.
