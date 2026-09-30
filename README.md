@@ -1,16 +1,30 @@
 <p align="center">
-  <img src="docs/images/logo.png" alt="Logo do boringCode" width="128">
+  <img src="docs/images/logo.png" alt="Logo do boringCode" width="180">
 </p>
 
 <h1 align="center">boringCode</h1>
 
 <p align="center">
-  O notch do seu MacBook para quem programa com IA.<br>
-  Música, calendário e shelf do <a href="https://github.com/TheBoredTeam/boring.notch">Boring Notch</a> — e agora seus agentes do Claude Code e do Codex bem ali em cima.
+  <b>Feito para pessoas não tão chatas assim.</b>
 </p>
 
 <p align="center">
-  <img src="docs/images/notch-fechado-agentes.png" alt="Notch fechado com status dos agentes" width="420"><br>
+  O notch do seu MacBook para quem programa com IA: música, calendário e shelf do
+  <a href="https://github.com/TheBoredTeam/boring.notch">Boring Notch</a> —
+  e agora seus agentes do <b>Claude Code</b> e do <b>Codex</b> bem ali em cima.
+</p>
+
+<p align="center">
+  <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white">
+  <img alt="Swift" src="https://img.shields.io/badge/Swift-SwiftUI-F05138?logo=swift&logoColor=white">
+  <img alt="Claude Code" src="https://img.shields.io/badge/Claude%20Code-suportado-D97757">
+  <img alt="Codex" src="https://img.shields.io/badge/Codex-suportado-4AA3DF">
+  <img alt="Versão" src="https://img.shields.io/badge/vers%C3%A3o-0.1.0%20Astronaut%20Cat-8A8A8E">
+  <a href="LICENSE"><img alt="GPL-3.0" src="https://img.shields.io/badge/licen%C3%A7a-GPL--3.0-2F7D32"></a>
+</p>
+
+<p align="center">
+  <img src="docs/images/notch-fechado-agentes.png" alt="Notch fechado com status dos agentes" width="420"><br><br>
   <img src="docs/images/aba-agentes.png" alt="Aba Agentes com pedido de aprovação" width="640">
 </p>
 
@@ -64,7 +78,7 @@ Solte arquivos no botão de compartilhar do shelf e o LocalSend abre com eles pr
 Requisitos: macOS 14+, Xcode 16+.
 
 ```bash
-git clone -b dev https://github.com/reesoousa/boring.notch.git boringCode
+git clone -b dev https://github.com/reesoousa/boringCode.git
 cd boringCode
 xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -configuration Release \
   -derivedDataPath build -destination 'platform=macOS,arch=arm64' build
