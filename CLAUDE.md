@@ -12,8 +12,10 @@ recursos do [Open Island](https://github.com/Octane0411/open-vibe-island): monit
 ## Stack
 
 - Swift 5/6 + SwiftUI + AppKit, projeto Xcode (`boringNotch.xcodeproj`), macOS 14+.
-- App **sandboxed** (`boringNotch/boringNotch.entitlements`) + helper XPC (`BoringNotchXPCHelper/`)
+- App **sem sandbox** (ver "Módulo de agentes") + helper XPC (`BoringNotchXPCHelper/`)
   para trabalho privilegiado (Accessibility, brilho, notificações).
+- Versão atual: **0.1.0 "Astronaut Cat"** (`MARKETING_VERSION` no projeto; apelido em
+  `BoringCodeRelease.name`, `AboutView.swift`).
 - SPM: Defaults (settings), Sparkle (updates), SkyLightWindow, Lottie, Pow, KeyboardShortcuts,
   LaunchAtLogin, swiftui-introspect, swift-collections, AsyncXPCConnection, MacroVisionKit.
 
@@ -64,8 +66,14 @@ Pontos de extensão para o módulo de agentes:
 xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -configuration Debug \
   -derivedDataPath build -destination 'platform=macOS,arch=arm64' build
 
-# rodar (encerra instância anterior)
-pkill -x boringCode; open build/Build/Products/Debug/boringCode.app
+# rodar (o `open` sozinho só reativa a instância velha — encerre de verdade antes)
+osascript -e 'tell application id "com.reesoousa.boringcode" to quit'; pkill -9 -x boringCode
+open build/Build/Products/Debug/boringCode.app
+# o dono usa a cópia instalada: atualize-a a cada build
+ditto build/Build/Products/Debug/boringCode.app /Applications/boringCode.app
+
+# instalador (ver "Distribuição")
+scripts/make-dmg.sh   # → dist/boringCode-<versão>.dmg
 
 # testes
 xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -derivedDataPath build test
@@ -75,6 +83,8 @@ xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -derivedDataPath b
   feche o instalado para testar visualmente.
 - Assinatura atual: ad-hoc (`CODE_SIGN_IDENTITY[sdk=macosx*] = "-"`), sem Team. Permissões do
   macOS (Accessibility, Automation) podem ser pedidas de novo a cada rebuild.
+- **O build Release ad-hoc cai na abertura** (library validation recusa o
+  `MediaRemoteAdapter.framework`: "different Team IDs"). O Debug roda. Ver "Distribuição".
 
 ## Regras de git
 
@@ -87,13 +97,26 @@ xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -derivedDataPath b
   Sincronizar: `git fetch upstream && git merge upstream/dev` (numa branch, nunca direto na `dev`).
 - `reference/` nunca entra no git.
 
-## Distribuição (pendente)
+## Distribuição (pendente — próximos passos do DMG)
 
-Objetivo: forma fácil de mandar pro pessoal da empresa.
-- Ideal: `.dmg` assinado com **Developer ID** + notarizado (abre sem alerta). Requer Apple
-  Developer Program. Script base de DMG: `Configuration/dmg/`.
-- Sem conta paga: build ad-hoc → cada pessoa libera em Ajustes › Privacidade e Segurança.
-- Updates: Sparkle apontando para appcast próprio no GitHub Pages do fork (gerar nova chave EdDSA).
+Objetivo: `.dmg` fácil para os colegas da empresa (vários usam Mac). Pausado até o dono escolher
+a assinatura. `scripts/make-dmg.sh` já faz: build Release → `codesign --verify` → dmgbuild (hashes
+travados, venv em `build/dmgenv`) → `dist/boringCode-<versão>.dmg` (layout `Configuration/dmg/`).
+
+1. **Escolher a assinatura** (decisão do dono):
+   - **Developer ID da empresa** (recomendado; perguntar ao TI) → assinar + notarizar, abre sem alerta.
+   - **Apple ID pessoal grátis** (Xcode › Ajustes › Contas) → dá Team ID, resolve a queda; colegas
+     liberam uma vez em Ajustes › Privacidade e Segurança › "Abrir mesmo assim".
+   - **`com.apple.security.cs.disable-library-validation`** → funciona sem conta, menos protegido;
+     também exige "Abrir mesmo assim". Pedir OK explícito (o classificador pode barrar).
+2. Configurar `DEVELOPMENT_TEAM`/identidade (ou o entitlement) e, se Developer ID, notarização
+   (`xcrun notarytool` + `stapler`) dentro do `make-dmg.sh`.
+3. Gerar o DMG a partir da `dev` e **testar abrindo o app de dentro do DMG montado**
+   (crash → `~/Library/Logs/DiagnosticReports/boringCode-*.ips`).
+4. Opcional: fundo próprio do DMG (660×400, `Configuration/dmg/.background/background.tiff`).
+5. Updates: Sparkle aponta para `https://reesoousa.github.io/boringCode/appcast.xml` (não existe);
+   gerar chave EdDSA própria + GitHub Pages, ou desligar a busca automática até lá.
+6. Publicar como Release no GitHub (`gh release create v0.1.0 dist/boringCode-0.1.0.dmg`).
 
 ## Módulo de agentes (`boringNotch/agents/`)
 
@@ -109,17 +132,27 @@ Decisões de produto (definidas pelo dono):
 - **Nome:** tudo que o usuário vê diz "boringCode" (traduções no xcstrings, chaves iguais ao upstream).
   Sobre credita Boring Notch e Open Island.
 - **Pedido de aprovação** expande o notch sozinho na aba Agentes e fecha sozinho quando resolvido.
-- Tudo **ligado por padrão** (público-alvo: devs). Configurações em Ajustes › "AI Agents".
-- **Hosts suportados:** Claude Code no terminal (Terminal/iTerm), extensão do Claude para VS Code
-  (e Cursor), app Claude (aba Code). Codex fica para depois.
+- Tudo **ligado por padrão** (público-alvo: devs). Configurações em Ajustes › "Agentes de IA".
+- **Agentes/hosts:** Claude Code (Terminal/iTerm, extensão VS Code/Cursor, app Claude) e Codex
+  (CLI, VS Code, app Codex = `ChatGPT.app`, bundle `com.openai.codex`, `codex://threads/<id>`).
+  Cores: Claude laranja, Codex azul.
+- **Animação calma:** ✻ vetorial gira 8 s/volta e respira; parado com Reduzir movimento.
+  Nada frenético/chamativo quando ocioso. Ícone da aba: `>_` sem caixa (`AgentPromptGlyph`).
+- **Som sutil** ao concluir (som do sistema, padrão Bottle, volume 0,35).
+- **Logo** (arte-fonte em `logo/`): ícone do app (grade 824/1024), barra de menus (SVG template
+  `menubarIcon`), boas-vindas. Sobre no padrão Apple: "Feito para pessoas não tão chatas assim."
+- **LocalSend** no Shelf (Quick Share), abrindo o app direto; AirDrop continua padrão.
 - **Guardrails de design:** seguir a linguagem visual do Boring Notch (preto, cinza, cantos 12, SF Symbols,
   mesmas geometrias de live activity). Não alterar layouts existentes além do slot do espectro.
-- Strings: chave em inglês + tradução pt-BR em `Localizable.xcstrings` (script python, preservando ordem).
+- Strings: chave em inglês + tradução pt-BR em `Localizable.xcstrings` (script python, preservando ordem:
+  `json.dumps(d, indent=2, separators=(',', ' : '), ensure_ascii=False)`, sem `sort_keys`).
+  Conflitos entre branches nesse arquivo: resolver pela **união das chaves**.
 
 Arquitetura:
-- `ClaudeHookInstaller` escreve `~/Library/Application Support/boringCode/bin/boringcode-hook` (sh + curl)
-  e adiciona entradas em `~/.claude/settings.json` identificadas por `boringCode/bin/boringcode-hook`
-  (backup `settings.json.boringcode-backup.*`, mantém 5). Não toca hooks de outras ferramentas.
+- `AgentHookInstaller` (`.claude` e `.codex`) escreve `~/Library/Application Support/boringCode/bin/boringcode-hook` (sh + curl)
+  e adiciona entradas em `~/.claude/settings.json` / `~/.codex/hooks.json` (+ `[features] hooks = true`
+  no `config.toml`) identificadas por `boringCode/bin/boringcode-hook` (backup `*.boringcode-backup.*`,
+  mantém 5). Não toca hooks de outras ferramentas. Script: `boringcode-hook <Evento> [claude|codex]`.
 - O script faz `curl --unix-socket agents.sock` → `AgentHookServer` (HTTP mínimo, POSIX socket).
   `PermissionRequest` fica pendurado (timeout 86400) até aprovar/recusar; se o hook morrer
   (respondeu no terminal) o servidor detecta EOF e tira do notch. Fail-open sem o app.
@@ -128,5 +161,5 @@ Arquitetura:
 - **App sem sandbox** (aprovado pelo dono em 2026-09-30): precisa escrever em `~/.claude`, controlar
   Terminal/iTerm e o socket (limite de 104 bytes no sun_path estoura dentro do container).
 - Testar o núcleo sem o app: compilar `agents/AgentHookServer.swift`, `AgentModels.swift`,
-  `ClaudeHookInstaller.swift` + um `main.swift` com `swiftc` e usar socket em caminho curto.
+  `AgentHookInstaller.swift` + um `main.swift` com `swiftc` e usar socket em caminho curto.
 - Convive com Open Island instalado: se os dois estiverem abertos, ambos seguram o PermissionRequest.
