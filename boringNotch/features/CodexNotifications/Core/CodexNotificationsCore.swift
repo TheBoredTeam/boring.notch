@@ -21,12 +21,6 @@ public enum PriorityResolver {
     }
 }
 
-public enum CodexRequiredAction: String, Equatable, Sendable {
-    case permission
-    case decision
-    case manualCheck
-}
-
 public enum CodexNotificationTiming {
     public static let transitionAnimationResponse: TimeInterval = 0.42
     public static let passiveDwellDuration: TimeInterval = 3
@@ -111,7 +105,7 @@ public enum CodexClosedActivityTapRouting: Equatable, Sendable {
     case openCodex
 
     public init(status: CodexJobStatus) {
-        if status == .needsAction(.permission) {
+        if status == .permissionRequired {
             self = .expandNotch
         } else {
             self = .openCodex
@@ -128,7 +122,7 @@ public struct CodexClosedActivityAccessibility: Equatable, Sendable {
         projectName: String,
         launchError: String? = nil
     ) {
-        if status == .needsAction(.permission) {
+        if status == .permissionRequired {
             value = "Permission required."
             hint = "Activate to review this permission in Boring Notch."
         } else if let launchError {
@@ -337,54 +331,36 @@ public struct CodexPermissionDetails: Equatable, Sendable {
 }
 
 public enum CodexJobStatus: Equatable, Sendable {
-    case needsAction(CodexRequiredAction)
-    case failed
-    case succeeded
+    case permissionRequired
+    case responseReady
+    case update
+    case stopped
 
     public var priority: Int {
-        switch self {
-        case .needsAction: 4
-        case .failed: 3
-        case .succeeded: 2
-        }
+        self == .permissionRequired ? 4 : 2
     }
 
-    public var isPersistent: Bool {
-        switch self {
-        case .needsAction(.permission): true
-        case .needsAction(.decision), .needsAction(.manualCheck), .failed, .succeeded:
-            false
-        }
-    }
+    public var isPersistent: Bool { self == .permissionRequired }
 
     public var title: String {
         switch self {
-        case .needsAction(.permission): "Permission Required"
-        case .needsAction(.decision): "Decision Required"
-        case .needsAction(.manualCheck): "Manual Check"
-        case .failed: "Failure"
-        case .succeeded: "Success"
+        case .permissionRequired: "Permission Required"
+        case .responseReady: "Response ready"
+        case .update: "Codex update"
+        case .stopped: "Stopped"
         }
     }
 
     public var icon: String {
         switch self {
-        case .needsAction(.permission): "lock.shield.fill"
-        case .needsAction(.decision): "questionmark.circle.fill"
-        case .needsAction(.manualCheck): "hand.tap.fill"
-        case .failed: "xmark.circle.fill"
-        case .succeeded: "checkmark.circle.fill"
+        case .permissionRequired: "lock.shield.fill"
+        case .responseReady: "text.bubble.fill"
+        case .update: "info.circle.fill"
+        case .stopped: "stop.circle.fill"
         }
     }
 
-    public var nextAction: String {
-        switch self {
-        case .needsAction(.permission), .needsAction(.decision):
-            "Open Codex"
-        case .needsAction(.manualCheck), .failed: "Review result"
-        case .succeeded: "No action needed"
-        }
-    }
+    public var nextAction: String { "Open Codex" }
 }
 
 public struct CodexJobNotification: Equatable, Identifiable, Sendable {
@@ -456,8 +432,14 @@ public enum CodexHookEvent: Equatable, Sendable {
         sessionID: String,
         turnID: String?,
         cwd: String?,
-        result: String,
-        reportedStatus: String? = nil,
+        result: String?,
+        chatTitle: String? = nil,
+        projectName: String? = nil
+    )
+    case interrupt(
+        sessionID: String,
+        turnID: String,
+        cwd: String?,
         chatTitle: String? = nil,
         projectName: String? = nil
     )
@@ -542,11 +524,19 @@ public enum CodexHookEventParser {
                 sessionID: sessionID,
                 turnID: turnID,
                 cwd: cwd,
-                result: nonemptyString(object["last_assistant_message"])
-                    ?? nonemptyString(object["error"])
-                    ?? nonemptyString(object["message"])
-                    ?? "Codex stopped before completing the task.",
-                reportedStatus: nonemptyString(object["status"]),
+                result: nonemptyString(object["last_assistant_message"]),
+                chatTitle: chatTitle,
+                projectName: projectName
+            )
+
+        case "Interrupt":
+            guard let turnID else {
+                throw CodexHookEventParserError.missingField("turn_id")
+            }
+            return .interrupt(
+                sessionID: sessionID,
+                turnID: turnID,
+                cwd: cwd,
                 chatTitle: chatTitle,
                 projectName: projectName
             )
@@ -669,6 +659,9 @@ public enum CodexHookEventParser {
 public struct CodexNotificationState: Equatable, Sendable {
     public private(set) var notifications: [CodexJobNotification]
 
+    // Retained after dismissal so duplicate/delayed delivery cannot resurface a turn.
+    private var terminalStatuses: [String: CodexJobStatus] = [:]
+    private var recentTerminalIDs: [String] = []
     private var latestJobBySession: [String: JobContext]
     private var recentJobSessionIDs: [String]
     private let maximumNotifications = 20
@@ -690,6 +683,14 @@ public struct CodexNotificationState: Equatable, Sendable {
             let chatTitle,
             let projectName
         ):
+            notifications.removeAll {
+                $0.sessionID == sessionID && !$0.status.isPersistent
+            }
+            let resumedID = Self.correlationID(sessionID: sessionID, turnID: turnID, requestID: nil)
+            if terminalStatuses[resumedID] != .stopped {
+                terminalStatuses.removeValue(forKey: resumedID)
+                recentTerminalIDs.removeAll { $0 == resumedID }
+            }
             let userInstruction = CodexText.userInstruction(from: prompt)
             storeJobContext(JobContext(
                 turnID: turnID,
@@ -711,14 +712,15 @@ public struct CodexNotificationState: Equatable, Sendable {
             let chatTitle,
             let projectName
         ):
-            guard !details.isAutoReviewed else { return }
+            let terminalID = Self.correlationID(sessionID: sessionID, turnID: turnID, requestID: nil)
+            guard !details.isAutoReviewed, terminalStatuses[terminalID] == nil else { return }
             let notification = makeNotification(
                 sessionID: sessionID,
                 turnID: turnID,
                 requestID: requestID,
                 cwd: cwd,
                 result: details.summary,
-                status: .needsAction(.permission),
+                status: .permissionRequired,
                 permissionCallback: callback,
                 permissionDetails: details,
                 chatTitle: chatTitle,
@@ -732,39 +734,76 @@ public struct CodexNotificationState: Equatable, Sendable {
             let turnID,
             let cwd,
             let result,
-            let reportedStatus,
             let chatTitle,
             let projectName
         ):
+            let terminalID = Self.correlationID(sessionID: sessionID, turnID: turnID, requestID: nil)
+            guard turnID == nil || terminalStatuses[terminalID] == nil else { return }
             notifications.removeAll { notification in
-                guard notification.status == .needsAction(.permission),
+                guard notification.status == .permissionRequired,
                       notification.sessionID == sessionID else {
                     return false
                 }
-                guard let turnID else { return true }
                 return notification.turnID == turnID
             }
-            let status = Self.classify(result: result, reportedStatus: reportedStatus)
+            let message = result?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let hasResponse = message?.isEmpty == false
+            let status: CodexJobStatus = hasResponse ? .responseReady : .update
+            if turnID != nil { rememberTerminal(status, id: terminalID) }
             let notification = makeNotification(
                 sessionID: sessionID,
                 turnID: turnID,
                 requestID: nil,
                 cwd: cwd,
-                result: result,
+                result: hasResponse ? (message ?? "") : "Response details unavailable. Open Codex to review.",
                 status: status,
                 chatTitle: chatTitle,
                 projectName: projectName,
                 date: date
             )
             upsert(notification)
+
+        case .interrupt(let sessionID, let turnID, let cwd, let chatTitle, let projectName):
+            let terminalID = Self.correlationID(sessionID: sessionID, turnID: turnID, requestID: nil)
+            guard terminalStatuses[terminalID] != .stopped else { return }
+            rememberTerminal(.stopped, id: terminalID)
+            notifications.removeAll {
+                $0.sessionID == sessionID && $0.turnID == turnID
+            }
+            upsert(makeNotification(
+                sessionID: sessionID,
+                turnID: turnID,
+                requestID: nil,
+                cwd: cwd,
+                result: "You interrupted this turn. Open Codex to review.",
+                status: .stopped,
+                chatTitle: chatTitle,
+                projectName: projectName,
+                date: date
+            ))
         }
+    }
+
+    private mutating func rememberTerminal(_ status: CodexJobStatus, id: String) {
+        terminalStatuses[id] = status
+        recentTerminalIDs.removeAll { $0 == id }
+        recentTerminalIDs.append(id)
+        while recentTerminalIDs.count > 100 {
+            terminalStatuses.removeValue(forKey: recentTerminalIDs.removeFirst())
+        }
+    }
+
+    public func hasEndedTurn(sessionID: String, turnID: String?) -> Bool {
+        guard let turnID else { return false }
+        let id = Self.correlationID(sessionID: sessionID, turnID: turnID, requestID: nil)
+        return terminalStatuses[id] != nil
     }
 
     public func visibleNotification(at date: Date = Date()) -> CodexJobNotification? {
         PriorityResolver.select(
             from: notifications,
             isVisible: {
-                $0.status != .needsAction(.permission)
+                $0.status != .permissionRequired
                     || $0.permissionCallback?.isActive(at: date) == true
             },
             priority: { $0.status.priority },
@@ -774,7 +813,7 @@ public struct CodexNotificationState: Equatable, Sendable {
 
     public mutating func removeExpiredPermissionRequests(at date: Date = Date()) {
         notifications.removeAll { notification in
-            notification.status == .needsAction(.permission)
+            notification.status == .permissionRequired
                 && notification.permissionCallback?.isActive(at: date) != true
         }
     }
@@ -845,6 +884,7 @@ public struct CodexNotificationState: Equatable, Sendable {
             existing.id == notification.id
                 || (notification.requestID == nil
                     && notification.turnID == nil
+                    && !existing.status.isPersistent
                     && existing.sessionID == notification.sessionID)
         }
         notifications.append(notification)
@@ -852,7 +892,7 @@ public struct CodexNotificationState: Equatable, Sendable {
         while notifications.count > maximumNotifications {
             let evictionCandidates = notifications.indices.filter { index in
                 let existing = notifications[index]
-                return existing.status != .needsAction(.permission)
+                return existing.status != .permissionRequired
                     || existing.permissionCallback?.isActive(
                         at: notification.createdAt
                     ) != true
@@ -906,452 +946,6 @@ public struct CodexNotificationState: Equatable, Sendable {
         return "s\(sessionID.utf8.count):\(sessionID)|\(turnComponent)|\(requestComponent)"
     }
 
-    private static func classify(
-        result: String,
-        reportedStatus: String?
-    ) -> CodexJobStatus {
-        let normalizedStatus = reportedStatus?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .lowercased()
-        let text = result
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .lowercased()
-        let failureMarkers = [
-            "build failed", "tests failed", "test failed", "failed to",
-            "could not complete", "couldn't complete", "unable to complete",
-            "the task failed", "encountered an error", "interrupted",
-            "aborted", "cancelled", "canceled", "terminated",
-            "stopped before completing", "stopped by user", "error:",
-            "command failed", "status: failed", "failed (exit code",
-            "not all tests passed", "did not succeed",
-            "did not pass", "haven't passed", "hasn't passed", "hadn't passed",
-            "have not passed", "has not passed", "had not passed",
-            "haven't succeeded", "hasn't succeeded", "hadn't succeeded",
-            "have not succeeded", "has not succeeded", "had not succeeded",
-            "was not successful", "were not successful",
-            "wasn't successful", "weren't successful",
-            "tests are failing", "tests are still failing",
-            "test is failing", "test is still failing",
-            "build is failing", "build is still failing",
-            "tests still fail", "test still fails", "build still fails",
-            "command still fails", "task still fails",
-            "continue to fail", "continues to fail",
-            "keep failing", "keeps failing",
-            "is still failing", "are still failing"
-        ]
-        let successMarkers = [
-            "build succeeded", "tests passed", "all tests passed",
-            "completed successfully", "successfully completed"
-        ]
-        let hasExplicitSuccessStatus = ["succeeded", "success"].contains(normalizedStatus)
-        let affirmativeFailures = affirmativeMarkerRanges(failureMarkers, in: text)
-        let affirmativeSuccesses = affirmativeMarkerRanges(successMarkers, in: text)
-        let resolutionRanges = affirmativeWordRanges(
-            ["addressed", "corrected", "fixed", "fixing", "repaired", "resolved"],
-            in: text
-        )
-        let hasUnresolvedFailure = affirmativeFailures.contains { failureRange in
-            !isResolved(
-                failureRange,
-                by: resolutionRanges,
-                before: affirmativeSuccesses,
-                in: text
-            )
-        }
-        let hasAffirmativeSuccess = !affirmativeSuccesses.isEmpty
-        if ["failed", "error", "cancelled", "canceled"].contains(normalizedStatus)
-            || (!hasExplicitSuccessStatus
-                && hasUnresolvedFailure) {
-            return .failed
-        }
-
-        let manualMarkers = [
-            "manually verify", "verify manually", "test manually",
-            "please verify", "please test", "please manually review",
-            "manually review", "review and approve", "approve or reject",
-            "wait for manual review", "wait for manual verification",
-            "manual review required", "manual verification required",
-            "manual test required", "requires manual review",
-            "requires manual verification", "needs manual review",
-            "needs manual verification", "manual review and approval"
-        ]
-        if manualMarkers.contains(where: {
-            containsAffirmativeMarker($0, in: text)
-        }) {
-            return .needsAction(.manualCheck)
-        }
-
-        let decisionMarkers = [
-            "need your decision", "your decision is needed", "please choose",
-            "please decide", "i need your input", "need your input",
-            "your input is needed", "waiting for your input",
-            "waiting for your choice", "waiting for your decision",
-            "waiting for your response", "awaiting your response",
-            "select an option", "choose an option", "pick an option",
-            "choose one", "select one", "pick one", "make a choice",
-            "need a decision", "decision from you", "your choice",
-            "requires your input", "your input is required",
-            "which option", "which one", "which should i", "which do you prefer",
-            "which would you prefer", "do you prefer", "would you prefer",
-            "what would you like me to", "what should i do",
-            "let me know whether", "tell me which", "tell me whether",
-            "let me know what you prefer", "what do you prefer",
-            "what would you choose", "please confirm", "confirm whether",
-            "confirm if",
-            "should i ", "would you like me to", "do you want me to",
-            "how should i proceed", "how should we proceed",
-            "how would you like to proceed", "how would you like me to proceed",
-            "choose a or b", "select a or b", "pick a or b",
-            "choose between"
-        ]
-        let directQuestionMarkers = [
-            "which ", "what ", "how ", "should i ", "would you ",
-            "do you ", "can i ", "may i ", "shall i "
-        ]
-        if decisionMarkers.contains(where: {
-            containsAffirmativeMarker($0, in: text)
-        })
-            || (text.hasSuffix("?") && directQuestionMarkers.contains(where: text.contains)) {
-            return .needsAction(.decision)
-        }
-
-        if ["succeeded", "success"].contains(normalizedStatus) {
-            return .succeeded
-        }
-
-        if hasAffirmativeSuccess {
-            return .succeeded
-        }
-        return .succeeded
-    }
-
-    private static func affirmativeMarkerRanges(
-        _ markers: [String],
-        in text: String
-    ) -> [Range<String.Index>] {
-        markers.flatMap { marker in
-            var ranges: [Range<String.Index>] = []
-            var searchStart = text.startIndex
-            while let range = text.range(
-                of: marker,
-                range: searchStart..<text.endIndex
-            ) {
-                if !isNegated(at: range.lowerBound, marker: marker, in: text) {
-                    ranges.append(range)
-                }
-                searchStart = range.upperBound
-            }
-            return ranges
-        }.sorted { $0.lowerBound < $1.lowerBound }
-    }
-
-    private static func wordRanges(
-        _ words: Set<String>,
-        in text: String
-    ) -> [Range<String.Index>] {
-        let tokenCharacters = CharacterSet.alphanumerics.union(
-            CharacterSet(charactersIn: "'")
-        )
-        var ranges: [Range<String.Index>] = []
-        var index = text.startIndex
-
-        while index < text.endIndex {
-            while index < text.endIndex,
-                  !text[index].unicodeScalars.contains(where: tokenCharacters.contains) {
-                index = text.index(after: index)
-            }
-            let tokenStart = index
-            while index < text.endIndex,
-                  text[index].unicodeScalars.contains(where: tokenCharacters.contains) {
-                index = text.index(after: index)
-            }
-            if tokenStart < index,
-               words.contains(String(text[tokenStart..<index])) {
-                ranges.append(tokenStart..<index)
-            }
-        }
-        return ranges
-    }
-
-    private static func containsAffirmativeMarker(
-        _ marker: String,
-        in text: String
-    ) -> Bool {
-        !affirmativeMarkerRanges([marker], in: text).isEmpty
-    }
-
-    private static func affirmativeWordRanges(
-        _ words: Set<String>,
-        in text: String
-    ) -> [Range<String.Index>] {
-        wordRanges(words, in: text).filter { range in
-            !isNegated(
-                at: range.lowerBound,
-                marker: String(text[range]),
-                in: text
-            )
-        }
-    }
-
-    private static func isNegated(
-        at markerStart: String.Index,
-        marker: String,
-        in text: String
-    ) -> Bool {
-        let prefix = text[..<markerStart]
-        let clauseSeparators = CharacterSet(charactersIn: ".!?;:,\n\r")
-        let clauseStart = prefix.lastIndex { character in
-            character.unicodeScalars.contains { clauseSeparators.contains($0) }
-        }.map { text.index(after: $0) } ?? text.startIndex
-        let clause = text[clauseStart..<markerStart]
-            .replacingOccurrences(of: "’", with: "'")
-            .lowercased()
-        let tokenCharacters = CharacterSet.alphanumerics.union(
-            CharacterSet(charactersIn: "'")
-        )
-        var tokens = clause.components(
-            separatedBy: tokenCharacters.inverted
-        ).filter { !$0.isEmpty }
-
-        let unconditionalBoundaries: Set<String> = ["but", "however", "yet"]
-        let clauseBoundaries: Set<String> = ["and", "because", "so"]
-        let subordinateBoundaries: Set<String> = [
-            "although", "before", "since", "though", "whereas", "while",
-        ]
-        let clauseStarters: Set<String> = [
-            "he", "i", "it", "please", "she", "that", "they", "this",
-            "those", "we", "you", "your",
-        ]
-        let finiteMarkerStarters: Set<String> = [
-            "awaiting", "need", "needs", "requires", "waiting",
-        ]
-        let markerFirstToken = marker.components(
-            separatedBy: tokenCharacters.inverted
-        ).first { !$0.isEmpty }
-        let boundaryIndex = tokens.indices.reversed().first { index in
-            let token = tokens[index]
-            if unconditionalBoundaries.contains(token) { return true }
-            let followingTokens = tokens[tokens.index(after: index)...]
-            if subordinateBoundaries.contains(token) {
-                return followingTokens.contains(where: clauseStarters.contains)
-                    || markerFirstToken.map(clauseStarters.contains) == true
-            }
-            guard clauseBoundaries.contains(token) else { return false }
-            return followingTokens.contains(where: clauseStarters.contains)
-                || markerFirstToken.map(clauseStarters.contains) == true
-                || markerFirstToken.map(finiteMarkerStarters.contains) == true
-        }
-        if let boundaryIndex {
-            tokens = Array(tokens[tokens.index(after: boundaryIndex)...])
-        }
-
-        let negations: Set<String> = [
-            "0", "no", "not", "never", "without", "zero", "cannot", "don't",
-            "doesn't", "didn't", "won't", "can't", "couldn't", "haven't",
-            "hasn't", "hadn't", "isn't", "aren't", "wasn't", "weren't",
-        ]
-        for index in tokens.indices.reversed() {
-            guard negations.contains(tokens[index]) else { continue }
-            if tokens[index] == "not",
-               tokens.indices.contains(index + 1),
-               tokens[index + 1] == "only" {
-                continue
-            }
-            return true
-        }
-        return false
-    }
-
-    private static func isResolved(
-        _ failureRange: Range<String.Index>,
-        by resolutionRanges: [Range<String.Index>],
-        before successRanges: [Range<String.Index>],
-        in text: String
-    ) -> Bool {
-        let prefix = text[..<failureRange.lowerBound]
-        let clauseSeparators = CharacterSet(charactersIn: ".!?;:,\n\r")
-        let clauseStart = prefix.lastIndex { character in
-            character.unicodeScalars.contains { clauseSeparators.contains($0) }
-        }.map { text.index(after: $0) } ?? text.startIndex
-        let resolutionFrameBoundaries = wordRanges(
-            [
-                "although", "and", "because", "but", "however", "since", "so",
-                "though", "whereas", "while", "yet",
-            ],
-            in: text
-        )
-        let isFramedByResolution = resolutionRanges.contains { resolutionRange in
-            guard resolutionRange.lowerBound >= clauseStart,
-                  resolutionRange.upperBound <= failureRange.lowerBound else {
-                return false
-            }
-            guard !resolutionFrameBoundaries.contains(where: { boundaryRange in
-                boundaryRange.lowerBound >= resolutionRange.upperBound
-                    && boundaryRange.upperBound <= failureRange.lowerBound
-            }) else {
-                return false
-            }
-            return hasFailureReference(
-                between: resolutionRange.upperBound..<failureRange.lowerBound,
-                andAfter: failureRange,
-                in: text
-            )
-        }
-        if isFramedByResolution {
-            return true
-        }
-
-        return successRanges.contains { successRange in
-            guard successRange.lowerBound >= failureRange.upperBound else {
-                return false
-            }
-            return resolutionRanges.contains { resolutionRange in
-                guard resolutionRange.lowerBound >= failureRange.upperBound,
-                      resolutionRange.upperBound <= successRange.lowerBound else {
-                    return false
-                }
-                return resolutionRefersToFailure(
-                    resolutionRange,
-                    failureRange: failureRange,
-                    successRange: successRange,
-                    in: text
-                )
-            }
-        }
-    }
-
-    private static func hasFailureReference(
-        between leadingRange: Range<String.Index>,
-        andAfter failureRange: Range<String.Index>,
-        in text: String
-    ) -> Bool {
-        let referenceNouns: Set<String> = [
-            "bug", "case", "failure", "issue", "message", "problem",
-            "regression", "scenario", "text", "wording",
-        ]
-        let relationWords: Set<String> = ["that", "when", "where", "which"]
-        let leadingTokens = Set(tokens(in: leadingRange, of: text))
-        let clauseEnd = nextClauseBoundary(after: failureRange.upperBound, in: text)
-        let trailingTokens = tokens(
-            in: failureRange.upperBound..<clauseEnd,
-            of: text
-        )
-        let nearbyTrailingTokens = Set(trailingTokens.prefix(3))
-        let referenceDomains = normalizedDomains(
-            in: Array(leadingTokens.union(nearbyTrailingTokens))
-        )
-        let failureDomains = normalizedFailureDomains(
-            in: failureRange,
-            of: text
-        )
-        if !referenceDomains.isEmpty,
-           !failureDomains.isEmpty,
-           referenceDomains.isDisjoint(with: failureDomains) {
-            return false
-        }
-        return (!leadingTokens.isDisjoint(with: referenceNouns)
-            && !leadingTokens.isDisjoint(with: relationWords))
-            || !nearbyTrailingTokens.isDisjoint(with: referenceNouns)
-    }
-
-    private static func resolutionRefersToFailure(
-        _ resolutionRange: Range<String.Index>,
-        failureRange: Range<String.Index>,
-        successRange: Range<String.Index>,
-        in text: String
-    ) -> Bool {
-        let clauseStart = previousClauseBoundary(before: resolutionRange.lowerBound, in: text)
-        let localStart = max(clauseStart, failureRange.upperBound)
-        let clauseEnd = nextClauseBoundary(after: resolutionRange.upperBound, in: text)
-        let localEnd = min(clauseEnd, successRange.lowerBound)
-        guard localStart <= resolutionRange.lowerBound,
-              resolutionRange.upperBound <= localEnd else {
-            return false
-        }
-
-        let leadingTokens = tokens(
-            in: localStart..<resolutionRange.lowerBound,
-            of: text
-        )
-        let trailingTokens = tokens(
-            in: resolutionRange.upperBound..<localEnd,
-            of: text
-        )
-        let localTokens = Set(leadingTokens + trailingTokens)
-        let localDomains = normalizedDomains(in: Array(localTokens))
-        let failureDomains = normalizedFailureDomains(
-            in: failureRange,
-            of: text
-        )
-        if !localDomains.isEmpty,
-           !failureDomains.isEmpty {
-            return !localDomains.isDisjoint(with: failureDomains)
-        }
-        let referenceNouns: Set<String> = [
-            "bug", "case", "error", "failure", "issue", "message", "problem",
-            "regression", "scenario", "wording",
-        ]
-        if !localTokens.isDisjoint(with: referenceNouns) {
-            return true
-        }
-        let pronouns: Set<String> = ["it", "that", "them", "this", "those"]
-        let nearbyTokens = Set(
-            leadingTokens.suffix(2) + trailingTokens.prefix(2)
-        )
-        return !nearbyTokens.isDisjoint(with: pronouns)
-    }
-
-    private static func normalizedFailureDomains(
-        in range: Range<String.Index>,
-        of text: String
-    ) -> Set<String> {
-        normalizedDomains(in: tokens(in: range, of: text))
-    }
-
-    private static func normalizedDomains(in tokens: [String]) -> Set<String> {
-        Set(tokens.compactMap { token in
-            switch token {
-            case "test", "tests": "test"
-            case "build", "command", "task": token
-            default: nil
-            }
-        })
-    }
-
-    private static func tokens(
-        in range: Range<String.Index>,
-        of text: String
-    ) -> [String] {
-        let tokenCharacters = CharacterSet.alphanumerics.union(
-            CharacterSet(charactersIn: "'")
-        )
-        return text[range]
-            .replacingOccurrences(of: "’", with: "'")
-            .lowercased()
-            .components(separatedBy: tokenCharacters.inverted)
-            .filter { !$0.isEmpty }
-            .map { $0 == "tests" ? "test" : $0 }
-    }
-
-    private static func previousClauseBoundary(
-        before index: String.Index,
-        in text: String
-    ) -> String.Index {
-        let separators = CharacterSet(charactersIn: ".!?;:,\n\r")
-        return text[..<index].lastIndex { character in
-            character.unicodeScalars.contains { separators.contains($0) }
-        }.map { text.index(after: $0) } ?? text.startIndex
-    }
-
-    private static func nextClauseBoundary(
-        after index: String.Index,
-        in text: String
-    ) -> String.Index {
-        let separators = CharacterSet(charactersIn: ".!?;:,\n\r")
-        return text[index...].firstIndex { character in
-            character.unicodeScalars.contains { separators.contains($0) }
-        } ?? text.endIndex
-    }
 }
 
 private struct JobContext: Equatable, Sendable {

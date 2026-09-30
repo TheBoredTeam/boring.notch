@@ -103,6 +103,51 @@ final class CodexHookSecurityTests: XCTestCase {
         )
     }
 
+    func testHookScriptEmbedsExactAppPathWithoutExecutingPathCharacters() throws {
+        let path = "/tmp/An app's \"quoted\" \\ path\n.app"
+        let template = "APP_BUNDLE_PATH = \"__BORING_NOTCH_APP_BUNDLE__\""
+        let rendered = try CodexHookConfiguration.renderScript(template, appBundlePath: path)
+        let literal = String(rendered.dropFirst("APP_BUNDLE_PATH = ".count))
+        let decoded = try JSONSerialization.jsonObject(with: Data(literal.utf8), options: [.fragmentsAllowed])
+        XCTAssertEqual(decoded as? String, path)
+        XCTAssertFalse(rendered.contains("__BORING_NOTCH_APP_BUNDLE__"))
+        XCTAssertFalse(rendered.contains("\n"))
+    }
+
+    func testFreshInstallationIsRecognizedForEveryConfiguredEvent() throws {
+        let command = "fixture-hook"
+        let root = try CodexHookConfiguration.updating([:], installed: true, command: command)
+        for event in CodexHookConfiguration.events {
+            XCTAssertTrue(CodexHookConfiguration.containsCurrentOwnedHook(
+                in: root, event: event, command: command), event)
+        }
+        XCTAssertEqual(Set(CodexHookConfiguration.definitions.map(\.trustName)),
+            ["user_prompt_submit", "permission_request", "stop", "interrupt"])
+        let removed = try CodexHookConfiguration.updating(root, installed: false, command: command)
+        for event in CodexHookConfiguration.events {
+            XCTAssertFalse(CodexHookConfiguration.containsCurrentOwnedHook(
+                in: removed, event: event, command: command), event)
+        }
+    }
+
+    func testIncorrectInterruptTimeoutIsNotRecognizedAsCurrent() {
+        let root: [String: Any] = ["hooks": ["Interrupt": [["hooks": [[
+            "type": "command", "command": "fixture-hook", "timeout": 5
+        ]]]]]]
+        XCTAssertFalse(CodexHookConfiguration.containsCurrentOwnedHook(
+            in: root, event: "Interrupt", command: "fixture-hook"))
+    }
+
+    func testInterruptHookUsesSupportedTimeout() throws {
+        let root = try CodexHookConfiguration.updating([:], installed: true, command: "fixture-hook")
+        let hooks = try XCTUnwrap(root["hooks"] as? [String: Any])
+        let groups = try XCTUnwrap(hooks["Interrupt"] as? [[String: Any]])
+        let handlers = try XCTUnwrap(groups.first?["hooks"] as? [[String: Any]])
+        XCTAssertEqual(handlers.count, 1)
+        XCTAssertEqual(handlers.first?["timeout"] as? Int, 3)
+        XCTAssertEqual(handlers.first?["command"] as? String, "fixture-hook")
+    }
+
     func testUninstallingHooksRemovesOnlyOwnedGroups() throws {
         let unrelatedGroup: [String: Any] = [
             "hooks": [["type": "command", "command": "notify-send done", "timeout": 9]],

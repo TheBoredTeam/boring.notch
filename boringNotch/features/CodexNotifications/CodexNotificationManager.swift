@@ -49,7 +49,7 @@ final class CodexNotificationManager: ObservableObject {
         guard let expandedPermissionNotificationID else { return nil }
         return state.notifications.first(where: {
             $0.id == expandedPermissionNotificationID
-                && $0.status == .needsAction(.permission)
+                && $0.status == .permissionRequired
         })
     }
 
@@ -118,10 +118,19 @@ final class CodexNotificationManager: ObservableObject {
 
         do {
             let event = try CodexHookEventParser.parse(payload)
-            if case .permissionRequest(_, _, _, _, let details, let callback, _, _) = event {
+            if case .permissionRequest(let sessionID, let turnID, _, _, let details, let callback, _, _) = event {
                 guard let callback, !details.isAutoReviewed else { return }
                 do {
+                    if state.hasEndedTurn(sessionID: sessionID, turnID: turnID) {
+                        try await CodexPermissionRelay.submit(.reviewInCodex, callback: callback)
+                        return
+                    }
                     try await CodexPermissionRelay.acknowledge(callback: callback)
+                    // Ingestion can resume after an Interrupt/Stop was received during the await.
+                    if state.hasEndedTurn(sessionID: sessionID, turnID: turnID) {
+                        try await CodexPermissionRelay.submit(.reviewInCodex, callback: callback)
+                        return
+                    }
                 } catch {
                     Self.logger.error(
                         "Could not acknowledge a Codex permission notification: \(error.localizedDescription, privacy: .public)"
@@ -149,10 +158,10 @@ final class CodexNotificationManager: ObservableObject {
     }
 
     func presentPermissionDetail(for notification: CodexJobNotification) {
-        guard notification.status == .needsAction(.permission),
+        guard notification.status == .permissionRequired,
               state.notifications.contains(where: {
                   $0.id == notification.id
-                      && $0.status == .needsAction(.permission)
+                      && $0.status == .permissionRequired
               }) else {
             return
         }
@@ -169,11 +178,11 @@ final class CodexNotificationManager: ObservableObject {
         _ decision: CodexPermissionDecision,
         for notification: CodexJobNotification
     ) async -> Bool {
-        guard notification.status == .needsAction(.permission),
+        guard notification.status == .permissionRequired,
               let callback = notification.permissionCallback,
               state.notifications.contains(where: {
                   $0.id == notification.id
-                      && $0.status == .needsAction(.permission)
+                      && $0.status == .permissionRequired
                       && $0.permissionCallback == callback
               }),
               !submittingNotificationIDs.contains(notification.id) else {
@@ -206,7 +215,7 @@ final class CodexNotificationManager: ObservableObject {
         }
         guard state.notifications.contains(where: {
             $0.id == notification.id
-                && $0.status == .needsAction(.permission)
+                && $0.status == .permissionRequired
                 && $0.permissionCallback == callback
         }) else {
             return false
@@ -550,7 +559,7 @@ final class CodexNotificationManager: ObservableObject {
         }
 
         let expirations: [Date] = state.notifications.compactMap { notification -> Date? in
-            guard notification.status == .needsAction(.permission) else {
+            guard notification.status == .permissionRequired else {
                 return nil
             }
             return notification.permissionCallback?.expiresAt

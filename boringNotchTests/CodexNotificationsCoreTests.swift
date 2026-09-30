@@ -50,31 +50,6 @@ final class CodexNotificationsCoreTests: XCTestCase {
         let updatedAt: Date
     }
 
-    func testCodexHookTargetsBoringNotchWhenOpeningAuthenticatedEventURL() throws {
-        let repositoryRoot = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-        let helperSource = try String(
-            contentsOf: repositoryRoot
-                .appendingPathComponent("BoringNotchXPCHelper")
-                .appendingPathComponent("BoringNotchXPCHelper.swift"),
-            encoding: .utf8
-        )
-
-        XCTAssertTrue(
-            helperSource.contains(
-                """
-                                "/usr/bin/open",
-                                "-g",
-                                "-b",
-                                "theboringteam.boringnotch",
-                                "boringnotch://codex-event?payload="
-                """
-            ),
-            "Authenticated Codex URLs must be delivered to Boring Notch by bundle identifier."
-        )
-    }
-
     func testDisabledHookIsNotTrustedEvenWithAMatchingHash() {
         let section = "/Users/example/.codex/hooks.json:permission_request:0:0"
         let currentHash = "sha256:\(String(repeating: "a", count: 64))"
@@ -166,7 +141,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
     }
 
     func testCurrentHashIgnoresMatcherForEventsWithoutMatcherSupport() {
-        for eventName in ["stop", "user_prompt_submit"] {
+        for eventName in ["stop", "user_prompt_submit", "interrupt"] {
             let withoutMatcher = CodexHookTrustState.currentHash(
                 eventName: eventName,
                 command: "echo hello",
@@ -200,11 +175,10 @@ final class CodexNotificationsCoreTests: XCTestCase {
     }
 
     func testStatusIconsMatchNotchNotificationGlyphs() {
-        XCTAssertEqual(CodexJobStatus.succeeded.icon, "checkmark.circle.fill")
-        XCTAssertEqual(CodexJobStatus.failed.icon, "xmark.circle.fill")
-        XCTAssertEqual(CodexJobStatus.needsAction(.permission).icon, "lock.shield.fill")
-        XCTAssertEqual(CodexJobStatus.needsAction(.decision).icon, "questionmark.circle.fill")
-        XCTAssertEqual(CodexJobStatus.needsAction(.manualCheck).icon, "hand.tap.fill")
+        XCTAssertEqual(CodexJobStatus.responseReady.icon, "text.bubble.fill")
+        XCTAssertEqual(CodexJobStatus.stopped.icon, "stop.circle.fill")
+        XCTAssertEqual(CodexJobStatus.update.icon, "info.circle.fill")
+        XCTAssertEqual(CodexJobStatus.permissionRequired.icon, "lock.shield.fill")
     }
 
     func testPriorityResolverSelectsHighestVisibleCandidate() {
@@ -274,7 +248,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertEqual(notice.chatTitle, "Fix Codex permission relay")
         XCTAssertEqual(notice.userPrompt, "Fix the extension conflict in PR #970")
         XCTAssertEqual(notice.projectName, "Boring Notch Contribution")
-        XCTAssertEqual(notice.status, .needsAction(.permission))
+        XCTAssertEqual(notice.status, .permissionRequired)
         XCTAssertEqual(notice.status.title, "Permission Required")
         XCTAssertEqual(notice.resultSummary, "May I build the Debug app for visual verification?")
         XCTAssertEqual(
@@ -315,7 +289,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         """#))
 
         let notice = try XCTUnwrap(state.visibleNotification())
-        XCTAssertEqual(notice.status, .needsAction(.permission))
+        XCTAssertEqual(notice.status, .permissionRequired)
         XCTAssertEqual(notice.status.title, "Permission Required")
         XCTAssertEqual(notice.permissionDetails?.toolName, "Browser")
         XCTAssertEqual(
@@ -551,12 +525,11 @@ final class CodexNotificationsCoreTests: XCTestCase {
             sessionID: "shared-session",
             turnID: "shared-turn",
             cwd: "/tmp/project",
-            result: "Completed successfully.",
-            reportedStatus: "succeeded"
+            result: "Completed successfully."
         ))
 
         XCTAssertEqual(state.notifications.count, 1)
-        XCTAssertEqual(state.notifications.first?.status, .succeeded)
+        XCTAssertEqual(state.notifications.first?.status, .responseReady)
     }
 
     func testPermissionRequestWithoutUsableCallbackIsNotPresented() throws {
@@ -574,7 +547,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
             var state = CodexNotificationState()
             state.reduce(try parsePermissionPayload(payload))
             let notice = try XCTUnwrap(state.notifications.first, payload)
-            XCTAssertEqual(notice.status, .needsAction(.permission), payload)
+            XCTAssertEqual(notice.status, .permissionRequired, payload)
             XCTAssertNil(notice.permissionCallback, payload)
             XCTAssertNil(state.visibleNotification(), payload)
         }
@@ -635,7 +608,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertEqual(remaining.permissionCallback, liveCallback)
     }
 
-    func testStopReplacesPermissionWithVerifiedSuccess() throws {
+    func testStopReplacesPermissionWithResponseReady() throws {
         var state = CodexNotificationState()
         state.reduce(.userPrompt(
             sessionID: "session-1",
@@ -664,10 +637,10 @@ final class CodexNotificationsCoreTests: XCTestCase {
 
         XCTAssertEqual(state.notifications.count, 1)
         let notice = try XCTUnwrap(state.visibleNotification())
-        XCTAssertEqual(notice.status, .succeeded)
+        XCTAssertEqual(notice.status, .responseReady)
     }
 
-    func testInterruptedStopIsClassifiedAsFailure() throws {
+    func testInterruptionWordsDoNotInventAnInterrupt() throws {
         var state = CodexNotificationState()
         state.reduce(try CodexHookEventParser.parse(#"""
         {
@@ -680,47 +653,28 @@ final class CodexNotificationsCoreTests: XCTestCase {
         """#), at: Date(timeIntervalSince1970: 100))
 
         let notice = try XCTUnwrap(state.visibleNotification())
-        XCTAssertEqual(notice.status, .failed)
+        XCTAssertEqual(notice.status, .responseReady)
         XCTAssertEqual(notice.resultSummary, "Codex task was interrupted before completion.")
     }
 
-    func testStopWithoutAssistantMessageIsClassifiedAsFailure() throws {
+    func testStopWithoutAssistantMessageIsNeutralUpdate() throws {
         var state = CodexNotificationState()
-        state.reduce(try CodexHookEventParser.parse(#"""
-        {
-            "hook_event_name":"Stop",
-            "session_id":"session-empty-stop",
-            "turn_id":"turn-1",
-            "cwd":"/tmp/project"
-        }
-        """#), at: Date(timeIntervalSince1970: 100))
-
-        XCTAssertEqual(
-            state.visibleNotification()?.status,
-            .failed
-        )
+        state.reduce(try CodexHookEventParser.parse(
+            #"{"hook_event_name":"Stop","session_id":"empty","turn_id":"t"}"#
+        ))
+        XCTAssertEqual(state.visibleNotification()?.status, .update)
+        XCTAssertEqual(state.visibleNotification()?.resultSummary,
+            "Response details unavailable. Open Codex to review.")
     }
 
     func testOnlyPermissionRemindersPersist() {
-        var state = CodexNotificationState()
-        let now = Date(timeIntervalSince1970: 20)
-        state.reduce(.stop(
-            sessionID: "session-1",
-            turnID: "turn-1",
-            cwd: "/tmp/project",
-            result: "The build failed because the helper target could not link."
-        ), at: now)
-
-        let notice = state.visibleNotification()
-        XCTAssertEqual(notice?.status, .failed)
-
-        XCTAssertTrue(CodexJobStatus.needsAction(.permission).isPersistent)
-        XCTAssertFalse(CodexJobStatus.needsAction(.decision).isPersistent)
-        XCTAssertFalse(CodexJobStatus.needsAction(.manualCheck).isPersistent)
-        XCTAssertFalse(CodexJobStatus.failed.isPersistent)
-        XCTAssertFalse(CodexJobStatus.succeeded.isPersistent)
-        XCTAssertEqual(CodexJobStatus.failed.title, "Failure")
-        XCTAssertEqual(CodexJobStatus.succeeded.title, "Success")
+        XCTAssertTrue(CodexJobStatus.permissionRequired.isPersistent)
+        for status in [CodexJobStatus.responseReady, .update, .stopped] {
+            XCTAssertFalse(status.isPersistent)
+            XCTAssertLessThan(status.priority, CodexJobStatus.permissionRequired.priority)
+        }
+        XCTAssertEqual(CodexJobStatus.responseReady.title, "Response ready")
+        XCTAssertEqual(CodexJobStatus.stopped.title, "Stopped")
     }
 
     func testStopKeepsFullPromptForExpandedViewAndUsesProjectContext() throws {
@@ -770,349 +724,129 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertEqual(notice.projectName, "second-project")
     }
 
-    func testManualVerificationAndDecisionAreActionable() {
-        var state = CodexNotificationState()
-        state.reduce(.stop(
-            sessionID: "manual",
-            turnID: "turn-1",
-            cwd: "/tmp/project",
-            result: "Implementation is complete. Please verify the animation manually in Debug."
-        ), at: Date(timeIntervalSince1970: 10))
-        state.reduce(.stop(
-            sessionID: "decision",
-            turnID: "turn-2",
-            cwd: "/tmp/project",
-            result: "I need your decision: should the alert stay until dismissed or expire?"
-        ), at: Date(timeIntervalSince1970: 11))
-        state.reduce(.stop(
-            sessionID: "success",
-            turnID: "turn-3",
-            cwd: "/tmp/project",
-            result: "Finished preparing the stand-up summary."
-        ), at: Date(timeIntervalSince1970: 12))
-
-        XCTAssertEqual(
-            state.notifications.first { $0.sessionID == "manual" }?.status,
-            .needsAction(.manualCheck)
-        )
-        XCTAssertEqual(
-            state.notifications.first { $0.sessionID == "decision" }?.status,
-            .needsAction(.decision)
-        )
-        XCTAssertEqual(
-            state.notifications.first { $0.sessionID == "success" }?.status,
-            .succeeded
-        )
-    }
-
-    func testDecisionMessageOutranksReportedSuccessStatus() throws {
-        var state = CodexNotificationState()
-        state.reduce(try CodexHookEventParser.parse(#"""
-        {
-            "hook_event_name":"Stop",
-            "session_id":"decision-reported-success",
-            "turn_id":"turn-1",
-            "last_assistant_message":"The work is ready. Please choose which option I should apply next.",
-            "status":"succeeded"
+    func testResearchFalsePositivesRemainNeutral() throws {
+        let messages = [
+            "Implemented your choice and all tests passed.",
+            "The README now says: please choose an option. Documentation update complete.",
+            "Added example output:\n```text\nerror: file not found\n```\nAll tests passed.",
+            "If the build failed, rerun it. All tests passed.",
+            "Added the checklist item: please test manually before release. Documentation complete.",
+            "The requested explanation is complete. Would you like me to add examples?",
+            "I added the error: handler and all tests passed.",
+        ]
+        for message in messages {
+            XCTAssertEqual(try productionStopStatus(message), .responseReady, message)
         }
-        """#))
-
-        XCTAssertEqual(
-            state.visibleNotification()?.status,
-            .needsAction(.decision)
-        )
-
-        state.reduce(try CodexHookEventParser.parse(#"""
-        {
-            "hook_event_name":"Stop",
-            "session_id":"decision-question",
-            "turn_id":"turn-2",
-            "last_assistant_message":"Both approaches are ready. Which approach should I take?",
-            "status":"success"
-        }
-        """#))
-
-        XCTAssertEqual(
-            state.notifications.first { $0.sessionID == "decision-question" }?.status,
-            .needsAction(.decision)
-        )
     }
 
-    func testDecisionResponseWithExplicitAOrBChoiceIsActionable() {
-        var state = CodexNotificationState()
-        state.reduce(.stop(
-            sessionID: "decision-a-or-b",
-            turnID: "turn-1",
-            cwd: "/tmp/project",
-            result: """
-            A. Minimal targeted change — faster and lower risk.
-            B. Broader modular refactor — more extensible but higher risk.
-            Choose A or B.
-            """,
-            reportedStatus: "succeeded"
-        ))
-
-        XCTAssertEqual(
-            state.visibleNotification()?.status,
-            .needsAction(.decision)
-        )
-    }
-
-    func testManualReviewResponseIsActionable() {
-        var state = CodexNotificationState()
-        state.reduce(.stop(
-            sessionID: "manual-review",
-            turnID: "turn-1",
-            cwd: "/tmp/project",
-            result: """
-            Proposed action: review the untracked directory before adding it.
-            Risks: it may contain generated files or unrelated work.
-            Please manually review this recommendation and approve or reject proceeding.
-            """,
-            reportedStatus: "succeeded"
-        ))
-
-        XCTAssertEqual(
-            state.visibleNotification()?.status,
-            .needsAction(.manualCheck)
-        )
-    }
-
-    func testSuccessfulReportMentioningManualTestReferenceRemainsSuccess() {
-        var state = CodexNotificationState()
-        state.reduce(.stop(
-            sessionID: "successful-report",
-            turnID: "turn-1",
-            cwd: "/tmp/project",
-            result: """
-            Done.
-            Updated the manual test reference in AGENT.md.
-            Verified 35 tests pass and the Debug build succeeds.
-            """,
-            reportedStatus: "succeeded"
-        ))
-
-        XCTAssertEqual(
-            state.visibleNotification()?.status,
-            .succeeded
-        )
-    }
-
-    func testProductionStopSummaryWithPastFailureRemainsSuccess() throws {
-        // The Codex Stop hook wire schema has no status field, so production
-        // classification must rely on the assistant message alone.
+    func testProseCannotAssertTaskSuccessFailureOrPendingPermission() throws {
         for message in [
-            "Fixed the issue where the command failed.",
-            "Fixed the command failed regression. All tests passed.",
-            "Fixed the issue where the command failed. All tests passed.",
-            "The command failed initially; after fixing it, all tests passed.",
-            "The command failed and I fixed it. All tests passed.",
-            "Tests failed. Fixed the test runner. All tests passed.",
-            "The command failed. Fixed the issue. All tests passed.",
-            "Tests failed. Fixed that. All tests passed.",
-            "The command failed and it was fixed. All tests passed.",
-            "The tests had not passed before I fixed the issue. All tests passed.",
-            "Tests are no longer failing.",
+            "I cannot proceed until the credentials are supplied.",
+            "请选 A 或 B，我会等待你的决定。",
+            "I need your input: choose A or B.",
+            "Please manually review and approve or reject.",
+            "The command failed.",
+            "All tests passed.",
+            "Permission required: allow this command.",
         ] {
-            XCTAssertEqual(
-                try productionStopStatus(message),
-                .succeeded,
-                message
-            )
+            XCTAssertEqual(try productionStopStatus(message), .responseReady, message)
         }
+        XCTAssertEqual(CodexJobStatus.responseReady.nextAction, "Open Codex")
     }
 
-    func testProductionStopKeepsAffirmativeFailuresDespiteLaterSuccessText() throws {
-        for message in [
-            "Tests failed, although the build succeeded.",
-            "The command failed. Not all tests passed.",
-            "Earlier tests failed and remain unresolved.",
-            "Addressed command failed again.",
-            "Fixed lint but the command failed. All tests passed.",
-            "The command failed and was not fixed. All tests passed.",
-            "Fixed lint and tests failed. Build succeeded.",
-            "Tests failed. Fixed documentation. Build succeeded.",
-            "Fixed documentation and the command failed. Build succeeded.",
-            "Tests failed. Fixed a command issue. Build succeeded.",
-            "Fixed a test issue where the command failed. Build succeeded.",
-            "Tests failed. Fixed documentation so that the build succeeded.",
-            "The command failed and wasn't fixed. All tests passed.",
-            "The command failed and it isn't fixed. All tests passed.",
-            "The command failed and it hadn't been fixed. All tests passed.",
-            "Tests failed. The test issue couldn't be fixed. Build succeeded.",
-            "Tests failed. The test issue isn't resolved. Build succeeded.",
-            "Fixed the issue where the command failed. Tests are still failing.",
-            "The command failed initially; after fixing it, not all tests passed.",
-        ] {
-            XCTAssertEqual(
-                try productionStopStatus(message),
-                .failed,
-                message
-            )
+    func testClippingARepairConclusionCannotChangeLifecycleStatus() throws {
+        let full = "The command failed initially. "
+            + String(repeating: "Investigation details. ", count: 210)
+            + " Fixed it. All tests passed."
+        XCTAssertGreaterThan(full.count, 4000)
+        XCTAssertEqual(try productionStopStatus(full), .responseReady)
+        XCTAssertEqual(try productionStopStatus(String(full.prefix(4000))), .responseReady)
+    }
+
+    func testUndocumentedStatusAndErrorFieldsCannotInventAnOutcome() throws {
+        for status in ["succeeded", "failed", "cancelled"] {
+            var state = CodexNotificationState()
+            let data = try JSONSerialization.data(withJSONObject: [
+                "hook_event_name": "Stop", "session_id": "synthetic",
+                "status": status, "error": "error: example"
+            ])
+            state.reduce(try CodexHookEventParser.parse(data))
+            XCTAssertEqual(state.visibleNotification()?.status, .update)
         }
+        XCTAssertEqual(try productionStopStatus("   \n"), .update)
     }
 
-    func testProductionStopTreatsNegativeOutcomesAsFailures() throws {
-        for message in [
-            "Not all tests passed.",
-            "The build did not succeed.",
-            "Tests are still failing.",
-            "The tests did not pass.",
-            "The tests haven't passed.",
-            "The tests hadn't passed.",
-            "The build hadn't succeeded.",
-            "The build wasn't successful.",
-            "Tests still fail.",
-            "The tests have not passed.",
-            "The build has not succeeded.",
-            "The tests had not passed before the task stopped.",
-            "Tests continue to fail.",
-            "The build keeps failing.",
-            "The command is still failing.",
-        ] {
-            XCTAssertEqual(
-                try productionStopStatus(message),
-                .failed,
-                message
-            )
-        }
-    }
-
-    func testNegatedManualReviewDoesNotOverrideReportedSuccess() {
+    func testInterruptIsExplicitAndCannotBeReplacedByDelayedStop() throws {
         var state = CodexNotificationState()
-        state.reduce(.stop(
-            sessionID: "negated-manual-review",
-            turnID: "turn-1",
-            cwd: "/tmp/project",
-            result: "All checks passed. No manual review required.",
-            reportedStatus: "succeeded"
-        ))
-
-        XCTAssertEqual(state.visibleNotification()?.status, .succeeded)
-    }
-
-    func testNegatedDecisionRequestDoesNotOverrideReportedSuccess() {
-        var state = CodexNotificationState()
-        state.reduce(.stop(
-            sessionID: "negated-decision",
-            turnID: "turn-1",
-            cwd: "/tmp/project",
-            result: "All checks passed; I do not think I need your input.",
-            reportedStatus: "succeeded"
-        ))
-
-        XCTAssertEqual(state.visibleNotification()?.status, .succeeded)
-    }
-
-    func testAffirmativeChoiceAfterNegatedClauseRemainsActionable() {
-        var state = CodexNotificationState()
-        state.reduce(.stop(
-            sessionID: "affirmative-after-negation",
-            turnID: "turn-1",
-            cwd: "/tmp/project",
-            result: "I do not need more context, but please choose A or B.",
-            reportedStatus: "succeeded"
-        ))
-
-        XCTAssertEqual(state.visibleNotification()?.status, .needsAction(.decision))
-    }
-
-    func testAffirmativeInputRequestAfterCoordinatedNegatedClauseIsActionable() {
-        var state = CodexNotificationState()
-        state.reduce(.stop(
-            sessionID: "coordinated-negation",
-            turnID: "turn-1",
-            cwd: "/tmp/project",
-            result: "I did not change the API and I need your input.",
-            reportedStatus: "succeeded"
-        ))
-
-        XCTAssertEqual(state.visibleNotification()?.status, .needsAction(.decision))
-    }
-
-    func testAffirmativeInputRequestAfterCoordinatedPredicateIsActionable() throws {
-        for coordinator in ["", "still ", "also ", "now "] {
-            XCTAssertEqual(
-                try productionStopStatus(
-                    "I did not change the API and \(coordinator)need your input."
-                ),
-                .needsAction(.decision),
-                "The affirmative clause after 'and \(coordinator)' must not inherit the earlier negation."
-            )
-        }
-    }
-
-    func testAffirmativeInputRequestAfterCausalNegatedClauseIsActionable() {
-        var state = CodexNotificationState()
-        state.reduce(.stop(
-            sessionID: "causal-negation",
-            turnID: "turn-1",
-            cwd: "/tmp/project",
-            result: "Tests did not run because I need your input.",
-            reportedStatus: "succeeded"
-        ))
-
-        XCTAssertEqual(state.visibleNotification()?.status, .needsAction(.decision))
-    }
-
-    func testProductionStopFindsRequestsInAffirmativeSubordinateClauses() throws {
-        for conjunction in ["although", "since", "while", "whereas", "even though"] {
-            let message = "I did not change the API \(conjunction) I need your input."
-            XCTAssertEqual(
-                try productionStopStatus(message),
-                .needsAction(.decision),
-                message
-            )
-        }
-    }
-
-    func testNotOnlyDoesNotNegateAnAffirmativeInputRequest() {
-        var state = CodexNotificationState()
-        state.reduce(.stop(
-            sessionID: "not-only",
-            turnID: "turn-1",
-            cwd: "/tmp/project",
-            result: "I do not only need your input; I also need your decision.",
-            reportedStatus: "succeeded"
-        ))
-
-        XCTAssertEqual(state.visibleNotification()?.status, .needsAction(.decision))
-    }
-
-    func testCoordinatedVerbsRemainInsideNegationScope() throws {
-        for result in [
-            "I do not need to build and manually verify this.",
-            "I do not need to build and also manually verify this.",
-            "I do not need to build the application locally and manually verify this.",
-        ] {
-            XCTAssertEqual(try productionStopStatus(result), .succeeded)
-        }
-    }
-
-    func testLaterFailureOutranksEarlierSuccessWithoutReportedStatus() throws {
-        XCTAssertEqual(
-            try productionStopStatus("All tests passed, but the command failed."),
-            .failed
+        let event = try CodexHookEventParser.parse(
+            #"{"hook_event_name":"Interrupt","session_id":"s","turn_id":"t"}"#
         )
+        state.reduce(event)
+        XCTAssertEqual(state.visibleNotification()?.status, .stopped)
+        state.reduce(.stop(sessionID: "s", turnID: "t", cwd: nil, result: "All tests passed."))
+        XCTAssertEqual(state.notifications.count, 1)
+        XCTAssertEqual(state.visibleNotification()?.status, .stopped)
+        state.dismiss(try XCTUnwrap(state.visibleNotification()).id)
+        XCTAssertTrue(state.hasEndedTurn(sessionID: "s", turnID: "t"))
+        XCTAssertFalse(state.hasEndedTurn(sessionID: "s", turnID: "other"))
+        state.reduce(event)
+        state.reduce(.stop(sessionID: "s", turnID: "t", cwd: nil, result: "late delivery"))
+        XCTAssertTrue(state.notifications.isEmpty)
     }
 
-    func testFailureResponseWithStatusTextIsFailed() {
-        var state = CodexNotificationState()
-        state.reduce(.stop(
-            sessionID: "diagnostic-failure",
-            turnID: "turn-1",
-            cwd: "/tmp/project",
-            result: """
-            Command: cat /dev/null/codex-diagnostic-file
-            Error: Not a directory
-            Status: failed (exit code 1).
-            """
-        ))
+    func testInterruptRequiresTurnCorrelation() {
+        XCTAssertThrowsError(try CodexHookEventParser.parse(
+            #"{"hook_event_name":"Interrupt","session_id":"s"}"#
+        )) { XCTAssertEqual($0 as? CodexHookEventParserError, .missingField("turn_id")) }
+    }
 
-        XCTAssertEqual(
-            state.visibleNotification()?.status,
-            .failed
-        )
+    func testInterruptClearsOnlyMatchingPermissionsAndRejectsLatePermission() throws {
+        var state = CodexNotificationState()
+        for turn in ["t1", "t2"] {
+            state.reduce(.permissionRequest(sessionID: "s", turnID: turn, requestID: turn,
+                cwd: nil, details: CodexPermissionDetails(toolName: "Bash"), callback: permissionCallback))
+        }
+        state.reduce(.interrupt(sessionID: "s", turnID: "t1", cwd: nil))
+        state.reduce(.permissionRequest(sessionID: "s", turnID: "t1", requestID: "late",
+            cwd: nil, details: CodexPermissionDetails(toolName: "Bash"), callback: permissionCallback))
+        XCTAssertEqual(state.notifications.filter { $0.status == .permissionRequired }.map(\.turnID), ["t2"])
+        XCTAssertEqual(state.visibleNotification()?.turnID, "t2")
+    }
+
+    func testNewPromptClearsOnlyItsPassiveNoticeAndContinuationCanRespond() {
+        var state = CodexNotificationState()
+        state.reduce(.stop(sessionID: "other", turnID: "other", cwd: nil, result: "Done"))
+        state.reduce(.stop(sessionID: "s", turnID: "t", cwd: nil, result: "First response"))
+        state.reduce(.userPrompt(sessionID: "s", turnID: "t", cwd: nil, prompt: "Continue"))
+        XCTAssertEqual(state.notifications.map(\.sessionID), ["other"])
+        state.reduce(.stop(sessionID: "s", turnID: "t", cwd: nil, result: "Second response"))
+        XCTAssertEqual(state.notifications.last?.resultSummary, "Second response")
+    }
+
+    func testUncorrelatedStopCannotClearAnotherTurnsPermission() {
+        var state = CodexNotificationState()
+        state.reduce(.permissionRequest(sessionID: "s", turnID: "active", requestID: "pending",
+            cwd: nil, details: CodexPermissionDetails(toolName: "Bash"), callback: permissionCallback))
+        state.reduce(.stop(sessionID: "s", turnID: nil, cwd: nil, result: "Uncorrelated response"))
+        XCTAssertEqual(state.notifications.count, 2)
+        XCTAssertEqual(state.visibleNotification()?.status, .permissionRequired)
+        XCTAssertEqual(state.visibleNotification()?.turnID, "active")
+    }
+
+    func testUncorrelatedResponsesDoNotSuppressLaterResponses() {
+        var state = CodexNotificationState()
+        state.reduce(.stop(sessionID: "s", turnID: nil, cwd: nil, result: "First"))
+        state.reduce(.stop(sessionID: "s", turnID: nil, cwd: nil, result: "Second"))
+        XCTAssertEqual(state.visibleNotification()?.resultSummary, "Second")
+    }
+
+    func testDuplicateStopDoesNotResurfaceAfterDismissal() throws {
+        var state = CodexNotificationState()
+        let event = CodexHookEvent.stop(sessionID: "s", turnID: "t", cwd: nil, result: "Response")
+        state.reduce(event)
+        state.dismiss(try XCTUnwrap(state.visibleNotification()).id)
+        state.reduce(event)
+        XCTAssertTrue(state.notifications.isEmpty)
     }
 
     func testPassiveNotificationCanStartItsDwellAfterPresentation() {
@@ -1136,8 +870,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
             sessionID: "consumed-session",
             turnID: "turn-1",
             cwd: "/tmp/project",
-            result: "First task failed.",
-            reportedStatus: "failed"
+            result: "First task failed."
         ), at: Date(timeIntervalSince1970: 10))
         let consumed = try XCTUnwrap(state.visibleNotification())
 
@@ -1149,8 +882,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
             sessionID: "new-session",
             turnID: "turn-2",
             cwd: "/tmp/project",
-            result: "Second task completed successfully.",
-            reportedStatus: "succeeded"
+            result: "Second task completed successfully."
         ), at: Date(timeIntervalSince1970: 20))
 
         let newNotification = try XCTUnwrap(state.visibleNotification())
@@ -1167,8 +899,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
             sessionID: "failed-launch",
             turnID: "turn-1",
             cwd: "/tmp/project",
-            result: "Task completed successfully.",
-            reportedStatus: "succeeded"
+            result: "Task completed successfully."
         ), at: Date(timeIntervalSince1970: 10))
         let notification = try XCTUnwrap(state.visibleNotification())
         let token = CodexNotificationPresentationToken(notification)
@@ -1195,16 +926,14 @@ final class CodexNotificationsCoreTests: XCTestCase {
             sessionID: "first-launch",
             turnID: "turn-1",
             cwd: "/tmp/first-project",
-            result: "First task completed successfully.",
-            reportedStatus: "succeeded"
+            result: "First task completed successfully."
         ), at: Date(timeIntervalSince1970: 10))
         let firstNotification = try XCTUnwrap(state.visibleNotification())
         state.reduce(.stop(
             sessionID: "second-launch",
             turnID: "turn-2",
             cwd: "/tmp/second-project",
-            result: "Second task completed successfully.",
-            reportedStatus: "succeeded"
+            result: "Second task completed successfully."
         ), at: Date(timeIntervalSince1970: 20))
         let secondNotification = try XCTUnwrap(state.visibleNotification())
         let firstToken = CodexNotificationPresentationToken(firstNotification)
@@ -1234,16 +963,14 @@ final class CodexNotificationsCoreTests: XCTestCase {
             sessionID: "first-launch",
             turnID: "turn-1",
             cwd: "/tmp/first-project",
-            result: "First task completed successfully.",
-            reportedStatus: "succeeded"
+            result: "First task completed successfully."
         ), at: Date(timeIntervalSince1970: 10))
         let firstNotification = try XCTUnwrap(state.visibleNotification())
         state.reduce(.stop(
             sessionID: "second-launch",
             turnID: "turn-2",
             cwd: "/tmp/second-project",
-            result: "Second task completed successfully.",
-            reportedStatus: "succeeded"
+            result: "Second task completed successfully."
         ), at: Date(timeIntervalSince1970: 20))
         let secondNotification = try XCTUnwrap(state.visibleNotification())
         let firstToken = CodexNotificationPresentationToken(firstNotification)
@@ -1284,7 +1011,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
             requestID: nil,
             jobTitle: "First launch",
             resultSummary: "Completed",
-            status: .succeeded,
+            status: .responseReady,
             createdAt: Date(timeIntervalSince1970: 10)
         )
         let secondNotification = CodexJobNotification(
@@ -1294,7 +1021,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
             requestID: nil,
             jobTitle: "Second launch",
             resultSummary: "Completed",
-            status: .succeeded,
+            status: .responseReady,
             createdAt: Date(timeIntervalSince1970: 20)
         )
         let firstToken = CodexNotificationPresentationToken(firstNotification)
@@ -1421,8 +1148,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
                 sessionID: "completed-\(index)",
                 turnID: "turn-\(index)",
                 cwd: "/tmp/project",
-                result: "Completed successfully.",
-                reportedStatus: "succeeded"
+                result: "Completed successfully."
             ), at: Date(timeIntervalSince1970: TimeInterval(index + 1)))
         }
 
@@ -1524,13 +1250,12 @@ final class CodexNotificationsCoreTests: XCTestCase {
             sessionID: "correlated-session",
             turnID: "correlated-turn",
             cwd: "/tmp/project",
-            result: "Completed successfully.",
-            reportedStatus: "succeeded"
+            result: "Completed successfully."
         ))
 
         let notification = try XCTUnwrap(state.visibleNotification())
         XCTAssertEqual(notification.userPrompt, "Keep this prompt through the terminal event")
-        XCTAssertEqual(notification.status, .succeeded)
+        XCTAssertEqual(notification.status, .responseReady)
     }
 
     func testPermissionCallbackPersistsUntilDismissed() throws {
@@ -1566,7 +1291,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         }
     }
 
-    func testNegatedTestFailureDoesNotOverrideSuccessfulResult() {
+    func testNegatedFailureTextRemainsResponseReady() {
         var state = CodexNotificationState()
         state.reduce(.stop(
             sessionID: "success",
@@ -1575,7 +1300,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
             result: "Build succeeded. No tests failed."
         ))
 
-        XCTAssertEqual(state.visibleNotification()?.status, .succeeded)
+        XCTAssertEqual(state.visibleNotification()?.status, .responseReady)
     }
 
     func testCorrelationIDsDoNotCollideAcrossSessionAndTurnBoundaries() {

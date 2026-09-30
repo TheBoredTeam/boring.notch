@@ -372,7 +372,7 @@ struct ContentView: View {
         permissionCollapseTask = nil
         withAnimation(animationSpring) {
             if let notification = codexNotifications.visibleNotification,
-               notification.status == .needsAction(.permission) {
+               notification.status == .permissionRequired {
                 codexNotifications.presentPermissionDetail(for: notification)
                 presentedCodexPermission = notification
                 isPresentingCodexPermission = true

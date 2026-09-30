@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import ast
 import base64
+import contextlib
 import ctypes
 import hashlib
 import hmac
@@ -91,8 +92,32 @@ def embedded_hook_namespace() -> dict[str, object]:
 
 
 class CodexNotificationHookTests(unittest.TestCase):
+    def test_lifecycle_entrypoint_forwards_events_without_inventing_outcomes(self) -> None:
+        for event in ("Stop", "Interrupt", "UserPromptSubmit"):
+            with self.subTest(event=event):
+                namespace = embedded_hook_namespace()
+                source = {
+                    "hook_event_name": event, "session_id": "synthetic", "turn_id": "turn",
+                    "last_assistant_message": "error: quoted example", "prompt": "Synthetic prompt",
+                    "status": "failed", "error": "unverified outcome",
+                }
+                sent = []
+                namespace["sys"] = types.SimpleNamespace(stdin=io.StringIO(json.dumps(source)))
+                namespace["thread_metadata"] = lambda _: {}
+                namespace["open_notch"] = lambda payload: sent.append(payload.copy()) or True
+                entrypoint = ast.parse(embedded_hook_source()).body[-1]
+                with contextlib.redirect_stdout(io.StringIO()) as output:
+                    exec(compile(ast.Module(body=[entrypoint], type_ignores=[]), "hook", "exec"), namespace)
+                self.assertEqual(json.loads(output.getvalue()), {})
+                self.assertEqual(len(sent), 1)
+                self.assertEqual(sent[0]["hook_event_name"], event)
+                self.assertEqual(sent[0]["turn_id"], "turn")
+                self.assertNotIn("status", sent[0])
+                self.assertNotIn("error", sent[0])
+
     def test_open_notch_targets_codex_event_and_signs_payload(self) -> None:
         namespace = embedded_hook_namespace()
+        namespace["APP_BUNDLE_PATH"] = "/tmp/Fixture App.app"
         hook = namespace["open_notch"]
         self.assertTrue(callable(hook))
 
@@ -126,8 +151,8 @@ class CodexNotificationHookTests(unittest.TestCase):
             command, options = calls[0]
             self.assertEqual(command[0], "/usr/bin/open")
             self.assertIn("-g", command)
-            bundle_flag_index = command.index("-b")
-            self.assertEqual(command[bundle_flag_index + 1], "theboringteam.boringnotch")
+            bundle_flag_index = command.index("-a")
+            self.assertEqual(command[bundle_flag_index + 1], namespace["APP_BUNDLE_PATH"])
             self.assertEqual(options["timeout"], 3)
             self.assertFalse(options["check"])
 

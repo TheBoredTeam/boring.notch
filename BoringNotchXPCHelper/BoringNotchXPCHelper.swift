@@ -372,11 +372,9 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     // MARK: - Codex Notifications
 
     private static let codexHookEvents = CodexHookConfiguration.events
-    private static let codexHookTrustEvents = [
-        ("PermissionRequest", "permission_request"),
-        ("UserPromptSubmit", "user_prompt_submit"),
-        ("Stop", "stop"),
-    ]
+    private static let codexHookTrustEvents = CodexHookConfiguration.definitions.map {
+        ($0.name, $0.trustName)
+    }
     private static let codexHookMarker = "boring-notch-notify.py"
     private static let codexHookSecretMarker = "boring-notch-notify.secret"
     private static let codexNotificationScript = #"""
@@ -394,6 +392,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     import time
     from http.server import BaseHTTPRequestHandler, HTTPServer
 
+    APP_BUNDLE_PATH = "__BORING_NOTCH_APP_BUNDLE__"
     MAX_PAYLOAD_BYTES = 256 * 1024
     MAX_PROMPT_CHARACTERS = 16_000
     MAX_DESCRIPTION_CHARACTERS = 16_000
@@ -591,8 +590,8 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             [
                 "/usr/bin/open",
                 "-g",
-                "-b",
-                "theboringteam.boringnotch",
+                "-a",
+                APP_BUNDLE_PATH,
                 "boringnotch://codex-event?payload=" + encoded + "&signature=" + signature,
             ],
             stdout=subprocess.DEVNULL,
@@ -706,126 +705,10 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             }
         }
 
-    def validated_transcript_path(value):
-        if not isinstance(value, str) or not value.endswith(".jsonl"):
-            return None
-
-        codex_home = os.path.dirname(os.path.abspath(__file__))
-        sessions_root = os.path.realpath(os.path.join(codex_home, "sessions"))
-        transcript_path = os.path.realpath(value)
-        try:
-            if os.path.commonpath((sessions_root, transcript_path)) != sessions_root:
-                return None
-        except ValueError:
-            return None
-        return transcript_path
-
-    def watch_for_turn_end(transcript_path, start_offset, session_id, turn_id, cwd):
-        deadline = time.monotonic() + (6 * 60 * 60)
-        position = max(start_offset, 0)
-
-        while time.monotonic() < deadline:
-            try:
-                current_size = os.path.getsize(transcript_path)
-                if current_size < position:
-                    position = 0
-
-                with open(transcript_path, "r", encoding="utf-8") as transcript:
-                    transcript.seek(position)
-                    while True:
-                        line = transcript.readline()
-                        if not line:
-                            break
-                        position = transcript.tell()
-                        try:
-                            record = json.loads(line)
-                        except (TypeError, ValueError):
-                            continue
-
-                        event = record.get("payload")
-                        if not isinstance(event, dict) or event.get("turn_id") != turn_id:
-                            continue
-
-                        event_type = event.get("type")
-                        if event_type == "turn_aborted":
-                            failure_payload = {
-                                "hook_event_name": "Stop",
-                                "session_id": session_id,
-                                "turn_id": turn_id,
-                                "last_assistant_message": (
-                                    "Codex task was interrupted before completion."
-                                ),
-                                "status": "failed",
-                            }
-                            if cwd:
-                                failure_payload["cwd"] = cwd
-                            failure_payload.update(thread_metadata(session_id))
-                            open_notch(failure_payload)
-                            return
-                        if event_type == "task_complete":
-                            return
-            except (FileNotFoundError, OSError, UnicodeError):
-                pass
-            time.sleep(0.5)
-
-    def start_turn_end_watcher(source):
-        transcript_path = validated_transcript_path(source.get("transcript_path"))
-        session_id = source.get("session_id")
-        turn_id = source.get("turn_id")
-        if transcript_path is None or not all(
-            isinstance(value, str) and 0 < len(value) <= 240
-            for value in (session_id, turn_id)
-        ):
-            return
-
-        try:
-            start_offset = os.path.getsize(transcript_path)
-        except OSError:
-            start_offset = 0
-
-        cwd = source.get("cwd")
-        if not isinstance(cwd, str):
-            cwd = ""
-        try:
-            subprocess.Popen(
-                [
-                    sys.executable,
-                    os.path.abspath(__file__),
-                    "--watch-turn",
-                    transcript_path,
-                    str(start_offset),
-                    session_id,
-                    turn_id,
-                    short(cwd, 4096),
-                ],
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                close_fds=True,
-                start_new_session=True,
-            )
-        except (OSError, ValueError):
-            pass
-
-    if len(sys.argv) == 7 and sys.argv[1] == "--watch-turn":
-        try:
-            watched_path = validated_transcript_path(sys.argv[2])
-            if watched_path is not None:
-                watch_for_turn_end(
-                    watched_path,
-                    int(sys.argv[3]),
-                    sys.argv[4],
-                    sys.argv[5],
-                    sys.argv[6],
-                )
-        except (TypeError, ValueError, OSError, UnicodeError):
-            pass
-        sys.exit(0)
-
     try:
         source = json.load(sys.stdin)
         payload = {}
-        for key in ("hook_event_name", "session_id", "turn_id", "cwd", "tool_name", "last_assistant_message", "error", "message", "status"):
+        for key in ("hook_event_name", "session_id", "turn_id", "cwd", "tool_name", "last_assistant_message"):
             if key in source:
                 payload[key] = short(source[key])
         if "prompt" in source:
@@ -841,8 +724,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
                 decision = wait_for_permission_decision(payload)
                 print(json.dumps(permission_hook_response(decision), separators=(",", ":")))
         else:
-            if source.get("hook_event_name") == "UserPromptSubmit":
-                start_turn_end_watcher(source)
             open_notch(payload)
             print("{}")
     except Exception:
@@ -889,7 +770,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
                 reply(false)
                 return
             }
-            guard try CodexHookFileStore.load(at: urls.script) == Data(Self.codexNotificationScript.utf8) else {
+            guard try CodexHookFileStore.load(at: urls.script) == currentCodexNotificationScript() else {
                 reply(false)
                 return
             }
@@ -921,7 +802,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         do {
             let urls = codexHookURLs()
             guard try CodexHookFileStore.load(at: urls.script)
-                == Data(Self.codexNotificationScript.utf8) else {
+                == currentCodexNotificationScript() else {
                 reply(false)
                 return
             }
@@ -987,7 +868,7 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             if installed {
                 _ = try ensureCodexHookSecret(at: urls.secret)
                 try CodexHookFileStore.publish(
-                    Data(Self.codexNotificationScript.utf8),
+                    try currentCodexNotificationScript(),
                     at: urls.script
                 )
             }
@@ -1003,6 +884,21 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         } catch {
             reply(false, error.localizedDescription)
         }
+    }
+
+    private func currentCodexNotificationScript() throws -> Data {
+        // The helper lives at <app>/Contents/XPCServices/<helper>.xpc.
+        let appURL = Bundle.main.bundleURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        guard appURL.pathExtension == "app" else {
+            throw codexHookConfigurationError(code: 9, message: "The Codex hook needs an installed app bundle.")
+        }
+        let script = try CodexHookConfiguration.renderScript(
+            Self.codexNotificationScript, appBundlePath: appURL.path
+        )
+        return Data(script.utf8)
     }
 
     private func codexHookURLs() -> (configuration: URL, script: URL, secret: URL) {
@@ -1055,21 +951,9 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         event: String,
         scriptURL: URL
     ) -> Bool {
-        guard let hooks = root["hooks"] as? [String: Any],
-              let groups = hooks[event] as? [[String: Any]] else { return false }
-        let ownedGroups = groups.filter {
-            isOwnedCodexHookGroup($0, scriptURL: scriptURL)
-        }
-        guard ownedGroups.count == 1,
-              let handlers = ownedGroups[0]["hooks"] as? [[String: Any]],
-              handlers.count == 1 else { return false }
-
-        let handler = handlers[0]
-        let expectedTimeout = event == "PermissionRequest" ? 75 : 5
-        return handler["type"] as? String == "command"
-            && handler["command"] as? String == codexHookCommand(scriptURL: scriptURL)
-            && handler["timeout"] as? Int == expectedTimeout
-            && handler["async"] == nil
+        CodexHookConfiguration.containsCurrentOwnedHook(
+            in: root, event: event, command: codexHookCommand(scriptURL: scriptURL)
+        )
     }
 
     private func codexHookTrustEntry(

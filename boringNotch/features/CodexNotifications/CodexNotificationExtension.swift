@@ -20,7 +20,7 @@ enum CodexNotificationExtension {
             let height = max(32, context.displayHeight)
             let notchWidth = context.closedNotchWidth + 10
             let promptWidth: CGFloat = 236
-            let isPermissionRequest = notification.status == .needsAction(.permission)
+            let isPermissionRequest = notification.status == .permissionRequired
             let tapRouting = CodexClosedActivityTapRouting(status: notification.status)
             let metrics = ClosedNotchLayoutMetrics(
                 exclusionWidth: notchWidth,
@@ -55,37 +55,22 @@ enum CodexNotificationExtension {
 
 private extension CodexJobStatus {
     var notchIconAssetName: String? {
-        if case .needsAction(.permission) = self {
+        if case .permissionRequired = self {
             return "codexPermissionShield"
         }
         return nil
     }
 
     var notchPriority: ClosedNotchPresentationPriority {
-        switch self {
-        case .needsAction(.permission), .needsAction(.decision), .failed:
-            .critical
-        case .needsAction(.manualCheck):
-            .system
-        case .succeeded:
-            .activity
-        }
+        self == .permissionRequired ? .critical : .activity
     }
 
     var tint: Color {
-        switch self {
-        case .needsAction(.permission): .orange
-        case .needsAction(.decision): .purple
-        case .needsAction(.manualCheck): .blue
-        case .failed: .red
-        case .succeeded: .green
-        }
+        self == .permissionRequired ? .orange : .cyan
     }
 
-    var pulses: Bool {
-        if case .needsAction = self { return true }
-        return false
-    }
+    var pulses: Bool { self == .permissionRequired }
+
 }
 
 private struct CodexNotificationStatusIcon: View {
@@ -139,7 +124,7 @@ private struct CodexClosedNotchPrompt: View {
     @ObservedObject private var manager = CodexNotificationManager.shared
 
     private var isPermissionRequest: Bool {
-        notification.status == .needsAction(.permission)
+        notification.status == .permissionRequired
     }
 
     private var launchError: String? {

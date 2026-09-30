@@ -1,11 +1,37 @@
 import Foundation
 
 public enum CodexHookConfiguration {
-    public static let events = [
-        "UserPromptSubmit",
-        "PermissionRequest",
-        "Stop",
+    public static let definitions: [(name: String, trustName: String, timeout: Int)] = [
+        ("UserPromptSubmit", "user_prompt_submit", 5),
+        ("PermissionRequest", "permission_request", 75),
+        ("Stop", "stop", 5),
+        ("Interrupt", "interrupt", 3),
     ]
+    public static let events = definitions.map(\.name)
+
+    public static func containsCurrentOwnedHook(
+        in root: [String: Any], event: String, command: String
+    ) -> Bool {
+        guard let definition = definitions.first(where: { $0.name == event }),
+              let hooks = root["hooks"] as? [String: Any],
+              let groups = hooks[event] as? [[String: Any]] else { return false }
+        let ownedGroups = groups.filter { isOwnedGroup($0, command: command) }
+        guard ownedGroups.count == 1,
+              let handlers = ownedGroups[0]["hooks"] as? [[String: Any]],
+              handlers.count == 1 else { return false }
+        let handler = handlers[0]
+        return handler["type"] as? String == "command"
+            && handler["command"] as? String == command
+            && handler["timeout"] as? Int == definition.timeout
+            && handler["async"] == nil
+    }
+
+    public static func renderScript(_ template: String, appBundlePath: String) throws -> String {
+        // JSON string escaping is also valid for a Python string literal.
+        let data = try JSONSerialization.data(withJSONObject: appBundlePath, options: [.fragmentsAllowed, .withoutEscapingSlashes])
+        let literal = String(decoding: data, as: UTF8.self)
+        return template.replacingOccurrences(of: "\"__BORING_NOTCH_APP_BUNDLE__\"", with: literal)
+    }
 
     public static func updating(
         _ root: [String: Any],
@@ -46,7 +72,8 @@ public enum CodexHookConfiguration {
             }
         }
 
-        for event in events {
+        for definition in definitions {
+            let event = definition.name
             var groups: [[String: Any]]
             if let existingGroups = hooks[event] {
                 guard let typedGroups = existingGroups as? [[String: Any]] else {
@@ -64,7 +91,7 @@ public enum CodexHookConfiguration {
                 let handler: [String: Any] = [
                     "type": "command",
                     "command": command,
-                    "timeout": event == "PermissionRequest" ? 75 : 5,
+                    "timeout": definition.timeout,
                 ]
                 groups.append(["hooks": [handler]])
             }

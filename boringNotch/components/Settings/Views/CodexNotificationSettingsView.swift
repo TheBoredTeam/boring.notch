@@ -44,29 +44,24 @@ struct CodexNotificationSettings: View {
 
             Section("Notification types") {
                 CodexNotificationTypeRow(
-                    title: "Success",
-                    detail: "The task completed successfully.",
-                    icon: .system(CodexJobStatus.succeeded.icon)
+                    title: "Response ready",
+                    detail: "A response is available. Open Codex to review the result or reply.",
+                    icon: .system(CodexJobStatus.responseReady.icon)
                 )
                 CodexNotificationTypeRow(
-                    title: "Failure",
-                    detail: "Codex stopped with an error.",
-                    icon: .system(CodexJobStatus.failed.icon)
+                    title: "Stopped",
+                    detail: "You interrupted the active turn.",
+                    icon: .system(CodexJobStatus.stopped.icon)
+                )
+                CodexNotificationTypeRow(
+                    title: "Codex update",
+                    detail: "A turn update arrived without response details.",
+                    icon: .system(CodexJobStatus.update.icon)
                 )
                 CodexNotificationTypeRow(
                     title: "Permission Required",
                     detail: "A Codex tool needs your Allow or Deny response.",
                     icon: .asset("codexSettingsShield")
-                )
-                CodexNotificationTypeRow(
-                    title: "Decision Required",
-                    detail: "Codex needs you to choose between options.",
-                    icon: .system(CodexJobStatus.needsAction(.decision).icon)
-                )
-                CodexNotificationTypeRow(
-                    title: "Manual review",
-                    detail: "A result needs you to inspect or approve it.",
-                    icon: .system(CodexJobStatus.needsAction(.manualCheck).icon)
                 )
             }
 

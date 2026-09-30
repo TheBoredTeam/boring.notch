@@ -72,22 +72,22 @@ final class CodexCallbackRoutingTests: XCTestCase {
 
     func testPermissionTapExpandsWhilePassiveNotificationTapOpensCodex() {
         XCTAssertEqual(
-            CodexClosedActivityTapRouting(status: .needsAction(.permission)),
+            CodexClosedActivityTapRouting(status: .permissionRequired),
             .expandNotch
         )
         XCTAssertEqual(
-            CodexClosedActivityTapRouting(status: .succeeded),
+            CodexClosedActivityTapRouting(status: .responseReady),
             .openCodex
         )
         XCTAssertEqual(
-            CodexClosedActivityTapRouting(status: .failed),
+            CodexClosedActivityTapRouting(status: .stopped),
             .openCodex
         )
     }
 
     func testPermissionAccessibilityDescribesReviewInsideBoringNotch() {
         let accessibility = CodexClosedActivityAccessibility(
-            status: .needsAction(.permission),
+            status: .permissionRequired,
             projectName: "Example"
         )
 
@@ -101,7 +101,7 @@ final class CodexCallbackRoutingTests: XCTestCase {
 
     func testFailedCompactLaunchAccessibilityOffersRetry() {
         let accessibility = CodexClosedActivityAccessibility(
-            status: .failed,
+            status: .stopped,
             projectName: "Example",
             launchError: "The official Codex app could not be found."
         )
