@@ -99,9 +99,15 @@ Objetivo: forma fácil de mandar pro pessoal da empresa.
 
 Decisões de produto (definidas pelo dono):
 - **Aba "Agentes"** no notch aberto (ao lado de Home/Shelf). Lista sessões, aprovar/recusar, clique → foca terminal/editor.
-- **Notch fechado:** com agente rodando, o indicador fica **do lado direito, no lugar do mini espectro de áudio**.
-  Sem agente, o espectro volta. Sem música, vira uma live activity própria (contagem | notch | indicador).
-- **Hover no indicador** abre o notch direto na aba Agentes; o resto do hover segue o Boring Notch normal.
+- **Notch fechado** (prioridade sempre do layout do Boring Notch):
+  - só música → capa à esquerda, espectro à direita (original).
+  - música + agente → música à esquerda (interações normais), **indicador do agente no lugar do espectro**.
+  - só agente → padrão Open Island nos dois lados: status geral à esquerda (✻ / ! / ? / ✓ / ✗),
+    um quadradinho por sessão à direita (cor = status; pulsa quando espera você).
+- **Hover nas áreas do agente** abre o notch direto na aba Agentes; esquerda/centro/arrastar arquivo = normal.
+- **Perguntas (AskUserQuestion)** respondidas no notch (opções + "Outra…"); ExitPlanMode vira aprovação.
+- **Nome:** tudo que o usuário vê diz "boringCode" (traduções no xcstrings, chaves iguais ao upstream).
+  Sobre credita Boring Notch e Open Island.
 - **Pedido de aprovação** expande o notch sozinho na aba Agentes e fecha sozinho quando resolvido.
 - Tudo **ligado por padrão** (público-alvo: devs). Configurações em Ajustes › "AI Agents".
 - **Hosts suportados:** Claude Code no terminal (Terminal/iTerm), extensão do Claude para VS Code
@@ -119,8 +125,8 @@ Arquitetura:
   (respondeu no terminal) o servidor detecta EOF e tira do notch. Fail-open sem o app.
 - `AgentSessionStore` (@MainActor) = reducer de eventos → `AgentSession` (status, atividade, TTY, PID).
   Poda sessões cujo PID morreu. `AgentTerminalFocus` = AppleScript por TTY / abrir pasta no VS Code.
-- Limite de 104 bytes no caminho do socket (sun_path) — o caminho dentro do container do sandbox
-  estoura (112). **O módulo exige app sem sandbox** (decisão pendente com o dono).
+- **App sem sandbox** (aprovado pelo dono em 2026-09-30): precisa escrever em `~/.claude`, controlar
+  Terminal/iTerm e o socket (limite de 104 bytes no sun_path estoura dentro do container).
 - Testar o núcleo sem o app: compilar `agents/AgentHookServer.swift`, `AgentModels.swift`,
   `ClaudeHookInstaller.swift` + um `main.swift` com `swiftc` e usar socket em caminho curto.
 - Convive com Open Island instalado: se os dois estiverem abertos, ambos seguram o PermissionRequest.
