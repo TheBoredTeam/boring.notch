@@ -12,7 +12,7 @@
 import OSLog
 
 enum Log {
-    private static let subsystem = "theboringteam.boringnotch"
+    private static let subsystem = Bundle.main.bundleIdentifier ?? "com.reesoousa.boringcode"
 
     static let general = Logger(subsystem: subsystem, category: "general")
     static let app = Logger(subsystem: subsystem, category: "app")
