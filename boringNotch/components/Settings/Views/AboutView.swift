@@ -136,7 +136,7 @@ struct AboutView: View {
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }
-            Text("The notch for people who code with AI.")
+            Text("Made for not-so-boring people.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .padding(.top, 2)
