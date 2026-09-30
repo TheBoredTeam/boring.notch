@@ -7,7 +7,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 # dmgbuild (versões travadas por hash) num venv próprio, fora do sistema.
-VENV="$ROOT/build/dmgenv"
+VENV="$ROOT/build.noindex/dmgenv"
 if [ ! -x "$VENV/bin/dmgbuild" ]; then
   if command -v uv >/dev/null 2>&1; then
     uv venv -q "$VENV"
@@ -21,9 +21,9 @@ export PATH="$VENV/bin:$PATH"
 
 echo "▸ Compilando (Release)…"
 xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -configuration Release \
-  -derivedDataPath build -destination 'platform=macOS,arch=arm64' build -quiet
+  -derivedDataPath build.noindex -destination 'platform=macOS,arch=arm64' build -quiet
 
-APP="build/Build/Products/Release/boringCode.app"
+APP="build.noindex/Build/Products/Release/boringCode.app"
 VERSION="$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$APP/Contents/Info.plist")"
 mkdir -p dist
 DMG="dist/boringCode-$VERSION.dmg"
@@ -31,6 +31,9 @@ rm -f "$DMG"
 
 echo "▸ Conferindo assinatura…"
 codesign --verify --deep --strict "$APP"
+# O Release de build/ não é para abrir (ad-hoc cai na abertura): some da lista de apps do Finder.
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
+  -u "$ROOT/$APP" >/dev/null 2>&1 || true
 
 echo "▸ Gerando $DMG…"
 Configuration/dmg/create_dmg.sh "$APP" "$DMG" "boringCode"

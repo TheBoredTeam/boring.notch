@@ -62,27 +62,28 @@ Pontos de extensão para o módulo de agentes:
 ## Compilar e rodar
 
 ```bash
-# build Debug (saída em ./build, já no .gitignore)
-xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -configuration Debug \
-  -derivedDataPath build -destination 'platform=macOS,arch=arm64' build
-
-# rodar (o `open` sozinho só reativa a instância velha — encerre de verdade antes)
-osascript -e 'tell application id "com.reesoousa.boringcode" to quit'; pkill -9 -x boringCode
-open build/Build/Products/Debug/boringCode.app
-# o dono usa a cópia instalada: atualize-a a cada build
-ditto build/Build/Products/Debug/boringCode.app /Applications/boringCode.app
+# compilar + assinar + instalar a ÚNICA cópia em /Applications + abrir (é o fluxo padrão)
+scripts/install-dev.sh            # --no-open para só instalar
 
 # instalador (ver "Distribuição")
 scripts/make-dmg.sh   # → dist/boringCode-<versão>.dmg
 
 # testes
-xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -derivedDataPath build test
+xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -derivedDataPath build.noindex test
 ```
 
+- **Nunca abrir o app de dentro de `build.noindex/`** nem copiar à mão: só existe uma cópia,
+  `/Applications/boringCode.app`. O sufixo `.noindex` esconde os builds do Spotlight/Finder e o
+  script tira-os do registro de apps (antes apareciam 3 "boringCode" no Finder).
+- **Assinatura de dev estável:** `install-dev.sh` re-assina tudo com o certificado local
+  `boringCode Dev` (criado uma vez por `scripts/setup-dev-signing.sh` no chaveiro de login,
+  autoassinado, só desta máquina). Ad-hoc (`-`) muda de identidade a cada build e o macOS
+  pedia Acessibilidade/Automação de novo; com o certificado a identidade é
+  `identifier "com.reesoousa.boringcode" and certificate leaf = H"…"` e as permissões ficam.
+  O projeto Xcode continua ad-hoc (a re-assinatura é só no script).
 - Rodar junto com o Boring Notch de `/Applications` funciona, mas os dois desenham no notch —
   feche o instalado para testar visualmente.
-- Assinatura atual: ad-hoc (`CODE_SIGN_IDENTITY[sdk=macosx*] = "-"`), sem Team. Permissões do
-  macOS (Accessibility, Automation) podem ser pedidas de novo a cada rebuild.
+- Projeto Xcode: ad-hoc (`CODE_SIGN_IDENTITY[sdk=macosx*] = "-"`), sem Team.
 - **O build Release ad-hoc cai na abertura** (library validation recusa o
   `MediaRemoteAdapter.framework`: "different Team IDs"). O Debug roda. Ver "Distribuição".
 
@@ -101,7 +102,7 @@ xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -derivedDataPath b
 
 Objetivo: `.dmg` fácil para os colegas da empresa (vários usam Mac). Pausado até o dono escolher
 a assinatura. `scripts/make-dmg.sh` já faz: build Release → `codesign --verify` → dmgbuild (hashes
-travados, venv em `build/dmgenv`) → `dist/boringCode-<versão>.dmg` (layout `Configuration/dmg/`).
+travados, venv em `build.noindex/dmgenv`) → `dist/boringCode-<versão>.dmg` (layout `Configuration/dmg/`).
 
 1. **Escolher a assinatura** (decisão do dono):
    - **Developer ID da empresa** (recomendado; perguntar ao TI) → assinar + notarizar, abre sem alerta.

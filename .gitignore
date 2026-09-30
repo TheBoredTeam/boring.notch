@@ -26,8 +26,9 @@ Carthage/Build/
 # Derived data
 DerivedData/
 
-# Build output
+# Build output (".noindex" esconde do Spotlight)
 build/
+build.noindex/
 *.app
 *.dSYM
 
