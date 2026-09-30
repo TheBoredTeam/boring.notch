@@ -82,19 +82,54 @@ struct AgentStatusIndicator: View {
     }
 }
 
-/// O "✻" pulsante do Claude Code no terminal.
+/// O ✻ do Claude Code, em versão calma: um glifo só, girando devagar
+/// (uma volta a cada 8 s) e "respirando" de leve no brilho. Parado com
+/// Reduzir movimento ligado.
 private struct ClaudeSpinner: View {
     let size: CGFloat
     var tint: Color = .claudeOrange
-    private static let frames = ["·", "✢", "✳", "✶", "✻", "✽", "✻", "✶", "✳", "✢"]
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private static let secondsPerTurn: Double = 8
+    private static let breathPeriod: Double = 2.4
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 0.12)) { context in
-            let index = Int(context.date.timeIntervalSinceReferenceDate / 0.12) % Self.frames.count
-            Text(Self.frames[index])
-                .font(.system(size: size * 0.95, weight: .semibold))
-                .foregroundStyle(tint)
-                .frame(width: size, height: size)
+        if reduceMotion {
+            glyph(angle: 0, opacity: 1)
+        } else {
+            TimelineView(.animation(minimumInterval: 1 / 30)) { context in
+                let t = context.date.timeIntervalSinceReferenceDate
+                let angle = (t / Self.secondsPerTurn).truncatingRemainder(dividingBy: 1) * 360
+                // 0.7 ↔ 1.0, senoide suave
+                let opacity = 0.85 + 0.15 * sin(t / Self.breathPeriod * 2 * .pi)
+                glyph(angle: angle, opacity: opacity)
+            }
         }
+    }
+
+    private func glyph(angle: Double, opacity: Double) -> some View {
+        SparkShape()
+            .stroke(tint, style: StrokeStyle(lineWidth: max(1.2, size * 0.13), lineCap: .round))
+            .frame(width: size * 0.78, height: size * 0.78)
+            .opacity(opacity)
+            .rotationEffect(.degrees(angle))
+            .frame(width: size, height: size)
+    }
+}
+
+/// Asterisco de 8 braços desenhado em vetor — centro exato, gira sem "balançar".
+private struct SparkShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let radius = min(rect.width, rect.height) / 2
+        var path = Path()
+        for index in 0..<4 {
+            let angle = Double(index) * .pi / 4
+            let dx = cos(angle) * radius, dy = sin(angle) * radius
+            path.move(to: CGPoint(x: center.x - dx, y: center.y - dy))
+            path.addLine(to: CGPoint(x: center.x + dx, y: center.y + dy))
+        }
+        return path
     }
 }
