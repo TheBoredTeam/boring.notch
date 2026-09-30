@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/images/logo.png" alt="Logo do boringCode" width="128">
+</p>
+
 <h1 align="center">boringCode</h1>
 
 <p align="center">
@@ -85,9 +89,9 @@ permite focar a aba certa.
 - [x] Claude Code (terminal, VS Code, app Claude)
 - [x] Aprovar/recusar e responder perguntas no notch
 - [x] LocalSend no shelf
-- [ ] Codex
+- [x] Codex
 - [ ] Instalador `.dmg` assinado
-- [ ] Ícone próprio
+- [x] Ícone próprio
 
 ## Créditos e licença
 
