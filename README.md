@@ -6,7 +6,7 @@
 
 <p align="center">
   O notch do seu MacBook para quem programa com IA.<br>
-  Música, calendário e shelf do <a href="https://github.com/TheBoredTeam/boring.notch">Boring Notch</a> — e agora seus agentes do Claude Code bem ali em cima.
+  Música, calendário e shelf do <a href="https://github.com/TheBoredTeam/boring.notch">Boring Notch</a> — e agora seus agentes do Claude Code e do Codex bem ali em cima.
 </p>
 
 <p align="center">
@@ -26,7 +26,8 @@ Roda lado a lado com o Boring Notch original — é outro app (`com.reesoousa.bo
 
 ## Agentes de IA no notch
 
-Funciona com o **Claude Code** no Terminal/iTerm, na **extensão do Claude para VS Code** (e Cursor) e no **app Claude**.
+Funciona com o **Claude Code** (Terminal/iTerm, extensão do VS Code/Cursor e app Claude) e com o **Codex** (CLI, VS Code e app Codex).
+Cada agente tem sua cor: Claude em laranja, Codex em azul.
 
 | Situação | Notch fechado |
 |---|---|
@@ -39,13 +40,13 @@ Status: ✻ rodando · **!** precisa de aprovação · **?** pergunta para você
 - **Passe o mouse do lado do agente** (à direita do notch) e ele abre direto na aba **Agentes**.
 - **Aprovar ou recusar** comandos sem sair do que você está fazendo — o notch se abre sozinho quando chega um pedido.
 - **Responder perguntas** do Claude (múltipla escolha ou texto livre) no próprio notch.
-- **Clique na sessão** para voltar à aba certa do Terminal/iTerm ou à janela do VS Code.
+- **Clique na sessão** para voltar à aba certa do Terminal/iTerm, à janela do VS Code ou à conversa no app Codex.
 - **Som sutil** quando um agente termina (dá para trocar o som ou desligar).
 
 ### Como funciona
 
-Ao abrir, o boringCode adiciona hooks em `~/.claude/settings.json` (salvando um backup antes e **sem mexer nos hooks
-de outras ferramentas**). Cada hook chama um script local que conversa com o app por um socket em
+Ao abrir, o boringCode adiciona hooks em `~/.claude/settings.json` e `~/.codex/hooks.json` (salvando um backup antes e
+**sem mexer nos hooks de outras ferramentas**). Cada hook chama um script local que conversa com o app por um socket em
 `~/Library/Application Support/boringCode/`. Nada sai do seu Mac.
 
 Se o boringCode estiver fechado, os hooks não fazem nada e o Claude segue normal. Para remover: **Ajustes › Agentes de IA › Remover hooks**.
