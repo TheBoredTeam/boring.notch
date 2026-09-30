@@ -119,6 +119,53 @@ struct AgentPermissionRequest: Equatable {
     let receivedAt: Date
 }
 
+/// Uma pergunta do AskUserQuestion do Claude Code.
+struct AgentQuestion: Equatable, Identifiable {
+    struct Option: Equatable, Identifiable {
+        let label: String
+        let description: String?
+        var id: String { label }
+    }
+
+    let question: String
+    let header: String?
+    let options: [Option]
+    let multiSelect: Bool
+    var id: String { question }
+}
+
+/// Perguntas aguardando resposta. `toolInput` é o JSON original, devolvido com as respostas.
+struct AgentPendingQuestion: Equatable {
+    let id: UUID
+    let questions: [AgentQuestion]
+    let toolInput: Data
+    let receivedAt: Date
+
+    /// Lê `tool_input.questions[]` (question, header, options[].label/description, multiSelect).
+    init?(id: UUID, toolInputJSON: Data, receivedAt: Date) {
+        guard let object = try? JSONSerialization.jsonObject(with: toolInputJSON) as? [String: Any],
+              let rawQuestions = object["questions"] as? [[String: Any]] else { return nil }
+        let questions: [AgentQuestion] = rawQuestions.compactMap { raw in
+            guard let text = raw["question"] as? String, !text.isEmpty else { return nil }
+            let options = (raw["options"] as? [[String: Any]] ?? []).compactMap { option -> AgentQuestion.Option? in
+                guard let label = option["label"] as? String, !label.isEmpty else { return nil }
+                return .init(label: label, description: option["description"] as? String)
+            }
+            return AgentQuestion(
+                question: text,
+                header: raw["header"] as? String,
+                options: options,
+                multiSelect: raw["multiSelect"] as? Bool ?? false
+            )
+        }
+        guard !questions.isEmpty else { return nil }
+        self.id = id
+        self.questions = questions
+        self.toolInput = toolInputJSON
+        self.receivedAt = receivedAt
+    }
+}
+
 struct AgentSession: Identifiable, Equatable {
     let id: String
     var cwd: String
@@ -137,7 +184,12 @@ struct AgentSession: Identifiable, Equatable {
     var startedAt: Date
     var updatedAt: Date
 
+    var pendingQuestion: AgentPendingQuestion?
+
     var pendingPermission: AgentPermissionRequest? { pendingPermissions.first }
+
+    /// Algo esperando você responder no notch (aprovação ou pergunta).
+    var needsAnswer: Bool { pendingPermission != nil || pendingQuestion != nil }
 
     var projectName: String {
         let name = (cwd as NSString).lastPathComponent

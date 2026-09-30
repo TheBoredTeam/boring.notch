@@ -106,7 +106,10 @@ final class AgentSessionStore: ObservableObject {
 
     var activeSessions: [AgentSession] { sessions.filter { $0.status.isActive } }
 
-    var pendingApprovalCount: Int { sessions.reduce(0) { $0 + $1.pendingPermissions.count } }
+    /// Aprovações + perguntas esperando resposta no notch.
+    var pendingApprovalCount: Int {
+        sessions.reduce(0) { $0 + $1.pendingPermissions.count + ($1.pendingQuestion == nil ? 0 : 1) }
+    }
 
     /// O que o indicador do notch fechado deve mostrar (nil = nada, volta o espectro).
     var closedIndicatorStatus: AgentSessionStatus? {
@@ -124,6 +127,36 @@ final class AgentSessionStore: ObservableObject {
     func approve(_ sessionID: String) { resolveFirstPermission(of: sessionID, allow: true) }
 
     func deny(_ sessionID: String) { resolveFirstPermission(of: sessionID, allow: false) }
+
+    /// Responde o AskUserQuestion: `answers` = texto da pergunta → rótulo(s) escolhido(s).
+    func answer(_ sessionID: String, answers: [String: String]) {
+        guard let index = sessions.firstIndex(where: { $0.id == sessionID }),
+              let question = sessions[index].pendingQuestion else { return }
+        var input = (try? JSONSerialization.jsonObject(with: question.toolInput) as? [String: Any]) ?? [:]
+        input["answers"] = answers
+        let output: [String: Any] = [
+            "hookSpecificOutput": [
+                "hookEventName": "PermissionRequest",
+                "decision": ["behavior": "allow", "updatedInput": input],
+            ]
+        ]
+        let body = try? JSONSerialization.data(withJSONObject: output)
+        pendingConnections.removeValue(forKey: question.id)?.respond(body)
+        sessions[index].pendingQuestion = nil
+        sessions[index].status = .running
+        sessions[index].activity = nil
+        sessions[index].updatedAt = Date()
+    }
+
+    /// Solta a pergunta para o diálogo do próprio Claude e leva você até ele.
+    func answerInTerminal(_ sessionID: String) {
+        guard let index = sessions.firstIndex(where: { $0.id == sessionID }) else { return }
+        if let question = sessions[index].pendingQuestion {
+            pendingConnections.removeValue(forKey: question.id)?.respond(nil)
+            sessions[index].pendingQuestion = nil
+        }
+        focus(sessions[index])
+    }
 
     func focus(_ session: AgentSession) {
         AgentTerminalFocus.focus(session)
@@ -168,22 +201,46 @@ final class AgentSessionStore: ObservableObject {
             session.activity = nil
             session.errorMessage = nil
         case "PreToolUse":
-            session.status = session.pendingPermissions.isEmpty ? .running : .waitingApproval
+            if !session.pendingPermissions.isEmpty {
+                session.status = .waitingApproval
+            } else if session.pendingQuestion != nil {
+                session.status = .waitingInput
+            } else {
+                session.status = .running
+            }
             session.activity = payload.toolSummary
         case "PostToolUse", "PostToolUseFailure", "PermissionDenied":
             // A ferramenta rodou (ou foi negada): qualquer pedido pendente dela já foi decidido.
             dropPermissions(of: &session)
             session.status = .running
         case "PermissionRequest":
-            if ["AskUserQuestion", "ExitPlanMode"].contains(payload.toolName ?? "") {
-                // Precisa de resposta rica — segue pro diálogo normal do Claude.
+            if payload.toolName == "AskUserQuestion",
+               let toolInput = Self.rawToolInput(request.body),
+               let question = AgentPendingQuestion(id: UUID(), toolInputJSON: toolInput, receivedAt: now) {
+                // Pergunta respondível no notch; a conexão fica aberta até você responder.
+                if let previous = session.pendingQuestion {
+                    pendingConnections.removeValue(forKey: previous.id)?.respond(nil)
+                }
+                session.pendingQuestion = question
                 session.status = .waitingInput
-                session.activity = payload.toolName == "ExitPlanMode" ? String(localized: "Plan ready for review") : String(localized: "Question for you")
+                session.activity = question.questions.first?.question.singleLine
+                pendingConnections[question.id] = connection
+                connection.onClientGone = { [weak self] in
+                    Task { @MainActor in self?.questionAbandoned(question.id, sessionID: session.id) }
+                }
+                holdConnection = true
+                if Defaults[.agentsExpandOnApproval] { expandRequest = question.id }
+            } else if payload.toolName == "AskUserQuestion" {
+                // Formato que não sabemos ler: fica com o diálogo do Claude.
+                session.status = .waitingInput
+                session.activity = String(localized: "Question for you")
             } else {
                 let permission = AgentPermissionRequest(
                     id: UUID(),
                     toolName: payload.toolName ?? "Tool",
-                    summary: payload.toolDetail ?? "",
+                    summary: payload.toolName == "ExitPlanMode"
+                        ? String(localized: "Plan ready for review")
+                        : payload.toolDetail ?? "",
                     receivedAt: now
                 )
                 session.pendingPermissions.append(permission)
@@ -277,6 +334,21 @@ final class AgentSessionStore: ObservableObject {
         sessions[index].updatedAt = Date()
     }
 
+    private func questionAbandoned(_ questionID: UUID, sessionID: String) {
+        pendingConnections[questionID] = nil
+        guard let index = sessions.firstIndex(where: { $0.id == sessionID }),
+              sessions[index].pendingQuestion?.id == questionID else { return }
+        sessions[index].pendingQuestion = nil
+        if sessions[index].status == .waitingInput { sessions[index].status = .running }
+    }
+
+    /// `tool_input` cru do corpo do hook, para devolver intacto com as respostas.
+    private static func rawToolInput(_ body: Data) -> Data? {
+        guard let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              let input = object["tool_input"] else { return nil }
+        return try? JSONSerialization.data(withJSONObject: input)
+    }
+
     private func permissionAbandoned(_ permissionID: UUID, sessionID: String) {
         pendingConnections[permissionID] = nil
         guard let index = sessions.firstIndex(where: { $0.id == sessionID }) else { return }
@@ -291,6 +363,10 @@ final class AgentSessionStore: ObservableObject {
             pendingConnections.removeValue(forKey: permission.id)?.respond(nil)
         }
         session.pendingPermissions.removeAll()
+        if let question = session.pendingQuestion {
+            pendingConnections.removeValue(forKey: question.id)?.respond(nil)
+            session.pendingQuestion = nil
+        }
     }
 
     private func resolveAllPending() {
@@ -315,13 +391,17 @@ final class AgentSessionStore: ObservableObject {
                 for permission in session.pendingPermissions {
                     pendingConnections.removeValue(forKey: permission.id)?.respond(nil)
                 }
+                if let question = session.pendingQuestion {
+                    pendingConnections.removeValue(forKey: question.id)?.respond(nil)
+                }
                 return true
             }
             let age = now.timeIntervalSince(session.updatedAt)
             switch session.status {
             case .done, .error: return age > 30 * 60
             case .idle: return age > 2 * 60 * 60
-            default: return false
+            // Sem PID não dá pra saber se o processo morreu: desiste após 2h sem eventos.
+            default: return session.agentPID == nil && !session.needsAnswer && age > 2 * 60 * 60
             }
         }
         if sessions.count != before { log.debug("removidas \(before - self.sessions.count) sessões") }

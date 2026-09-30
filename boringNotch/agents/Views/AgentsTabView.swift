@@ -15,10 +15,15 @@ struct AgentsTabView: View {
     /// Pendentes primeiro, depois ativas, depois o resto — dentro de cada grupo, mais recentes primeiro.
     private var orderedSessions: [AgentSession] {
         store.sessions.enumerated().sorted { lhs, rhs in
-            let left = lhs.element.status.isActive ? lhs.element.status.priority + 10 : 0
-            let right = rhs.element.status.isActive ? rhs.element.status.priority + 10 : 0
+            let left = rank(lhs.element)
+            let right = rank(rhs.element)
             return left == right ? lhs.offset < rhs.offset : left > right
         }.map(\.element)
+    }
+
+    private func rank(_ session: AgentSession) -> Int {
+        if session.needsAnswer { return 100 }
+        return session.status.isActive ? session.status.priority + 10 : 0
     }
 
     var body: some View {
@@ -29,8 +34,13 @@ struct AgentsTabView: View {
                 ScrollView(.vertical) {
                     LazyVStack(spacing: 6) {
                         ForEach(orderedSessions) { session in
-                            AgentSessionRow(session: session)
-                                .transition(.opacity.combined(with: .move(edge: .top)))
+                            VStack(spacing: 4) {
+                                AgentSessionRow(session: session)
+                                if let question = session.pendingQuestion {
+                                    AgentQuestionCard(sessionID: session.id, pending: question)
+                                }
+                            }
+                            .transition(.opacity.combined(with: .move(edge: .top)))
                         }
                     }
                     .padding(.top, 2)
@@ -125,8 +135,9 @@ private struct AgentSessionRow: View {
                 Text(subtitle)
                     .font(.system(size: 11, design: session.pendingPermission != nil ? .monospaced : .default))
                     .foregroundStyle(.gray)
-                    .lineLimit(1)
+                    .lineLimit(session.pendingPermission != nil ? 2 : 1)
                     .truncationMode(.tail)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Spacer(minLength: 8)
