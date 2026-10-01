@@ -3552,6 +3552,30 @@
         }
       }
     },
+    "Open notch on" : {
+      "comment" : "Settings label of the picker choosing which tab the notch opens on.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open notch on"
+          }
+        }
+      }
+    },
+    "Music" : {
+      "comment" : "Label of the music player tab in the notch.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music"
+          }
+        }
+      }
+    },
     "boring.notch" : {
       "localizations" : {
         "cs" : {

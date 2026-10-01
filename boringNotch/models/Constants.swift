@@ -509,6 +509,11 @@ extension Defaults.Keys {
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
     static let reverseShelfOrdering = Key<Bool>("reverseShelfOrdering", default: false)
 
+    // MARK: Notch tabs
+    /// Which tab the notch opens on. Falls back to the first enabled tab when
+    /// the stored one has been switched off in Settings.
+    static let defaultNotchView = Key<NotchViews>("defaultNotchView", default: .music)
+
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
