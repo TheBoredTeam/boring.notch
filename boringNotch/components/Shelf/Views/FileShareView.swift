@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  FileShareView.swift
 //  boringNotch
@@ -11,6 +14,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct FileShareView: View {
+    var compact: Bool = false
     @EnvironmentObject private var vm: BoringViewModel
     @StateObject private var quickShare = QuickShareService.shared
     @Default(.quickShareProvider) var quickShareProvider: String
@@ -63,7 +67,7 @@ struct FileShareView: View {
                         .fill(Color.white.opacity(
                             vm.dropZoneTargeting ? 0.11 : 0.09
                         ))
-                        .frame(width: 55, height: 55)
+                        .frame(width: compact ? 40 : 55, height: compact ? 40 : 55)
                     Image(systemName: "square.and.arrow.up")
                     Group {
                         if let imgData = selectedProvider.imageData, let nsImg = NSImage(data: imgData) {
@@ -74,7 +78,7 @@ struct FileShareView: View {
                             Image(systemName: "square.and.arrow.up")
                         }
                     }
-                    .frame(width: 34, height: 34)
+                    .frame(width: compact ? 24 : 34, height: compact ? 24 : 34)
                         .foregroundStyle(
                             vm.dropZoneTargeting ? Color.accentColor : Color.gray
                         )
@@ -85,11 +89,13 @@ struct FileShareView: View {
                 }
 
                 Text(selectedProvider.id)
-                    .font(.system(.headline, design: .rounded))
+                    .font(.system(compact ? .caption : .headline, design: .rounded))
                     .foregroundColor(.white.opacity(0.8))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(compact ? 2 : nil)
 
             }
-            .padding(18)
+            .padding(compact ? 6 : 18)
             
             // Loading overlay
             if isProcessing || quickShare.isPickerOpen {

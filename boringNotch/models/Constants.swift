@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  Constants.swift
 //  boringNotch
@@ -94,6 +97,13 @@ extension Defaults.Keys {
     static let showOnLockScreen = Key<Bool>("showOnLockScreen", default: false)
     static let hideFromScreenRecording = Key<Bool>("hideFromScreenRecording", default: false)
     
+    // MARK: Layout
+    /// Uses a bounded smaller workspace with compact-capable tabs below it.
+    static let compactMode = Key<Bool>("compactMode", default: false)
+    /// Standard mode keeps its full workspace and header controls; only the
+    /// tab switcher moves below the notch. Compact mode always floats tabs.
+    static let floatingTabsInStandardMode = Key<Bool>("floatingTabsInStandardMode", default: false)
+
     // MARK: Appearance
     static let showEmojis = Key<Bool>("showEmojis", default: false)
     //static let alwaysShowTabs = Key<Bool>("alwaysShowTabs", default: true)
