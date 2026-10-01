@@ -345,6 +345,14 @@ struct GeneralSettings: View {
                         name: Notification.Name.notchHeightChanged, object: nil)
                 }
             }
+            Defaults.Toggle(key: .compactMode) {
+                Text("Compact mode")
+            }
+            .help("Keep every tab in a smaller workspace, with tabs below the notch.")
+            Defaults.Toggle(key: .floatingTabsInStandardMode) {
+                Text("Floating tabs in standard mode")
+            }
+            .help("Place standard-mode tabs below the notch. Compact mode always uses floating tabs.")
         } header: {
             Text("Notch behavior")
         }
