@@ -125,16 +125,21 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch
 - [ ] Weather integration ⛅️
 - [ ] Customizable Layout options 🛠️
 - [ ] Lock Screen Widgets 🔒
-- [ ] Extension system 🧩
+- [x] Native extension bundles and live activity registration 🧩
 - [ ] Notifications (under consideration) 🔔
 <!-- - [ ] Clipboard history manager 📌 `Extension` -->
 <!-- - [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`-->
 <!-- - [ ] Customizable function buttons 🎛️ -->
 <!-- - [ ] App switcher 🪄 -->
 
-<!-- ## 🧩 Extensions
-> [!NOTE]
-> We’re hard at work on some awesome extensions! Stay tuned, and we’ll keep you updated as soon as they’re released. -->
+## 🧩 Extensions
+
+Browse the reviewed **Store** in **Settings → Extensions**, or install an independently distributed extension by dropping its ZIP into the Installed tab.
+Developers can start with the [standalone Focus Timer example](examples/live-activity-extension),
+read the [packaging and C ABI guide](docs/extensions.md), publish through the [Store catalog](docs/extension-store.md), and use the
+[activity host contract](docs/live-activities.md) to publish leading and trailing native views.
+
+The focused host and installer tests run with `swift test --jobs 4`; the app still builds with Xcode.
 
 ## Building from Source
 
@@ -202,4 +207,3 @@ For a full list of licenses and attributions, please see the [Third-Party Licens
 
 - **SwiftUI**: For making us look like coding wizards.
 - **You**: For being awesome and checking out **boring.notch**!
-

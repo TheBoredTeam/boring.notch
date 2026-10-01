@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  Constants.swift
 //  boringNotch
@@ -474,10 +477,11 @@ extension Defaults.Keys {
     static let inlineOSD = Key<Bool>(PreferenceCompatibility.migratedKeyName("inlineOSD", from: "inlineHUD"), default: false)
 
     // MARK: Layout
-    /// Swaps the opened notch for a smaller, player-only layout: no tab
-    /// bar, calendar or mirror. Off by default so existing users keep the
-    /// layout they already have.
+    /// Uses a bounded smaller workspace with compact-capable tabs below it.
     static let compactMode = Key<Bool>("compactMode", default: false)
+    /// Standard mode keeps its full workspace and header controls; only the
+    /// tab switcher moves below the notch. Compact mode always floats tabs.
+    static let floatingTabsInStandardMode = Key<Bool>("floatingTabsInStandardMode", default: false)
 
     // MARK: Notifications
     /// Off by default: mirroring banners needs Accessibility access.

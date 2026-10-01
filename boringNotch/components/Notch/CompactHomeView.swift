@@ -1,9 +1,12 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  CompactHomeView.swift
 //  boringNotch
 //
 //  A smaller open-notch layout: just the now-playing essentials — art,
-//  title, scrubber, transport — with no tab bar, calendar or mirror.
+//  title, scrubber, transport. The host places tabs below the opened notch.
 //
 //  Layout and proportions follow Atoll's MinimalisticMusicPlayerView
 //  (https://github.com/Ebullioscopic/Atoll, GPL-3.0, itself a boring.notch
@@ -57,7 +60,7 @@ struct CompactHomeView: View {
                 .frame(height: albumArtWidth)
 
             progressRow
-                .padding(.top, 6)
+                .padding(.top, 3)
 
             transport
                 .padding(.top, 2)

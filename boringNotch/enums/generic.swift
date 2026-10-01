@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  generic.swift
 //  boringNotch
@@ -16,11 +19,6 @@ enum Style {
 enum NotchState {
     case closed
     case open
-}
-
-enum NotchViews {
-    case home
-    case shelf
 }
 
 enum DownloadIndicatorStyle: String, Defaults.Serializable {

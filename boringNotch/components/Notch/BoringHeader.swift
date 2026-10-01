@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  BoringHeader.swift
 //  boringNotch
@@ -9,14 +12,21 @@ import Defaults
 import SwiftUI
 
 struct BoringHeader: View {
+    var showsTabs: Bool = true
+    @Default(.boringShelf) private var shelfEnabled
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var extensionTabs = ExtensionTabRegistry.shared
     @StateObject var shelfState = ShelfStateViewModel.shared
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if (!shelfState.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
+                if showsTabs && NotchTabVisibility.shouldShow(
+                    compactMode: false, shelfEnabled: shelfEnabled, shelfIsEmpty: shelfState.isEmpty,
+                    alwaysShowTabs: coordinator.alwaysShowTabs,
+                    hasExtensionTabs: !extensionTabs.tabs(for: .regular).isEmpty
+                ) {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()

@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  SettingsView.swift
 //  boringNotch
@@ -21,6 +24,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     case osd
     case notifications
     case shortcuts
+    case extensions
     case about
 
     enum Icon {
@@ -43,6 +47,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .osd: "OSD"
         case .notifications: "Notifications"
         case .shortcuts: "Shortcuts"
+        case .extensions: "Extensions"
         case .about: "About"
         }
     }
@@ -60,6 +65,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .osd: .system("dial.medium.fill")
         case .notifications: .system("bell.badge")
         case .shortcuts: .system("keyboard")
+        case .extensions: .system("puzzlepiece.extension")
         case .about: .system("info.circle")
         }
     }
@@ -113,6 +119,8 @@ struct SettingsView: View {
                     WebcamSettingsView(camera: camera)
                 case .shortcuts:
                     ShortcutsSettingsView()
+                case .extensions:
+                    ExtensionsSettingsView()
                 case .about:
                     if let controller = updaterController {
                         AboutView(updaterController: controller)

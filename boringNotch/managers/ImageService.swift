@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  ImageService.swift
 //  boringNotch
@@ -19,16 +22,32 @@ final class ImageService: ImageServiceProtocol {
 
     private init() {
         let config = URLSessionConfiguration.default
-        let cache = URLCache(memoryCapacity: 50 * 1024 * 1024, // 50MB
-                             diskCapacity: 100 * 1024 * 1024, // 100MB
-                             diskPath: "artwork_cache")
-        config.urlCache = cache
+        config.urlCache = Self.makeArtworkCache()
         config.timeoutIntervalForRequest = 15
         config.timeoutIntervalForResource = 30
         config.httpShouldSetCookies = false
         self.session = URLSession(configuration: config)
 
         performLegacyCacheCleanupIfNeeded()
+    }
+
+    private static func makeArtworkCache() -> URLCache {
+        let memoryCapacity = 50 * 1024 * 1024
+        do {
+            // LaunchServices starts apps with cwd=/; a relative diskPath
+            // cannot create its database there. Use the native user cache root.
+            let root = try FileManager.default.url(for: .cachesDirectory, in: .userDomainMask,
+                                                  appropriateFor: nil, create: true)
+            let directory = root
+                .appendingPathComponent(Bundle.main.bundleIdentifier ?? "theboringteam.boringnotch", isDirectory: true)
+                .appendingPathComponent("artwork_cache", isDirectory: true)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            return URLCache(memoryCapacity: memoryCapacity, diskCapacity: 100 * 1024 * 1024,
+                            directory: directory)
+        } catch {
+            // A read-only or unavailable home should not prevent artwork loads.
+            return URLCache(memoryCapacity: memoryCapacity, diskCapacity: 0, directory: nil)
+        }
     }
 
     private func performLegacyCacheCleanupIfNeeded() {

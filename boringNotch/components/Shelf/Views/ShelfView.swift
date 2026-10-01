@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  ShelfItemView.swift
 //  boringNotch
@@ -12,6 +15,7 @@ import Defaults
 struct ShelfView: View {
     let dropInteraction: DropInteractionState
     let animation: Animation?
+    var compact: Bool = false
     @StateObject var shelfState = ShelfStateViewModel.shared
 
     private let spacing: CGFloat = 8
@@ -24,9 +28,14 @@ struct ShelfView: View {
         @Bindable var interaction = dropInteraction
 
         ShelfQuickLookHost { quickLookService in
-            HStack(spacing: 12) {
-                FileShareView(dropInteraction: dropInteraction)
-                    .aspectRatio(1, contentMode: .fit)
+            HStack(spacing: compact ? 8 : 12) {
+                if compact {
+                    FileShareView(dropInteraction: dropInteraction, compact: true)
+                        .frame(width: 72)
+                } else {
+                    FileShareView(dropInteraction: dropInteraction)
+                        .aspectRatio(1, contentMode: .fit)
+                }
                 panel(quickLookService: quickLookService)
                     .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $interaction.dragDetectorTargeting) { providers in
                         handleDrop(providers: providers)
@@ -54,7 +63,7 @@ struct ShelfView: View {
                 ZStack {
                     ShelfBackgroundInteractionView()
                     content(quickLookService: quickLookService)
-                        .padding()
+                        .padding(compact ? 8 : 16)
                 }
             }
             .transaction { transaction in
@@ -67,7 +76,7 @@ struct ShelfView: View {
 
         return Group {
             if shelfState.isEmpty {
-                VStack(spacing: 10) {
+                VStack(spacing: compact ? 6 : 10) {
                     Image(systemName: "tray.and.arrow.down")
                         .symbolVariant(.fill)
                         .symbolRenderingMode(.hierarchical)
@@ -76,7 +85,7 @@ struct ShelfView: View {
 
                     Text("Drop files here")
                         .foregroundStyle(.gray)
-                        .font(.system(.title3, design: .rounded))
+                        .font(.system(compact ? .callout : .title3, design: .rounded))
                         .fontWeight(.medium)
                 }
             } else {

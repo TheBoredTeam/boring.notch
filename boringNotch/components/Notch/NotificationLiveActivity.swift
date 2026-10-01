@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  NotificationLiveActivity.swift
 //  boringNotch
@@ -5,7 +8,7 @@
 
 import SwiftUI
 
-private struct NotificationSourceIcon: View {
+struct NotificationSourceIcon: View {
     let bundleID: String?
     let size: CGFloat
 
@@ -27,38 +30,47 @@ struct NotificationLiveActivity: View {
     @EnvironmentObject private var vm: BoringViewModel
     let notification: SystemNotification
 
-    @State private var ringScale: CGFloat = 1
-    @State private var ringOpacity = 0.0
-
     private var itemSize: CGFloat {
         max(0, vm.effectiveClosedNotchHeight - 12)
     }
 
     var body: some View {
-        HStack {
+        NotchActivityHost(
+            contentID: notification.id,
+            safeAreaWidth: vm.closedNotchSize.width,
+            height: vm.effectiveClosedNotchHeight,
+            maximumWidth: windowSize.width - 2 * cornerRadiusInsets.closed.bottom
+        ) {
             NotificationSourceIcon(bundleID: notification.bundleID, size: itemSize)
-
-            Rectangle()
-                .fill(.black)
-                .frame(width: vm.closedNotchSize.width - cornerRadiusInsets.closed.top)
-
-            ZStack {
-                Circle()
-                    .stroke(Color.effectiveAccent, lineWidth: 1.5)
-                    .scaleEffect(ringScale)
-                    .opacity(ringOpacity)
-                Circle()
-                    .fill(Color.effectiveAccent)
-                    .frame(width: 7, height: 7)
-            }
-            .frame(width: itemSize, height: itemSize)
+        } trailing: {
+            NotificationActivityIndicator(itemSize: itemSize)
         }
-        .frame(height: vm.effectiveClosedNotchHeight)
+    }
+}
+
+struct NotificationActivityIndicator: View {
+    let itemSize: CGFloat
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var ringScale: CGFloat = 1
+    @State private var ringOpacity = 0.0
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.effectiveAccent, lineWidth: 1.5)
+                .scaleEffect(ringScale)
+                .opacity(ringOpacity)
+            Circle()
+                .fill(Color.effectiveAccent)
+                .frame(width: 7, height: 7)
+        }
+        .frame(width: itemSize, height: itemSize)
         .onAppear { pulse() }
-        .onChange(of: notification.id) { _, _ in pulse() }
+        .accessibilityHidden(true)
     }
 
     private func pulse() {
+        guard !reduceMotion else { return }
         ringScale = 1
         ringOpacity = 0.8
         withAnimation(.easeOut(duration: 0.6)) {

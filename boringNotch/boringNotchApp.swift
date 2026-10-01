@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  boringNotchApp.swift
 //  boringNotchApp
@@ -165,6 +168,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             screenUnlockedObserver = nil
         }
         MainActor.assumeIsolated {
+            ExtensionManager.shared.stop()
+            BuiltinLiveActivitySource.shared.stop()
             MusicManager.shared.destroy()
             windowManager.cleanup()
         }
@@ -179,16 +184,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @MainActor
     func onScreenLocked(_ notification: Notification) {
+        ExtensionManager.shared.setScreenLocked(true)
         windowManager.screenLocked()
     }
 
     @MainActor
     func onScreenUnlocked(_ notification: Notification) {
+        ExtensionManager.shared.setScreenLocked(false)
         windowManager.screenUnlocked()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         SettingsWindowController.shared.setCamera(camera)
+        BuiltinLiveActivitySource.shared.start()
+        ExtensionManager.shared.start()
 
         NotificationCenter.default.addObserver(
             self,

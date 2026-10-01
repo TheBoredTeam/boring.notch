@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  InlineOSD.swift
 //  boringNotch
@@ -16,67 +19,43 @@ struct InlineOSD: View {
     @Binding var accent: Color?
     @Binding var hoverAnimation: Bool
     @Binding var gestureProgress: CGFloat
+
     var body: some View {
-        HStack {
-            HStack(spacing: 5) {
-                OSDIconView(eventType: type, icon: icon, value: value, accent: accent)
-
-                Text(osdTypeName(type))
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .lineLimit(1)
-                    .allowsTightening(true)
-                    .contentTransition(.numericText())
-            }
-            .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.notchSize.height - (hoverAnimation ? 0 : 12), alignment: .leading)
-
-            Rectangle()
-                .fill(.black)
-                .frame(width: vm.closedNotchSize.width - 20)
-
-            HStack {
-                if type == .mic {
-                    Text(value.isZero ? "muted" : "unmuted")
-                        .foregroundStyle(.gray)
-                        .lineLimit(1)
-                        .allowsTightening(true)
-                        .multilineTextAlignment(.trailing)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                        .contentTransition(.interpolate)
-                } else {
-                        HStack {
-                        DraggableProgressBar(value: $value, onChange: { v in
-                            if type == .volume {
-                                VolumeManager.shared.setAbsolute(Float32(v))
-                            } else if type == .brightness {
-                                BrightnessManager.shared.setAbsolute(value: Float32(v))
-                            }
-                        }, accentColor: accent, compact: true)
-                        .frame(maxWidth: .infinity)
-                        if type == .volume && value.isZero {
-                            Text("muted")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.gray)
-                                .lineLimit(1)
-                                .allowsTightening(true)
-                                .multilineTextAlignment(.trailing)
-                        } else if Defaults[.showClosedNotchOSDPercentage] {
-                            Text(value, format: .percent.precision(.fractionLength(0)))
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.gray)
-                                .lineLimit(1)
-                                .allowsTightening(true)
-                                .multilineTextAlignment(.trailing)
-                        }
-                    }
-                }
-            }
-            .padding(.trailing, 4)
-            .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.closedNotchSize.height - (hoverAnimation ? 0 : 12), alignment: .center)
+        let width = max(0, 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2)
+        let height = vm.closedNotchSize.height + (hoverAnimation ? 8 : 0)
+        NotchActivityHost(
+            contentID: "inline-osd",
+            safeAreaWidth: vm.closedNotchSize.width,
+            height: height,
+            maximumWidth: windowSize.width - 2 * cornerRadiusInsets.closed.bottom
+        ) {
+            InlineOSDLeading(type: type, value: value, icon: icon, accent: accent, width: width, height: height)
+        } trailing: {
+            InlineOSDTrailing(type: type, value: $value, accent: accent, width: width, height: height)
         }
-        .frame(height: vm.closedNotchSize.height + (hoverAnimation ? 8 : 0), alignment: .center)
+    }
+}
+
+/// OSD content regions intentionally know nothing about the camera safe area.
+struct InlineOSDLeading: View {
+    let type: SneakContentType
+    let value: CGFloat
+    let icon: String
+    let accent: Color?
+    let width: CGFloat
+    let height: CGFloat
+
+    var body: some View {
+        HStack(spacing: 5) {
+            OSDIconView(eventType: type, icon: icon, value: value, accent: accent)
+            Text(osdTypeName(type))
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .lineLimit(1)
+                .allowsTightening(true)
+                .contentTransition(.numericText())
+        }
+        .frame(width: width, height: height, alignment: .leading)
     }
 
     func osdTypeName(_ type: SneakContentType) -> String {
@@ -92,6 +71,58 @@ struct InlineOSD: View {
             default:
                 return ""
         }
+    }
+}
+
+struct InlineOSDTrailing: View {
+    let type: SneakContentType
+    @Binding var value: CGFloat
+    let accent: Color?
+    let width: CGFloat
+    let height: CGFloat
+    @Default(.showClosedNotchOSDPercentage) private var showPercentage
+
+    var body: some View {
+        HStack {
+            if type == .mic {
+                Text(value.isZero ? "muted" : "unmuted")
+                    .foregroundStyle(.gray)
+                    .lineLimit(1)
+                    .allowsTightening(true)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .contentTransition(.interpolate)
+            } else {
+                DraggableProgressBar(value: $value, onChange: { newValue in
+                    if type == .volume {
+                        VolumeManager.shared.setAbsolute(Float32(newValue))
+                    } else if type == .brightness {
+                        BrightnessManager.shared.setAbsolute(value: Float32(newValue))
+                    }
+                }, accentColor: accent, compact: true)
+                .frame(maxWidth: .infinity)
+                if type == .volume && value.isZero {
+                    Text("muted").modifier(OSDValueStyle())
+                } else if showPercentage {
+                    Text(value, format: .percent.precision(.fractionLength(0)))
+                        .modifier(OSDValueStyle())
+                }
+            }
+        }
+        .padding(.trailing, 4)
+        .frame(width: width, height: height)
+    }
+}
+
+private struct OSDValueStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.caption)
+            .fontWeight(.medium)
+            .foregroundStyle(.gray)
+            .lineLimit(1)
+            .allowsTightening(true)
+            .multilineTextAlignment(.trailing)
     }
 }
 

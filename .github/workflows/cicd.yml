@@ -46,6 +46,19 @@ jobs:
           upload-logs: always
           configuration: release
 
+      - name: Test the activity host and extension contracts
+        if: matrix.os == 'macos-26'
+        run: swift test --jobs 4
+
+      - name: Smoke-test native extension installation and tabs
+        if: matrix.os == 'macos-26'
+        run: |
+          bash examples/live-activity-extension/build.sh
+          bash examples/live-activity-extension/smoke.sh
+          bash examples/live-activity-extension/smoke-install.sh
+          python3 examples/tab-stress/build.py --jobs 4
+          bash examples/tab-stress/smoke.sh
+
       # Unit tests run hosted by the app (TEST_HOST), so they spawn a real
       # menubar-app instance on the runner — acceptable on CI where nothing
       # else reacts to it; they are skipped on matrix legs without hosted-test

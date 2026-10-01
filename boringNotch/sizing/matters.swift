@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  matters.swift
 //  boringNotch
@@ -11,7 +14,10 @@ import SwiftUI
 
 let shadowPadding: CGFloat = 20
 let openNotchSize: CGSize = .init(width: 640, height: 190)
-let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
+// A detached compact-mode tab strip belongs to this same window, including
+// the hoverable gap. Reserve its space without enlarging the notch itself.
+let windowSize: CGSize = .init(width: openNotchSize.width,
+                               height: openNotchSize.height + NotchTabStripMetrics.floatingReservation + shadowPadding)
 let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
 
 /// Compact mode uses a much rounder opened shape than the standard layout

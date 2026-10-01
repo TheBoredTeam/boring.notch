@@ -22,7 +22,19 @@
 	<string>B1Y47t8C/v8ImurYA+9arEsuCrpxwJSviekiflMElbI=</string>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
-		<dict/>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>theboringteam.bnplugin</string>
+			<key>UTTypeDescription</key>
+			<string>Boring Notch Extension</string>
+			<key>UTTypeConformsTo</key>
+			<array><string>com.apple.bundle</string></array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array><string>bnplugin</string></array>
+			</dict>
+		</dict>
 	</array>
 </dict>
 </plist>

@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  BoringViewCoordinator.swift
 //  boringNotch
@@ -45,7 +48,14 @@ struct ExpandedItem {
 final class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
 
-    @Published var currentView: NotchViews = .home
+    @Published private var selectedView: NotchViews = .home
+
+    /// Every route, including retained menu actions and drag-to-open, passes
+    /// through the current presentation's eligibility rules.
+    var currentView: NotchViews {
+        get { supportedSelection(selectedView) }
+        set { selectedView = supportedSelection(newValue) }
+    }
     @Published var helloAnimationRunning: Bool = false
     private var osdEnableTask: Task<Void, Never>?
 
@@ -94,6 +104,32 @@ final class BoringViewCoordinator: ObservableObject {
     private var osdSourceCancellables: [AnyCancellable] = []
     private var notificationLiveActivityCancellable: AnyCancellable?
     private var uiEventCancellable: AnyCancellable?
+    private var extensionTabsCancellable: AnyCancellable?
+    private var compactModeCancellable: AnyCancellable?
+
+    private func supportedSelection(
+        _ selection: NotchViews,
+        presentation: ExtensionTabPresentation? = nil,
+        availableTabs: [ExtensionTab]? = nil
+    ) -> NotchViews {
+        switch selection {
+        case .home:
+            return .home
+        case .shelf:
+            return Defaults[.boringShelf] ? .shelf : .home
+        case .extensionTab(let id):
+            let mode = presentation ?? (Defaults[.compactMode] ? .compact : .regular)
+            if let availableTabs {
+                return availableTabs.contains(where: { $0.id == id && $0.supports(mode) }) ? selection : .home
+            }
+            return ExtensionTabRegistry.shared.tab(for: id, presentation: mode) == nil ? .home : selection
+        }
+    }
+
+    private func reconcileTabSelection(presentation: ExtensionTabPresentation? = nil, availableTabs: [ExtensionTab]? = nil) {
+        let next = supportedSelection(selectedView, presentation: presentation, availableTabs: availableTabs)
+        if next != selectedView { selectedView = next }
+    }
 
     private init() {
         // Perform migration from name-based to UUID-based storage
@@ -116,6 +152,15 @@ final class BoringViewCoordinator: ObservableObject {
         }
 
         selectedScreenUUID = preferredScreenUUID ?? NSScreen.main?.displayUUID ?? ""
+        extensionTabsCancellable = ExtensionTabRegistry.shared.$tabs.sink { [weak self] tabs in
+            // @Published sends before assigning its backing array.
+            self?.reconcileTabSelection(availableTabs: tabs)
+        }
+        compactModeCancellable = Defaults.publisher(.compactMode).sink { [weak self] change in
+            Task { @MainActor in
+                self?.reconcileTabSelection(presentation: change.newValue ? .compact : .regular)
+            }
+        }
         // Observe changes to accessibility authorization and react accordingly
         accessibilityObserver = NotificationCenter.default.addObserver(
             forName: Notification.Name.accessibilityAuthorizationChanged,
@@ -187,8 +232,8 @@ final class BoringViewCoordinator: ObservableObject {
             .sink { [weak self] change in
                 Task { @MainActor in
                     guard let self = self else { return }
-                    if !change.newValue && self.currentView == .shelf {
-                        self.currentView = .home
+                    if !change.newValue && self.selectedView == .shelf {
+                        self.selectedView = .home
                     }
                 }
             }

@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  NotchSettingsView.swift
 //  boringNotch
@@ -174,10 +177,14 @@ struct NotchSettingsView: View {
             Defaults.Toggle(key: .compactMode) {
                 Text("Compact mode")
             }
+            Defaults.Toggle(key: .floatingTabsInStandardMode) {
+                Text("Floating tabs in standard mode")
+            }
+            .help("Place standard-mode tabs below the notch. Compact mode always uses floating tabs.")
         } header: {
             Text("Behavior")
         } footer: {
-            Text("Shows a smaller opened notch with just the music player — no tabs, calendar or mirror.")
+            Text("Compact mode keeps every tab in a smaller notch and shows extensions with compact layouts. Floating tabs sit below the opened notch in either mode.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
