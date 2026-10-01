@@ -3576,6 +3576,18 @@
         }
       }
     },
+    "Show events" : {
+      "comment" : "Settings toggle for showing the event list under the calendar in the notch.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show events"
+          }
+        }
+      }
+    },
     "boring.notch" : {
       "localizations" : {
         "cs" : {
