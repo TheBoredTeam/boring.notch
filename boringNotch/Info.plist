@@ -30,7 +30,10 @@
 			<key>UTTypeConformsTo</key>
 			<array><string>com.apple.bundle</string></array>
 			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>bnplugin</string></array></dict>
+			<dict>
+				<key>public.filename-extension</key>
+				<array><string>bnplugin</string></array>
+			</dict>
 		</dict>
 	</array>
 </dict>

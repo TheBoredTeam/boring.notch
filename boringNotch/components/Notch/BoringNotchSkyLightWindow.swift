@@ -33,8 +33,9 @@ extension SkyLightOperator {
     }
 }
 
-class BoringNotchSkyLightWindow: NSPanel {
+class BoringNotchSkyLightWindow: NSPanel, ExtensionTabInputHosting {
     private var isSkyLightEnabled: Bool = false
+    let extensionTabInput = ExtensionTabInputScope()
 
     override init(
         contentRect: NSRect,
@@ -167,6 +168,6 @@ class BoringNotchSkyLightWindow: NSPanel {
         }
     }
 
-    override var canBecomeKey: Bool { wantsKeyForTextInput }
+    override var canBecomeKey: Bool { wantsKeyForTextInput || extensionTabInput.allowsKey(in: self) }
     override var canBecomeMain: Bool { false }
 }

@@ -166,6 +166,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         MainActor.assumeIsolated {
             ExtensionManager.shared.stop()
+            BuiltinLiveActivitySource.shared.stop()
             MusicManager.shared.destroy()
             windowManager.cleanup()
         }
@@ -180,8 +181,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @MainActor
     func onScreenLocked(_ notification: Notification) {
-        windowManager.screenLocked()
         ExtensionManager.shared.setScreenLocked(true)
+        windowManager.screenLocked()
     }
 
     @MainActor
@@ -192,6 +193,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         SettingsWindowController.shared.setCamera(camera)
+        BuiltinLiveActivitySource.shared.start()
         ExtensionManager.shared.start()
 
         NotificationCenter.default.addObserver(

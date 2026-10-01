@@ -18,11 +18,6 @@ enum NotchState {
     case open
 }
 
-enum NotchViews {
-    case home
-    case shelf
-}
-
 enum DownloadIndicatorStyle: String, Defaults.Serializable {
     case progress = "Progress"
     case percentage = "Percentage"

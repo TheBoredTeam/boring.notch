@@ -32,18 +32,28 @@ final class NotchWindowManager {
     private(set) var isScreenLocked: Bool = false
     private var windowScreenDidChangeObserver: Any?
     private var previousScreens: [NSScreen]?
-    private var lockedWindows: [BoringNotchSkyLightWindow] = []
-    private let lockedNotchPresentation = LockedNotchPresentation()
-    private var extensionNotchSubscription: AnyCancellable?
+    private struct LockedWindowConfiguration: Equatable {
+        let frame: CGRect
+        let safeAreaWidth: CGFloat
+        let showsEmptyShape: Bool
+    }
+    private struct LockedWindow {
+        let window: BoringNotchSkyLightWindow
+        let configuration: LockedWindowConfiguration
+    }
+    private var lockedWindows: [String: LockedWindow] = [:]
+    private var activitySubscriptions = Set<AnyCancellable>()
 
     init(camera: CameraModel) {
         primaryViewModel = BoringViewModel(camera: camera)
-        extensionNotchSubscription = ExtensionManager.shared.$requestsLockedNotch.dropFirst().removeDuplicates()
+        LiveActivityCenter.shared.objectWillChange
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                guard let self, self.isScreenLocked else { return }
-                self.showLockedNotch()
-            }
+            .sink { [weak self] _ in self?.reconcileLockedWindows() }
+            .store(in: &activitySubscriptions)
+        Defaults.publisher(.showOnLockScreen)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.reconcileLockedWindows() }
+            .store(in: &activitySubscriptions)
     }
 
     // MARK: - Public lookups (preserve AppDelegate's old API shape)
@@ -62,68 +72,76 @@ final class NotchWindowManager {
 
     func screenLocked() {
         isScreenLocked = true
+        LiveActivityCenter.shared.updateSession(locked: true)
         primaryViewModel.close()
         contexts.values.forEach { $0.viewModel.close() }
         cleanupDragDetectors()
         cleanupWindows()
-        showLockedNotch()
+        cleanupWindows(shouldInvert: true)
+        reconcileLockedWindows()
     }
 
     func screenUnlocked() {
-        guard isScreenLocked else { return }
         isScreenLocked = false
-        guard !lockedWindows.isEmpty else {
-            restoreUnlockedNotch()
-            return
-        }
-        lockedNotchPresentation.unlock(reduceMotion: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion) { [weak self] in
-            guard let self, !self.isScreenLocked else { return }
-            self.restoreUnlockedNotch()
-        }
-    }
-
-    private func restoreUnlockedNotch() {
-        hideLockedNotch()
+        LiveActivityCenter.shared.updateSession(locked: false)
+        clearLockedWindows()
         adjustWindowPosition(changeAlpha: true)
         setupDragDetectors()
     }
 
-    private var showsLockedNotch: Bool {
-        Defaults[.showOnLockScreen] || ExtensionManager.shared.requestsLockedNotch
-    }
-
-    private func showLockedNotch() {
-        hideLockedNotch()
-        guard isScreenLocked, showsLockedNotch else { return }
+    private func reconcileLockedWindows() {
+        let center = LiveActivityCenter.shared
+        guard isScreenLocked, center.session.canPresentOnLockScreen else {
+            clearLockedWindows()
+            return
+        }
         let selected = NSScreen.screen(withUUID: BoringViewCoordinator.shared.selectedScreenUUID) ?? NSScreen.main
         let screens = Defaults[.showOnAllDisplays] ? NSScreen.screens : [selected].compactMap { $0 }
+        var desiredDisplays = Set<String>()
         for screen in screens {
-            let closed = getClosedNotchSize(screenUUID: screen.displayUUID)
-            let size = CGSize(width: closed.width + 64, height: max(32, max(closed.height, screen.safeAreaInsets.top)))
-            let frame = NSRect(x: screen.frame.midX - size.width / 2, y: screen.frame.maxY - size.height,
-                               width: size.width, height: size.height)
-            let window = BoringNotchSkyLightWindow(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel],
-                                                  backing: .buffered, defer: false)
+            guard let displayID = screen.displayUUID else { continue }
+            let context = LiveActivityContext(displayID: displayID, surface: .lockScreen)
+            let showsEmptyShape = Defaults[.showOnLockScreen]
+            guard showsEmptyShape || center.service.snapshot(in: context).selectedID != nil else { continue }
+            desiredDisplays.insert(displayID)
+            let closedSize = getClosedNotchSize(screenUUID: displayID)
+            let height = max(32, max(closedSize.height, screen.safeAreaInsets.top))
+            let width = min(windowSize.width, screen.frame.width)
+            let frame = CGRect(x: screen.frame.midX - width / 2, y: screen.frame.maxY - height,
+                               width: width, height: height)
+            let configuration = LockedWindowConfiguration(frame: frame, safeAreaWidth: closedSize.width,
+                                                          showsEmptyShape: showsEmptyShape)
+            if lockedWindows[displayID]?.configuration == configuration { continue }
+            removeLockedWindow(on: displayID)
+            let window = BoringNotchSkyLightWindow(contentRect: frame,
+                styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
             window.level = NSWindow.Level(rawValue: NSWindow.Level.screenSaver.rawValue + 1)
             window.ignoresMouseEvents = true
             window.wantsKeyForTextInput = false
-            window.contentView = NSHostingView(rootView: LockedNotchView(size: size, presentation: lockedNotchPresentation))
+            window.contentView = NSHostingView(rootView: LockedLiveActivityView(
+                center: center, displayID: displayID, safeAreaWidth: closedSize.width,
+                height: height, maximumWidth: width, showsEmptyShape: showsEmptyShape
+            ))
             window.setFrame(frame, display: true)
             window.enableSkyLight()
             window.orderFrontRegardless()
-            lockedWindows.append(window)
+            lockedWindows[displayID] = LockedWindow(window: window, configuration: configuration)
+        }
+        for displayID in Array(lockedWindows.keys) where !desiredDisplays.contains(displayID) {
+            removeLockedWindow(on: displayID)
         }
     }
 
-    private func hideLockedNotch() {
-        lockedNotchPresentation.cancel()
-        for window in lockedWindows {
-            window.disableSkyLight()
-            window.orderOut(nil)
-            window.contentView = nil
-            window.close()
-        }
-        lockedWindows.removeAll()
+    private func removeLockedWindow(on displayID: String) {
+        guard let window = lockedWindows.removeValue(forKey: displayID)?.window else { return }
+        window.disableSkyLight()
+        window.orderOut(nil)
+        window.contentView = nil
+        window.close()
+    }
+
+    private func clearLockedWindows() {
+        for displayID in Array(lockedWindows.keys) { removeLockedWindow(on: displayID) }
     }
 
     // MARK: - Window lifecycle
@@ -164,15 +182,11 @@ final class NotchWindowManager {
 
         let window = BoringNotchSkyLightWindow(contentRect: rect, styleMask: styleMask, backing: .buffered, defer: false)
 
-        // Enable SkyLight only when screen is locked
-        if isScreenLocked {
-            window.enableSkyLight()
-        } else {
-            window.disableSkyLight()
-        }
+        // Ordinary ContentView windows never join the secure lock-screen space.
+        window.disableSkyLight()
 
         window.contentView = NSHostingView(
-            rootView: ContentView()
+            rootView: ContentView(extensionTabInput: window.extensionTabInput)
                 .environmentObject(viewModel)
         )
 
@@ -211,13 +225,7 @@ final class NotchWindowManager {
     }
 
     func adjustWindowPosition(changeAlpha: Bool = false) {
-        if isScreenLocked {
-            showLockedNotch()
-            return
-        }
-        // A display/preference change can interrupt the brief unlock handoff.
-        // Dispose of the old overlay before positioning the normal windows.
-        if lockedNotchPresentation.isTransitioning { hideLockedNotch() }
+        guard !isScreenLocked else { reconcileLockedWindows(); return }
         let coordinator = BoringViewCoordinator.shared
         if Defaults[.showOnAllDisplays] {
             let currentScreenUUIDs = Set(NSScreen.screens.compactMap { $0.displayUUID })
@@ -338,7 +346,7 @@ final class NotchWindowManager {
     func setupDragDetectors() {
         cleanupDragDetectors()
 
-        guard !isScreenLocked, !lockedNotchPresentation.isTransitioning, Defaults[.expandedDragDetection] else { return }
+        guard !isScreenLocked, Defaults[.expandedDragDetection] else { return }
 
         if Defaults[.showOnAllDisplays] {
             for screen in NSScreen.screens {
@@ -389,7 +397,7 @@ final class NotchWindowManager {
     }
 
     private func handleDragEntersNotchRegion(onScreen screen: NSScreen) {
-        guard Defaults[.boringShelf] else { return }
+        guard !isScreenLocked, Defaults[.boringShelf] else { return }
         guard let uuid = screen.displayUUID else { return }
 
         let coordinator = BoringViewCoordinator.shared
@@ -409,6 +417,7 @@ final class NotchWindowManager {
     /// Creates the windows for the current configuration (previously inlined
     /// in applicationDidFinishLaunching).
     func prepareInitialWindows() {
+        guard !isScreenLocked else { reconcileLockedWindows(); return }
         if !Defaults[.showOnAllDisplays] {
             let viewModel = primaryViewModel
             if let screen = NSScreen.main ?? NSScreen.screens.first {
@@ -424,7 +433,7 @@ final class NotchWindowManager {
     }
 
     func togglePopover(_ sender: Any?) {
-        guard !isScreenLocked, !lockedNotchPresentation.isTransitioning else { return }
+        guard !isScreenLocked else { return }
         if primaryWindow?.isVisible == true {
             primaryWindow?.orderOut(nil)
         } else {
@@ -433,72 +442,9 @@ final class NotchWindowManager {
     }
 
     func cleanup() {
-        hideLockedNotch()
+        activitySubscriptions.removeAll()
+        clearLockedWindows()
         cleanupDragDetectors()
         cleanupWindows()
-    }
-}
-
-/// One short task per confirmed unlock; nothing polls or animates while locked.
-@MainActor
-final class LockedNotchPresentation: ObservableObject {
-    enum Phase { case locked, unlocked, dismissed }
-    @Published private(set) var phase: Phase = .locked
-    private var task: Task<Void, Never>?
-    private var generation = 0
-    var isTransitioning: Bool { task != nil }
-
-    func unlock(reduceMotion: Bool, completion: @escaping @MainActor () -> Void) {
-        guard phase == .locked, task == nil else { return }
-        generation &+= 1
-        let generation = generation
-        phase = .unlocked
-        task = Task { [weak self] in
-            do {
-                try await Task.sleep(for: .milliseconds(reduceMotion ? 180 : 440))
-                guard !Task.isCancelled, self?.generation == generation else { return }
-                self?.phase = .dismissed
-                if !reduceMotion { try await Task.sleep(for: .milliseconds(160)) }
-                guard !Task.isCancelled, self?.generation == generation else { return }
-                self?.task = nil
-                completion()
-            } catch { /* Re-lock, screen change, or teardown cancelled the handoff. */ }
-        }
-    }
-
-    func cancel() {
-        generation &+= 1
-        task?.cancel()
-        task = nil
-        if phase != .locked { phase = .locked }
-    }
-
-    deinit { task?.cancel() }
-}
-
-// Deliberately independent of ContentView: no media, camera, hover, drag,
-// clipboard, or notification observers run in the locked notch.
-private struct LockedNotchView: View {
-    let size: CGSize
-    @ObservedObject var presentation: LockedNotchPresentation
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        NotchShape().fill(.black)
-            .overlay(alignment: .trailing) {
-                Image(systemName: presentation.phase == .locked ? "lock.fill" : "lock.open.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.9))
-                    .contentTransition(reduceMotion ? .identity : .symbolEffect(.replace.byLayer))
-                    .scaleEffect(!reduceMotion && presentation.phase == .unlocked ? 1.12 : 1)
-                    .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.8), value: presentation.phase)
-                    .frame(width: 32, height: size.height)
-                    .padding(.trailing, 8)
-            }
-            .frame(width: size.width, height: size.height)
-            .opacity(presentation.phase == .dismissed ? 0 : 1)
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: presentation.phase)
-            .accessibilityLabel(presentation.phase == .locked ? "Boring Notch, Mac locked" : "Boring Notch, Mac unlocked")
-            .allowsHitTesting(false)
     }
 }

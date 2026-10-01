@@ -25,7 +25,7 @@ final class ExtensionPackageTests: XCTestCase {
 
     func testManifestRequiresSupportedAPIAndSafeIdentifier() throws {
         try ExtensionManifest(id: "com.example.free-extension", name: "Lyrics", version: "1.0", apiVersion: 1).validate()
-        for id in ["../escape", "a/../../escape", "", "/tmp/plugin", "com.plugin/evil"] {
+        for id in ["../escape", "a/../../escape", "", "/tmp/plugin", "com.plugin/evil", "com.plugin\n"] {
             XCTAssertThrowsError(try ExtensionManifest(id: id, name: "Lyrics", version: "1.0", apiVersion: 1).validate())
         }
         XCTAssertThrowsError(try ExtensionManifest(id: "com.example.plugin", name: "Lyrics", version: "1", apiVersion: 2).validate())
@@ -67,6 +67,10 @@ final class ExtensionPackageTests: XCTestCase {
         XCTAssertEqual(SecRequirementCreateWithString(ExtensionPackage.publisherRequirement as CFString, [], &requirement), errSecSuccess)
         let legacy = Data(#"{"id":"com.example.free","name":"Free","version":"1","apiVersion":1}"#.utf8)
         let always = try JSONDecoder().decode(ExtensionManifest.self, from: legacy)
+        XCTAssertNil(always.capabilities)
+        var withActivities = always
+        withActivities.capabilities = ["liveActivities"]
+        try withActivities.validate()
         XCTAssertTrue(always.receivesUpdates(locked: false, awake: true, sessionActive: true, requested: true))
         var locked = always; locked.activation = .lockScreen
         XCTAssertFalse(locked.receivesUpdates(locked: false, awake: true, sessionActive: true, requested: true))
