@@ -32,6 +32,8 @@ build/
 *.dSYM
 
 # Temporary files
+__pycache__/
+*.pyc
 *.swp
 *.swo
 *.tmp
@@ -53,3 +55,6 @@ build/
 *.xcarchive
 *.dSYM
 
+
+# Public extension example build output
+examples/**/dist/
