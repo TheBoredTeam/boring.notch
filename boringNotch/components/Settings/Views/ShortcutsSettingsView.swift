@@ -17,6 +17,19 @@ struct ShortcutsSettingsView: View {
                 Text("Notch")
             }
             Section {
+                KeyboardShortcuts.Recorder("Home Tab:", name: .selectTab1)
+                KeyboardShortcuts.Recorder("Shelf Tab:", name: .selectTab2)
+                KeyboardShortcuts.Recorder("Next Tab:", name: .nextTab)
+                KeyboardShortcuts.Recorder("Previous Tab:", name: .previousTab)
+            } header: {
+                Text("Tabs")
+            } footer: {
+                Text("Tab shortcuts only work while the notch is open.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            Section {
                 KeyboardShortcuts.Recorder("Toggle Sneak Peek:", name: .toggleSneakPeek)
             } header: {
                 Text("Media")
