@@ -20,6 +20,7 @@ struct GeneralSettings: View {
     @Default(.appLanguage) var appLanguage
     @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
+    @Default(.followActiveDisplay) var followActiveDisplay
 
     var body: some View {
         Form {
@@ -69,13 +70,18 @@ struct GeneralSettings: View {
                 .disabled(showOnAllDisplays)
 
                 Defaults.Toggle(key: .automaticallySwitchDisplay) {
-                    Text("Automatically switch displays")
+                    Text("Switch if preferred display is unavailable")
                 }
                     .onChange(of: automaticallySwitchDisplay) {
                         NotificationCenter.default.post(
                             name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
                     }
                     .disabled(showOnAllDisplays)
+
+                Defaults.Toggle(key: .followActiveDisplay) {
+                    Text("Always follow active display")
+                }
+                .disabled(showOnAllDisplays)
             } header: {
                 Text("Displays")
             }

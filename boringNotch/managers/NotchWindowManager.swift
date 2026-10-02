@@ -224,10 +224,17 @@ final class NotchWindowManager {
         } else {
             let selectedScreen: NSScreen
 
-            if let preferredScreen = NSScreen.screen(withUUID: coordinator.preferredScreenUUID ?? "") {
+            if Defaults[.followActiveDisplay], let mainScreen = NSScreen.main,
+               let mainUUID = mainScreen.displayUUID {
+                coordinator.selectedScreenUUID = mainUUID
+                selectedScreen = mainScreen
+            } else if let preferredScreen = NSScreen.screen(
+                withUUID: coordinator.preferredScreenUUID ?? ""
+            ) {
                 coordinator.selectedScreenUUID = coordinator.preferredScreenUUID ?? ""
                 selectedScreen = preferredScreen
-            } else if Defaults[.automaticallySwitchDisplay], let mainScreen = NSScreen.main,
+            } else if Defaults[.automaticallySwitchDisplay],
+                      let mainScreen = NSScreen.main,
                       let mainUUID = mainScreen.displayUUID {
                 coordinator.selectedScreenUUID = mainUUID
                 selectedScreen = mainScreen

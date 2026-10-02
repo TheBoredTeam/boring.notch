@@ -138,6 +138,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var screenLockedObserver: Any?
     private var screenUnlockedObserver: Any?
     private var observers: [Any] = []
+    private var activeDisplayObserver: NSObjectProtocol?
+    private var followActiveDisplayTask: Task<Void, Never>?
 
     /// Kept for existing internal readers; the state itself moved to the manager.
     var windows: [String: NSWindow] { windowManager.windows }
@@ -175,6 +177,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         observers.forEach { NotificationCenter.default.removeObserver($0) }
         observers.removeAll()
+
+        followActiveDisplayTask?.cancel()
+        MainActor.assumeIsolated { setActiveDisplayObserver(enabled: false, reposition: false) }
     }
 
     @MainActor
@@ -189,6 +194,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         SettingsWindowController.shared.setCamera(camera)
+
+        followActiveDisplayTask = Task { @MainActor [weak self] in
+            for await enabled in Defaults.updates(.followActiveDisplay, initial: true) {
+                guard let self else { return }
+                self.setActiveDisplayObserver(enabled: enabled)
+            }
+        }
 
         NotificationCenter.default.addObserver(
             self,
@@ -218,9 +230,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         observers.append(NotificationCenter.default.addObserver(
             forName: Notification.Name.automaticallySwitchDisplayChanged, object: nil, queue: nil
         ) { [weak self] _ in
-            guard let self = self, let window = self.window else { return }
             Task { @MainActor in
-                window.alphaValue = self.coordinator.selectedScreenUUID == self.coordinator.preferredScreenUUID ? 1 : 0
+                guard let self else { return }
+                self.windowManager.adjustWindowPosition(changeAlpha: true)
+                self.windowManager.setupDragDetectors()
             }
         })
 
@@ -342,6 +355,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // make sure OSD subsystems are in the right state now that initial
         // notch windows have been created/cleaned up
         coordinator.applyOSDSources()
+    }
+
+    private static let activeDisplayDidChangeNotification =
+        Notification.Name("NSWorkspaceActiveDisplayDidChangeNotification")
+
+    @MainActor
+    private func setActiveDisplayObserver(enabled: Bool, reposition: Bool = true) {
+        let workspaceCenter = NSWorkspace.shared.notificationCenter
+
+        if enabled {
+            guard activeDisplayObserver == nil else { return }
+
+            activeDisplayObserver = workspaceCenter.addObserver(
+                forName: Self.activeDisplayDidChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    self.windowManager.adjustWindowPosition(changeAlpha: true)
+                    self.windowManager.setupDragDetectors()
+                }
+            }
+        } else if let observer = activeDisplayObserver {
+            workspaceCenter.removeObserver(observer)
+            activeDisplayObserver = nil
+        }
+
+        guard reposition else { return }
+
+        windowManager.adjustWindowPosition(changeAlpha: true)
+        windowManager.setupDragDetectors()
     }
 
     func playWelcomeSound() {
