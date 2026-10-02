@@ -99,6 +99,28 @@ struct AppLanguage: RawRepresentable, Hashable, Identifiable, Defaults.Serializa
     }
 }
 
+enum DisplayMode: String, Codable, CaseIterable, Identifiable, Defaults.Serializable {
+    case preferredDisplay
+    case fallbackIfPreferredUnavailable
+    case activeDisplay
+    case allDisplays
+
+    var id: String { rawValue }
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .preferredDisplay:
+            "Use preferred display"
+        case .fallbackIfPreferredUnavailable:
+            "Automatically switch display if preferred is unavailable"
+        case .activeDisplay:
+            "Always follow active display"
+        case .allDisplays:
+            "Show on all displays"
+        }
+    }
+}
+
 // macOS 27 renamed the "Accessibility" privacy pane to "Device Control and
 // Data Access". Read the name from Apple's private UniversalAccess auth-warn
 // prompt bundle so it matches what the user sees in System Settings, falling
@@ -385,6 +407,9 @@ extension Defaults.Keys {
     // MARK: General
     static let appLanguage = Key<AppLanguage>("appLanguage", default: .system)
     static let menubarIcon = Key<Bool>("menubarIcon", default: true)
+    static let displayMode = Key<DisplayMode>("displayMode", default: .fallbackIfPreferredUnavailable)
+
+    // Legacy display settings retained only for one-time migration.
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let followActiveDisplay = Key<Bool>("followActiveDisplay", default: false)

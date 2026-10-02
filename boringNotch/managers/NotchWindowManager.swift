@@ -70,7 +70,7 @@ final class NotchWindowManager {
     }
 
     private func enableSkyLightOnAllWindows() {
-        if Defaults[.showOnAllDisplays] {
+        if Defaults[.displayMode] == .allDisplays {
             contexts.values.forEach { context in
                 (context.window as? BoringNotchSkyLightWindow)?.enableSkyLight()
             }
@@ -84,7 +84,7 @@ final class NotchWindowManager {
         Task {
             try? await Task.sleep(for: .milliseconds(150))
             await MainActor.run {
-                if Defaults[.showOnAllDisplays] {
+                if Defaults[.displayMode] == .allDisplays {
                     contexts.values.forEach { context in
                         (context.window as? BoringNotchSkyLightWindow)?.disableSkyLight()
                     }
@@ -98,7 +98,7 @@ final class NotchWindowManager {
     // MARK: - Window lifecycle
 
     func cleanupWindows(shouldInvert: Bool = false) {
-        let shouldCleanupMulti = shouldInvert ? !Defaults[.showOnAllDisplays] : Defaults[.showOnAllDisplays]
+        let shouldCleanupMulti = shouldInvert ? Defaults[.displayMode] != .allDisplays : Defaults[.displayMode] == .allDisplays
 
         if shouldCleanupMulti {
             for (uuid, context) in contexts {
@@ -181,7 +181,7 @@ final class NotchWindowManager {
 
     func adjustWindowPosition(changeAlpha: Bool = false) {
         let coordinator = BoringViewCoordinator.shared
-        if Defaults[.showOnAllDisplays] {
+        if Defaults[.displayMode] == .allDisplays {
             let currentScreenUUIDs = Set(NSScreen.screens.compactMap { $0.displayUUID })
 
             // Remove windows for screens that no longer exist
@@ -222,28 +222,29 @@ final class NotchWindowManager {
                 }
             }
         } else {
-            let selectedScreen: NSScreen
+            let displayMode = Defaults[.displayMode]
+            let selectedScreen: NSScreen?
 
-            if Defaults[.followActiveDisplay], let mainScreen = NSScreen.main,
-               let mainUUID = mainScreen.displayUUID {
-                coordinator.selectedScreenUUID = mainUUID
-                selectedScreen = mainScreen
-            } else if let preferredScreen = NSScreen.screen(
-                withUUID: coordinator.preferredScreenUUID ?? ""
-            ) {
-                coordinator.selectedScreenUUID = coordinator.preferredScreenUUID ?? ""
-                selectedScreen = preferredScreen
-            } else if Defaults[.automaticallySwitchDisplay],
-                      let mainScreen = NSScreen.main,
-                      let mainUUID = mainScreen.displayUUID {
-                coordinator.selectedScreenUUID = mainUUID
-                selectedScreen = mainScreen
-            } else {
+            switch displayMode {
+            case .preferredDisplay:
+                selectedScreen = NSScreen.screen(withUUID: coordinator.preferredScreenUUID ?? "")
+            case .fallbackIfPreferredUnavailable:
+                selectedScreen = NSScreen.screen(withUUID: coordinator.preferredScreenUUID ?? "")
+                    ?? NSScreen.main
+            case .activeDisplay:
+                selectedScreen = NSScreen.main
+            case .allDisplays:
+                return
+            }
+
+            guard let selectedScreen, let selectedUUID = selectedScreen.displayUUID else {
                 if let window = primaryWindow {
                     window.alphaValue = 0
                 }
                 return
             }
+
+            coordinator.selectedScreenUUID = selectedUUID
 
             primaryViewModel.screenUUID = selectedScreen.displayUUID
             primaryViewModel.notchSize = getClosedNotchSize(screenUUID: selectedScreen.displayUUID)
@@ -309,7 +310,7 @@ final class NotchWindowManager {
 
         guard Defaults[.expandedDragDetection] else { return }
 
-        if Defaults[.showOnAllDisplays] {
+        if Defaults[.displayMode] == .allDisplays {
             for screen in NSScreen.screens {
                 setupDragDetectorForScreen(screen)
             }
@@ -327,7 +328,7 @@ final class NotchWindowManager {
     private func setupDragDetectorForScreen(_ screen: NSScreen) {
         guard let uuid = screen.displayUUID else { return }
         // Per-display detectors belong to windows created by adjustWindowPosition.
-        guard !Defaults[.showOnAllDisplays] || contexts[uuid]?.window != nil else { return }
+        guard Defaults[.displayMode] != .allDisplays || contexts[uuid]?.window != nil else { return }
 
         let screenFrame = screen.frame
         let notchHeight = openNotchSize.height
@@ -349,7 +350,7 @@ final class NotchWindowManager {
             }
         }
 
-        if Defaults[.showOnAllDisplays] {
+        if Defaults[.displayMode] == .allDisplays {
             contexts[uuid]?.dragDetector = detector
         } else {
             primaryDragDetector = detector
@@ -362,11 +363,11 @@ final class NotchWindowManager {
         guard let uuid = screen.displayUUID else { return }
 
         let coordinator = BoringViewCoordinator.shared
-        if Defaults[.showOnAllDisplays], let viewModel = contexts[uuid]?.viewModel {
+        if Defaults[.displayMode] == .allDisplays, let viewModel = contexts[uuid]?.viewModel {
             if viewModel.open() {
                 coordinator.currentView = .shelf
             }
-        } else if !Defaults[.showOnAllDisplays], let windowScreen = primaryWindow?.screen, screen == windowScreen {
+        } else if Defaults[.displayMode] != .allDisplays, let windowScreen = primaryWindow?.screen, screen == windowScreen {
             if primaryViewModel.open() {
                 coordinator.currentView = .shelf
             }
@@ -378,7 +379,7 @@ final class NotchWindowManager {
     /// Creates the windows for the current configuration (previously inlined
     /// in applicationDidFinishLaunching).
     func prepareInitialWindows() {
-        if !Defaults[.showOnAllDisplays] {
+        if Defaults[.displayMode] != .allDisplays {
             let viewModel = primaryViewModel
             if let screen = NSScreen.main ?? NSScreen.screens.first {
                 primaryWindow = createBoringNotchWindow(for: screen, with: viewModel)
