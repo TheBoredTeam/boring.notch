@@ -1580,7 +1580,7 @@
 			repositoryURL = "https://github.com/siteline/swiftui-introspect";
 			requirement = {
 				kind = exactVersion;
-				version = 26.1.0;
+				version = 27.0.0;
 			};
 		};
 		B18654372C6F4990000B926A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
