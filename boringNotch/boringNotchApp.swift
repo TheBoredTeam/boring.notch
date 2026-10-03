@@ -170,6 +170,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         MainActor.assumeIsolated {
             MusicManager.shared.destroy()
             windowManager.cleanup()
+            LockScreenWidgetCoordinator.shared.shutdown()
         }
         BetterDisplayManager.shared.stopObserving()
         LunarManager.shared.stopListening()
@@ -186,11 +187,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @MainActor
     func onScreenLocked(_ notification: Notification) {
         windowManager.screenLocked()
+        LockScreenWidgetCoordinator.shared.screenDidLock()
     }
 
     @MainActor
     func onScreenUnlocked(_ notification: Notification) {
         windowManager.screenUnlocked()
+        LockScreenWidgetCoordinator.shared.screenDidUnlock()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -210,6 +213,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in
                 self?.windowManager.adjustWindowPosition(changeAlpha: true)
                 self?.windowManager.setupDragDetectors()
+                LockScreenWidgetCoordinator.shared.refresh()
             }
         })
 
@@ -405,6 +409,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func screenConfigurationDidChange() {
         windowManager.screenConfigurationDidChange()
+        LockScreenWidgetCoordinator.shared.refresh()
     }
 
     @objc func togglePopover(_ sender: Any?) {
