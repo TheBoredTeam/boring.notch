@@ -82,6 +82,9 @@
 		14A7E5972C65FD31008C1BE9 /* boring.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 14A7E5962C65FD31008C1BE9 /* boring.m4a */; };
 		14C08BB62C8DE42D000F8AA0 /* CalendarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */; };
 		14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C08BB82C8DE4B1000F8AA0 /* BoringCalendar.swift */; };
+		A1C4LM012C9DE4B1000F8AB1 /* CalendarMonthGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C4LM012C9DE4B1000F8AA1 /* CalendarMonthGeometry.swift */; };
+		A1C4LM022C9DE4B1000F8AB2 /* CalendarMonthGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C4LM022C9DE4B1000F8AA2 /* CalendarMonthGridView.swift */; };
+		A1C4LY032C9DE4B1000F8AB3 /* CalendarYearGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C4LY032C9DE4B1000F8AA3 /* CalendarYearGridView.swift */; };
 		14CEF4162C5CAED300855D72 /* boringNotchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14CEF4152C5CAED300855D72 /* boringNotchApp.swift */; };
 		14CEF4182C5CAED300855D72 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14CEF4172C5CAED300855D72 /* ContentView.swift */; };
 		14CEF41A2C5CAED400855D72 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 14CEF4192C5CAED400855D72 /* Assets.xcassets */; };
@@ -253,6 +256,9 @@
 		14A7E5962C65FD31008C1BE9 /* boring.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = boring.m4a; sourceTree = "<group>"; };
 		14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarManager.swift; sourceTree = "<group>"; };
 		14C08BB82C8DE4B1000F8AA0 /* BoringCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringCalendar.swift; sourceTree = "<group>"; };
+		A1C4LM012C9DE4B1000F8AA1 /* CalendarMonthGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarMonthGeometry.swift; sourceTree = "<group>"; };
+		A1C4LM022C9DE4B1000F8AA2 /* CalendarMonthGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarMonthGridView.swift; sourceTree = "<group>"; };
+		A1C4LY032C9DE4B1000F8AA3 /* CalendarYearGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarYearGridView.swift; sourceTree = "<group>"; };
 		14CEF4122C5CAED300855D72 /* Boring Notch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Boring Notch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		14CEF4152C5CAED300855D72 /* boringNotchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = boringNotchApp.swift; sourceTree = "<group>"; };
 		14CEF4172C5CAED300855D72 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -601,6 +607,9 @@
 			isa = PBXGroup;
 			children = (
 				14C08BB82C8DE4B1000F8AA0 /* BoringCalendar.swift */,
+				A1C4LM012C9DE4B1000F8AA1 /* CalendarMonthGeometry.swift */,
+				A1C4LM022C9DE4B1000F8AA2 /* CalendarMonthGridView.swift */,
+				A1C4LY032C9DE4B1000F8AA3 /* CalendarYearGridView.swift */,
 			);
 			path = Calendar;
 			sourceTree = "<group>";
@@ -972,6 +981,9 @@
 			files = (
 				115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
+				A1C4LM012C9DE4B1000F8AB1 /* CalendarMonthGeometry.swift in Sources */,
+				A1C4LM022C9DE4B1000F8AB2 /* CalendarMonthGridView.swift in Sources */,
+				A1C4LY032C9DE4B1000F8AB3 /* CalendarYearGridView.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,
 				1100292A2E8691B400035A57 /* FileShareView.swift in Sources */,
 				147163982C5D35B70068B555 /* MusicVisualizer.swift in Sources */,
