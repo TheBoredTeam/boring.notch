@@ -63,6 +63,9 @@ struct BoringHeader: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
+                        if Defaults[.showMicrophoneButtonInNotch] {
+                            MicrophoneButton()
+                        }
                         if Defaults[.settingsIconInNotch] {
                             Button(action: {
                                 DispatchQueue.main.async {
@@ -114,6 +117,53 @@ struct BoringHeader: View {
             return true
         default:
             return false
+        }
+    }
+}
+
+/// Mutes the microphone; right-click to pick the input device.
+private struct MicrophoneButton: View {
+    @ObservedObject private var microphone = MicrophoneManager.shared
+
+    var body: some View {
+        Button {
+            microphone.toggleMute()
+        } label: {
+            Capsule()
+                .fill(.black)
+                .frame(width: 30, height: 30)
+                .overlay {
+                    Image(systemName: "mic")
+                        .symbolVariant(microphone.isMuted ? .slash : .none)
+                        .contentTransition(.symbolEffect(.replace))
+                        .foregroundStyle(microphone.isMuted ? Color.red : Color.white)
+                        .padding()
+                        .imageScale(.medium)
+                        .animation(.smooth(duration: 0.25), value: microphone.isMuted)
+                }
+        }
+        .buttonStyle(PlainButtonStyle())
+        .contextMenu {
+            if microphone.devices.isEmpty {
+                Button("No Input Devices Available") {}
+                    .disabled(true)
+            } else {
+                Picker("Input", selection: Binding(
+                    get: { microphone.activeDeviceID },
+                    set: { microphone.selectInputDevice($0) }
+                )) {
+                    ForEach(microphone.devices) { device in
+                        Text(device.name).tag(device.id)
+                    }
+                }
+                .pickerStyle(.inline)
+            }
+
+            Divider()
+
+            Button("Sound Settings…") {
+                microphone.openSoundSettings()
+            }
         }
     }
 }
