@@ -12,6 +12,10 @@ struct ShelfSettingsView: View {
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
     @Default(.quickShareProvider) var quickShareProvider
     @Default(.expandedDragDetection) var expandedDragDetection: Bool
+    @Default(.boringShelf) var boringShelf: Bool
+    @Default(.floatingShelf) var floatingShelf: Bool
+    @Default(.floatingShelfShakeTrigger) var floatingShelfShakeTrigger: Bool
+    @Default(.floatingShelfShakeSensitivity) var floatingShelfShakeSensitivity
     @StateObject private var quickShareService = QuickShareService.shared
 
     private var selectedProvider: QuickShareProvider? {
@@ -48,6 +52,33 @@ struct ShelfSettingsView: View {
             } header: {
                 Text("General")
             }
+
+            Section {
+                Defaults.Toggle(key: .floatingShelf) {
+                    Text("Enable floating shelf")
+                }
+                Defaults.Toggle(key: .floatingShelfShakeTrigger) {
+                    Text("Open by shaking while dragging")
+                }
+                .disabled(!floatingShelf)
+                Picker("Shake sensitivity", selection: $floatingShelfShakeSensitivity) {
+                    ForEach(ShakeSensitivity.allCases) { sensitivity in
+                        Text(sensitivity.localizedString).tag(sensitivity)
+                    }
+                }
+                .disabled(!floatingShelf || !floatingShelfShakeTrigger)
+                Defaults.Toggle(key: .floatingShelfShiftTrigger) {
+                    Text("Open by holding Shift while dragging")
+                }
+                .disabled(!floatingShelf)
+            } header: {
+                Text("Floating shelf")
+            } footer: {
+                Text("Opens a shelf beside the pointer while you drag files or text. The floating shelf shortcut in Shortcuts toggles it anytime, and Escape closes it. Opened from the shortcut, it stays up until you drop a file, share, drag an item out, or choose a menu action, then closes when the pointer leaves.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .disabled(!boringShelf)
 
             Section {
                 Picker("Quick Share Service", selection: $quickShareProvider) {
