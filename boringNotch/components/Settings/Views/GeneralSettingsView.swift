@@ -18,8 +18,7 @@ struct GeneralSettings: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 
     @Default(.appLanguage) var appLanguage
-    @Default(.showOnAllDisplays) var showOnAllDisplays
-    @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
+    @Default(.displayMode) var displayMode
 
     var body: some View {
         Form {
@@ -48,13 +47,12 @@ struct GeneralSettings: View {
             }
 
             Section {
-                Defaults.Toggle(key: .showOnAllDisplays) {
-                    Text("Show on all displays")
+                Picker("Display behavior", selection: $displayMode) {
+                    ForEach(DisplayMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
                 }
-                .onChange(of: showOnAllDisplays) {
-                    NotificationCenter.default.post(
-                        name: Notification.Name.showOnAllDisplaysChanged, object: nil)
-                }
+
                 Picker("Preferred display", selection: $coordinator.preferredScreenUUID) {
                     ForEach(screens, id: \.uuid) { screen in
                         Text(screen.name).tag(screen.uuid as String?)
@@ -66,16 +64,7 @@ struct GeneralSettings: View {
                         return (uuid, screen.localizedName)
                     }
                 }
-                .disabled(showOnAllDisplays)
-
-                Defaults.Toggle(key: .automaticallySwitchDisplay) {
-                    Text("Automatically switch displays")
-                }
-                    .onChange(of: automaticallySwitchDisplay) {
-                        NotificationCenter.default.post(
-                            name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
-                    }
-                    .disabled(showOnAllDisplays)
+                .disabled(displayMode == .activeDisplay || displayMode == .allDisplays)
             } header: {
                 Text("Displays")
             }
