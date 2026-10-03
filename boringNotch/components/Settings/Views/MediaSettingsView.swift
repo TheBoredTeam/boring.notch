@@ -14,6 +14,7 @@ struct MediaSettingsView: View {
     @Default(.hideNotchOption) var hideNotchOption
     @Default(.enableSneakPeek) private var enableSneakPeek
     @Default(.sneakPeekStyles) var sneakPeekStyles
+    @Default(.albumArtDisplayMode) var albumArtDisplayMode
     @Default(.sliderColor) var sliderColor
 
     @Default(.enableLyrics) var enableLyrics
@@ -76,6 +77,11 @@ struct MediaSettingsView: View {
                             )
                                 .foregroundStyle(.secondary)
                         }
+                    }
+                }
+                Picker("Album art display", selection: $albumArtDisplayMode) {
+                    ForEach(AlbumArtDisplayMode.allCases) { mode in
+                        Text(mode.localizedString).tag(mode)
                     }
                 }
                 Picker(
