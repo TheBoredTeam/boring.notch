@@ -469,6 +469,7 @@ struct CalendarView: View {
     @ObservedObject private var calendarManager = CalendarManager.shared
     @State private var selectedDate = Date()
     @Default(.calendarWeekView) private var calendarWeekView
+    @Default(.showCalendarEvents) private var showCalendarEvents
 
     var body: some View {
         VStack(spacing: 0) {
@@ -478,14 +479,16 @@ struct CalendarView: View {
                 dialHeader
             }
 
-            let filteredEvents = EventListView.filteredEvents(
-                events: calendarManager.events
-            )
-            if filteredEvents.isEmpty {
-                EmptyEventsView(selectedDate: selectedDate)
-                    .frame(maxHeight: .infinity, alignment: .center)
-            } else {
-                EventListView(events: calendarManager.events)
+            if showCalendarEvents {
+                let filteredEvents = EventListView.filteredEvents(
+                    events: calendarManager.events
+                )
+                if filteredEvents.isEmpty {
+                    EmptyEventsView(selectedDate: selectedDate)
+                        .frame(maxHeight: .infinity, alignment: .center)
+                } else {
+                    EventListView(events: calendarManager.events)
+                }
             }
         }
         .onChange(of: selectedDate) {

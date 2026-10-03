@@ -3622,6 +3622,42 @@
         }
       }
     },
+    "Open notch on" : {
+      "comment" : "Settings label of the picker choosing which tab the notch opens on.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open notch on"
+          }
+        }
+      }
+    },
+    "Music" : {
+      "comment" : "Label of the music player tab in the notch.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music"
+          }
+        }
+      }
+    },
+    "Show events" : {
+      "comment" : "Settings toggle for showing the event list under the calendar in the notch.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show events"
+          }
+        }
+      }
+    },
     "boring.notch" : {
       "localizations" : {
         "cs" : {
