@@ -145,6 +145,9 @@ struct AppearanceSettingsView: View {
             Defaults.Toggle(key: .settingsIconInNotch) {
                 Text("Show settings icon in notch")
             }
+            Defaults.Toggle(key: .showCaffeinateButton) {
+                Text("Show caffeinate button in notch")
+            }
         } header: {
             Text("Notch chrome")
         }
