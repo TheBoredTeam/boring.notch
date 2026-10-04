@@ -532,7 +532,7 @@ struct ContentView: View {
                        }
                         }
                       }
-                      .conditionalModifier(showingPersistentStandardPeek || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (vm.notchState == .closed))) { view in
+                      .conditionalModifier(showingStandardPeekLine) { view in
                           view
                               .fixedSize()
                       }
@@ -655,36 +655,6 @@ struct ContentView: View {
         guard Defaults[.sneakPeekStyles] == .inline else { return false }
         return (coordinator.expandingView.show && coordinator.expandingView.type == .music)
             || showingPersistentMusicPeek
-    }
-
-    /// "Always show sneak peek": keep the song title visible for as long as the
-    /// music live activity is on screen, instead of only after a song change.
-    private var showingPersistentMusicPeek: Bool {
-        Defaults[.sneakPeekAlwaysVisible]
-            && vm.notchState == .closed
-            && !vm.hideOnClosed
-            && !coordinator.expandingView.show
-            && (musicManager.isPlaying || !musicManager.isPlayerIdle)
-            && coordinator.musicLiveActivityEnabled
-            && notificationManager.activeNotification == nil
-    }
-
-    /// The standard-style peek drawn as a line under the closed notch.
-    private var showingPersistentStandardPeek: Bool {
-        showingPersistentMusicPeek
-            && Defaults[.sneakPeekStyles] == .standard
-            && !coordinator.shouldShowSneakPeek(on: vm.screenUUID)
-    }
-
-    private func standardMusicPeek() -> some View {
-        HStack(alignment: .center) {
-            Image(systemName: "music.note")
-            GeometryReader { geo in
-                MarqueeText(musicManager.songTitle + " - " + musicManager.artistName, color: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray, delayDuration: 1.0, frameWidth: geo.size.width)
-            }
-        }
-        .foregroundStyle(.gray)
-        .padding(.bottom, 10)
     }
 
     /// Width of the black centre section of the closed music pill.
