@@ -168,45 +168,83 @@ final class AppleMusicController: MediaControllerProtocol {
     /// album up in the iTunes Search API. Returns cached artwork for the current album, or
     /// starts a lookup and publishes the result when it arrives.
     private func fallbackArtwork(for state: PlaybackState) -> Data? {
-        guard state.title != "Not Playing", !state.artist.isEmpty, state.artist != "Unknown" else { return nil }
-        let album = state.album == "Unknown" ? "" : state.album
-        let key = "\(state.artist)|\(album.isEmpty ? state.title : album)"
+        guard let key = Self.fallbackArtworkKey(for: state) else { return nil }
         if key == fallbackArtworkKey { return fallbackArtwork }
 
         fallbackArtworkKey = key
         fallbackArtwork = nil
         fallbackArtworkTask?.cancel()
+        let album = state.album == "Unknown" ? "" : state.album
         fallbackArtworkTask = Task { [weak self] in
-            let entity = album.isEmpty ? "song" : "album"
-            let term = "\(state.artist) \(album.isEmpty ? state.title : album)"
-            guard let data = await Self.lookUpArtwork(term: term, entity: entity),
-                  !Task.isCancelled, let self, self.fallbackArtworkKey == key else { return }
+            let result: Data?
+            do {
+                result = try await Self.lookUpArtwork(artist: state.artist, album: album, title: state.title)
+            } catch {
+                // Network failure: forget the key so a later update retries. A lookup that
+                // simply finds nothing stays cached, so we don't query again on every poll.
+                if let self, !Task.isCancelled, self.fallbackArtworkKey == key {
+                    self.fallbackArtworkKey = nil
+                }
+                return
+            }
+            guard let data = result, !Task.isCancelled, let self, self.fallbackArtworkKey == key else { return }
             self.fallbackArtwork = data
+            // Only the album has to match: skipping to another track on the same album
+            // while the lookup is in flight should still get the artwork.
             var current = self.playbackState
-            guard current.artwork == nil, current.artist == state.artist, current.title == state.title else { return }
+            guard current.artwork == nil, Self.fallbackArtworkKey(for: current) == key else { return }
             current.artwork = data
             self.playbackState = current
         }
         return nil
     }
 
-    private nonisolated static func lookUpArtwork(term: String, entity: String) async -> Data? {
+    /// Identifies the artwork to look up: the album, or the track when there is no album.
+    private static func fallbackArtworkKey(for state: PlaybackState) -> String? {
+        guard state.title != "Not Playing", !state.artist.isEmpty, state.artist != "Unknown" else { return nil }
+        let album = state.album == "Unknown" ? "" : state.album
+        return "\(state.artist)|\(album.isEmpty ? state.title : album)"
+    }
+
+    /// Returns the artwork, nil when nothing matching was found, or throws on a network error.
+    private nonisolated static func lookUpArtwork(artist: String, album: String, title: String) async throws -> Data? {
+        let entity = album.isEmpty ? "song" : "album"
+        let name = album.isEmpty ? title : album
         var components = URLComponents(string: "https://itunes.apple.com/search")
         components?.queryItems = [
-            URLQueryItem(name: "term", value: term),
+            URLQueryItem(name: "term", value: "\(artist) \(name)"),
             URLQueryItem(name: "entity", value: entity),
-            URLQueryItem(name: "limit", value: "1"),
+            URLQueryItem(name: "limit", value: "10"),
         ]
-        guard let url = components?.url,
-              let (data, _) = try? await URLSession.shared.data(from: url),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let result = (json["results"] as? [[String: Any]])?.first,
-              let small = result["artworkUrl100"] as? String,
-              let artworkURL = URL(string: small.replacingOccurrences(of: "100x100bb", with: "600x600bb")),
-              let (artwork, _) = try? await URLSession.shared.data(from: artworkURL),
-              NSImage(data: artwork) != nil
+        guard let url = components?.url else { return nil }
+        let searchData = try await ImageService.shared.fetchImageData(from: url)
+        guard let json = try? JSONSerialization.jsonObject(with: searchData) as? [String: Any],
+              let results = json["results"] as? [[String: Any]] else { return nil }
+
+        // The search is fuzzy: only accept a result whose artist and album (or track) match.
+        let nameField = album.isEmpty ? "trackName" : "collectionName"
+        guard let match = results.first(where: { result in
+                  matches(result["artistName"] as? String, artist) && matches(result[nameField] as? String, name)
+              }),
+              let small = match["artworkUrl100"] as? String,
+              let artworkURL = URL(string: small.replacingOccurrences(of: "100x100bb", with: "600x600bb"))
         else { return nil }
-        return artwork
+
+        let artwork = try await ImageService.shared.fetchImageData(from: artworkURL)
+        return NSImage(data: artwork) == nil ? nil : artwork
+    }
+
+    /// Loose comparison that tolerates case, accents, and suffixes such as
+    /// "(Deluxe Edition)" or " - Single" on either side.
+    private nonisolated static func matches(_ candidate: String?, _ expected: String) -> Bool {
+        guard let candidate else { return false }
+        let normalize = { (string: String) in
+            string.folding(options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive], locale: nil)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        let a = normalize(candidate), b = normalize(expected)
+        guard !a.isEmpty, !b.isEmpty else { return false }
+        return a == b || a.hasPrefix(b) || b.hasPrefix(a)
     }
 
     // MARK: - Private Methods
