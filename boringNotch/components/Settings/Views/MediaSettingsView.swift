@@ -14,6 +14,8 @@ struct MediaSettingsView: View {
     @Default(.hideNotchOption) var hideNotchOption
     @Default(.enableSneakPeek) private var enableSneakPeek
     @Default(.sneakPeekStyles) var sneakPeekStyles
+    @Default(.sneakPeekDuration) var sneakPeekDuration
+    @Default(.sneakPeekAlwaysVisible) var sneakPeekAlwaysVisible
     @Default(.sliderColor) var sliderColor
 
     @Default(.enableLyrics) var enableLyrics
@@ -56,6 +58,21 @@ struct MediaSettingsView: View {
                         Text(style.localizedString).tag(style)
                     }
                 }
+                Toggle(isOn: $sneakPeekAlwaysVisible.animation()) {
+                    Text("Always show sneak peek", comment: "Toggle keeping the song title visible next to the closed notch while music plays.")
+                }
+                Stepper(value: $sneakPeekDuration, in: 1...15, step: 1) {
+                    HStack {
+                        Text("Sneak peek duration", comment: "How long the song-change sneak peek stays visible.")
+                        Spacer()
+                        Text(
+                            Measurement(value: sneakPeekDuration, unit: UnitDuration.seconds),
+                            format: .measurement(width: .wide, usage: .asProvided, numberFormatStyle: .number.precision(.fractionLength(0)))
+                        )
+                        .foregroundStyle(.secondary)
+                    }
+                }
+                .disabled(sneakPeekAlwaysVisible || !enableSneakPeek)
                 HStack {
                     Stepper(value: $waitInterval, in: 0...10, step: 1) {
                         HStack {

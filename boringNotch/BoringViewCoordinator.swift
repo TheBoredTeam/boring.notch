@@ -402,7 +402,12 @@ final class BoringViewCoordinator: ObservableObject {
         didSet {
             if expandingView.show {
                 expandingViewTask?.cancel()
-                let duration: TimeInterval = (expandingView.type == .download ? 2 : 3)
+                let duration: TimeInterval
+                switch expandingView.type {
+                case .music: duration = Defaults[.sneakPeekDuration]
+                case .download: duration = 2
+                default: duration = 3
+                }
                 let currentType = expandingView.type
                 expandingViewTask = Task { [weak self] in
                     try? await Task.sleep(for: .seconds(duration))
