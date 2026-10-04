@@ -34,6 +34,20 @@ struct BatterySettingsView: View {
             } header: {
                 Text("Battery Information")
             }
+            Section {
+                Defaults.Toggle(key: .showBluetoothAccessories) {
+                    Text("Show Bluetooth accessory connections")
+                }
+            } header: {
+                Text("Accessories")
+            } footer: {
+                Text(
+                    "Shows AirPods, headphones, keyboards and mice in the notch when they connect, with their battery level when available. macOS will ask for Bluetooth access.",
+                    comment: "Footer for the Bluetooth accessory connection setting."
+                )
+                .foregroundStyle(.secondary)
+                .font(.caption)
+            }
         }
         .onAppear {
             Task { @MainActor in
