@@ -51,6 +51,12 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(value: "Timer") {
+                    Label("Timer", systemImage: "timer")
+                }
+                NavigationLink(value: "Clipboard") {
+                    Label("Clipboard", systemImage: "doc.on.clipboard")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -85,6 +91,10 @@ struct SettingsView: View {
                     Charge()
                 case "Shelf":
                     Shelf()
+                case "Timer":
+                    TimerSettings()
+                case "Clipboard":
+                    ClipboardSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -371,6 +381,21 @@ struct Charge: View {
             } header: {
                 Text("Battery Information")
             }
+            Section {
+                Defaults.Toggle(key: .enableBluetoothLiveActivity) {
+                    Text("Show activity when a Bluetooth device connects")
+                }
+                Defaults.Toggle(key: .bluetoothActivityShowPercentage) {
+                    Text("Show device battery percentage")
+                }
+                .disabled(!Defaults[.enableBluetoothLiveActivity])
+            } header: {
+                Text("Connected Devices")
+            } footer: {
+                Text("Shows headphones, AirPods and other Bluetooth devices with their battery level in the notch when they connect.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .onAppear {
             Task { @MainActor in
@@ -600,6 +625,9 @@ struct Media: View {
     @Default(.sneakPeekStyles) var sneakPeekStyles
 
     @Default(.enableLyrics) var enableLyrics
+    @Default(.visualizerBackgroundEnabled) var visualizerBackgroundEnabled
+    @Default(.visualizerBackgroundStyle) var visualizerBackgroundStyle
+    @Default(.visualizerBackgroundIntensity) var visualizerBackgroundIntensity
 
     var body: some View {
         Form {
@@ -689,6 +717,31 @@ struct Media: View {
                 Text("Media controls")
             }  footer: {
                 Text("Customize which controls appear in the music player. Volume expands when active.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                Defaults.Toggle(key: .visualizerBackgroundEnabled) {
+                    Text("Show visualizer behind open notch")
+                }
+                Picker("Style", selection: $visualizerBackgroundStyle) {
+                    ForEach(VisualizerBackgroundStyle.allCases, id: \.self) { style in
+                        Text(style.rawValue).tag(style)
+                    }
+                }
+                .disabled(!visualizerBackgroundEnabled)
+                HStack {
+                    Text("Intensity")
+                    Spacer()
+                    Slider(value: $visualizerBackgroundIntensity, in: 0.05...0.6)
+                        .frame(width: 180)
+                }
+                .disabled(!visualizerBackgroundEnabled)
+            } header: {
+                Text("Visualizer background")
+            } footer: {
+                Text("Animates a soft, album-art tinted pulse behind the notch content while music is playing.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -1740,9 +1793,167 @@ struct Shortcuts: View {
             Section {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
             }
+            Section {
+                KeyboardShortcuts.Recorder("Open Clipboard History:", name: .clipboardHistoryPanel)
+                    .disabled(!Defaults[.enableClipboardHistory])
+            } header: {
+                Text("Clipboard")
+            } footer: {
+                Text("Clipboard history must be enabled in the Clipboard settings.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Shortcuts")
+    }
+}
+
+struct TimerSettings: View {
+    @Default(.enableTimerFeature) var enableTimerFeature
+    @Default(.pomodoroWorkMinutes) var workMinutes
+    @Default(.pomodoroShortBreakMinutes) var shortBreakMinutes
+    @Default(.pomodoroLongBreakMinutes) var longBreakMinutes
+    @Default(.pomodoroSessionsBeforeLongBreak) var sessionsBeforeLongBreak
+    @Default(.pomodoroAutoAdvance) var autoAdvance
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .enableTimerFeature) {
+                    Text("Enable timer")
+                }
+                Defaults.Toggle(key: .showTimerLiveActivity) {
+                    Text("Show countdown next to the notch")
+                }
+                .disabled(!enableTimerFeature)
+            } header: {
+                Text("General")
+            }
+
+            Section {
+                Stepper(value: $workMinutes, in: 1...120) {
+                    HStack {
+                        Text("Focus duration")
+                        Spacer()
+                        Text("\(workMinutes) min")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Stepper(value: $shortBreakMinutes, in: 1...60) {
+                    HStack {
+                        Text("Short break")
+                        Spacer()
+                        Text("\(shortBreakMinutes) min")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Stepper(value: $longBreakMinutes, in: 1...60) {
+                    HStack {
+                        Text("Long break")
+                        Spacer()
+                        Text("\(longBreakMinutes) min")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Stepper(value: $sessionsBeforeLongBreak, in: 1...12) {
+                    HStack {
+                        Text("Sessions before long break")
+                        Spacer()
+                        Text("\(sessionsBeforeLongBreak)")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Defaults.Toggle(key: .pomodoroAutoAdvance) {
+                    Text("Automatically start the next phase")
+                }
+            } header: {
+                Text("Pomodoro")
+            }
+            .disabled(!enableTimerFeature)
+
+            Section {
+                Defaults.Toggle(key: .timerSoundEnabled) {
+                    Text("Play sound when the timer ends")
+                }
+                Defaults.Toggle(key: .timerNotificationEnabled) {
+                    Text("Send notification when the timer ends")
+                }
+            } header: {
+                Text("Alerts")
+            }
+            .disabled(!enableTimerFeature)
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Timer")
+    }
+}
+
+struct ClipboardSettings: View {
+    @Default(.enableClipboardHistory) var enableClipboardHistory
+    @Default(.clipboardHistorySize) var historySize
+    @ObservedObject private var viewModel = ClipboardHistoryViewModel.shared
+    @State private var showClearConfirmation = false
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .enableClipboardHistory) {
+                    Text("Enable clipboard history")
+                }
+            } header: {
+                Text("General")
+            } footer: {
+                Text("Clipboard contents are stored only on this Mac. Content marked as concealed (e.g. from password managers) is never recorded.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                Stepper(value: $historySize, in: 5...100, step: 5) {
+                    HStack {
+                        Text("History size")
+                        Spacer()
+                        Text("\(historySize) items")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Defaults.Toggle(key: .clipboardIgnoreConcealed) {
+                    Text("Ignore concealed content")
+                }
+                Defaults.Toggle(key: .clipboardStoreImages) {
+                    Text("Store copied images")
+                }
+                Defaults.Toggle(key: .clipboardAutoCloseOnCopy) {
+                    Text("Close notch after copying an item")
+                }
+            } header: {
+                Text("Behavior")
+            }
+            .disabled(!enableClipboardHistory)
+
+            Section {
+                KeyboardShortcuts.Recorder("Open clipboard history:", name: .clipboardHistoryPanel)
+                    .disabled(!enableClipboardHistory)
+                Button("Clear History…", role: .destructive) {
+                    showClearConfirmation = true
+                }
+                .disabled(viewModel.isEmpty)
+            }
+        }
+        .confirmationDialog(
+            "Clear clipboard history?",
+            isPresented: $showClearConfirmation
+        ) {
+            Button("Clear", role: .destructive) {
+                viewModel.clearAll()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Pinned items are kept.")
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Clipboard")
     }
 }
 
