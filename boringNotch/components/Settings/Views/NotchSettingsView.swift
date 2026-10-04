@@ -14,6 +14,9 @@ struct NotchSettingsView: View {
     @Default(.gestureSensitivity) var gestureSensitivity
     @Default(.minimumHoverDuration) var minimumHoverDuration
     @Default(.nonNotchHeight) var nonNotchHeight
+    @Default(.nonNotchWidth) var nonNotchWidth
+    @Default(.openNotchWidth) var openNotchWidth
+    @Default(.openNotchHeight) var openNotchHeight
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
     @Default(.notchHeight) var notchHeight
     @Default(.notchHeightMode) var notchHeightMode
@@ -25,6 +28,7 @@ struct NotchSettingsView: View {
     var body: some View {
         Form {
             sizingSection
+            openSizeSection
             behaviorSection
             gesturesSection
             windowSection
@@ -117,8 +121,57 @@ struct NotchSettingsView: View {
                     )
                 }
             }
+            Slider(value: $nonNotchWidth, in: nonNotchWidthRange, step: 5) {
+                Text(
+                    "Notch width on non-notch displays - \(nonNotchWidth, format: .number.precision(.fractionLength(0)))",
+                    comment: "Slider label for the closed notch width on displays without a hardware notch."
+                )
+            }
+            .onChange(of: nonNotchWidth) {
+                NotificationCenter.default.post(
+                    name: Notification.Name.notchHeightChanged, object: nil)
+            }
         } header: {
             Text("Sizing")
+        }
+    }
+
+    private var openSizeSection: some View {
+        Section {
+            Slider(value: $openNotchWidth, in: openNotchWidthRange, step: 10) {
+                Text(
+                    "Width - \(openNotchWidth, format: .number.precision(.fractionLength(0)))",
+                    comment: "Slider label for the open notch width."
+                )
+            }
+            Slider(value: $openNotchHeight, in: openNotchHeightRange, step: 5) {
+                Text(
+                    "Height - \(openNotchHeight, format: .number.precision(.fractionLength(0)))",
+                    comment: "Slider label for the open notch height."
+                )
+            }
+            Button {
+                openNotchWidth = defaultOpenNotchSize.width
+                openNotchHeight = defaultOpenNotchSize.height
+            } label: {
+                Text("Reset to default size", comment: "Button restoring the default open notch size.")
+            }
+            .disabled(openNotchWidth == defaultOpenNotchSize.width && openNotchHeight == defaultOpenNotchSize.height)
+        } header: {
+            Text("Open notch size", comment: "Settings section header for the open notch dimensions.")
+        } footer: {
+            Text(
+                "Applies to the standard layout; compact mode sizes itself to its content.",
+                comment: "Footer explaining that the open notch size setting does not affect compact mode."
+            )
+            .foregroundStyle(.secondary)
+            .font(.caption)
+        }
+        .onChange(of: openNotchWidth) {
+            NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
+        }
+        .onChange(of: openNotchHeight) {
+            NotificationCenter.default.post(name: Notification.Name.notchHeightChanged, object: nil)
         }
     }
 

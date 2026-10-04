@@ -170,6 +170,10 @@ final class NotchWindowManager {
             window.alphaValue = 0
         }
 
+        if window.frame.size != windowSize {
+            window.setContentSize(windowSize)
+        }
+
         let screenFrame = screen.frame
         window.setFrameOrigin(
             NSPoint(
@@ -218,6 +222,8 @@ final class NotchWindowManager {
 
                     if viewModel.notchState == .closed {
                         viewModel.close()
+                    } else {
+                        viewModel.notchSize = openNotchSize
                     }
                 }
             }
@@ -258,6 +264,8 @@ final class NotchWindowManager {
 
                 if primaryViewModel.notchState == .closed {
                     primaryViewModel.close()
+                } else {
+                    primaryViewModel.notchSize = openNotchSize
                 }
             }
         }
