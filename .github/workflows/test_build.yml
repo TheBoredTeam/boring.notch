@@ -53,7 +53,27 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM="" \
             PROVISIONING_PROFILE_SPECIFIER="" \
+            ENABLE_HARDENED_RUNTIME=NO \
             ONLY_ACTIVE_ARCH=NO
+        # Hardened runtime enforces library validation, which rejects the bundled
+        # MediaRemoteAdapter.framework (signed with the upstream team ID) when the
+        # app itself is only ad-hoc signed, so dyld kills the app at launch.
+
+      - name: Smoke test launch
+        run: |
+          APP_PATH="$(find build/Build/Products/Release -maxdepth 1 -name '*.app' | head -n 1)"
+          EXEC_NAME="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP_PATH/Contents/Info.plist")"
+          "$APP_PATH/Contents/MacOS/$EXEC_NAME" > launch.log 2>&1 &
+          PID=$!
+          sleep 10
+          if kill -0 "$PID" 2>/dev/null; then
+            echo "App is still running after 10 seconds"
+            kill "$PID" || true
+          else
+            echo "::error::App exited during launch"
+            cat launch.log
+            exit 1
+          fi
 
       - name: Zip app
         run: |
