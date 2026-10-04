@@ -21,6 +21,8 @@ struct PomodoroRing: View {
                 .trim(from: 0, to: max(0.001, progress))
                 .stroke(tint.gradient, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
+                // A zero-length arc still draws its round cap as a dot.
+                .opacity(progress > 0 ? 1 : 0)
                 .animation(.linear(duration: 0.25), value: progress)
         }
     }
