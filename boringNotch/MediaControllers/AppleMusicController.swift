@@ -31,6 +31,11 @@ final class AppleMusicController: MediaControllerProtocol {
 
     private var notificationTask: Task<Void, Never>?
 
+    /// Artwork looked up online for tracks whose artwork isn't scriptable (streamed Apple Music tracks).
+    private var fallbackArtworkKey: String?
+    private var fallbackArtwork: Data?
+    private var fallbackArtworkTask: Task<Void, Never>?
+
     // MARK: - Initialization
     init() {
         setupPlaybackStateChangeObserver()
@@ -141,11 +146,67 @@ final class AppleMusicController: MediaControllerProtocol {
         updatedState.repeatMode = RepeatMode(rawValue: Int(repeatModeValue)) ?? .off
         let volumePercentage = descriptor.atIndex(9)?.int32Value ?? 50
         updatedState.volume = Double(volumePercentage) / 100.0
-        updatedState.artwork = descriptor.atIndex(10)?.data as Data?
+        updatedState.artwork = Self.imageData(from: descriptor.atIndex(10))
         let lovedState = descriptor.atIndex(11)?.booleanValue ?? false
         updatedState.isFavorite = lovedState
         updatedState.lastUpdated = Date()
+        if updatedState.artwork == nil {
+            updatedState.artwork = fallbackArtwork(for: updatedState)
+        }
         self.playbackState = updatedState
+    }
+
+    /// The script returns "" when a track has no artwork; only keep real image payloads.
+    private static func imageData(from descriptor: NSAppleEventDescriptor?) -> Data? {
+        guard let descriptor, descriptor.descriptorType != typeUnicodeText,
+              descriptor.descriptorType != typeUTF8Text else { return nil }
+        let data = descriptor.data
+        return data.isEmpty || NSImage(data: data) == nil ? nil : data
+    }
+
+    /// Streamed Apple Music tracks expose no scriptable artwork on macOS 26, so look the
+    /// album up in the iTunes Search API. Returns cached artwork for the current album, or
+    /// starts a lookup and publishes the result when it arrives.
+    private func fallbackArtwork(for state: PlaybackState) -> Data? {
+        guard state.title != "Not Playing", !state.artist.isEmpty, state.artist != "Unknown" else { return nil }
+        let album = state.album == "Unknown" ? "" : state.album
+        let key = "\(state.artist)|\(album.isEmpty ? state.title : album)"
+        if key == fallbackArtworkKey { return fallbackArtwork }
+
+        fallbackArtworkKey = key
+        fallbackArtwork = nil
+        fallbackArtworkTask?.cancel()
+        fallbackArtworkTask = Task { [weak self] in
+            let entity = album.isEmpty ? "song" : "album"
+            let term = "\(state.artist) \(album.isEmpty ? state.title : album)"
+            guard let data = await Self.lookUpArtwork(term: term, entity: entity),
+                  !Task.isCancelled, let self, self.fallbackArtworkKey == key else { return }
+            self.fallbackArtwork = data
+            var current = self.playbackState
+            guard current.artwork == nil, current.artist == state.artist, current.title == state.title else { return }
+            current.artwork = data
+            self.playbackState = current
+        }
+        return nil
+    }
+
+    private nonisolated static func lookUpArtwork(term: String, entity: String) async -> Data? {
+        var components = URLComponents(string: "https://itunes.apple.com/search")
+        components?.queryItems = [
+            URLQueryItem(name: "term", value: term),
+            URLQueryItem(name: "entity", value: entity),
+            URLQueryItem(name: "limit", value: "1"),
+        ]
+        guard let url = components?.url,
+              let (data, _) = try? await URLSession.shared.data(from: url),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let result = (json["results"] as? [[String: Any]])?.first,
+              let small = result["artworkUrl100"] as? String,
+              let artworkURL = URL(string: small.replacingOccurrences(of: "100x100bb", with: "600x600bb")),
+              let (artwork, _) = try? await URLSession.shared.data(from: artworkURL),
+              NSImage(data: artwork) != nil
+        else { return nil }
+        return artwork
     }
 
     // MARK: - Private Methods
