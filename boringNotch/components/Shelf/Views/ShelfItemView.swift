@@ -127,9 +127,9 @@ struct ShelfItemView: View {
 
     private var backgroundColor: Color {
         if debouncedDropTarget {
-            return Color.accentColor.opacity(0.25)
+            return Color.effectiveAccent.opacity(0.25)
         } else if isSelected {
-            return Color.accentColor.opacity(0.15)
+            return Color.effectiveAccent.opacity(0.15)
         } else {
             return Color.clear
         }
@@ -137,9 +137,9 @@ struct ShelfItemView: View {
 
     private var strokeColor: Color {
         if debouncedDropTarget {
-            return Color.accentColor.opacity(0.9)
+            return Color.effectiveAccent.opacity(0.9)
         } else if isSelected {
-            return Color.accentColor.opacity(0.8)
+            return Color.effectiveAccent.opacity(0.8)
         } else {
             return Color.clear
         }
@@ -223,10 +223,15 @@ private struct DraggableClickHandler<Content: View>: NSViewRepresentable {
         private var draggedURLs: [URL] = []
         private var draggedItems: [ShelfItem] = []
         
+        // The notch panel can become key (needed for Finder drag-and-drop), so
+        // the click that keys the window would otherwise be swallowed. Accept
+        // first mouse so a single click (incl. Cmd/Shift) selects immediately.
+        override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
         override func rightMouseDown(with event: NSEvent) {
             onRightClick?(event, self)
         }
-        
+
         override func mouseDown(with event: NSEvent) {
             mouseDownEvent = event
             onClick?(event, self)
