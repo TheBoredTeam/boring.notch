@@ -499,6 +499,16 @@ extension Defaults.Keys {
     static let osdReplacement = Key<Bool>(PreferenceCompatibility.migratedKeyName("osdReplacement", from: "hudReplacement"), default: false)
     static let inlineOSD = Key<Bool>(PreferenceCompatibility.migratedKeyName("inlineOSD", from: "inlineHUD"), default: false)
 
+    // MARK: Pomodoro
+    static let enablePomodoro = Key<Bool>("enablePomodoro", default: true)
+    static let pomodoroFocusMinutes = Key<Int>("pomodoroFocusMinutes", default: 25)
+    static let pomodoroShortBreakMinutes = Key<Int>("pomodoroShortBreakMinutes", default: 5)
+    static let pomodoroLongBreakMinutes = Key<Int>("pomodoroLongBreakMinutes", default: 15)
+    static let pomodoroSessionsBeforeLongBreak = Key<Int>("pomodoroSessionsBeforeLongBreak", default: 4)
+    static let pomodoroAutoStartNext = Key<Bool>("pomodoroAutoStartNext", default: false)
+    static let pomodoroPlaySound = Key<Bool>("pomodoroPlaySound", default: true)
+    static let pomodoroShowInClosedNotch = Key<Bool>("pomodoroShowInClosedNotch", default: true)
+
     // MARK: Layout
     /// Swaps the opened notch for a smaller, player-only layout: no tab
     /// bar, calendar or mirror. Off by default so existing users keep the
