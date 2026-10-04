@@ -27,6 +27,20 @@ public enum NotchState {
 public enum NotchViews {
     case home
     case shelf
+    case clipboard
+    case timer
+    case notes
+    case todos
+
+    /// Tabs that contain text fields need the notch window to accept keyboard focus.
+    var acceptsTextInput: Bool {
+        switch self {
+        case .clipboard, .notes, .todos:
+            return true
+        case .home, .shelf, .timer:
+            return false
+        }
+    }
 }
 
 enum SettingsEnum {

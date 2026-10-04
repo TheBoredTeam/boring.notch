@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var focusTimer = FocusTimerManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -58,6 +59,12 @@ struct ContentView: View {
         )
     }
 
+    /// The focus timer countdown takes the closed notch when no music live activity is showing.
+    private var showsTimerLiveActivity: Bool {
+        !coordinator.expandingView.show && vm.notchState == .closed && !vm.hideOnClosed
+            && focusTimer.isActive && Defaults[.showTimerLiveActivity] && Defaults[.showTimerTab]
+    }
+
     private var computedChinWidth: CGFloat {
         var chinWidth: CGFloat = vm.closedNotchSize.width
 
@@ -70,6 +77,8 @@ struct ContentView: View {
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
         {
             chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+        } else if showsTimerLiveActivity {
+            chinWidth += 2 * FocusTimerLiveActivity.sideWidth
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
             && !vm.hideOnClosed
@@ -290,6 +299,9 @@ struct ContentView: View {
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
+                      } else if showsTimerLiveActivity {
+                          FocusTimerLiveActivity()
+                              .transition(.opacity)
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           BoringFaceAnimation()
                        } else if vm.notchState == .open {
@@ -349,6 +361,14 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
+                    case .clipboard:
+                        ClipboardView()
+                    case .timer:
+                        FocusTimerView()
+                    case .notes:
+                        QuickNoteView()
+                    case .todos:
+                        TodoListView()
                     }
                 }
                 .transition(

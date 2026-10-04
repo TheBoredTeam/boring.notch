@@ -280,6 +280,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Start recording clipboard history right away, not only once the tab is opened.
+        _ = ClipboardManager.shared
 
         NotificationCenter.default.addObserver(
             self,

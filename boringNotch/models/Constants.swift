@@ -171,6 +171,22 @@ extension Defaults.Keys {
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
     
+    // MARK: Productivity
+    static let showClipboardTab = Key<Bool>("showClipboardTab", default: true)
+    static let clipboardHistoryLimit = Key<Int>("clipboardHistoryLimit", default: 50)
+    static let clipboardIgnorePasswordManagers = Key<Bool>("clipboardIgnorePasswordManagers", default: true)
+    static let showTimerTab = Key<Bool>("showTimerTab", default: true)
+    static let focusDurationMinutes = Key<Int>("focusDurationMinutes", default: 25)
+    static let shortBreakDurationMinutes = Key<Int>("shortBreakDurationMinutes", default: 5)
+    static let longBreakDurationMinutes = Key<Int>("longBreakDurationMinutes", default: 15)
+    static let sessionsBeforeLongBreak = Key<Int>("sessionsBeforeLongBreak", default: 4)
+    static let showTimerLiveActivity = Key<Bool>("showTimerLiveActivity", default: true)
+    static let playTimerFinishedSound = Key<Bool>("playTimerFinishedSound", default: true)
+    static let showNotesTab = Key<Bool>("showNotesTab", default: true)
+    static let quickNoteText = Key<String>("quickNoteText", default: "")
+    static let showTodosTab = Key<Bool>("showTodosTab", default: true)
+    static let todoItems = Key<[TodoItem]>("todoItems", default: [])
+
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
