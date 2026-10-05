@@ -8,19 +8,29 @@
 import SwiftUI
 
 struct TabModel: Identifiable {
-    let id = UUID()
+    var id: String { label }
     let label: String
     let icon: String
     let view: NotchViews
 }
 
-let tabs = [
-    TabModel(label: "Home", icon: "house.fill", view: .home),
-    TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)
-]
+import Defaults
+
+/// Home and Shelf are always listed; HUD modules appear only when enabled.
+var tabs: [TabModel] {
+    var result = [
+        TabModel(label: "Home", icon: "house.fill", view: .home),
+        TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)
+    ]
+    if Defaults[.developerHUDEnabled] { result.append(TabModel(label: "Dev", icon: "hammer.fill", view: .developer)) }
+    if Defaults[.githubHUDEnabled] { result.append(TabModel(label: "GitHub", icon: "chevron.left.forwardslash.chevron.right", view: .github)) }
+    return result
+}
 
 struct TabSelectionView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.developerHUDEnabled) private var developerHUDEnabled
+    @Default(.githubHUDEnabled) private var githubHUDEnabled
     @Namespace var animation
     var body: some View {
         HStack(spacing: 0) {

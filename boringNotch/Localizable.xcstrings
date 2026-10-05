@@ -31721,7 +31721,50 @@
           }
         }
       }
-    }
+    },
+    "@%@" : {},
+    "%lld commits · %lld reviews" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld commits · %2$lld reviews"
+          }
+        }
+      }
+    },
+    "%lld minutes" : {},
+    "%lld this year" : {},
+    "Add Project Folder…" : {},
+    "Adds a Dev tab to the open notch with Git, system and environment status. Nothing runs while it is disabled or not on screen." : {},
+    "Adds a GitHub tab to the open notch. Data is fetched only while the tab is visible and cached between refreshes." : {},
+    "Authentication" : {},
+    "Build" : {},
+    "Create Token…" : {},
+    "Dev server" : {},
+    "Developer HUD" : {},
+    "Enable Developer HUD" : {},
+    "Enable GitHub HUD" : {},
+    "Environment" : {},
+    "Git unavailable — showing branch only." : {},
+    "GitHub HUD" : {},
+    "macOS sandboxing means you grant access to each project folder once. With Accessibility enabled and several projects added, the HUD follows the project in your frontmost editor window." : {},
+    "No projects added" : {},
+    "Nothing to show — you're all caught up." : {},
+    "Personal access token" : {},
+    "Projects" : {},
+    "Refresh" : {},
+    "Refresh every" : {},
+    "Remove Token" : {},
+    "Running tasks" : {},
+    "Save to Keychain" : {},
+    "Servers" : {},
+    "Show" : {},
+    "Show less" : {},
+    "Show more" : {},
+    "Signed in as @%@" : {},
+    "Token saved in Keychain" : {},
+    "Use a classic token with notifications, repo and read:user scopes (fine-grained tokens cannot read notifications). The token is stored only in the macOS Keychain and sent only to api.github.com." : {}
   },
   "version" : "1.1"
 }

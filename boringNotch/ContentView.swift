@@ -580,6 +580,10 @@ struct ContentView: View {
                                 dropInteraction: vm.dropInteraction,
                                 animation: vm.animation
                             )
+                        case .developer:
+                            DeveloperHUDView()
+                        case .github:
+                            GitHubHUDView()
                         }
                     }
                 }

@@ -570,5 +570,26 @@ extension Defaults.Keys {
         .nowPlaying
     }
 
+    // MARK: Developer HUD (opt-in module)
+    static let developerHUDEnabled = Key<Bool>("developerHUDEnabled", default: false)
+    static let devHUDProjectBookmarks = Key<[Data]>("devHUDProjectBookmarks", default: [])
+    static let devHUDShowGit = Key<Bool>("devHUDShowGit", default: true)
+    static let devHUDShowLastCommit = Key<Bool>("devHUDShowLastCommit", default: true)
+    static let devHUDShowSystem = Key<Bool>("devHUDShowSystem", default: true)
+    static let devHUDShowBuild = Key<Bool>("devHUDShowBuild", default: true)
+    static let devHUDShowServers = Key<Bool>("devHUDShowServers", default: true)
+    static let devHUDShowTasks = Key<Bool>("devHUDShowTasks", default: false)
+
+    // MARK: GitHub HUD (opt-in module)
+    static let githubHUDEnabled = Key<Bool>("githubHUDEnabled", default: false)
+    static let githubRefreshMinutes = Key<Int>("githubRefreshMinutes", default: 5)
+    static let githubShowNotifications = Key<Bool>("githubShowNotifications", default: true)
+    static let githubShowPullRequests = Key<Bool>("githubShowPullRequests", default: true)
+    static let githubShowReviewRequests = Key<Bool>("githubShowReviewRequests", default: true)
+    static let githubShowIssues = Key<Bool>("githubShowIssues", default: true)
+    static let githubShowActivity = Key<Bool>("githubShowActivity", default: true)
+    static let githubShowActions = Key<Bool>("githubShowActions", default: true)
+    static let githubShowContributions = Key<Bool>("githubShowContributions", default: true)
+
     static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)
 }

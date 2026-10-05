@@ -138,6 +138,17 @@
 		C1A6A2B12D00000100000001 /* CameraModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A6A2AE2D00000100000001 /* CameraModel.swift */; };
 		F1F2A0A100000000000000F1 /* AudioCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
+		BE0D7DA2565A5236BB8BF848 /* DeveloperHUDManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 266620500121E76EDF822AC0 /* DeveloperHUDManager.swift */; };
+		36C80A251D3EE8A4E45D89CF /* DeveloperHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19DB1124325A88D93F7581FA /* DeveloperHUDView.swift */; };
+		37C3EC9436C7B0402B49EDC8 /* DevelopmentEnvironmentDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB56CB0A9003E7CB68EC8553 /* DevelopmentEnvironmentDetector.swift */; };
+		FAD2279286F15FACF04B0EB9 /* GitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CB7A52623DC8E50AE11A6C6 /* GitService.swift */; };
+		1EDD45E7048ECE4FDC7F51BC /* SystemMetricsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F777C77C5D0AACB89FFA45E9 /* SystemMetricsService.swift */; };
+		FAFD1D0C04D74D869617FF16 /* GitHubAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C6461540F3D0590A545CF4 /* GitHubAPIService.swift */; };
+		309EA8BF839931C538215066 /* GitHubAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECEF47A77ABC0C435869D8D5 /* GitHubAuthService.swift */; };
+		2D88AC41DE90416E873DBB34 /* GitHubHUDManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78AC40A1FFE494949C444CAE /* GitHubHUDManager.swift */; };
+		783807F8DA1A1B6C2106AE38 /* GitHubHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57DC5F933ADF99C07916D9AD /* GitHubHUDView.swift */; };
+		1463B8C0CCFDB5DE1BB9EC64 /* GitHubModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1243F5515FAA7EDB469A6891 /* GitHubModels.swift */; };
+		71ABB36D34987279A888B30B /* HUDComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A037FCF57B0FBFF22FB4E0 /* HUDComponents.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -307,6 +318,17 @@
 		EAB1C3E8B149445A9E57C6AF /* NotchWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchWindowManager.swift; sourceTree = "<group>"; };
 		F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureManager.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
+		266620500121E76EDF822AC0 /* DeveloperHUDManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperHUDManager.swift; sourceTree = "<group>"; };
+		19DB1124325A88D93F7581FA /* DeveloperHUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperHUDView.swift; sourceTree = "<group>"; };
+		EB56CB0A9003E7CB68EC8553 /* DevelopmentEnvironmentDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevelopmentEnvironmentDetector.swift; sourceTree = "<group>"; };
+		2CB7A52623DC8E50AE11A6C6 /* GitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitService.swift; sourceTree = "<group>"; };
+		F777C77C5D0AACB89FFA45E9 /* SystemMetricsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMetricsService.swift; sourceTree = "<group>"; };
+		96C6461540F3D0590A545CF4 /* GitHubAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubAPIService.swift; sourceTree = "<group>"; };
+		ECEF47A77ABC0C435869D8D5 /* GitHubAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubAuthService.swift; sourceTree = "<group>"; };
+		78AC40A1FFE494949C444CAE /* GitHubHUDManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubHUDManager.swift; sourceTree = "<group>"; };
+		57DC5F933ADF99C07916D9AD /* GitHubHUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubHUDView.swift; sourceTree = "<group>"; };
+		1243F5515FAA7EDB469A6891 /* GitHubModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubModels.swift; sourceTree = "<group>"; };
+		A5A037FCF57B0FBFF22FB4E0 /* HUDComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDComponents.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -560,6 +582,9 @@
 				149E0B982C737D26006418B1 /* Webcam */,
 				11DAAB463061BE1600E15887 /* LiveActivities */,
 				11DAAB303061BDED00E15887 /* Settings */,
+				67923E8C001101322504732D /* DeveloperHUD */,
+				267D1A8E11D766A506764830 /* GitHubHUD */,
+				DC734D9EB3B5CDA476FCF206 /* HUDShared */,
 				B186542F2C6F455E000B926A /* Notch */,
 				9A0887332C7AFF7E00C160EA /* Tabs */,
 				B186542E2C6F453B000B926A /* Music */,
@@ -784,6 +809,38 @@
 			path = Shortcuts;
 			sourceTree = "<group>";
 		};
+		67923E8C001101322504732D /* DeveloperHUD */ = {
+			isa = PBXGroup;
+			children = (
+				266620500121E76EDF822AC0 /* DeveloperHUDManager.swift */,
+				19DB1124325A88D93F7581FA /* DeveloperHUDView.swift */,
+				EB56CB0A9003E7CB68EC8553 /* DevelopmentEnvironmentDetector.swift */,
+				2CB7A52623DC8E50AE11A6C6 /* GitService.swift */,
+				F777C77C5D0AACB89FFA45E9 /* SystemMetricsService.swift */,
+			);
+			path = DeveloperHUD;
+			sourceTree = "<group>";
+		};
+		267D1A8E11D766A506764830 /* GitHubHUD */ = {
+			isa = PBXGroup;
+			children = (
+				96C6461540F3D0590A545CF4 /* GitHubAPIService.swift */,
+				ECEF47A77ABC0C435869D8D5 /* GitHubAuthService.swift */,
+				78AC40A1FFE494949C444CAE /* GitHubHUDManager.swift */,
+				57DC5F933ADF99C07916D9AD /* GitHubHUDView.swift */,
+				1243F5515FAA7EDB469A6891 /* GitHubModels.swift */,
+			);
+			path = GitHubHUD;
+			sourceTree = "<group>";
+		};
+		DC734D9EB3B5CDA476FCF206 /* HUDShared */ = {
+			isa = PBXGroup;
+			children = (
+				A5A037FCF57B0FBFF22FB4E0 /* HUDComponents.swift */,
+			);
+			path = HUDShared;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -971,6 +1028,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */,
+				BE0D7DA2565A5236BB8BF848 /* DeveloperHUDManager.swift in Sources */,
+				36C80A251D3EE8A4E45D89CF /* DeveloperHUDView.swift in Sources */,
+				37C3EC9436C7B0402B49EDC8 /* DevelopmentEnvironmentDetector.swift in Sources */,
+				FAD2279286F15FACF04B0EB9 /* GitService.swift in Sources */,
+				1EDD45E7048ECE4FDC7F51BC /* SystemMetricsService.swift in Sources */,
+				FAFD1D0C04D74D869617FF16 /* GitHubAPIService.swift in Sources */,
+				309EA8BF839931C538215066 /* GitHubAuthService.swift in Sources */,
+				2D88AC41DE90416E873DBB34 /* GitHubHUDManager.swift in Sources */,
+				783807F8DA1A1B6C2106AE38 /* GitHubHUDView.swift in Sources */,
+				1463B8C0CCFDB5DE1BB9EC64 /* GitHubModels.swift in Sources */,
+				71ABB36D34987279A888B30B /* HUDComponents.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,
 				1100292A2E8691B400035A57 /* FileShareView.swift in Sources */,
