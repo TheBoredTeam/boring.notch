@@ -152,12 +152,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
 
+    @MainActor
     func applicationShouldHandleReopen(
         _ sender: NSApplication,
         hasVisibleWindows flag: Bool
     ) -> Bool {
         SettingsWindowController.shared.showWindow()
-        return true
+        return false
     }
 
     func applicationWillTerminate(_ notification: Notification) {
