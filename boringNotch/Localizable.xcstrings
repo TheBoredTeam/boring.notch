@@ -1635,6 +1635,12 @@
             "state" : "translated",
             "value" : "Siempre seguir la pantalla activa"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toujours suivre l'écran actif"
+          }
         }
       }
     },
@@ -1646,6 +1652,12 @@
             "state" : "translated",
             "value" : "Usar la pantalla preferida"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliser l'écran préféré"
+          }
         }
       }
     },
@@ -1656,6 +1668,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cambiar automáticamente a la pantalla activa si la preferida no está disponible"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basculer automatiquement si l'écran préféré est indisponible"
           }
         }
       }
@@ -27907,7 +27925,15 @@
       }
     },
     "Switch if preferred display is unavailable" : {
-      "comment" : "A toggle that allows the user to have the app automatically switch to a different display when the preferred display becomes unavailable."
+      "comment" : "A toggle that allows the user to have the app automatically switch to a different display when the preferred display becomes unavailable.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basculer si l'écran préféré est indisponible"
+          }
+        }
+      }
     },
     "System" : {
       "localizations" : {
