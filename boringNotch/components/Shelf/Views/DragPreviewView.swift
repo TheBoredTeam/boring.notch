@@ -8,8 +8,7 @@ struct DragPreviewView: View {
     var body: some View {
         VStack(alignment: .center, spacing: 4) {
             Image(nsImage: thumbnail ?? NSImage())
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+                .resizable().scaledToFit()
                 .frame(width: 56, height: 56)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
 

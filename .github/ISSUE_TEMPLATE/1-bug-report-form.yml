@@ -2,8 +2,8 @@
 name: Bug Report
 description: File a bug report.
 title: '[Bug] '
+type: Bug
 labels:
-  - bug
   - unconfirmed
 body:
   - type: markdown
@@ -27,21 +27,15 @@ body:
       description: A clear and concise description of what you expected to happen.
     validations:
       required: true
-  - type: dropdown
+  - type: input
     id: version
     attributes:
       label: Boring Notch Version
       description: >-
         What version of our software are you running? (Go to ✦ in the menu bar >
-        Settings > About)
-      options:
-        - Select a version
-        - v2.7.3
-        - v2.7.2
-        - v2.7.1
-        - v2.7
-        - v2.7-rc.3
-        - v2.6
+        Settings > About). The "Report a Bug" button in the About pane prefills
+        the exact version, build number, and update channel.
+      placeholder: "v2.7.3 (build 274, beta channel)"
     validations:
       required: true
   - type: input
@@ -56,7 +50,8 @@ body:
     attributes:
       label: Music Source? (If relevant)
       description: >-
-         If this issue is related to music, what music source did you select in Boring Notch settings?
+        If this issue is related to music, what music source did you select in
+        Boring Notch settings?
       options:
         - Now Playing
         - Apple Music

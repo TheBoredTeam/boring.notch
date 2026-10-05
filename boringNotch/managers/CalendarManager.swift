@@ -12,7 +12,7 @@ import SwiftUI
 // MARK: - CalendarManager
 
 @MainActor
-class CalendarManager: ObservableObject {
+final class CalendarManager: ObservableObject {
     static let shared = CalendarManager()
 
     @Published var currentWeekStartDate: Date
@@ -28,6 +28,9 @@ class CalendarManager: ObservableObject {
     private let calendarService = CalendarService()
 
     private var eventStoreChangedObserver: NSObjectProtocol?
+    /// EventKit can fire EKEventStoreChanged in bursts during syncs; reloads
+    /// coalesce so the UI refreshes once per burst instead of per notification.
+    private var reloadTask: Task<Void, Never>?
 
     private init() {
         self.currentWeekStartDate = CalendarManager.startOfDay(Date())
@@ -49,8 +52,12 @@ class CalendarManager: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            Task {
-                await self?.reloadCalendarAndReminderLists()
+            guard let self, self.reloadTask == nil else { return }
+            self.reloadTask = Task { @MainActor in
+                defer { self.reloadTask = nil }
+                try? await Task.sleep(for: .seconds(2))
+                guard !Task.isCancelled else { return }
+                await self.reloadCalendarAndReminderLists()
             }
         }
     }
@@ -67,7 +74,7 @@ class CalendarManager: ObservableObject {
     func checkCalendarAuthorization() async {
         let status = EKEventStore.authorizationStatus(for: .event)
         DispatchQueue.main.async {
-            print("📅 Current calendar authorization status: \(status)")
+            Log.calendar.debug("📅 Current calendar authorization status: \(String(describing: status))")
             self.calendarAuthorizationStatus = status
         }
 
@@ -97,14 +104,14 @@ class CalendarManager: ObservableObject {
         case .writeOnly:
             NSLog("Write only")
         @unknown default:
-            print("Unknown authorization status")
+            Log.calendar.debug("Unknown authorization status")
         }
     }
-    
+
     func checkReminderAuthorization() async {
         let status = EKEventStore.authorizationStatus(for: .reminder)
         DispatchQueue.main.async {
-            print("📅 Current reminder authorization status: \(status)")
+            Log.calendar.debug("📅 Current reminder authorization status: \(String(describing: status))")
             self.reminderAuthorizationStatus = status
         }
 
@@ -126,10 +133,9 @@ class CalendarManager: ObservableObject {
         case .writeOnly:
             NSLog("Write only")
         @unknown default:
-            print("Unknown authorization status")
+            Log.calendar.debug("Unknown authorization status")
         }
     }
-        
 
     func updateSelectedCalendars() {
         // Populate selectedCalendarIDs based on Defaults calendar selection state
@@ -228,7 +234,7 @@ class CalendarManager: ObservableObject {
         }
         self.indicatorEvents = newIndicators
     }
-    
+
     func setReminderCompleted(reminderID: String, completed: Bool) async {
         await calendarService.setReminderCompleted(reminderID: reminderID, completed: completed)
         // Refresh events after updating

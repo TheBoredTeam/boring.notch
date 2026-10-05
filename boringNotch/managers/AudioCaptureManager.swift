@@ -57,7 +57,9 @@ final class AudioCaptureManager: ObservableObject {
     private let levelsConsumers = NSHashTable<AnyObject>.weakObjects()
     private var latestLevels: [Float]?
 
-    private let fft: vDSP.FFT<DSPSplitComplex>
+    /// If setup fails (essentially impossible on real hardware) the FFT path
+    /// degrades to flat bars instead of taking down the whole app.
+    private let fft: vDSP.FFT<DSPSplitComplex>?
     private let hannWindow: [Float]
     private let windowPowerScalar: Float
     private var samplesBuf: [Float]
@@ -80,10 +82,7 @@ final class AudioCaptureManager: ObservableObject {
         ringBuffer = UnsafeMutablePointer<Float>.allocate(capacity: Self.ringCapacity)
         ringBuffer.initialize(repeating: 0, count: Self.ringCapacity)
 
-        guard let setup = vDSP.FFT(log2n: Self.log2n, radix: .radix2, ofType: DSPSplitComplex.self) else {
-            fatalError("Failed to create vDSP.FFT setup")
-        }
-        fft = setup
+        fft = vDSP.FFT(log2n: Self.log2n, radix: .radix2, ofType: DSPSplitComplex.self)
         let window = vDSP.window(
             ofType: Float.self,
             usingSequence: .hanningDenormalized,
@@ -108,7 +107,9 @@ final class AudioCaptureManager: ObservableObject {
         fftQueue.setSpecific(key: Self.fftQueueKey, value: ())
         lifecycleQueue.setSpecific(key: Self.lifecycleQueueKey, value: ())
         computeBandRanges(sampleRate: sampleRate)
-        observeState()
+        Task { @MainActor [weak self] in
+            self?.observeState()
+        }
     }
 
     deinit {
@@ -154,29 +155,34 @@ final class AudioCaptureManager: ObservableObject {
 
     // MARK: - State observation
 
+    @MainActor
     private func observeState() {
-        let music = MusicManager.shared
-        let enabledPublisher = Defaults.publisher(.realtimeAudioWaveform)
-            .map(\.newValue)
-            .prepend(Defaults[.realtimeAudioWaveform])
-            .removeDuplicates()
+        // MusicManager is @MainActor — wire the publishers on the main
+        // actor; delivery then continues via receive(on:) as before.
+        Task { @MainActor in
+            let music = MusicManager.shared
+            let enabledPublisher = Defaults.publisher(.realtimeAudioWaveform)
+                .map(\.newValue)
+                .prepend(Defaults[.realtimeAudioWaveform])
+                .removeDuplicates()
 
-        Publishers.CombineLatest4(
-            music.$isPlaying.removeDuplicates(),
-            music.$bundleIdentifier.removeDuplicates(),
-            music.$audioCaptureBundleIdentifiers.removeDuplicates(),
-            enabledPublisher
-        )
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isPlaying, bundleID, captureBundleIDs, enabled in
-                self?.evaluate(
-                    isPlaying: isPlaying,
-                    displayBundleID: bundleID,
-                    captureBundleIDs: captureBundleIDs,
-                    enabled: enabled
-                )
-            }
-            .store(in: &cancellables)
+            Publishers.CombineLatest4(
+                music.$isPlaying.removeDuplicates(),
+                music.$bundleIdentifier.removeDuplicates(),
+                music.$audioCaptureBundleIdentifiers.removeDuplicates(),
+                enabledPublisher
+            )
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] isPlaying, bundleID, captureBundleIDs, enabled in
+                    self?.evaluate(
+                        isPlaying: isPlaying,
+                        displayBundleID: bundleID,
+                        captureBundleIDs: captureBundleIDs,
+                        enabled: enabled
+                    )
+                }
+                .store(in: &cancellables)
+        }
     }
 
     private func evaluate(
@@ -688,6 +694,7 @@ final class AudioCaptureManager: ObservableObject {
     }
 
     private func processFFT() {
+        guard let fft else { return }
         let n = Self.fftSize
         copyLatestSamples(count: n)
 

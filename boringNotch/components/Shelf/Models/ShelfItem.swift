@@ -45,11 +45,10 @@ enum ShelfItemKind: Codable, Equatable, Sendable {
             try container.encode(url, forKey: .value)
         }
     }
-
 }
 
 @MainActor
-struct ShelfItem: Identifiable, Codable, Equatable, Sendable {
+struct ShelfItem: Identifiable, Codable, Equatable {
     let id: UUID
     let kind: ShelfItemKind
     let isTemporary: Bool
@@ -64,7 +63,7 @@ struct ShelfItem: Identifiable, Codable, Equatable, Sendable {
         case .file(let bookmarkData):
             let bookmark = Bookmark(data: bookmarkData)
             guard let resolvedURL = bookmark.resolvedURL else { return "" }
-            
+
             // Check for stored data files (text blocks, weblocs, etc.) to provide friendly names
             if resolvedURL.pathExtension.lowercased() == "json" && resolvedURL.path.contains("TextBlocks") {
                 do {
@@ -117,12 +116,12 @@ struct ShelfItem: Identifiable, Codable, Equatable, Sendable {
             }
         }
     }
-    
+
     var fileURL: URL? {
         guard case let .file(bookmarkData) = kind else { return nil }
         return Bookmark(data: bookmarkData).resolvedURL
     }
-    
+
     var URL: URL? {
         switch kind {
         case .file(let bookmarkData):
@@ -133,7 +132,7 @@ struct ShelfItem: Identifiable, Codable, Equatable, Sendable {
             return nil
         }
     }
-    
+
     var icon: NSImage {
         guard case .file = kind else {
             return Self.thumbnailSymbolImage(systemName: kind.iconSymbolName) ?? NSImage()
@@ -143,12 +142,11 @@ struct ShelfItem: Identifiable, Codable, Equatable, Sendable {
         }
         return NSImage()
     }
-    
 
     func cleanupStoredData() {
         guard case let .file(bookmarkData) = kind,
               let url = Bookmark(data: bookmarkData).resolvedURL else { return }
-        
+
         // Handle temporary files
         if isTemporary {
             TemporaryFileStorageService.shared.removeTemporaryFileIfNeeded(at: url)
@@ -160,7 +158,7 @@ struct ShelfItem: Identifiable, Codable, Equatable, Sendable {
 private extension ShelfItem {
    static func thumbnailSymbolImage(
         systemName: String,
-    size: CGSize = CGSize(width: 64, height: 80), 
+    size: CGSize = CGSize(width: 64, height: 80),
     symbolPointSize: CGFloat = 38,
     backgroundColor: NSColor = NSColor.white,
     symbolColor: NSColor = NSColor.labelColor
@@ -219,5 +217,3 @@ private extension ShelfItemKind {
         }
     }
 }
-
-

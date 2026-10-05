@@ -15,19 +15,41 @@ final class BrightnessManager: ObservableObject {
 	private let visibleDuration: TimeInterval = 1.2
 	private let client = XPCHelperClient.shared
 
-	private init() { refresh() }
+	/// Key repeats arriving while an XPC call is in flight accumulate here so
+	/// no press is lost — each press used to trigger its own 3-RPC sequence
+	/// (adjust + read + display lookup), and they would queue behind each other.
+	private var pendingDelta: Float = 0
+	private var flushTask: Task<Void, Never>?
+
+	/// The brightness target display only changes with the display set.
+	private var cachedTargetUUID: String?
+	private var screenParametersObserver: (any NSObjectProtocol)?
+
+	private init() {
+		refresh()
+		screenParametersObserver = NotificationCenter.default.addObserver(
+			forName: NSApplication.didChangeScreenParametersNotification,
+			object: nil,
+			queue: .main
+		) { [weak self] _ in
+			self?.cachedTargetUUID = nil
+		}
+	}
 
 	/// Determine which screen UUID should be used for brightness OSDs
 	/// when the built‑in source is selected.  This mirrors the logic in the
 	/// XPC helper, which chooses the menu-bar display if it supports brightness and
 	/// otherwise falls back to an internal panel.
+	/// Cached; invalidated when the display configuration changes.
 	func brightnessTargetUUID() async -> String? {
+		if let cachedTargetUUID { return cachedTargetUUID }
+		var resolved: String?
 		if let displayID = await client.displayIDForBrightness() {
-			if let screen = NSScreen.screens.first(where: { $0.cgDisplayID == displayID }) {
-				return screen.displayUUID
-			}
+			resolved = NSScreen.screens.first(where: { $0.cgDisplayID == displayID })?.displayUUID
 		}
-		return NSScreen.main?.displayUUID
+		resolved = resolved ?? NSScreen.main?.displayUUID
+		cachedTargetUUID = resolved
+		return resolved
 	}
 
 	var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
@@ -41,16 +63,22 @@ final class BrightnessManager: ObservableObject {
 	}
 
 	@MainActor func setRelative(delta: Float) {
-		Task { @MainActor in
-            let ok = await client.adjustScreenBrightness(by: delta)
-			if ok {
-                let current = await client.currentScreenBrightness() ?? rawBrightness
+		pendingDelta += delta
+		guard flushTask == nil else { return }
+		flushTask = Task { @MainActor in
+			defer { flushTask = nil }
+			while pendingDelta != 0 {
+				let delta = pendingDelta
+				pendingDelta = 0
+				// One RPC delivers both the adjustment and the resulting value.
+				guard let current = await client.adjustScreenBrightness(by: delta) else {
+					refresh()
+					return
+				}
 				publish(brightness: current, touchDate: true)
 
-                let targetUUID = await brightnessTargetUUID()
-                BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(current), targetScreenUUID: targetUUID)
-			} else {
-				refresh()
+				let uuid = await brightnessTargetUUID()
+				NotchUIEventBus.events.send(.sneakPeek(type: .brightness, value: CGFloat(current), targetScreenUUID: uuid))
 			}
 		}
 	}
@@ -63,7 +91,7 @@ final class BrightnessManager: ObservableObject {
 				publish(brightness: clamped, touchDate: true)
                 // optionally show peek when user uses slider/controls
                 let targetUUID = await brightnessTargetUUID()
-                BoringViewCoordinator.shared.toggleSneakPeek(status: true, type: .brightness, value: CGFloat(clamped), targetScreenUUID: targetUUID)
+                NotchUIEventBus.events.send(.sneakPeek(type: .brightness, value: CGFloat(clamped), targetScreenUUID: targetUUID))
 			} else {
 				refresh()
 			}
@@ -93,6 +121,11 @@ final class KeyboardBacklightManager: ObservableObject {
 	private let visibleDuration: TimeInterval = 1.2
 	private let client = XPCHelperClient.shared
 
+	/// Deltas accumulate while a read or set call is in flight so key repeats
+	/// are coalesced into the next adjustment.
+	private var pendingDelta: Float = 0
+	private var flushTask: Task<Void, Never>?
+
 	private init() { refresh() }
 
 	var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
@@ -106,20 +139,28 @@ final class KeyboardBacklightManager: ObservableObject {
 	}
 
 	@MainActor func setRelative(delta: Float) {
-		Task { @MainActor in
-			let starting = await client.currentKeyboardBrightness() ?? rawBrightness
-			let target = max(0, min(1, starting + delta))
-			let ok = await client.setKeyboardBrightness(target)
-			if ok {
-				publish(brightness: target, touchDate: true)
-			} else {
-				refresh()
+		pendingDelta += delta
+		guard flushTask == nil else { return }
+		flushTask = Task { @MainActor in
+			defer { flushTask = nil }
+			while pendingDelta != 0 {
+				let delta = pendingDelta
+				pendingDelta = 0
+				// Include changes made outside the app in every adjustment.
+				guard let current = await client.currentKeyboardBrightness() else {
+					refresh()
+					return
+				}
+				let target = max(0, min(1, current + delta))
+				let ok = await client.setKeyboardBrightness(target)
+				if ok {
+					publish(brightness: target, touchDate: true)
+				} else {
+					refresh()
+					return
+				}
+				NotchUIEventBus.events.send(.sneakPeek(type: .backlight, value: CGFloat(target)))
 			}
-			BoringViewCoordinator.shared.toggleSneakPeek(
-				status: true,
-				type: .backlight,
-				value: CGFloat(target)
-			)
 		}
 	}
 
@@ -135,12 +176,10 @@ final class KeyboardBacklightManager: ObservableObject {
 		}
 	}
 
-	private func publish(brightness: Float, touchDate: Bool) {
-		DispatchQueue.main.async {
-			if self.rawBrightness != brightness || touchDate {
-				if touchDate { self.lastChangeAt = Date() }
-				self.rawBrightness = brightness
-			}
+	@MainActor private func publish(brightness: Float, touchDate: Bool) {
+		if rawBrightness != brightness || touchDate {
+			if touchDate { lastChangeAt = Date() }
+			rawBrightness = brightness
 		}
 	}
 }
