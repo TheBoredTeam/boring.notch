@@ -49,7 +49,9 @@ extension ContentView {
                         ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6)
                         : .gray,
                     delayDuration: 1.0,
-                    frameWidth: geo.size.width
+                    frameWidth: geo.size.width,
+                    // Always visible: scroll once per song rather than forever.
+                    loops: !showingPersistentStandardPeek
                 )
             }
         }

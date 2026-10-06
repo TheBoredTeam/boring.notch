@@ -29,18 +29,28 @@ struct MarqueeText: View {
     let color: Color
     let delayDuration: Double
     let frameWidth: CGFloat
+    /// When false the text scrolls through once and stops. A looping marquee
+    /// re-renders the view every frame for as long as it's on screen, which
+    /// is fine for a brief peek but not for text that stays up indefinitely.
+    let loops: Bool
 
     @State private var animate = false
     @State private var textSize: CGSize = .zero
     @State private var offset: CGFloat = 0
 
-    init(_ text: String, font: Font = .body, nsFont: NSFont.TextStyle = .body, color: Color = .primary, delayDuration: Double = 3.0, frameWidth: CGFloat) {
+    init(_ text: String, font: Font = .body, nsFont: NSFont.TextStyle = .body, color: Color = .primary, delayDuration: Double = 3.0, frameWidth: CGFloat, loops: Bool = true) {
         self.text = text
         self.font = font
         self.nsFont = nsFont
         self.color = color
         self.delayDuration = delayDuration
         self.frameWidth = frameWidth
+        self.loops = loops
+    }
+
+    private var scrollAnimation: Animation {
+        let pass = Animation.linear(duration: Double(textSize.width / 30)).delay(delayDuration)
+        return loops ? pass.repeatForever(autoreverses: false) : pass
     }
 
     private var needsScrolling: Bool {
@@ -60,13 +70,9 @@ struct MarqueeText: View {
                 .foregroundColor(color)
                 .fixedSize(horizontal: true, vertical: false)
                 .offset(x: self.animate ? offset : 0)
-                .animation(
-                    self.animate ?
-                        .linear(duration: Double(textSize.width / 30))
-                        .delay(delayDuration)
-                        .repeatForever(autoreverses: false) : .none,
-                    value: self.animate
-                )
+                // A single pass ends on the second copy, which sits exactly where
+                // the first started, so it comes to rest showing the start again.
+                .animation(self.animate ? scrollAnimation : .none, value: self.animate)
                 .modifier(MeasureSizeModifier())
                 .onPreferenceChange(SizePreferenceKey.self) { size in
                     self.textSize = CGSize(width: size.width / 2, height: NSFont.preferredFont(forTextStyle: nsFont).pointSize)
