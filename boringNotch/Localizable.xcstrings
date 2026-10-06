@@ -19,6 +19,12 @@
             "value" : " (standard)"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " (por defecto)"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -209,6 +215,12 @@
             "value" : "%@ is only needed when using built-in macOS control sources for OSD replacement. External sources like BetterDisplay or Lunar do not require it. You can enable it later in OSD settings if needed."
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Solo es necesario cuando se usan fuentes de control macOS incorporadas para el reemplazo de OSD. Fuentes externas como BetterDisplay o Lunar no lo requieren. Puedes activarlo más tarde en ajustes OSD si es necesario."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -220,6 +232,12 @@
             "state" : "translated",
             "value" : "%@ só é necessário ao usar fontes de controle do macOS incorporadas para substituição do OSD. Fontes externas como BetterDisplay ou Lunar não precisam disso. Você pode ativá-lo mais tarde nas configurações OSD, se necessário."
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ yalnızca OSD değiştirmek için macOS'in yerleşik denetim kaynakları kullanılırken gereklidir. BetterDisplay veya Lunar gibi harici kaynaklar bunu gerektirmez. Gerekirse daha sonra ekran göstergesi ayarlarından etkinleştirebilirsiniz."
+          }
         }
       }
     },
@@ -229,6 +247,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ is used only to improve media and brightness notifications. No data is collected or shared."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Se utiliza solo para mejorar las notificaciones de brillo y multimedia. No se recopilan ni comparten datos."
           }
         },
         "fr" : {
@@ -248,6 +272,12 @@
     "%@ notification" : {
       "comment" : "A label describing the notification. The argument is the name of the app that sent the notification.",
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ notificación"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -259,6 +289,12 @@
             "state" : "translated",
             "value" : "Notificação %@"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ bildirim"
+          }
         }
       }
     },
@@ -268,6 +304,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ Required"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Requerido"
           }
         },
         "fr" : {
@@ -286,6 +328,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ Necessário"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ gerekli"
           }
         }
       }
@@ -811,6 +859,12 @@
             "value" : "Accessibility"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accesibilidad"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -834,11 +888,23 @@
             "state" : "translated",
             "value" : "Acessibilidade"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erişilebilirlik"
+          }
         }
       }
     },
     "Actual Size" : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamaño actual"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -987,6 +1053,12 @@
     "Add Application…" : {
       "comment" : "A button that adds an application to the list of allowed notifications.",
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir aplicación…"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -997,6 +1069,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adicionar Aplicativo"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama Ekle..."
           }
         }
       }
@@ -1122,6 +1200,18 @@
     },
     "Add to Favorites" : {
       "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to Favourites"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agregar a Favoritos"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1269,6 +1359,12 @@
     },
     "All Applications" : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todas las aplicaciones"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1531,8 +1627,65 @@
         }
       }
     },
+    "Always follow active display" : {
+      "comment" : "A toggle that allows the user to have Boring Notch follow the active display.",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siempre seguir la pantalla activa"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toujours suivre l'écran actif"
+          }
+        }
+      }
+    },
+    "Use preferred display" : {
+      "comment" : "Display behavior option: keep the notch on the preferred display.",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar la pantalla preferida"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliser l'écran préféré"
+          }
+        }
+      }
+    },
+    "Automatically switch display if preferred is unavailable" : {
+      "comment" : "Display behavior option: switch to the active display when the preferred display is unavailable.",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambiar automáticamente a la pantalla activa si la preferida no está disponible"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basculer automatiquement si l'écran préféré est indisponible"
+          }
+        }
+      }
+    },
     "Always Open With" : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siempre Abrir con"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1873,6 +2026,12 @@
             "value" : "App"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1883,6 +2042,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama"
           }
         }
       }
@@ -2019,6 +2184,12 @@
     },
     "Apps" : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2047,6 +2218,12 @@
     },
     "Audio output" : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salida de audio"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2499,6 +2676,7 @@
       }
     },
     "Automatically switch displays" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -2618,6 +2796,12 @@
     },
     "Background Removal Failed" : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error al eliminar el fondo"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2728,6 +2912,12 @@
     },
     "Backward 15s" : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retroceder 15 s"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3234,6 +3424,12 @@
             "value" : "Behavior"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comportamiento"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3245,12 +3441,24 @@
             "state" : "translated",
             "value" : "Comportamento"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Davranış"
+          }
         }
       }
     },
     "Beta" : {
       "comment" : "Update channel: beta",
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3262,12 +3470,24 @@
             "state" : "translated",
             "value" : "Beta"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta"
+          }
         }
       }
     },
     "BetterDisplay is not installed or not running" : {
       "comment" : "Text displayed in a warning banner at the top of the screen when BetterDisplay is not installed or not running.",
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BetterDisplay no está instalado o no está ejecutándose"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3278,6 +3498,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "BetterDisplay não está instalado ou não está em execução"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BetterDisplay yüklenmemiş ya da şu anda çalışmıyor"
           }
         }
       }
@@ -3462,6 +3688,12 @@
             "value" : "Boring Notch could not verify Now Playing. Try again, or reopen the app if it keeps happening."
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch no pudo verificar la Reproduciendo Ahora. Inténtalo de nuevo o vuelve a abrir la aplicación si sigue sucediendo."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3489,6 +3721,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boring Notch lost its Now Playing connection. Reconnecting automatically..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch perdió la conexión con la Reproduciendo Ahora. Reconectando automáticamente..."
           }
         },
         "fr" : {
@@ -3524,6 +3762,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boring Notch's Now Playing components are unavailable. Reopen or reinstall the app."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los componentes de Reproduciendo Ahora de Boring Notch no están disponibles. Vuelve a abrir o reinstala la aplicación."
           }
         },
         "fr" : {
@@ -4291,6 +4535,12 @@
             "value" : "Camera Access Required"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acceso a la Cámara Requerido"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4951,6 +5201,12 @@
     "Check Again" : {
       "comment" : "A button that refreshes the availability of the 'Now Playing' media source.",
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volver a comprobar"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5174,6 +5430,12 @@
     "Checking Now Playing availability..." : {
       "comment" : "A message displayed when the app is checking if Now Playing is available.",
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprobando la disponibilidad de Reproduciendo Ahora..."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5320,6 +5582,12 @@
     },
     "Choose an application to open the document \"%@\"." : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elija una aplicación para abrir el documento\"%@\"."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5460,6 +5728,12 @@
     },
     "Choose Application" : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegir aplicación"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5613,6 +5887,12 @@
             "value" : "Choose how the calendar is displayed in the notch."
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elija cómo se muestra el calendario en Notch."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5629,6 +5909,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Escolha como o calendário é exibido no notch."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takvimin çentikte nasıl görüntüleneceğini seç."
           }
         }
       }
@@ -5866,6 +6152,12 @@
     "Clear" : {
       "extractionState" : "stale",
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpiar"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6580,6 +6872,12 @@
     },
     "Compact mode" : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo compacto"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6733,6 +7031,12 @@
     },
     "Compression:" : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compresión:"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6768,6 +7072,12 @@
             "value" : "Connects directly to the Apple Music app."
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectar directamente a la aplicación Apple Music."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6801,6 +7111,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Connects directly to the Spotify app."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectar directamente a la aplicación de Spotify."
           }
         },
         "fr" : {
@@ -7067,6 +7383,12 @@
     },
     "Convert" : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Convertir"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7101,6 +7423,12 @@
     },
     "Convert Image" : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Convertir imagen"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7485,6 +7813,12 @@
     },
     "Copy Meeting Link" : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar vínculo de reunión"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7643,6 +7977,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Could not verify Now Playing"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo verificar Reproduciendo Ahora"
           }
         },
         "fr" : {
@@ -8253,6 +8593,12 @@
             "value" : "Custom…"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalizado…"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8625,6 +8971,12 @@
     "Define what happens when you hold the Option key while pressing media keys." : {
       "comment" : "Text displayed in a picker that lets the user select the behavior of the Option key when pressing media keys.",
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Defina lo que sucede cuando mantiene presionada la tecla Opción mientras presiona las teclas de medios."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8635,6 +8987,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Defina o que acontece quando você segura a tecla Opção enquanto pressiona as teclas de mídia."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Media tuşuna basarken option tuşuna basınca ne olacağını seç."
           }
         }
       }
@@ -8766,6 +9124,12 @@
             "value" : "Device Control and Data Access"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Control de dispositivos y acceso de datos"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8782,6 +9146,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Controle do Dispositivo e Acesso aos Dados"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cihaz kontrolü ve Veri erişimi"
           }
         }
       }
@@ -9027,6 +9397,12 @@
     "Dismiss notification" : {
       "comment" : "A button that dismisses a notification.",
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descartar notificación"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9037,6 +9413,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Descartar notificação"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirimi kapat"
           }
         }
       }
@@ -9049,6 +9431,12 @@
             "value" : "Displays"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pantallas"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9059,6 +9447,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Telas"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ekranlar"
           }
         }
       }
@@ -9472,6 +9866,12 @@
     },
     "e.g., 1920" : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por ej. 1920"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9619,6 +10019,12 @@
     },
     "Empty slot" : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Espacio vacío"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9653,6 +10059,12 @@
             "value" : "Enable %@"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Habilitar %@"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9669,6 +10081,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Habilitar %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etkinleştir %@"
           }
         }
       }
@@ -10554,6 +10972,12 @@
     },
     "Enable:" : {
       "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Habilitar:"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10707,6 +11131,12 @@
             "value" : "Events"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eventos"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10717,6 +11147,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Eventos"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Olaylar"
           }
         }
       }
@@ -11060,6 +11496,18 @@
     },
     "Favorite" : {
       "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favourite"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorito"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11105,6 +11553,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Recursos"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Özellikler"
           }
         }
       }
@@ -11960,6 +12414,12 @@
             "state" : "translated",
             "value" : "Gestos"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hareketler"
+          }
         }
       }
     },
@@ -12313,6 +12773,12 @@
             "state" : "translated",
             "value" : "Permita %@ para que os controles de brilho da tecla do teclado integrado possam ser interceptados."
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dahili klavye parlaklık kontrollerinin yakalanabilmesi için %@ Erişilebilirlik izni verin."
+          }
         }
       }
     },
@@ -12329,6 +12795,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Conceder %@ aos banners de notificação do espelhamento."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirim afişlerini yansıtmak için %@ izni verin."
           }
         }
       }
@@ -13570,6 +14042,12 @@
             "state" : "translated",
             "value" : "Estado inativo"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boşta"
+          }
         }
       }
     },
@@ -14381,6 +14859,12 @@
             "state" : "translated",
             "value" : "O brilho do teclado atualmente suporta apenas a fonte embutida."
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klavye parlaklığı şu anda yalnızca yerleşik kaynağı destekliyor."
+          }
         }
       }
     },
@@ -15123,6 +15607,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lunar não está instalado ou não está acessível"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lunar yüklenmemiş ya da ona ulaşılamıyor"
           }
         }
       }
@@ -17608,6 +18098,12 @@
             "state" : "translated",
             "value" : "Noturna"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gecelik"
+          }
         }
       }
     },
@@ -17708,6 +18204,12 @@
             "state" : "translated",
             "value" : "Nenhum aplicativo selecionado"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiçbir uygulama seçilmedi"
+          }
         }
       }
     },
@@ -17724,6 +18226,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sem câmera"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera Yok"
           }
         }
       }
@@ -18503,6 +19011,12 @@
             "state" : "translated",
             "value" : "Entalhe"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çentik"
+          }
         }
       }
     },
@@ -18606,6 +19120,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Entalhe chrome"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çentik çerçevesi"
           }
         }
       }
@@ -19092,6 +19612,12 @@
             "state" : "translated",
             "value" : "Somente Apple displays são suportadas. Em configurações de multi-exibição, o OSD de brilho aparece na tela ativa se suportado ou em outra tela suportada."
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yalnızca Apple ekranları desteklenir. Birden fazla ekranlı kurulumlarda parlaklık OSD'si, destekleniyorsa etkin ekranda, desteklenmiyorsa desteklenen başka bir ekranda görünür."
+          }
         }
       }
     },
@@ -19108,6 +19634,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apenas apps selecionados são espelhados. Adicione aplicativos do seu Mac; nenhuma lista de aplicativos predefinidos é usada."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yalnızca seçilen uygulamaların bildirimleri yansıtılır. Mac'inizdeki uygulamaları ekleyin. Hazır bir uygulama listesi kullanılmaz."
           }
         }
       }
@@ -19244,6 +19776,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abrir um relatório de erro com a sua versão preenchida automaticamente"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sürüm bilgisi otomatik olarak doldurulmuş bir hata raporu açın"
           }
         }
       }
@@ -20123,6 +20661,12 @@
             "state" : "translated",
             "value" : "Abre %@"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@’de Aç"
+          }
         }
       }
     },
@@ -20473,6 +21017,12 @@
             "state" : "translated",
             "value" : "Pausado"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duraklatıldı"
+          }
         }
       }
     },
@@ -20690,6 +21240,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aparência do Player"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oynatıcı Görünümü"
           }
         }
       }
@@ -22610,6 +23166,12 @@
     },
     "Remove from Favorites" : {
       "localizations" : {
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove from Favourites"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23001,6 +23563,12 @@
             "state" : "translated",
             "value" : "Reportar um erro"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bir Hata bildir"
+          }
         }
       }
     },
@@ -23017,6 +23585,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Requer %@. Somente banners visíveis são espelhados."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ izni gerekir. Yalnızca görünen afişler yansıtılır."
           }
         }
       }
@@ -25227,6 +25801,12 @@
             "state" : "translated",
             "value" : "Mostrar próxima notificação na fila"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sıradaki bildirimi göster"
+          }
         }
       }
     },
@@ -26156,6 +26736,12 @@
             "state" : "translated",
             "value" : "Mostrar tempo restante ao invés da duração"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Süre yerine kalan zamanı göster"
+          }
         }
       }
     },
@@ -26459,6 +27045,9 @@
         }
       }
     },
+    "Show source app icon on album art" : {
+      "comment" : "A toggle to show or hide the icon of the app playing media, drawn on the corner of the album art."
+    },
     "Shows a smaller opened notch with just the music player — no tabs, calendar or mirror." : {
       "localizations" : {
         "fr" : {
@@ -26533,6 +27122,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dimensionamento"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boyutlandırma"
           }
         }
       }
@@ -27300,6 +27895,12 @@
             "state" : "translated",
             "value" : "Estável"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sabit"
+          }
         }
       }
     },
@@ -27316,6 +27917,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Estável e Beta vem dos lançamentos oficiais."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kararlı ve Beta sürümleri resmi yayınlardan gelir."
+          }
+        }
+      }
+    },
+    "Switch if preferred display is unavailable" : {
+      "comment" : "A toggle that allows the user to have the app automatically switch to a different display when the preferred display becomes unavailable.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basculer si l'écran préféré est indisponible"
           }
         }
       }
@@ -28827,6 +29445,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Canal de atualização"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Güncelleme kanalı"
           }
         }
       }
@@ -30603,6 +31227,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Janela"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pencere"
           }
         }
       }
