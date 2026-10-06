@@ -17,6 +17,9 @@ struct NotchSettingsView: View {
     @Default(.nonNotchWidth) var nonNotchWidth
     @Default(.openNotchWidth) var openNotchWidth
     @Default(.openNotchHeight) var openNotchHeight
+    // Observed because they set the narrowest allowed width.
+    @Default(.showCalendar) var showCalendar
+    @Default(.showMirror) var showMirror
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
     @Default(.notchHeight) var notchHeight
     @Default(.notchHeightMode) var notchHeightMode
@@ -161,8 +164,8 @@ struct NotchSettingsView: View {
             Text("Open notch size", comment: "Settings section header for the open notch dimensions.")
         } footer: {
             Text(
-                "Applies to the standard layout; compact mode sizes itself to its content.",
-                comment: "Footer explaining that the open notch size setting does not affect compact mode."
+                "Applies to the standard layout; compact mode sizes itself to its content. The notch can be narrower than 560 when the calendar and the mirror are off.",
+                comment: "Footer explaining that the open notch size setting does not affect compact mode, and when it can be narrower."
             )
             .foregroundStyle(.secondary)
             .font(.caption)

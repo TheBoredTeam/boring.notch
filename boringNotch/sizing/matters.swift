@@ -11,7 +11,11 @@ import SwiftUI
 
 let shadowPadding: CGFloat = 20
 let defaultOpenNotchSize: CGSize = .init(width: 640, height: 190)
-let openNotchWidthRange: ClosedRange<CGFloat> = 560...820
+/// The calendar and the mirror each need room beside the player, so the open
+/// notch can only get narrower than 560 when both are off.
+var openNotchWidthRange: ClosedRange<CGFloat> {
+    (Defaults[.showCalendar] || Defaults[.showMirror] ? 560 : 480)...820
+}
 let openNotchHeightRange: ClosedRange<CGFloat> = 180...260
 let nonNotchWidthRange: ClosedRange<CGFloat> = 100...260
 
