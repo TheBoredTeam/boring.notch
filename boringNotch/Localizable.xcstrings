@@ -13398,7 +13398,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Masquer l'encoche des captures d'écran"
+            "value" : "Masquer l'encoche lors des captures d'écran"
           }
         },
         "he" : {
@@ -27046,7 +27046,15 @@
       }
     },
     "Show source app icon on album art" : {
-      "comment" : "A toggle to show or hide the icon of the app playing media, drawn on the corner of the album art."
+      "comment" : "A toggle to show or hide the icon of the app playing media, drawn on the corner of the album art.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher l'icône de l'application source sur la pochette d'album"
+          }
+        }
+      }
     },
     "Shows a smaller opened notch with just the music player — no tabs, calendar or mirror." : {
       "localizations" : {
