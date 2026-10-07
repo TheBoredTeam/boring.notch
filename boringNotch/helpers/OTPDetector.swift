@@ -93,10 +93,11 @@ enum OTPDetector {
     /// Currency amounts, percentages, and clock times shouldn't match even
     /// with a keyword nearby ("OTP delivery fee is $500", "meeting at 4:30").
     private static func isExcluded(_ range: NSRange, in ns: NSString) -> Bool {
-        let before = charBefore(range, in: ns)
-        let after = charAfter(range, in: ns)
+        // Exclusions still apply when punctuation carries combining marks.
+        let before = charBefore(range, in: ns)?.unicodeScalars.first
+        let after = charAfter(range, in: ns)?.unicodeScalars.first
 
-        if let before, "$€£¥₹".contains(before) { return true }
+        if let before, "$€£¥₹".unicodeScalars.contains(before) { return true }
         if let after, after == "%" { return true }
         if let after, after == ":" { return true }
         if let before, before == ":" { return true }
@@ -109,14 +110,17 @@ enum OTPDetector {
     }
 
     private static func charBefore(_ range: NSRange, in ns: NSString) -> Character? {
-        guard range.location > 0 else { return nil }
-        return Character(UnicodeScalar(ns.character(at: range.location - 1))!)
+        guard range.location > 0, range.location <= ns.length else { return nil }
+        // Regex offsets are UTF-16 units; adjacent characters may span several.
+        let adjacent = ns.rangeOfComposedCharacterSequence(at: range.location - 1)
+        return ns.substring(with: adjacent).first
     }
 
     private static func charAfter(_ range: NSRange, in ns: NSString) -> Character? {
         let end = range.location + range.length
-        guard end < ns.length else { return nil }
-        return Character(UnicodeScalar(ns.character(at: end))!)
+        guard end >= 0, end < ns.length else { return nil }
+        let adjacent = ns.rangeOfComposedCharacterSequence(at: end)
+        return ns.substring(with: adjacent).first
     }
 
     private static func hasNearbyKeyword(_ range: NSRange, in ns: NSString, from list: [String] = keywords) -> Bool {

@@ -11,7 +11,6 @@ import Foundation
 /// A service providing common actions for `ShelfItem`s, such as opening, revealing, or copying paths.
 @MainActor
 enum ShelfActionService {
-
     static func open(_ item: ShelfItem) {
         switch item.kind {
         case .file(let bookmarkData):
@@ -45,4 +44,3 @@ enum ShelfActionService {
         ShelfStateViewModel.shared.remove(item)
     }
 }
-

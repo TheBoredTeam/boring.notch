@@ -62,6 +62,7 @@ final class MusicManager: ObservableObject {
     private static let runtimeRecoveryDelay: Duration = .seconds(1)
 
     private var controllerCancellables = Set<AnyCancellable>()
+    private var averageColorTask: Task<Void, Never>?
     private var debounceIdleTask: Task<Void, Never>?
     private var availabilityTask: Task<Void, Never>?
     private var runtimeFailureTask: Task<Void, Never>?
@@ -88,7 +89,7 @@ final class MusicManager: ObservableObject {
     @Published var isPlayerIdle: Bool = true
     @Published var animations: BoringAnimations = .init()
     @Published var avgColor: NSColor = .white
-    @Published var bundleIdentifier: String? = nil
+    @Published var bundleIdentifier: String?
     @Published var audioCaptureBundleIdentifiers: [String] = []
     @Published var songDuration: TimeInterval = 0
     @Published var elapsedTime: TimeInterval = 0
@@ -100,7 +101,7 @@ final class MusicManager: ObservableObject {
     @Published var volumeControlSupported: Bool = true
     @Published var usingAppIconForArtwork: Bool = false
     @Published var canFavoriteTrack: Bool = false
-    
+
     // Lyrics are now managed by LyricsService
     var lyricsService: LyricsService { LyricsService.shared }
     var currentLyrics: String { lyricsService.currentLyrics }
@@ -108,13 +109,13 @@ final class MusicManager: ObservableObject {
     var syncedLyrics: [(time: Double, text: String)] { lyricsService.syncedLyrics }
     @Published var isFavoriteTrack: Bool = false
 
-    private var artworkData: Data? = nil
+    private var artworkData: Data?
 
     // Store last values at the time artwork was changed
     private var lastArtworkTitle: String = ""
     private var lastArtworkArtist: String = ""
     private var lastArtworkAlbum: String = ""
-    private var lastArtworkBundleIdentifier: String? = nil
+    private var lastArtworkBundleIdentifier: String?
 
     @Published var isFlipping: Bool = false
     private var flipWorkItem: DispatchWorkItem?
@@ -539,7 +540,7 @@ final class MusicManager: ObservableObject {
         let shuffleChanged = state.isShuffled != self.isShuffled
         let repeatModeChanged = state.repeatMode != self.repeatMode
         let volumeChanged = state.volume != self.volume
-        
+
         if state.title != self.songTitle {
             self.songTitle = state.title
         }
@@ -563,7 +564,7 @@ final class MusicManager: ObservableObject {
         if playbackRateChanged {
             self.playbackRate = state.playbackRate
         }
-        
+
         if shuffleChanged {
             self.isShuffled = state.isShuffled
         }
@@ -585,7 +586,7 @@ final class MusicManager: ObservableObject {
         if state.isFavorite != self.isFavoriteTrack {
             self.isFavoriteTrack = state.isFavorite
         }
-        
+
         if volumeChanged {
             self.volume = state.volume
         }
@@ -630,7 +631,7 @@ final class MusicManager: ObservableObject {
             }
             return
         }
-        
+
         Task { @MainActor in
             await lyricsService.fetchLyrics(bundleIdentifier: bundleIdentifier, title: title, artist: artist)
         }
@@ -686,6 +687,7 @@ final class MusicManager: ObservableObject {
 
     func updateAlbumArt(newAlbumArt: NSImage) {
         workItem?.cancel()
+        averageColorTask?.cancel()
         withAnimation(.smooth) {
             self.albumArt = newAlbumArt
             if Defaults[.coloredSpectrogram] {
@@ -704,11 +706,17 @@ final class MusicManager: ObservableObject {
     }
 
     func calculateAverageColor() {
-        albumArt.averageColor { [weak self] color in
-            DispatchQueue.main.async {
-                withAnimation(.smooth) {
-                    self?.avgColor = color ?? .white
-                }
+        let artwork = albumArt
+        averageColorTask = Task { [weak self, artwork] in
+            let color = await artwork.averageColor()
+            guard !Task.isCancelled,
+                  let self,
+                  self.albumArt === artwork else {
+                return
+            }
+
+            withAnimation(.smooth) {
+                self.avgColor = color ?? .white
             }
         }
     }
@@ -752,7 +760,7 @@ final class MusicManager: ObservableObject {
             await activeController?.toggleRepeat()
         }
     }
-    
+
     func togglePlay() {
         Task {
             await activeController?.togglePlay()
@@ -780,7 +788,7 @@ final class MusicManager: ObservableObject {
         let newPos = min(max(0, elapsedTime + seconds), songDuration)
         seek(to: newPos)
     }
-    
+
     func setVolume(to level: Double) {
         if let controller = activeController {
             Task {
@@ -797,7 +805,7 @@ final class MusicManager: ObservableObject {
         let workspace = NSWorkspace.shared
         if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleID) {
             let configuration = NSWorkspace.OpenConfiguration()
-            workspace.openApplication(at: appURL, configuration: configuration) { (app, error) in
+            workspace.openApplication(at: appURL, configuration: configuration) { (_, error) in
                 if let error = error {
                     Log.music.error("Failed to launch app with bundle ID: \(bundleID), error: \(error)")
                 } else {
@@ -821,13 +829,12 @@ final class MusicManager: ObservableObject {
             }
         }
     }
-    
-    
+
     func syncVolumeFromActiveApp() async {
         // Check if bundle identifier is valid and if the app is actually running
         guard let bundleID = bundleIdentifier, !bundleID.isEmpty,
               NSWorkspace.shared.runningApplications.contains(where: { $0.bundleIdentifier == bundleID }) else { return }
-        
+
         var script: String?
         if bundleID == MediaAppBundleID.appleMusic {
             script = """
@@ -853,12 +860,12 @@ final class MusicManager: ObservableObject {
             // For unsupported apps, don't sync volume
             return
         }
-        
+
         if let volumeScript = script,
            let result = try? await AppleScriptHelper.execute(volumeScript) {
             let volumeValue = result.int32Value
             let currentVolume = Double(volumeValue) / 100.0
-            
+
             await MainActor.run {
                 if abs(currentVolume - self.volume) > 0.01 {
                     self.volume = currentVolume

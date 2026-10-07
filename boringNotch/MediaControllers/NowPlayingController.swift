@@ -36,7 +36,7 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
 
     func setFavorite(_ favorite: Bool) async {
         let bundleID = playbackState.bundleIdentifier
-        
+
         if bundleID == MediaAppBundleID.appleMusic {
             let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: MediaAppBundleID.appleMusic)
             if !runningApps.isEmpty {
@@ -50,7 +50,7 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
                 try? await AppleScriptHelper.executeVoid(script)
             }
         }
-        
+
         // Update the favorite state locally and fetch updated info
         try? await Task.sleep(for: .milliseconds(150))
         await updatePlaybackInfo()
@@ -144,26 +144,26 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
     func isActive() -> Bool {
         return true
     }
-    
+
     func toggleShuffle() async {
         // MRMediaRemoteSendCommandFunction(6, nil)
         MRMediaRemoteSetShuffleModeFunction(playbackState.isShuffled ? 1 : 3)
         playbackState.isShuffled.toggle()
     }
-    
+
     func toggleRepeat() async {
         // MRMediaRemoteSendCommandFunction(7, nil)
         let newRepeatMode = (playbackState.repeatMode == .off) ? 3 : (playbackState.repeatMode.rawValue - 1)
         playbackState.repeatMode = RepeatMode(rawValue: newRepeatMode) ?? .off
         MRMediaRemoteSetRepeatModeFunction(newRepeatMode)
     }
-    
+
     func setVolume(_ level: Double) async {
         // MediaRemote framework doesn't provide direct volume control for the active audio session
         // As a workaround, try to control the currently active music app directly
         let clampedLevel = max(0.0, min(1.0, level))
         let volumePercentage = Int(clampedLevel * 100)
-        
+
         let bundleID = playbackState.bundleIdentifier
         if !bundleID.isEmpty {
             if bundleID == MediaAppBundleID.appleMusic {
@@ -180,10 +180,10 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
                 }
             }
         }
-        
+
         playbackState.volume = clampedLevel
     }
-    
+
     // MARK: - Runtime Stream Lifecycle
     func startRuntimeStream() {
         guard streamSession == nil else { return }
@@ -237,12 +237,12 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
             sourceBundleIdentifier: payload.bundleIdentifier,
             fallbackBundleIdentifiers: captureBundleFallbackIdentifiers
         )
-        
+
         newPlaybackState.title = payload.title ?? (diff ? self.playbackState.title : "")
         newPlaybackState.artist = payload.artist ?? (diff ? self.playbackState.artist : "")
         newPlaybackState.album = payload.album ?? (diff ? self.playbackState.album : "")
         newPlaybackState.duration = payload.duration ?? (diff ? self.playbackState.duration : 0)
-        
+
         if let elapsedTime = payload.elapsedTime {
             newPlaybackState.currentTime = elapsedTime
         } else if diff {
@@ -256,7 +256,6 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
             newPlaybackState.currentTime = 0
         }
 
-        
         if let shuffleMode = payload.shuffleMode {
             newPlaybackState.isShuffled = shuffleMode != 1
         } else if !diff {
@@ -295,11 +294,10 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
         newPlaybackState.isPlaying = payload.playing ?? (diff ? self.playbackState.isPlaying : false)
         newPlaybackState.bundleIdentifier = resolvedBundleIdentifier
         newPlaybackState.audioCaptureBundleIdentifiers = captureBundleIdentifiers
-        
-        newPlaybackState.volume = payload.volume ?? (diff ? self.playbackState.volume : 0.5)
-        
-        self.playbackState = newPlaybackState
 
+        newPlaybackState.volume = payload.volume ?? (diff ? self.playbackState.volume : 0.5)
+
+        self.playbackState = newPlaybackState
     }
 
     private func fetchFavoriteStateIfSupported() async {

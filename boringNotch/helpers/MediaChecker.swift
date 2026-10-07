@@ -45,7 +45,7 @@ struct MediaChecker: Sendable {
             resources.adapterScriptURL.path,
             resources.adapterFrameworkPath,
             resources.testClientURL.path,
-            "test",
+            "test"
         ]
 
         return try await TimedProcessRunner.exitsSuccessfully(

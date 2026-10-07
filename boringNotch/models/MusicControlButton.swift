@@ -6,6 +6,7 @@
 //
 
 import Defaults
+import Foundation
 
 enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.Serializable {
     case shuffle
@@ -54,29 +55,40 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
     var label: String {
         switch self {
         case .shuffle:
-            return "Shuffle"
+            return String(localized: "Shuffle")
         case .previous:
-            return "Previous"
+            return String(localized: "Previous")
         case .playPause:
-            return "Play/Pause"
+            return String(localized: "Play/Pause")
         case .next:
-            return "Next"
+            return String(localized: "Next")
         case .repeatMode:
-            return "Repeat"
+            return String(localized: "Repeat")
         case .volume:
-            return "Volume"
+            return String(localized: "Volume")
         case .favorite:
-            return "Favorite"
+            return String(localized: "Favorite")
         case .goBackward:
-            return "Backward 15s"
+            return String(localized: "Backward 15s")
         case .goForward:
-            return "Forward 15s"
+            return String(localized: "Forward 15s")
         case .share:
-            return "Share"
+            return String(localized: "Share")
         case .mediaOutput:
-            return "Audio output"
+            return String(localized: "Audio output")
         case .none:
-            return "Empty slot"
+            return String(localized: "Empty slot")
+        }
+    }
+
+    func actionLabel(isPlaying: Bool, isFavorite: Bool) -> String {
+        switch self {
+        case .playPause:
+            return isPlaying ? String(localized: "Pause") : String(localized: "Play")
+        case .favorite:
+            return isFavorite ? String(localized: "Remove from Favorites") : String(localized: "Add to Favorites")
+        default:
+            return label
         }
     }
 
@@ -104,8 +116,8 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
             return "link"
         case .mediaOutput:
             // Placeholder for the settings picker; the live button swaps in
-            // the actual route's glyph (laptop / headphones / AirPods).
-            return "laptopcomputer"
+            // the actual route's glyph (Mac / headphones / AirPods).
+            return "macbook"
         case .none:
             return ""
         }

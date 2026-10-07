@@ -12,7 +12,6 @@ import Foundation
 /// only known provider hosts count, and the structured fields outrank free text so
 /// an unrelated link in a long description cannot beat the organiser's own values.
 enum MeetingLinkDetector {
-
     /// Field priority: `url` then `location` then `notes`. First classified match wins.
     static func detect(url: URL?, location: String?, notes: String?) -> MeetingLink? {
         if let url, let link = classify(url) { return link }

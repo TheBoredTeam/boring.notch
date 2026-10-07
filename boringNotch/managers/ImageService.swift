@@ -32,7 +32,6 @@ final class ImageService: ImageServiceProtocol {
     }
 
     private func performLegacyCacheCleanupIfNeeded() {
-
         if !Defaults[.didClearLegacyURLCacheV1] {
             URLCache.shared.removeAllCachedResponses()
             Defaults[.didClearLegacyURLCacheV1] = true

@@ -70,7 +70,6 @@ extension EventType {
 }
 
 extension EventModel {
-    
     var eventStatus: EventStatus {
         if start > Date() {
             return .upcoming
@@ -80,13 +79,12 @@ extension EventModel {
             return .ended
         }
     }
-        
+
     var attendance: AttendanceStatus { if case .event(let attendance) = type { return attendance } else { return .unknown } }
 
     var isMeeting: Bool { !participants.isEmpty }
 
     func calendarAppURL() -> URL? {
-
         guard let id = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
             return nil
         }

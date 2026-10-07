@@ -47,7 +47,7 @@ struct BoringHeader: View {
                         )
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
                     } else {
-                        if Defaults[.showMirror] {
+                        if Defaults[.showMirror] && coordinator.currentView == .home {
                             Button(action: {
                                 vm.toggleCameraPreview()
                             }) {
@@ -68,7 +68,6 @@ struct BoringHeader: View {
                                 DispatchQueue.main.async {
                                     SettingsWindowController.shared.showWindow()
                                 }
-                                
                             }) {
                                 Capsule()
                                     .fill(.black)
@@ -120,5 +119,5 @@ struct BoringHeader: View {
 }
 
 #Preview {
-    BoringHeader().environmentObject(BoringViewModel())
+    BoringHeader().environmentObject(BoringViewModel(camera: CameraModel()))
 }

@@ -5,7 +5,6 @@
 //  Created by Anmol Malhotra on 2026-02-24.
 //
 
-import AVFoundation
 import SwiftUI
 import Defaults
 
@@ -13,7 +12,7 @@ struct WebcamSettingsView: View {
     @Default(.showMirror) private var showMirror
     @Default(.isMirrored) private var isMirrored
     @Default(.mirrorShape) private var mirrorShape
-    @ObservedObject private var webcamManager = WebcamManager.shared
+    let camera: CameraModel
 
     var body: some View {
         Form {
@@ -21,25 +20,25 @@ struct WebcamSettingsView: View {
                 Defaults.Toggle(key: .showMirror) {
                     Text("Enable boring mirror")
                 }
-                .disabled(!checkVideoInput())
+                .disabled(!camera.cameraAvailable)
 
                 Defaults.Toggle(key: .isMirrored) {
                     Text("Flip video")
                 }
-                .disabled(!showMirror || !checkVideoInput())
+                .disabled(!showMirror || !camera.cameraAvailable)
 
                 Picker("Camera", selection: Binding(
-                    get: { webcamManager.selectedCameraID },
-                    set: { webcamManager.setSelectedCamera(id: $0) }
+                    get: { camera.selection },
+                    set: { camera.selectCamera($0) }
                 )) {
                     Text("Automatic")
-                        .tag(nil as String?)
-                    ForEach(webcamManager.availableCameras, id: \.uniqueID) { camera in
-                        Text(camera.localizedName)
-                            .tag(Optional(camera.uniqueID))
+                        .tag(CameraSelection.automatic)
+                    ForEach(camera.availableCameras) { device in
+                        Text(device.name)
+                            .tag(CameraSelection.device(device.id))
                     }
                 }
-                .disabled(!showMirror || !checkVideoInput())
+                .disabled(!showMirror || !camera.cameraAvailable)
 
                 Picker("Frame shape", selection: $mirrorShape) {
                     Text("Circle")
@@ -47,9 +46,9 @@ struct WebcamSettingsView: View {
                     Text("Square")
                         .tag(MirrorShapeEnum.rectangle)
                 }
-                .disabled(!showMirror || !checkVideoInput())
+                .disabled(!showMirror || !camera.cameraAvailable)
             } header: {
-                Text("Mirror")
+                Text("General")
             }
         }
         .formStyle(.grouped)
@@ -57,11 +56,7 @@ struct WebcamSettingsView: View {
         .padding()
         .navigationTitle("Mirror")
         .onAppear {
-            webcamManager.checkCameraAvailability()
+            camera.refresh()
         }
-    }
-
-    private func checkVideoInput() -> Bool {
-        AVCaptureDevice.default(for: .video) != nil
     }
 }

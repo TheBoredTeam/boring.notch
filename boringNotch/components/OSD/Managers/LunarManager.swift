@@ -12,13 +12,13 @@ import SwiftUI
 @Observable
 final class LunarManager {
     static let shared = LunarManager()
-    
+
     private(set) var isLunarAvailable: Bool = false
     private(set) var isListening: Bool = false
-    
+
     private var lastOSDHidden: Bool?
     private var eventListener: LunarEventListener?
-    
+
     private init() {
         refreshAvailability()
         NotificationCenter.default.addObserver(
@@ -31,9 +31,9 @@ final class LunarManager {
             }
         }
     }
-    
+
     // MARK: - Availability
-    
+
     func refreshAvailability() {
         Task.detached { [weak self] in
             let available = await XPCHelperClient.shared.isLunarAvailable()
@@ -42,9 +42,9 @@ final class LunarManager {
             }
         }
     }
-    
+
     // MARK: - Listening
-    
+
     func startListening() {
         if isListening { return }
 
@@ -60,7 +60,7 @@ final class LunarManager {
             }
         }
     }
-    
+
     func stopListening() {
         Task.detached { [weak self] in
             await XPCHelperClient.shared.stopLunarEventStream()
@@ -69,7 +69,7 @@ final class LunarManager {
             }
         }
     }
-    
+
     func configureLunarOSD(hide: Bool) {
         guard hide != lastOSDHidden else { return }
         lastOSDHidden = hide
@@ -77,13 +77,13 @@ final class LunarManager {
     }
 
     // MARK: - Brightness Handling
-    
+
     private func handleBrightnessChange(display: Int, brightness: Double) {
         let targetScreenUUID = NSScreen.screens.first { screen in
             guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber else { return false }
             return CGDirectDisplayID(number.uint32Value) == CGDirectDisplayID(display)
         }?.displayUUID
-        
+
         let isSubZero = brightness < 0
         let isXDR = brightness > 1.0
 
@@ -100,7 +100,7 @@ final class LunarManager {
         }
 
         let accentColor: Color? = switch true {
-            case isSubZero: Color(red: 1,    green: 0.443, blue: 0.509)
+            case isSubZero: Color(red: 1, green: 0.443, blue: 0.509)
             case isXDR:     Color(red: 0.58, green: 0.647, blue: 0.78)
             default:        nil
         }
@@ -115,7 +115,7 @@ final class LunarManager {
             ))
         }
     }
-    
+
     fileprivate func handleLunarEvent(_ event: BNLunarBrightnessEvent) {
         handleBrightnessChange(display: event.display, brightness: event.brightness)
     }
