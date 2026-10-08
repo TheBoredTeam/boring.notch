@@ -15,4 +15,6 @@ extension KeyboardShortcuts.Name {
     static let increaseBacklight = Self("increaseBacklight", default: .init(.f2, modifiers: [.command]))
     static let toggleSneakPeek = Self("toggleSneakPeek", default: .init(.h, modifiers: [.command, .shift]))
     static let toggleNotchOpen = Self("toggleNotchOpen", default: .init(.i, modifiers: [.command, .shift]))
+    // No default binding, so it can't clash with anything; the user can record one in Settings > Shortcuts.
+    static let togglePomodoro = Self("togglePomodoro")
 }
