@@ -13,6 +13,12 @@ import KeyboardShortcuts
 import SwiftUI
 import SwiftUIIntrospect
 
+enum InlineMusicPeekLayout {
+    static func fontSize(for height: CGFloat) -> CGFloat {
+        min(13, max(8, height * 0.8))
+    }
+}
+
 @MainActor
 struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
@@ -680,15 +686,18 @@ struct ContentView: View {
 
     /// Space reserved for the title (left of the cutout) and artist (right).
     private let inlineMusicPeekLabelWidth: CGFloat = 110
+    private var inlineMusicPeekFont: Font {
+        .system(size: InlineMusicPeekLayout.fontSize(for: displayClosedNotchHeight))
+    }
 
     @ViewBuilder
     func MusicLiveActivity() -> some View {
         HStack(spacing: 0) {
             // Closed-mode album art: scale padding and corner radius according to cornerRadiusScaleFactor
-            let baseArtSize = displayClosedNotchHeight - 12
+            let baseArtSize = max(0, displayClosedNotchHeight - 12)
             let scaledArtSize: CGFloat = {
                 if let scale = cornerRadiusScaleFactor {
-                    return displayClosedNotchHeight - 12 * scale
+                    return max(0, displayClosedNotchHeight - 12 * scale)
                 }
                 return baseArtSize
             }()
@@ -728,10 +737,13 @@ struct ContentView: View {
                             && coordinator.expandingView.type == .music {
                             MarqueeText(
                                 musicManager.songTitle,
+                                font: inlineMusicPeekFont,
+                                nsFont: .caption2,
                                 color: Defaults[.coloredSpectrogram]
                                     ? Color(nsColor: musicManager.avgColor) : Color.gray,
                                 delayDuration: 0.4,
-                                frameWidth: inlineMusicPeekLabelWidth
+                                frameWidth: inlineMusicPeekLabelWidth,
+                                maxHeight: displayClosedNotchHeight
                             )
                             .opacity(
                                 (coordinator.expandingView.show
@@ -741,9 +753,16 @@ struct ContentView: View {
                             Spacer(minLength: vm.closedNotchSize.width)
                             // Song Artist
                             Text(musicManager.artistName)
+                                .font(inlineMusicPeekFont)
                                 .lineLimit(1)
                                 .truncationMode(.tail)
-                                .frame(width: inlineMusicPeekLabelWidth, alignment: .trailing)
+                                .allowsTightening(true)
+                                .frame(
+                                    width: inlineMusicPeekLabelWidth,
+                                    height: displayClosedNotchHeight,
+                                    alignment: .trailing
+                                )
+                                .clipped()
                                 .foregroundStyle(
                                     Defaults[.coloredSpectrogram]
                                         ? Color(nsColor: musicManager.avgColor)
