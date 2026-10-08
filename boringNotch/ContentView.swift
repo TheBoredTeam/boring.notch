@@ -22,6 +22,7 @@ struct ContentView: View {
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
     @ObservedObject var notificationManager = SystemNotificationManager.shared
+    @ObservedObject var pomodoroManager = PomodoroManager.shared
     /// Which entry of the closed-notch activity stack is on top.
     @State private var activityIndex: Int = 0
     @State private var hoverTask: Task<Void, Never>?
@@ -38,6 +39,8 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.enablePomodoro) private var enablePomodoro
+    @Default(.pomodoroShowInClosedNotch) private var pomodoroShowInClosedNotch
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -105,6 +108,10 @@ struct ContentView: View {
 
         if let notification = notificationManager.activeNotification {
             items.append(.notification(notification))
+        }
+
+        if enablePomodoro && pomodoroShowInClosedNotch && pomodoroManager.isActive {
+            items.append(.pomodoro)
         }
 
         let musicIsShowing = (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
@@ -204,6 +211,8 @@ struct ContentView: View {
             switch activity {
             case .notification:
                 chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+            case .pomodoro:
+                chinWidth += 2 * PomodoroLiveActivity.sideWidth
             case .music:
                 chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
                 // The inline song-change peek widens the pill itself, so the
@@ -475,6 +484,8 @@ struct ContentView: View {
                               switch item {
                               case .notification(let notification):
                                   NotificationLiveActivity(notification: notification)
+                              case .pomodoro:
+                                  PomodoroLiveActivity()
                               case .music:
                                   MusicLiveActivity()
                                       .frame(alignment: .center)
@@ -580,6 +591,8 @@ struct ContentView: View {
                                 dropInteraction: vm.dropInteraction,
                                 animation: vm.animation
                             )
+                        case .pomodoro:
+                            PomodoroView()
                         }
                     }
                 }
