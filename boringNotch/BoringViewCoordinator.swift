@@ -25,8 +25,8 @@ struct SneakPeekState {
     var type: SneakContentType = .music
     var value: CGFloat = 0
     var icon: String = ""
-    var accent: Color? = nil
-    var targetScreenUUID: String? = nil
+    var accent: Color?
+    var targetScreenUUID: String?
 }
 
 enum BrowserType {
@@ -71,10 +71,10 @@ final class BoringViewCoordinator: ObservableObject {
             }
         }
     }
-    
+
     // Legacy storage for migration
     @AppStorage("preferred_screen_name") private var legacyPreferredScreenName: String?
-    
+
     // New UUID-based storage
     @AppStorage("preferred_screen_uuid") var preferredScreenUUID: String? {
         didSet {
@@ -114,7 +114,7 @@ final class BoringViewCoordinator: ObservableObject {
             // No legacy value, use main screen
             preferredScreenUUID = NSScreen.main?.displayUUID
         }
-        
+
         selectedScreenUUID = preferredScreenUUID ?? NSScreen.main?.displayUUID ?? ""
         // Observe changes to accessibility authorization and react accordingly
         accessibilityObserver = NotificationCenter.default.addObserver(
@@ -123,8 +123,17 @@ final class BoringViewCoordinator: ObservableObject {
             queue: .main
         ) { _ in
             Task { @MainActor in
-                if Defaults[.osdReplacement] {
-                    await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+                let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                if authorized {
+                    if Defaults[.osdReplacement] {
+                        await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+                    }
+                    if Defaults[.notificationLiveActivity] {
+                        await SystemNotificationManager.shared.start()
+                    }
+                } else {
+                    MediaKeyInterceptor.shared.stop()
+                    SystemNotificationManager.shared.stop()
                 }
             }
         }
@@ -165,7 +174,7 @@ final class BoringViewCoordinator: ObservableObject {
                     } else {
                         MediaKeyInterceptor.shared.stop()
                     }
-                    
+
                     self.applyOSDSources()
                 }
             }
@@ -191,9 +200,6 @@ final class BoringViewCoordinator: ObservableObject {
                 Task { @MainActor in
                     if change.newValue {
                         await SystemNotificationManager.shared.start()
-                        if !SystemNotificationManager.shared.isWatching {
-                            Defaults[.notificationLiveActivity] = false
-                        }
                     } else {
                         SystemNotificationManager.shared.stop()
                     }
@@ -213,7 +219,7 @@ final class BoringViewCoordinator: ObservableObject {
             self.applyOSDSources()
         }
     }
-    
+
     // MARK: - Per-Screen Sneak Peek Management
 
     // Dictionary to hold sneak peek state for each screen UUID
@@ -232,14 +238,14 @@ final class BoringViewCoordinator: ObservableObject {
                 return
             }
         }
-        
+
         Task { @MainActor in
             // Helper to update state for a specific UUID
             @MainActor
             func updateState(for uuid: String) {
                 // If we don't have a state for this screen yet, initialize it
                 var state = self.sneakPeekStates[uuid] ?? SneakPeekState(targetScreenUUID: uuid)
-                
+
                 withAnimation(.smooth) {
                     state.show = status
                     state.type = type
@@ -249,7 +255,7 @@ final class BoringViewCoordinator: ObservableObject {
                     state.targetScreenUUID = uuid // Ensure UUID is set
                     self.sneakPeekStates[uuid] = state
                 }
-                
+
                 if status {
                     self.scheduleSneakPeekHide(for: uuid, duration: duration)
                 } else {
@@ -257,7 +263,7 @@ final class BoringViewCoordinator: ObservableObject {
                     self.sneakPeekTasks[uuid] = nil
                 }
             }
-            
+
             if let targetUUID = targetScreenUUID {
                 // Update specific screen
                 updateState(for: targetUUID)
@@ -327,17 +333,17 @@ final class BoringViewCoordinator: ObservableObject {
         guard let uuid = screenUUID else { return false }
         return sneakPeekStates[uuid]?.show == true
     }
-    
+
     var isAnySneakPeekShowing: Bool {
         return sneakPeekStates.values.contains { $0.show }
     }
-    
+
     // Helper to get state safely for binding/reading
     func sneakPeekState(for screenUUID: String?) -> SneakPeekState {
         guard let uuid = screenUUID else { return SneakPeekState() }
         return sneakPeekStates[uuid] ?? SneakPeekState(targetScreenUUID: uuid)
     }
-    
+
     // Helper to get binding for SwiftUI views
     func binding(for screenUUID: String?) -> Binding<SneakPeekState> {
         Binding(
@@ -358,7 +364,7 @@ final class BoringViewCoordinator: ObservableObject {
         sneakPeekTasks[screenUUID] = Task { [weak self] in
             try? await Task.sleep(for: .seconds(duration))
             guard let self = self, !Task.isCancelled else { return }
-            
+
             await MainActor.run {
                 withAnimation {
                     // We only want to hide it, not reset everything instantly which might cause glitches
@@ -366,7 +372,7 @@ final class BoringViewCoordinator: ObservableObject {
                          state.show = false
                          // Optional: reset type to something default if needed, but keeping last state is often fine until next show
                          // keeping original logic:
-                         state.type = .music 
+                         state.type = .music
                          self.sneakPeekStates[screenUUID] = state
                     }
                 }
@@ -408,7 +414,7 @@ final class BoringViewCoordinator: ObservableObject {
             }
         }
     }
-    
+
     func showEmpty() {
         currentView = .home
     }

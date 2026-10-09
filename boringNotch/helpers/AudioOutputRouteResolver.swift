@@ -38,7 +38,7 @@ final class AudioOutputRouteResolver {
         case .airPodsMax: return "airpodsmax"
         case .wiredHeadphones, .bluetoothHeadphones: return "headphones"
         case .externalSpeaker: return "hifispeaker"
-        case .builtInSpeaker, .unknown: return "laptopcomputer"
+        case .builtInSpeaker, .unknown: return "macbook"
         }
     }
 

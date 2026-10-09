@@ -106,7 +106,7 @@ final class CalendarManager: ObservableObject {
             Log.calendar.debug("Unknown authorization status")
         }
     }
-    
+
     func checkReminderAuthorization() async {
         let status = EKEventStore.authorizationStatus(for: .reminder)
         DispatchQueue.main.async {
@@ -135,7 +135,6 @@ final class CalendarManager: ObservableObject {
             Log.calendar.debug("Unknown authorization status")
         }
     }
-        
 
     func updateSelectedCalendars() {
         // Populate selectedCalendarIDs based on Defaults calendar selection state
@@ -199,7 +198,7 @@ final class CalendarManager: ObservableObject {
         )
         self.events = eventsResult
     }
-    
+
     func setReminderCompleted(reminderID: String, completed: Bool) async {
         await calendarService.setReminderCompleted(reminderID: reminderID, completed: completed)
         // Refresh events after updating

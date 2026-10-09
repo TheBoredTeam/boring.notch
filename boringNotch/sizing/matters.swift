@@ -37,11 +37,11 @@ enum MusicPlayerImageSizes {
     if let uuid = screenUUID {
         selectedScreen = NSScreen.screen(withUUID: uuid)
     }
-    
+
     if let screen = selectedScreen {
         return screen.frame
     }
-    
+
     return nil
 }
 
@@ -52,7 +52,7 @@ enum MusicPlayerImageSizes {
             return safeAreaTop
         }
     }
-    
+
     return 38
 }
 
@@ -87,6 +87,23 @@ enum MusicPlayerImageSizes {
     }
 
     return defaultMenuBarHeight(hasNotch: hasNotch)
+}
+
+/// Normalizes custom non-notch heights saved by versions that allowed 1...14 pt.
+/// Zero remains a supported setting; the current slider jumps from 0 directly to 15.
+enum LegacyNonNotchHeightMigration {
+    static func migratedHeight(_ height: CGFloat) -> CGFloat {
+        guard height > 0, height < 15 else { return height }
+        return 15
+    }
+
+    @MainActor
+    static func applyIfNeeded() {
+        let currentHeight = Defaults[.nonNotchHeight]
+        let newHeight = migratedHeight(currentHeight)
+        guard newHeight != currentHeight else { return }
+        Defaults[.nonNotchHeight] = newHeight
+    }
 }
 
 @MainActor func syncNotchHeightIfNeeded() {
@@ -152,8 +169,7 @@ enum MusicPlayerImageSizes {
     if let screen = selectedScreen {
         // Calculate and set the exact width of the notch
         if let topLeftNotchpadding: CGFloat = screen.auxiliaryTopLeftArea?.width,
-           let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width
-        {
+           let topRightNotchpadding: CGFloat = screen.auxiliaryTopRightArea?.width {
             notchWidth = screen.frame.width - topLeftNotchpadding - topRightNotchpadding + 4
         }
         notchHeight = screen.safeAreaInsets.top > 0 ? Defaults[.notchHeight] : Defaults[.nonNotchHeight]

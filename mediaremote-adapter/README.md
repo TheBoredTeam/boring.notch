@@ -21,14 +21,19 @@ as a stream of JSON lines on stdout.
 
 ## Pinned version
 
-- **Upstream tag: `v0.7.2`**
-  (commit [`dc3ff17`](https://github.com/ungive/mediaremote-adapter/commit/dc3ff1740e2035a2490ec67d3b33322449af780a))
-- Vendored-in commit: `61487af` ("Update MediaRemoteAdapter", 2025-08-14)
-- `mediaremote-adapter.pl` is byte-identical to the upstream `bin/mediaremote-adapter.pl` at that tag.
+- **Upstream tag: `v0.7.7`**
+  (commit [`e3ff502`](https://github.com/ungive/mediaremote-adapter/commit/e3ff502))
+- Previously pinned at `v0.7.2` (commit `61487af`, 2025-08-14); artifacts were
+  updated to an untagged post-`v0.7.3` build in `1600df61` before this pin was
+  corrected.
+- `mediaremote-adapter.pl` is byte-identical to the upstream
+  `bin/mediaremote-adapter.pl` at that tag.
 - The framework binary reports `CFBundleShortVersionString = 0.1`
   (upstream does not sync this with release tags; the script match is the
   authoritative pin).
-- The binaries are ad-hoc signed; see "Signing caveat" below.
+- The binaries are built from upstream source with CMake
+  (`cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build`) and
+  ad-hoc signed; see "Signing caveat" below.
 
 ## Updating to a new upstream release
 

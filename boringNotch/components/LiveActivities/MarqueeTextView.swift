@@ -29,11 +29,11 @@ struct MarqueeText: View {
     let color: Color
     let delayDuration: Double
     let frameWidth: CGFloat
-    
+
     @State private var animate = false
     @State private var textSize: CGSize = .zero
     @State private var offset: CGFloat = 0
-    
+
     init(_ text: String, font: Font = .body, nsFont: NSFont.TextStyle = .body, color: Color = .primary, delayDuration: Double = 3.0, frameWidth: CGFloat) {
         self.text = text
         self.font = font
@@ -42,13 +42,13 @@ struct MarqueeText: View {
         self.delayDuration = delayDuration
         self.frameWidth = frameWidth
     }
-    
+
     private var needsScrolling: Bool {
         textSize.width > frameWidth
     }
-    
+
     var body: some View {
-        GeometryReader { geometry in
+        GeometryReader { _ in
             ZStack(alignment: .leading) {
                 HStack(spacing: 20) {
                     Text(text)
@@ -72,11 +72,10 @@ struct MarqueeText: View {
                     self.textSize = CGSize(width: size.width / 2, height: NSFont.preferredFont(forTextStyle: nsFont).pointSize)
                     self.animate = false
                     self.offset = 0
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.01){
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
                         if needsScrolling {
                             self.animate = true
                             self.offset = -(textSize.width + 10)
-                            
                         }
                     }
                 }
@@ -85,7 +84,6 @@ struct MarqueeText: View {
             .clipped()
         }
         .frame(height: textSize.height * 1.3)
-        
     }
 }
 

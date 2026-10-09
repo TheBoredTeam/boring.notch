@@ -18,6 +18,9 @@
   </a>
 </p>
 
+<p align="center">
+  <a href="https://trendshift.io/repositories/14815?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-14815" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/14815" alt="TheBoredTeam%2Fboring.notch |    Trendshift" width="250" height="55"/></a>
+</p>
 <!--Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen! -->
 
 Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch the star of the show! Say goodbye to boring status bars: with Boring Notch, your notch transforms into a dynamic music control center, complete with a vibrant visualizer and all the essential music controls you need. But that’s just the start! Boring Notch also offers calendar integration, a handy file shelf with sharing support, a complete MacOS OSD replacement and more!
@@ -49,9 +52,15 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 
 ### Option 1: Download and Install Manually
 
-<a href="https://github.com/TheBoredTeam/boring.notch/releases/latest/download/boringNotch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
+<a href="https://github.com/TheBoredTeam/boring.notch/releases/latest/download/Boring%20Notch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
 
-Once downloaded, open the `.dmg` and move **Boring Notch** to your `/Applications` folder.
+1. Open the downloaded `Boring Notch.dmg` file.
+2. Drag **Boring Notch** onto the **Applications** folder in the installer window.
+3. Wait for the copy to finish.
+4. Eject the Boring Notch disk image in Finder.
+5. Open **Boring Notch** from your **Applications** folder.
+
+The installed app stays available after you eject the disk image. Opening the app inside the installer does not install it.
 
 > [!IMPORTANT]
 > Release builds are not notarized with Apple (macOS will warn you that Boring Notch is from an unidentified developer on first launch). This is expected behavior.
@@ -67,7 +76,7 @@ This is the quickest and easiest method. It only requires a single command and w
 After moving Boring Notch to your Applications folder, run:
 
 ```bash
-xattr -dr com.apple.quarantine /Applications/boringNotch.app
+xattr -dr com.apple.quarantine "/Applications/Boring Notch.app"
 ```
 
 Then open the app normally.
@@ -193,5 +202,4 @@ For a full list of licenses and attributions, please see the [Third-Party Licens
 
 - **SwiftUI**: For making us look like coding wizards.
 - **You**: For being awesome and checking out **boring.notch**!
-
 

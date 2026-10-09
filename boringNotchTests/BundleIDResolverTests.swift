@@ -60,6 +60,25 @@ final class BundleIDResolverTests: XCTestCase {
         )
     }
 
+    func testBundleIDNormalizationMapsHelperProcessesToLaunchableApps() {
+        XCTAssertEqual(
+            normalizeBundleIdentifier(" com.google.Chrome.helper "),
+            "com.google.Chrome"
+        )
+        XCTAssertEqual(
+            normalizeBundleIdentifier("com.apple.SafariTechnologyPreview.AllowSiteLists"),
+            "com.apple.SafariTechnologyPreview"
+        )
+        XCTAssertEqual(
+            normalizeBundleIdentifier("com.apple.WebKit.Networking"),
+            "com.apple.Safari"
+        )
+        XCTAssertEqual(
+            normalizeBundleIdentifier("com.example.Notifier"),
+            "com.example.Notifier"
+        )
+    }
+
     // MARK: - Direct probe
 
     /// `<dir>/<Name>.app` exists: the probe must hit before any directory
@@ -134,5 +153,47 @@ final class BundleIDResolverTests: XCTestCase {
 
         try makeFixtureApp(named: name, bundleID: "com.test.late.\(name)")
         XCTAssertNil(resolver.bundleID(forAppNamed: name, searchDirectories: [fixtureRoot]))
+    }
+}
+
+final class SystemNotificationAppTargetTests: XCTestCase {
+    func testHelperBundleIDResolvesToOneLaunchTarget() {
+        let notification = SystemNotification(
+            id: "helper",
+            appName: "Chrome",
+            bundleID: "com.google.Chrome.helper",
+            title: nil,
+            subtitle: nil,
+            body: nil,
+            receivedAt: Date()
+        )
+
+        XCTAssertEqual(
+            SystemNotificationManager.bundleIDCandidates(
+                for: notification,
+                resolvedBundleID: "com.google.Chrome"
+            ),
+            ["com.google.Chrome"]
+        )
+    }
+
+    func testResolvedAppRemainsAFallbackForUnrecognizedBundleIDs() {
+        let notification = SystemNotification(
+            id: "agent",
+            appName: "Notifier",
+            bundleID: "com.example.NotificationAgent",
+            title: nil,
+            subtitle: nil,
+            body: nil,
+            receivedAt: Date()
+        )
+
+        XCTAssertEqual(
+            SystemNotificationManager.bundleIDCandidates(
+                for: notification,
+                resolvedBundleID: "com.example.Notifier"
+            ),
+            ["com.example.NotificationAgent", "com.example.Notifier"]
+        )
     }
 }

@@ -24,7 +24,7 @@ final class AppleScriptHelper {
             }
         }
     }
-    
+
     class func executeVoid(_ scriptText: String) async throws {
         _ = try await execute(scriptText)
     }

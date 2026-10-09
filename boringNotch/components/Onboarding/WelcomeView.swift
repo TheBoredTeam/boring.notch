@@ -9,21 +9,19 @@ import SwiftUI
 import SwiftUIIntrospect
 
 struct WelcomeView: View {
-    var onGetStarted: (() -> Void)? = nil
+    var onGetStarted: (() -> Void)?
     var body: some View {
         ZStack(alignment: .top) {
             ZStack {
                 Image("spotlight")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .resizable().scaledToFit()
                     .padding(.bottom)
                     .blur(radius: 3)
                     .offset(y: -5)
                     .background(SparkleView().opacity(0.6))
                 VStack(spacing: 8) {
                     Image("logo2")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
+                        .resizable().scaledToFit()
                         .frame(width: 100, height: 100)
                         .padding(.bottom, 8)
                     Text("Boring Notch")
@@ -49,7 +47,6 @@ struct WelcomeView: View {
                             .padding(.bottom, 30)
                     }
 
-
                     Button {
                         onGetStarted?()
                     } label: {
@@ -61,10 +58,9 @@ struct WelcomeView: View {
                 }
                 .padding(.top)
             }
-            
+
             Image("theboringteam")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+                .resizable().scaledToFit()
                 .frame(height: 22)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
                 .padding()

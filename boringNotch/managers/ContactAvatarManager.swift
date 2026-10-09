@@ -22,7 +22,7 @@ import SwiftUI
 final class ContactAvatarManager: ObservableObject {
     static let shared = ContactAvatarManager()
 
-    private nonisolated(unsafe) let store = CNContactStore()
+    nonisolated(unsafe) private let store = CNContactStore()
     private var isAuthorized = false
     /// Exact-name lookups are cheap to repeat but the store fetch isn't;
     /// misses are remembered too so a name that doesn't resolve isn't
@@ -50,7 +50,7 @@ final class ContactAvatarManager: ObservableObject {
 
     /// Runs a CNContactStore fetch off the main actor so the main thread
     /// suspends instead of blocking on the Contacts XPC service.
-    private nonisolated func fetchContacts(
+    nonisolated private func fetchContacts(
         matching predicate: NSPredicate,
         keysToFetch keys: [CNKeyDescriptor]
     ) async -> [CNContact]? {
@@ -145,8 +145,7 @@ struct PersonAvatarView: View {
         Group {
             if let photo = contacts.photo(forSenderNamed: name) {
                 Image(nsImage: photo)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
+                    .resizable().scaledToFill()
             } else {
                 ZStack {
                     monogramColor

@@ -12,6 +12,11 @@ struct ShortcutsSettingsView: View {
     var body: some View {
         Form {
             Section {
+                KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
+            } header: {
+                Text("Notch")
+            }
+            Section {
                 KeyboardShortcuts.Recorder("Toggle Sneak Peek:", name: .toggleSneakPeek)
             } header: {
                 Text("Media")
@@ -22,9 +27,6 @@ struct ShortcutsSettingsView: View {
                 .multilineTextAlignment(.trailing)
                 .foregroundStyle(.secondary)
                 .font(.caption)
-            }
-            Section {
-                KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
             }
         }
         .accentColor(.effectiveAccent)

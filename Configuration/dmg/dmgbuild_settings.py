@@ -7,13 +7,20 @@ import os
 #  - DMG_BACKGROUND: absolute path to the background image to use
 
 APP_PATH = os.environ.get('DMG_APP_PATH')
-VOLUME_NAME = os.environ.get('DMG_VOLUME_NAME', 'boringNotch')
+VOLUME_NAME = os.environ.get('DMG_VOLUME_NAME', 'Boring Notch')
 BACKGROUND = os.environ.get('DMG_BACKGROUND', '')
 BADGE_ICON = os.environ.get('DMG_BADGE_ICON', '')
 
-# If DMG_BACKGROUND not provided, default to the hiDPI TIFF in .background.
+def default_background():
+    # dmgbuild executes this file without defining __file__. The compiled
+    # function still records the settings filename, including for `-s` paths.
+    settings_file = default_background.__code__.co_filename
+    settings_dir = os.path.dirname(os.path.abspath(settings_file))
+    return os.path.join(settings_dir, '.background', 'background.tiff')
+
+
 if not BACKGROUND:
-    base = os.path.join(os.path.dirname(__file__), '.background', 'background.tiff')
+    BACKGROUND = default_background()
 
 # Basic DMG metadata
 volume_name = VOLUME_NAME
@@ -24,7 +31,7 @@ compression_level = 9
 files = [APP_PATH] if APP_PATH else []
 symlinks = {'Applications': '/Applications'}
 
-# Background image path (dmgbuild will copy this file into the DMG's .background)
+# Background image path (dmgbuild copies it into the DMG as .background.tiff)
 background = BACKGROUND
 
 
@@ -35,7 +42,7 @@ window_rect = ((0, 0), (660, 400))
 icon_size = 128
 
 # Icon locations: map filename (or bundle name) -> (x, y) in window coords
-app_basename = os.path.basename(APP_PATH) if APP_PATH else 'boringNotch.app'
+app_basename = os.path.basename(APP_PATH) if APP_PATH else 'Boring Notch.app'
 icon_locations = {
     app_basename: (150, 180),
     'Applications': (510, 180),

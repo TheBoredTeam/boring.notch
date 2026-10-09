@@ -1,0 +1,20 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Boring Notch</title>
+        <item>
+            <title>2.8-beta.0</title>
+            <pubDate>Fri, 09 Oct 2026 03:28:42 +0000</pubDate>
+            <link>https://github.com/TheBoredTeam/boring.notch/commits/dev</link>
+            <sparkle:channel>dev</sparkle:channel>
+            <sparkle:version>296</sparkle:version>
+            <sparkle:shortVersionString>2.8-beta.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h2>Nightly dev</h2>
+<p>Commit: <code>5886891afa78f5a04ca91d706a04286c97eb3b01</code></p>
+<p>Source: <a href="https://github.com/TheBoredTeam/boring.notch/commit/5886891afa78f5a04ca91d706a04286c97eb3b01">View commit</a></p>
+]]></description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/nightly/boringNotch-nightly.dmg" length="10667344" type="application/octet-stream" sparkle:edSignature="/yeSCVPZNYrtY+tZs3Dhpn64Pyk+wh7T37FrFqx1uFelj7h+B6Q5AoonUS4V3dngUbeBDx0uBlwyjU7O1lOBCQ=="/>
+        </item>
+    </channel>
+</rss>

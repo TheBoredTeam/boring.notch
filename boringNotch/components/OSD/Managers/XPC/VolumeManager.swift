@@ -62,7 +62,7 @@ final class VolumeManager: NSObject, ObservableObject {
     }
     private var listenerRegistrations: [ListenerRegistration] = []
 
-    private override init() {
+    override private init() {
         super.init()
         installDeviceChangeListener()
         audioQueue.async { [self] in

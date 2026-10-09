@@ -273,7 +273,7 @@ struct MusicSlotConfigurationView: View {
     private func handleDrop(_ providers: [NSItemProvider], toIndex: Int) -> Bool {
         for provider in providers {
             if provider.canLoadObject(ofClass: NSString.self) {
-                provider.loadObject(ofClass: NSString.self) { item, error in
+                provider.loadObject(ofClass: NSString.self) { item, _ in
                     // item may be an NSString (which conforms to NSItemProviderReading) or other reading type
                     if let nsstring = item as? NSString {
                         let raw = nsstring as String
@@ -295,7 +295,7 @@ struct MusicSlotConfigurationView: View {
     private func handleDropOnTrash(_ providers: [NSItemProvider]) -> Bool {
         for provider in providers {
             if provider.canLoadObject(ofClass: NSString.self) {
-                provider.loadObject(ofClass: NSString.self) { item, error in
+                provider.loadObject(ofClass: NSString.self) { item, _ in
                     if let nsstring = item as? NSString {
                         let raw = nsstring as String
                         DispatchQueue.main.async {

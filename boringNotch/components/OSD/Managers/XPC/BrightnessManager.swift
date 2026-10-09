@@ -121,8 +121,8 @@ final class KeyboardBacklightManager: ObservableObject {
 	private let visibleDuration: TimeInterval = 1.2
 	private let client = XPCHelperClient.shared
 
-	/// Deltas accumulate while a set call is in flight so key repeats are
-	/// never lost; each flush costs exactly one XPC call.
+	/// Deltas accumulate while a read or set call is in flight so key repeats
+	/// are coalesced into the next adjustment.
 	private var pendingDelta: Float = 0
 	private var flushTask: Task<Void, Never>?
 
@@ -146,9 +146,12 @@ final class KeyboardBacklightManager: ObservableObject {
 			while pendingDelta != 0 {
 				let delta = pendingDelta
 				pendingDelta = 0
-				// Compute from the cached value — the read-back RPC the old
-				// code did before every set doubles the cost per key press.
-				let target = max(0, min(1, rawBrightness + delta))
+				// Include changes made outside the app in every adjustment.
+				guard let current = await client.currentKeyboardBrightness() else {
+					refresh()
+					return
+				}
+				let target = max(0, min(1, current + delta))
 				let ok = await client.setKeyboardBrightness(target)
 				if ok {
 					publish(brightness: target, touchDate: true)
@@ -173,12 +176,10 @@ final class KeyboardBacklightManager: ObservableObject {
 		}
 	}
 
-	private func publish(brightness: Float, touchDate: Bool) {
-		DispatchQueue.main.async {
-			if self.rawBrightness != brightness || touchDate {
-				if touchDate { self.lastChangeAt = Date() }
-				self.rawBrightness = brightness
-			}
+	@MainActor private func publish(brightness: Float, touchDate: Bool) {
+		if rawBrightness != brightness || touchDate {
+			if touchDate { lastChangeAt = Date() }
+			rawBrightness = brightness
 		}
 	}
 }
