@@ -20,8 +20,8 @@ struct InlineOSD: View {
         HStack {
             HStack(spacing: 5) {
                 OSDIconView(eventType: type, icon: icon, value: value, accent: accent)
-                
-                Text(Type2Name(type))
+
+                Text(osdTypeName(type))
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .lineLimit(1)
@@ -29,13 +29,13 @@ struct InlineOSD: View {
                     .contentTransition(.numericText())
             }
             .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.notchSize.height - (hoverAnimation ? 0 : 12), alignment: .leading)
-            
+
             Rectangle()
                 .fill(.black)
                 .frame(width: vm.closedNotchSize.width - 20)
-            
+
             HStack {
-                if (type == .mic) {
+                if type == .mic {
                     Text(value.isZero ? "muted" : "unmuted")
                         .foregroundStyle(.gray)
                         .lineLimit(1)
@@ -53,7 +53,7 @@ struct InlineOSD: View {
                             }
                         }, accentColor: accent, compact: true)
                         .frame(maxWidth: .infinity)
-                        if (type == .volume && value.isZero) {
+                        if type == .volume && value.isZero {
                             Text("muted")
                                 .font(.caption)
                                 .fontWeight(.medium)
@@ -62,7 +62,7 @@ struct InlineOSD: View {
                                 .allowsTightening(true)
                                 .multilineTextAlignment(.trailing)
                         } else if Defaults[.showClosedNotchOSDPercentage] {
-                            Text("\(Int(value * 100))%")
+                            Text(value, format: .percent.precision(.fractionLength(0)))
                                 .font(.caption)
                                 .fontWeight(.medium)
                                 .foregroundStyle(.gray)
@@ -78,9 +78,9 @@ struct InlineOSD: View {
         }
         .frame(height: vm.closedNotchSize.height + (hoverAnimation ? 8 : 0), alignment: .center)
     }
-    
-    func Type2Name(_ type: SneakContentType) -> String {
-        switch(type) {
+
+    func osdTypeName(_ type: SneakContentType) -> String {
+        switch type {
             case .volume:
                 return NSLocalizedString("Volume", comment: "")
             case .brightness:
@@ -100,5 +100,5 @@ struct InlineOSD: View {
         .padding(.horizontal, 8)
         .background(Color.black)
         .padding()
-        .environmentObject(BoringViewModel())
+        .environmentObject(BoringViewModel(camera: CameraModel()))
 }

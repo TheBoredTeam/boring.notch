@@ -20,20 +20,13 @@ enum SneakContentType {
     case download
 }
 
-struct sneakPeek {
+struct SneakPeekState {
     var show: Bool = false
     var type: SneakContentType = .music
     var value: CGFloat = 0
     var icon: String = ""
-    var accent: Color? = nil
-    var targetScreenUUID: String? = nil
-}
-
-struct SharedSneakPeek: Codable {
-    var show: Bool
-    var type: String
-    var value: String
-    var icon: String
+    var accent: Color?
+    var targetScreenUUID: String?
 }
 
 enum BrowserType {
@@ -49,13 +42,11 @@ struct ExpandedItem {
 }
 
 @MainActor
-class BoringViewCoordinator: ObservableObject {
+final class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
 
     @Published var currentView: NotchViews = .home
     @Published var helloAnimationRunning: Bool = false
-    private var sneakPeekDispatch: DispatchWorkItem?
-    private var expandingViewDispatch: DispatchWorkItem?
     private var osdEnableTask: Task<Void, Never>?
 
     @AppStorage("firstLaunch") var firstLaunch: Bool = true
@@ -80,10 +71,10 @@ class BoringViewCoordinator: ObservableObject {
             }
         }
     }
-    
+
     // Legacy storage for migration
     @AppStorage("preferred_screen_name") private var legacyPreferredScreenName: String?
-    
+
     // New UUID-based storage
     @AppStorage("preferred_screen_uuid") var preferredScreenUUID: String? {
         didSet {
@@ -101,6 +92,8 @@ class BoringViewCoordinator: ObservableObject {
     private var osdReplacementCancellable: AnyCancellable?
     private var boringShelfCancellable: AnyCancellable?
     private var osdSourceCancellables: [AnyCancellable] = []
+    private var notificationLiveActivityCancellable: AnyCancellable?
+    private var uiEventCancellable: AnyCancellable?
 
     private init() {
         // Perform migration from name-based to UUID-based storage
@@ -121,7 +114,7 @@ class BoringViewCoordinator: ObservableObject {
             // No legacy value, use main screen
             preferredScreenUUID = NSScreen.main?.displayUUID
         }
-        
+
         selectedScreenUUID = preferredScreenUUID ?? NSScreen.main?.displayUUID ?? ""
         // Observe changes to accessibility authorization and react accordingly
         accessibilityObserver = NotificationCenter.default.addObserver(
@@ -130,13 +123,40 @@ class BoringViewCoordinator: ObservableObject {
             queue: .main
         ) { _ in
             Task { @MainActor in
-                if Defaults[.osdReplacement] {
-                    await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+                let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                if authorized {
+                    if Defaults[.osdReplacement] {
+                        await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+                    }
+                    if Defaults[.notificationLiveActivity] {
+                        await SystemNotificationManager.shared.start()
+                    }
+                } else {
+                    MediaKeyInterceptor.shared.stop()
+                    SystemNotificationManager.shared.stop()
                 }
             }
         }
 
         XPCHelperClient.shared.startMonitoringAccessibilityAuthorization()
+
+        // Managers publish presentation events through the bus instead of
+        // calling into the coordinator directly; the coordinator is the
+        // single presenter (and keeps all show/hide policy in one place).
+        uiEventCancellable = NotchUIEventBus.events
+            .sink { [weak self] event in
+                Task { @MainActor in
+                    guard let self else { return }
+                    switch event {
+                    case .sneakPeek(let type, let value, let icon, let accent, let uuid, let duration):
+                        self.toggleSneakPeek(
+                            status: true, type: type, duration: duration, value: value,
+                            icon: icon, accent: accent, targetScreenUUID: uuid)
+                    case .expandingView(let type):
+                        self.toggleExpandingView(status: true, type: type)
+                    }
+                }
+            }
 
         // Observe changes to osdReplacement
         osdReplacementCancellable = Defaults.publisher(.osdReplacement)
@@ -154,7 +174,7 @@ class BoringViewCoordinator: ObservableObject {
                     } else {
                         MediaKeyInterceptor.shared.stop()
                     }
-                    
+
                     self.applyOSDSources()
                 }
             }
@@ -173,56 +193,40 @@ class BoringViewCoordinator: ObservableObject {
                 }
             }
 
+        // Observe changes to the notification live activity toggle; it owns
+        // the notification watcher lifecycle.
+        notificationLiveActivityCancellable = Defaults.publisher(.notificationLiveActivity)
+            .sink { change in
+                Task { @MainActor in
+                    if change.newValue {
+                        await SystemNotificationManager.shared.start()
+                    } else {
+                        SystemNotificationManager.shared.stop()
+                    }
+                }
+            }
+
         Task { @MainActor in
             helloAnimationRunning = firstLaunch
 
             if Defaults[.osdReplacement] {
                 await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
             }
+
+            if Defaults[.notificationLiveActivity] {
+                await SystemNotificationManager.shared.start()
+            }
             self.applyOSDSources()
-        }
-    }
-    
-    @objc func sneakPeekEvent(_ notification: Notification) {
-        let decoder = JSONDecoder()
-        if let decodedData = try? decoder.decode(
-            SharedSneakPeek.self, from: notification.userInfo?.first?.value as! Data)
-        {
-            let contentType =
-                decodedData.type == "brightness"
-                ? SneakContentType.brightness
-                : decodedData.type == "volume"
-                    ? SneakContentType.volume
-                    : decodedData.type == "backlight"
-                        ? SneakContentType.backlight
-                        : decodedData.type == "mic"
-                            ? SneakContentType.mic : SneakContentType.brightness
-
-            let formatter = NumberFormatter()
-            formatter.locale = Locale(identifier: "en_US_POSIX")
-            formatter.numberStyle = .decimal
-            let value = CGFloat((formatter.number(from: decodedData.value) ?? 0.0).floatValue)
-            let icon = decodedData.icon
-
-            print("Decoded: \(decodedData), Parsed value: \(value)")
-
-            toggleSneakPeek(status: decodedData.show, type: contentType, value: value, icon: icon)
-
-        } else {
-            print("Failed to decode JSON data")
         }
     }
 
     // MARK: - Per-Screen Sneak Peek Management
 
     // Dictionary to hold sneak peek state for each screen UUID
-    @Published var sneakPeekStates: [String: sneakPeek] = [:]
-    
+    @Published var sneakPeekStates: [String: SneakPeekState] = [:]
+
     // Dictionary to hold hide tasks for each screen UUID
     private var sneakPeekTasks: [String: Task<Void, Never>] = [:]
-    
-    // Default duration
-    private var defaultSneakPeekDuration: TimeInterval = 1.5
 
     func toggleSneakPeek(
         status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0,
@@ -234,14 +238,14 @@ class BoringViewCoordinator: ObservableObject {
                 return
             }
         }
-        
+
         Task { @MainActor in
             // Helper to update state for a specific UUID
             @MainActor
             func updateState(for uuid: String) {
                 // If we don't have a state for this screen yet, initialize it
-                var state = self.sneakPeekStates[uuid] ?? sneakPeek(targetScreenUUID: uuid)
-                
+                var state = self.sneakPeekStates[uuid] ?? SneakPeekState(targetScreenUUID: uuid)
+
                 withAnimation(.smooth) {
                     state.show = status
                     state.type = type
@@ -251,7 +255,7 @@ class BoringViewCoordinator: ObservableObject {
                     state.targetScreenUUID = uuid // Ensure UUID is set
                     self.sneakPeekStates[uuid] = state
                 }
-                
+
                 if status {
                     self.scheduleSneakPeekHide(for: uuid, duration: duration)
                 } else {
@@ -259,7 +263,7 @@ class BoringViewCoordinator: ObservableObject {
                     self.sneakPeekTasks[uuid] = nil
                 }
             }
-            
+
             if let targetUUID = targetScreenUUID {
                 // Update specific screen
                 updateState(for: targetUUID)
@@ -329,23 +333,23 @@ class BoringViewCoordinator: ObservableObject {
         guard let uuid = screenUUID else { return false }
         return sneakPeekStates[uuid]?.show == true
     }
-    
+
     var isAnySneakPeekShowing: Bool {
         return sneakPeekStates.values.contains { $0.show }
     }
-    
+
     // Helper to get state safely for binding/reading
-    func sneakPeekState(for screenUUID: String?) -> sneakPeek {
-        guard let uuid = screenUUID else { return sneakPeek() }
-        return sneakPeekStates[uuid] ?? sneakPeek(targetScreenUUID: uuid)
+    func sneakPeekState(for screenUUID: String?) -> SneakPeekState {
+        guard let uuid = screenUUID else { return SneakPeekState() }
+        return sneakPeekStates[uuid] ?? SneakPeekState(targetScreenUUID: uuid)
     }
-    
+
     // Helper to get binding for SwiftUI views
-    func binding(for screenUUID: String?) -> Binding<sneakPeek> {
+    func binding(for screenUUID: String?) -> Binding<SneakPeekState> {
         Binding(
             get: { [weak self] in
-                guard let self = self, let uuid = screenUUID else { return sneakPeek() }
-                return self.sneakPeekStates[uuid] ?? sneakPeek(targetScreenUUID: uuid)
+                guard let self = self, let uuid = screenUUID else { return SneakPeekState() }
+                return self.sneakPeekStates[uuid] ?? SneakPeekState(targetScreenUUID: uuid)
             },
             set: { [weak self] newValue in
                 guard let self = self, let uuid = screenUUID else { return }
@@ -360,7 +364,7 @@ class BoringViewCoordinator: ObservableObject {
         sneakPeekTasks[screenUUID] = Task { [weak self] in
             try? await Task.sleep(for: .seconds(duration))
             guard let self = self, !Task.isCancelled else { return }
-            
+
             await MainActor.run {
                 withAnimation {
                     // We only want to hide it, not reset everything instantly which might cause glitches
@@ -368,7 +372,7 @@ class BoringViewCoordinator: ObservableObject {
                          state.show = false
                          // Optional: reset type to something default if needed, but keeping last state is often fine until next show
                          // keeping original logic:
-                         state.type = .music 
+                         state.type = .music
                          self.sneakPeekStates[screenUUID] = state
                     }
                 }
@@ -410,7 +414,7 @@ class BoringViewCoordinator: ObservableObject {
             }
         }
     }
-    
+
     func showEmpty() {
         currentView = .home
     }

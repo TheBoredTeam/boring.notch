@@ -1,4 +1,4 @@
-    //
+//
     //  SystemEventIndicatorModifier.swift
     //  boringNotch
     //
@@ -14,16 +14,15 @@ struct SystemEventIndicatorModifier: View {
     @Binding var value: CGFloat
     @Binding var icon: String
     @Binding var accent: Color?
-    let showSlider: Bool = false
     var sendEventBack: (CGFloat) -> Void
 
     var body: some View {
         HStack(spacing: 14) {
             OSDIconView(eventType: eventType, icon: icon, value: value, accent: accent)
-            if (eventType != .mic) {
-                DraggableProgressBar(value: $value, accentColor: accent)
+            if eventType != .mic {
+                DraggableProgressBar(value: $value, onChange: sendEventBack, accentColor: accent)
                 if Defaults[.showClosedNotchOSDPercentage] {
-                    Text("\(Int(value * 100))%")
+                    Text(value, format: .percent.precision(.fractionLength(0)))
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.white)
                         .monospacedDigit()
@@ -40,4 +39,3 @@ struct SystemEventIndicatorModifier: View {
         .imageScale(.large)
     }
 }
-

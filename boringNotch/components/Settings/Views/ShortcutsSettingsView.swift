@@ -8,9 +8,14 @@
 import KeyboardShortcuts
 import SwiftUI
 
-struct Shortcuts: View {
+struct ShortcutsSettingsView: View {
     var body: some View {
         Form {
+            Section {
+                KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
+            } header: {
+                Text("Notch")
+            }
             Section {
                 KeyboardShortcuts.Recorder("Toggle Sneak Peek:", name: .toggleSneakPeek)
             } header: {
@@ -22,9 +27,6 @@ struct Shortcuts: View {
                 .multilineTextAlignment(.trailing)
                 .foregroundStyle(.secondary)
                 .font(.caption)
-            }
-            Section {
-                KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
             }
         }
         .accentColor(.effectiveAccent)
