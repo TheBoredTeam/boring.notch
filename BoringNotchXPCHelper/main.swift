@@ -6,10 +6,55 @@
 //
 
 import Foundation
+import Security
+
+private enum XPCClientCodeSigningRequirement {
+    private static let bundleIdentifier = "theboringteam.boringnotch"
+
+    static let value: String = {
+        let identifierRequirement = #"identifier "\(bundleIdentifier)""#
+
+        #if DEBUG
+        // Developer builds are ad-hoc signed, so a stable Team ID is unavailable.
+        // This is a local-development constraint; never use this weaker check for Release.
+        return identifierRequirement
+        #else
+        var code: SecCode?
+        var staticCode: SecStaticCode?
+        var signingInfo: CFDictionary?
+        guard SecCodeCopySelf(SecCSFlags(), &code) == errSecSuccess,
+              let code,
+              SecCodeCopyStaticCode(code, SecCSFlags(), &staticCode) == errSecSuccess,
+              let staticCode,
+              SecCodeCopySigningInformation(
+                staticCode,
+                SecCSFlags(rawValue: kSecCSSigningInformation),
+                &signingInfo
+              ) == errSecSuccess,
+              let dictionary = signingInfo as? [CFString: Any],
+              let teamIdentifier = dictionary[kSecCodeInfoTeamIdentifier] as? String,
+              !teamIdentifier.isEmpty,
+              teamIdentifier.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber) })
+        else {
+            // Fail closed if the embedded helper does not have a valid signing team.
+            return #"identifier "theboringteam.invalid-client" and anchor apple"#
+        }
+
+        return #"identifier "\(bundleIdentifier)" and anchor apple generic and certificate leaf[subject.OU] = "\#(teamIdentifier)""#
+        #endif
+    }()
+}
 
 class ServiceDelegate: NSObject, NSXPCListenerDelegate {
     /// This method is where the NSXPCListener configures, accepts, and resumes a new incoming NSXPCConnection.
     func listener(_ listener: NSXPCListener, shouldAcceptNewConnection newConnection: NSXPCConnection) -> Bool {
+        // Defense in depth: the code-signing requirement is installed on the listener
+        // before it resumes, and this additionally restricts the service to this user.
+        guard newConnection.effectiveUserIdentifier == geteuid() else {
+            newConnection.invalidate()
+            return false
+        }
+
         // Configure the connection.
         // First, set the interface that the exported object implements.
         newConnection.exportedInterface = NSXPCInterface(with: (any BoringNotchXPCHelperProtocol).self)
@@ -41,6 +86,7 @@ let delegate = ServiceDelegate()
 
 // Set up the one NSXPCListener for this service. It will handle all incoming connections.
 let listener = NSXPCListener.service()
+listener.setConnectionCodeSigningRequirement(XPCClientCodeSigningRequirement.value)
 listener.delegate = delegate
 
 // Resuming the serviceListener starts this service. This method does not return.
