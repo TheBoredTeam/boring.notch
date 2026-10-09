@@ -43,8 +43,14 @@ extension NSImage {
     }
 
     nonisolated private static func averageColorComponents(for cgImage: CGImage) -> AverageColorComponents? {
-        let width = cgImage.width
-        let height = cgImage.height
+        // Downsample large artwork before averaging. This keeps the scratch
+        // buffer bounded while preserving the overall colour used for accents.
+        let maxDimension = 64
+        let sourceWidth = max(1, cgImage.width)
+        let sourceHeight = max(1, cgImage.height)
+        let scale = min(1.0, Double(maxDimension) / Double(max(sourceWidth, sourceHeight)))
+        let width = max(1, Int((Double(sourceWidth) * scale).rounded()))
+        let height = max(1, Int((Double(sourceHeight) * scale).rounded()))
         let totalPixels = width * height
 
         guard totalPixels > 0,
