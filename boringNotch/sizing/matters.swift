@@ -89,6 +89,23 @@ enum MusicPlayerImageSizes {
     return defaultMenuBarHeight(hasNotch: hasNotch)
 }
 
+/// Normalizes custom non-notch heights saved by versions that allowed 1...14 pt.
+/// Zero remains a supported setting; the current slider jumps from 0 directly to 15.
+enum LegacyNonNotchHeightMigration {
+    static func migratedHeight(_ height: CGFloat) -> CGFloat {
+        guard height > 0, height < 15 else { return height }
+        return 15
+    }
+
+    @MainActor
+    static func applyIfNeeded() {
+        let currentHeight = Defaults[.nonNotchHeight]
+        let newHeight = migratedHeight(currentHeight)
+        guard newHeight != currentHeight else { return }
+        Defaults[.nonNotchHeight] = newHeight
+    }
+}
+
 @MainActor func syncNotchHeightIfNeeded() {
     var didChangeHeight = false
 
