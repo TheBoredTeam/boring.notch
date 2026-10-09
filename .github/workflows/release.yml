@@ -250,10 +250,18 @@ jobs:
       version: ${{ needs.preparation.outputs.version }}
       build_number: ${{ needs.preparation.outputs.build_number }}
       update_channel: ${{ needs.preparation.outputs.is_beta == 'true' && 'beta' || 'stable' }}
+      # Opt-in: set the repository variable ENABLE_NOTARIZATION to "true" once
+      # the Developer ID and notary secrets are configured.
+      distribution: ${{ vars.ENABLE_NOTARIZATION == 'true' && 'developer-id' || 'development' }}
     secrets:
       BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
       P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
       KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      DEVELOPER_ID_CERTIFICATE_BASE64: ${{ secrets.DEVELOPER_ID_CERTIFICATE_BASE64 }}
+      DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+      NOTARY_API_KEY_BASE64: ${{ secrets.NOTARY_API_KEY_BASE64 }}
+      NOTARY_API_KEY_ID: ${{ secrets.NOTARY_API_KEY_ID }}
+      NOTARY_API_ISSUER_ID: ${{ secrets.NOTARY_API_ISSUER_ID }}
 
   publish:
     name: Publish draft release and appcast
