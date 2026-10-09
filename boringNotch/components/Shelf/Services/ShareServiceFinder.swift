@@ -12,7 +12,6 @@ final class ShareServiceFinder {
         .sendViaAirDrop, .composeEmail, .composeMessage,
         .addToSafariReadingList, .useAsDesktopPicture, .cloudSharing
     ]
-
     private let discover: @MainActor ([Any]) async -> [NSSharingService]
 
     init(discover: @escaping @MainActor ([Any]) async -> [NSSharingService] = { items in
@@ -20,7 +19,6 @@ final class ShareServiceFinder {
     }) {
         self.discover = discover
     }
-
     func findApplicableServices(for items: [Any]) async -> [NamedSharingService] {
         let proposed = await discover(items)
         let builtIns = Self.builtInServiceNames.compactMap { name -> NamedSharingService? in

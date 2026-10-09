@@ -23,9 +23,9 @@ final class TemporaryFileStorageService: @unchecked Sendable {
     init(baseDirectory: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)) {
         self.baseDirectory = baseDirectory
     }
-    
+
     // MARK: - Public Interface
-    
+
     /// Creates a temporary file and tracks it for manual cleanup
     func createTempFile(for type: TempFileType) async -> URL? {
         return await withCheckedContinuation { continuation in
@@ -33,7 +33,7 @@ final class TemporaryFileStorageService: @unchecked Sendable {
             continuation.resume(returning: result)
         }
     }
-    
+
     func removeTemporaryFileIfNeeded(at url: URL) {
         let standardizedURL = url.standardizedFileURL
         let standardizedBase = baseDirectory.standardizedFileURL
@@ -55,7 +55,6 @@ final class TemporaryFileStorageService: @unchecked Sendable {
             } else {
                 Log.shelf.debug("Folder not deleted — it still contains \(contents.count) item(s).")
             }
-
         } catch {
             Log.shelf.error("Error: \(error.localizedDescription)")
         }
@@ -84,18 +83,18 @@ final class TemporaryFileStorageService: @unchecked Sendable {
             return nil
         }
     }
-    
+
     // MARK: - Private Implementation
-    
+
     private func createTempFile(for type: TempFileType) -> URL? {
         let uuid = UUID().uuidString
-        
+
         switch type {
         case .data(let data, let suggestedName):
             let filename = safeFilename(suggestedName, fallback: "Untitled.dat")
             let dirURL = makeUniqueDirectory()
             let fileURL = dirURL.appendingPathComponent(filename)
-            
+
             do {
                 try FileManager.default.createDirectory(at: dirURL, withIntermediateDirectories: true)
                 try data.write(to: fileURL)
@@ -104,17 +103,17 @@ final class TemporaryFileStorageService: @unchecked Sendable {
                 Log.shelf.error("Error: \(error)")
                 return nil
             }
-            
+
         case .text(let string):
             let filename = "\(uuid).txt"
             let dirURL = makeUniqueDirectory()
             let fileURL = dirURL.appendingPathComponent(filename)
-            
+
             guard let data = string.data(using: .utf8) else {
                 Log.shelf.error("❌ Failed to convert text to data")
                 return nil
             }
-            
+
             do {
                 try FileManager.default.createDirectory(at: dirURL, withIntermediateDirectories: true)
                 try data.write(to: fileURL)
@@ -123,18 +122,18 @@ final class TemporaryFileStorageService: @unchecked Sendable {
                 Log.shelf.error("Error: \(error)")
                 return nil
             }
-            
+
         case .url(let url):
             let filename = "\(url.host ?? uuid).webloc"
             let dirURL = makeUniqueDirectory()
             let fileURL = dirURL.appendingPathComponent(filename)
-            
+
             let weblocContent = createWeblocContent(for: url)
             guard let data = weblocContent.data(using: String.Encoding.utf8) else {
                 Log.shelf.error("❌ Failed to create webloc data")
                 return nil
             }
-            
+
             do {
                 try FileManager.default.createDirectory(at: dirURL, withIntermediateDirectories: true)
                 try data.write(to: fileURL)
@@ -145,7 +144,7 @@ final class TemporaryFileStorageService: @unchecked Sendable {
             }
         }
     }
-    
+
     private func createFile(at url: URL, data: Data) -> URL? {
         do {
             try data.write(to: url)
@@ -253,7 +252,7 @@ final class TemporaryFileStorageService: @unchecked Sendable {
             return nil
         }
     }
-    
+
     // MARK: - Content Creation Helpers
 
     private func makeUniqueDirectory() -> URL {
@@ -271,8 +270,7 @@ final class TemporaryFileStorageService: @unchecked Sendable {
         }
         return "Untitled"
     }
-    
-    
+
     private func createWeblocContent(for url: URL) -> String {
         return """
         <?xml version="1.0" encoding="UTF-8"?>

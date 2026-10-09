@@ -113,7 +113,6 @@ final class ShelfStateViewModel: ObservableObject {
         if let cached = cachedFile(for: item.id, matching: bookmarkData), !refresh {
             return cached
         }
-
         let pending = pendingResolution(for: item.id, bookmarkData: bookmarkData, intent: intent)
         let file = await pending.task.value
         applyResolution(file, for: item.id, bookmarkData: bookmarkData, token: pending.token)

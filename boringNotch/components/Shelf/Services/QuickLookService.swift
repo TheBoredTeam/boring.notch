@@ -94,7 +94,7 @@ final class QuickLookService: ObservableObject {
         if selectFirst, isReplacingVisiblePreview {
             selectedURL = replacementURLs.first
         }
-        
+
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(50))
             if selectFirst,
@@ -131,7 +131,7 @@ final class QuickLookService: ObservableObject {
             previewPanel = nil
         }
     }
-    
+
     private func stopAccessingCurrentURLs() {
         NSLog("Stopping access to \(accessingURLs.count) URLs")
         for url in accessingURLs where url.isFileURL {
@@ -139,7 +139,7 @@ final class QuickLookService: ObservableObject {
         }
         accessingURLs.removeAll()
     }
-    
+
     func updateSelection(urls: [URL]) {
         guard isQuickLookOpen else { return }
         show(urls: urls, selectFirst: true)

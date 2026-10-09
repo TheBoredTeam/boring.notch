@@ -34,14 +34,14 @@ struct ShelfView: View {
             }
         }
     }
-    
+
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
         guard !ShelfSelectionModel.shared.isDragging else { return false }
         dropInteraction.dropEvent = true
         shelfState.load(providers)
         return true
     }
-    
+
     private func panel(quickLookService: QuickLookService) -> some View {
         RoundedRectangle(cornerRadius: 16)
             .stroke(
@@ -73,7 +73,7 @@ struct ShelfView: View {
                         .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(.white, .gray)
                         .imageScale(.large)
-                    
+
                     Text("Drop files here")
                         .foregroundStyle(.gray)
                         .font(.system(.title3, design: .rounded))

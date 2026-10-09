@@ -39,7 +39,7 @@ struct ShelfDropService {
         }
         return items
     }
-    
+
     private static func createBookmark(for url: URL) -> Data? {
         (try? Bookmark(url: url))?.data
     }

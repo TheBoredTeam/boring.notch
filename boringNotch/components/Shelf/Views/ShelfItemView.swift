@@ -35,7 +35,7 @@ struct ShelfItemView: View {
             HighlightPresentation(fill: .clear, stroke: .clear, lineWidth: 1)
         }
     }
-    
+
     init(
         item: ShelfItem,
         quickLookService: QuickLookService,
@@ -106,8 +106,7 @@ struct ShelfItemView: View {
 
     private var iconView: some View {
         Image(nsImage: viewModel.presentationIcon)
-            .resizable()
-            .aspectRatio(contentMode: .fit)
+            .resizable().scaledToFit()
             .frame(width: 56, height: 56)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 2)

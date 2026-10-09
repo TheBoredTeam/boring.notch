@@ -18,7 +18,7 @@ struct FileShareView: View {
     @State private var hostView: NSView?
     @State private var interactionNonce: UUID = .init()
     @State private var isProcessing = false
-    
+
     private var selectedProvider: QuickShareProvider {
         quickShare.provider(forStoredID: quickShareProvider)
     }
@@ -70,8 +70,7 @@ struct FileShareView: View {
                     Group {
                         if let icon = quickShare.icon(for: selectedProvider.id, size: 34) {
                             Image(nsImage: icon)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
+                                .resizable().scaledToFit()
                         } else {
                             Image(systemName: "square.and.arrow.up")
                         }
@@ -90,7 +89,6 @@ struct FileShareView: View {
                     .font(.system(.headline, design: .rounded))
                     .foregroundColor(.white.opacity(0.8))
                     .multilineTextAlignment(.center)
-
                 if !selectedProvider.isAvailable {
                     Text("Unavailable")
                         .font(.caption2)
@@ -104,7 +102,7 @@ struct FileShareView: View {
 
             }
             .padding(18)
-            
+
             // Loading overlay
             if isProcessing || quickShare.isPickerOpen {
                 RoundedRectangle(cornerRadius: 12)
@@ -126,7 +124,7 @@ struct FileShareView: View {
         defer { isProcessing = false }
         await quickShare.shareDroppedFiles(providers, using: selectedProvider, from: hostView)
     }
-    
+
     private func handleClick() async {
         await quickShare.showFilePicker(for: selectedProvider, from: hostView)
     }
@@ -136,13 +134,13 @@ struct FileShareView: View {
 
 private struct NSViewHost: NSViewRepresentable {
     @Binding var view: NSView?
-    
+
     func makeNSView(context: Context) -> NSView {
         let v = NSView(frame: .zero)
         DispatchQueue.main.async { self.view = v }
         return v
     }
-    
+
     func updateNSView(_ nsView: NSView, context: Context) {
         DispatchQueue.main.async { self.view = nsView }
     }
