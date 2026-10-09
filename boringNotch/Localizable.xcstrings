@@ -37,6 +37,12 @@
             "value" : " (predefinito)"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " (standaard)"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -227,6 +233,12 @@
             "value" : "%@ n'est nécessaire pour le remplacement de l'OSD que lorsque vous utilisez la gestion native de macOS.\nLes sources externes telles que BetterDisplay ou Lunar ne la requièrent pas. Vous pouvez l'activer ultérieurement dans les paramètres de l'OSD si nécessaire."
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is alleen nodig wanneer je ingebouwde macOS-beeldbronnen gebruikt voor het vervangen van het OSD. Externe bronnen zoals BetterDisplay of Lunar hebben dit niet nodig. Je kunt het later alsnog inschakelen in de OSD-instellingen."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -261,6 +273,12 @@
             "value" : "%@ sert uniquement à améliorer les notifications relatives aux médias et à la luminosité. Aucune donnée n'est collectée ni partagée."
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ wordt uitsluitend gebruikt om meldingen over media en helderheid te verbeteren. Er worden geen gegevens verzameld of gedeeld."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -282,6 +300,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Notification de %@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ notificatie"
           }
         },
         "pt-BR" : {
@@ -324,6 +348,12 @@
             "value" : "Richiesto %@"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ vereist"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -354,6 +384,12 @@
           }
         },
         "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@x"
+          }
+        },
+        "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@x"
@@ -440,6 +476,12 @@
           }
         },
         "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld"
+          }
+        },
+        "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "+%lld"
@@ -883,6 +925,12 @@
             "value" : "アクセシビリティ"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toegankelijkheid"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -915,6 +963,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dimensioni effettive"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Werkelijke grootte"
           }
         },
         "pt-BR" : {
@@ -1063,6 +1117,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ajouter une Application…"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applicatie toevoegen…"
           }
         },
         "pt-BR" : {
@@ -1224,6 +1284,12 @@
             "value" : "Aggiungi ai Preferiti"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aan favorieten toevoegen"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1375,6 +1441,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tutte le applicazioni"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle applicaties"
           }
         },
         "pt-BR" : {
@@ -1641,6 +1713,12 @@
             "state" : "translated",
             "value" : "Toujours suivre l'écran actif"
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altijd het actieve scherm volgen"
+          }
         }
       }
     },
@@ -1658,6 +1736,12 @@
             "state" : "translated",
             "value" : "Utiliser l'écran préféré"
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voorkeurscherm gebruiken"
+          }
         }
       }
     },
@@ -1674,6 +1758,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Basculer automatiquement si l'écran préféré est indisponible"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch van scherm wisselen als voorkeursscherm niet beschikbaar is"
           }
         }
       }
@@ -1696,6 +1786,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apri sempre con"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altijd openen met"
           }
         },
         "pt-BR" : {
@@ -2038,6 +2134,12 @@
             "value" : "App"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2202,6 +2304,12 @@
             "value" : "App"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2234,6 +2342,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uscita audio"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audiouitvoer"
           }
         },
         "pt-BR" : {
@@ -2814,6 +2928,12 @@
             "value" : "Rimozione sfondo fallita"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Achtergrond verwijderen mislukt"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2928,6 +3048,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Indietro 15s"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15s terugspoelen"
           }
         },
         "pt-BR" : {
@@ -3436,6 +3562,12 @@
             "value" : "Comportement"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gedrag"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3465,6 +3597,12 @@
             "value" : "Bêta"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3492,6 +3630,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "BetterDisplay n'est pas installé ou n'est pas en cours d'exécution"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BetterDisplay is niet geïnstalleerd of niet actief"
           }
         },
         "pt-BR" : {
@@ -3700,6 +3844,12 @@
             "value" : "Boring Notch n'a pas pu vérifier « À l'écoute ». Essayez à nouveau, ou rouvrez l'application si cela continue de se produire."
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch kon niet controleren of ‘Huidig onderdeel’ beschikbaar is. Probeer het opnieuw of open de app opnieuw als het probleem blijft optreden."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3741,6 +3891,12 @@
             "value" : "Boring Notch ha perso la connessione alla Riproduzione in corso. Riconessione automatica..."
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch heeft de verbinding met ‘Huidig onderdeel’ verloren. Er wordt automatisch opnieuw verbinding gemaakt..."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3780,6 +3936,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "I componenti della Riproduzione in corso di Boring Notch non sono disponibili. Riapri o reinstalla l'app."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De ‘Huidig onderdeel’ componenten van Boring Notch zijn niet beschikbaar. Open de app opnieuw of installeer deze opnieuw."
           }
         },
         "pt-BR" : {
@@ -4512,6 +4674,12 @@
             "value" : "カメラ"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4557,6 +4725,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "カメラへのアクセス権限が必要"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toegang tot camera vereist"
           }
         },
         "pt-BR" : {
@@ -5225,6 +5399,12 @@
             "value" : "再読み込み"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controleer opnieuw"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5448,6 +5628,12 @@
             "value" : "読み込み中…"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beschikbaarheid van 'Huidig onderdeel' controleren..."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5598,6 +5784,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Scegli un'applicazione per aprire il documento \"%@\"."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies een applicatie om het document “%@” te openen."
           }
         },
         "pt-BR" : {
@@ -5752,6 +5944,12 @@
             "value" : "アプリを選択"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies applicatie"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5903,6 +6101,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "カレンダー表示方式を選択。"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies hoe de agenda wordt weergegeven in de inkeping."
           }
         },
         "pt-BR" : {
@@ -6168,6 +6372,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cancella"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wissen"
           }
         },
         "pt-BR" : {
@@ -6890,6 +7100,12 @@
             "value" : "Modalità compatta"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compacte modus"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7049,6 +7265,12 @@
             "value" : "Compressione:"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compressie:"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7090,6 +7312,12 @@
             "value" : "Si collega direttamente all'app Apple Music."
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbindt rechtstreeks met de Apple Music app."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7129,6 +7357,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Si collega direttamente all'app Spotify."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbindt rechtstreeks met de Spotify app."
           }
         },
         "pt-BR" : {
@@ -7407,6 +7641,12 @@
             "value" : "変換"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Converteren"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7439,6 +7679,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Converti immagine"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afbeelding converteren"
           }
         },
         "pt-BR" : {
@@ -7831,6 +8077,12 @@
             "value" : "Copia Link Riunione"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopieer vergaderlink"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7989,6 +8241,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Impossible de vérifier la lecture en cours"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kan 'Huidig onderdeel' niet verifiëren"
           }
         },
         "pt-BR" : {
@@ -8611,6 +8869,12 @@
             "value" : "Personalizza..."
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aangepast…"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8983,6 +9247,12 @@
             "value" : "Définissez ce qui se passe lorsque vous maintenez la touche Option enfoncée tout en appuyant sur les touches multimédia."
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geef aan wat er gebeurt als je de Option-toets ingedrukt houdt terwijl je de mediatoetsen indrukt."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9140,6 +9410,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Controllo dispositivo e accesso ai dati"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apparaatbeheer en gegevenstoegang"
           }
         },
         "pt-BR" : {
@@ -9409,6 +9685,12 @@
             "value" : "Ignorer la notification"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notificatie afwijzen"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9441,6 +9723,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Écrans"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schermen"
           }
         },
         "pt-BR" : {
@@ -9884,6 +10172,12 @@
             "value" : "es. 1920"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bijv. 1920"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10037,6 +10331,12 @@
             "value" : "Slot vuoto"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leeg slot"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10075,6 +10375,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abilita %@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ inschakelen"
           }
         },
         "pt-BR" : {
@@ -10990,6 +11296,12 @@
             "value" : "Abilita:"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inschakelen:"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11141,6 +11453,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Événements"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activiteiten"
           }
         },
         "pt-BR" : {
@@ -11520,6 +11838,12 @@
             "value" : "Preferito"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favoriet"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11547,6 +11871,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fonctions"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Functies"
           }
         },
         "pt-BR" : {
@@ -11814,6 +12144,12 @@
             "value" : "Capovolgi video"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Video spiegelen"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11848,6 +12184,12 @@
             "value" : "Formato:"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Structuur:"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11880,6 +12222,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Avanti 15s"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15s doorspoelen"
           }
         },
         "pt-BR" : {
@@ -11923,6 +12271,12 @@
             "value" : "Forma della cornice"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorm van het kader"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11949,6 +12303,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Da tutte le app"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Van alle apps"
           }
         },
         "pt-BR" : {
@@ -12409,6 +12769,12 @@
             "value" : "Gestes"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gebaren"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12768,6 +13134,12 @@
             "value" : "Concedi %@ così i controlli della luminosità della tastiera possono essere intercettati."
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geef %@ toestemming, zodat de ingebouwde sneltoetsen voor de helderheid van het toetsenbord kunnen worden onderschept."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12789,6 +13161,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Autoriser %@ à reproduire les bannières de notification."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geef %@ toestemming om notificatiebanners door te kunnen geven."
           }
         },
         "pt-BR" : {
@@ -12899,6 +13277,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Servizio Helper non disponibile"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helper service niet beschikbaar"
           }
         },
         "pt-BR" : {
@@ -14037,6 +14421,12 @@
             "value" : "État d'inactivité"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inactieve status"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14190,6 +14580,12 @@
             "value" : "Conversione immagine fallita"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conversie van afbeelding mislukt"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14216,6 +14612,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dimensione immagine:"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afbeelding grootte:"
           }
         },
         "pt-BR" : {
@@ -14679,6 +15081,12 @@
             "value" : "Partecipa alla riunione di %@"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neem deel aan %@ vergadering"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14705,6 +15113,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unisciti alla riunione quando tocchi un evento"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deelnemen aan vergadering bij het tikken op een activiteiten"
           }
         },
         "pt-BR" : {
@@ -14852,6 +15266,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La fonction de réglage de rétro-éclairage du clavier ne prend actuellement en charge que la source intégrée."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De helderheid van het toetsenbord wordt momenteel alleen ondersteund via de ingebouwde bron."
           }
         },
         "pt-BR" : {
@@ -15032,6 +15452,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Grande"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Groot"
           }
         },
         "pt-BR" : {
@@ -15344,6 +15770,12 @@
             "value" : "Ricerca di dispositivi…"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apparaten zoeken…"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15601,6 +16033,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lunar n'est pas installé ou n'est pas accessible"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lunar is niet geïnstalleerd of niet bereikbaar"
           }
         },
         "pt-BR" : {
@@ -18070,6 +18508,12 @@
             "value" : "Avanti"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volgende"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18088,6 +18532,12 @@
       "comment" : "Update channel: nightly",
       "localizations" : {
         "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nightly"
+          }
+        },
+        "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nightly"
@@ -18199,6 +18649,12 @@
             "value" : "Aucune application sélectionnée"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen apps geselecteerd"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18220,6 +18676,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aucune caméra"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen camera's"
           }
         },
         "pt-BR" : {
@@ -19006,6 +19468,12 @@
             "value" : "Encoche"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inkeping"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19114,6 +19582,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Structure de l'encoche"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inkeping chroom"
           }
         },
         "pt-BR" : {
@@ -19368,6 +19842,12 @@
             "value" : "Notifiche"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notificaties"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19485,6 +19965,12 @@
             "value" : "Les composants « À l'écoute » ne sont pas disponibles"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'Huidig onderdeel' componenten niet beschikbaar"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19512,6 +19998,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "« À l'écoute » connexion perdue"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'Huidig onderdeel' verbinding verbroken"
           }
         },
         "pt-BR" : {
@@ -19572,6 +20064,12 @@
             "value" : "네"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oké"
+          }
+        },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19607,6 +20105,12 @@
             "value" : "Seuls les écrans Apple sont pris en charge.\nDans les configurations à plusieurs écrans, l'OSD de luminosité apparaît sur l'écran actif, où se trouve le pointeur de la souris."
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alleen Apple-schermen worden ondersteund. Bij opstellingen met meerdere schermen verschijnt het OSD-scherm voor de helderheid op het actieve scherm, indien dit wordt ondersteund, of anders op een ander ondersteund scherm."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19628,6 +20132,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Seules les applications sélectionnées sont synchronisées.\nAucune liste d'applications prédéfinie n'est utilisée, ajoutez des applications depuis votre Mac."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alleen geselecteerde apps worden gespiegeld. Voeg apps toe vanaf je Mac; er wordt geen vooraf ingestelde lijst met apps gebruikt."
           }
         },
         "pt-BR" : {
@@ -19770,6 +20280,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ouvrir un rapport de bug avec votre version remplie automatiquement"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open een bug-melding met jouw versie automatisch ingevuld"
           }
         },
         "pt-BR" : {
@@ -19919,6 +20435,12 @@
             "value" : "Apri in %@"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Openen met %@"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19945,6 +20467,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apri in Calendario"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In agenda openen"
           }
         },
         "pt-BR" : {
@@ -20313,6 +20841,12 @@
             "value" : "Apri Impostazioni"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instellingen openen"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20656,6 +21190,12 @@
             "value" : "Ouvrir dans %@"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opent %@"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20961,6 +21501,12 @@
             "value" : "Output"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uitvoer"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20989,6 +21535,12 @@
             "value" : "Pausa"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pauze"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21010,6 +21562,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Interrompu"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gepauzeerd"
           }
         },
         "pt-BR" : {
@@ -21038,6 +21596,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Creazione PDF fallita"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF aanmaken is mislukt"
           }
         },
         "pt-BR" : {
@@ -21180,6 +21744,12 @@
             "value" : "Play"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afspelen"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21208,6 +21778,12 @@
             "value" : "Play/Pausa"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afspelen/pauzeren"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21234,6 +21810,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apparence du lecteur "
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uiterlijk van de speler"
           }
         },
         "pt-BR" : {
@@ -21341,6 +21923,12 @@
             "value" : "Consenti l'accesso alla fotocamera nelle Impostazioni di sistema per utilizzare la funzione specchio."
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geef toegang tot de camera in Systeeminstellingen om de spiegelfunctie te gebruiken."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21374,6 +21962,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Consenti l'accesso alla fotocamera nelle Impostazioni di sistema."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geef toegang tot de camera in de Systeeminstellingen."
           }
         },
         "pt-BR" : {
@@ -21634,6 +22228,12 @@
             "value" : "Conserva i Metadati"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Behoud metadata"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21660,6 +22260,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Precedente"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorige"
           }
         },
         "pt-BR" : {
@@ -21855,7 +22461,7 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Geef snel weer"
+            "value" : "Snelle weergave"
           }
         },
         "pl" : {
@@ -22432,6 +23038,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Applicazioni Consigliate"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aanbevolen applicaties"
           }
         },
         "pt-BR" : {
@@ -23184,6 +23796,12 @@
             "value" : "Rimuovi dai Preferiti"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwijder uit favorieten"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23437,6 +24055,12 @@
             "value" : "Rinomina File"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bestand hernoemen"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23463,6 +24087,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ripeti"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Herhalen"
           }
         },
         "pt-BR" : {
@@ -23558,6 +24188,12 @@
             "value" : "Signaler un bug"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meld een fout"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23579,6 +24215,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nécessite %@. Seules les bannières visibles sont récupérées."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vereist %@. Alleen zichtbare notificaties worden doorgegeven."
           }
         },
         "pt-BR" : {
@@ -23614,6 +24256,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Richiede un client di terze parti con il plugin API abilitato."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vereist een client van een derde partij waarbij de ook de API-plugin is ingeschakeld."
           }
         },
         "pt-BR" : {
@@ -25200,6 +25848,12 @@
             "value" : "Mostra potenza di ricarica"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laadvermogen weergeven"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25796,6 +26450,12 @@
             "value" : "Afficher la prochaine notification en attente"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geef volgende notificatie vanuit de wachtrij weer"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25934,6 +26594,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostra le notifiche nel notch"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notificaties weergeven in de inkeping"
           }
         },
         "pt-BR" : {
@@ -26731,6 +27397,12 @@
             "value" : "Afficher le temps restant au lieu de la durée"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toon de resterende tijd in plaats van de totale duur"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27053,6 +27725,12 @@
             "state" : "translated",
             "value" : "Afficher l'icône de l'application source sur la pochette d'album"
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App-pictogram weergeven op albumhoes"
+          }
         }
       }
     },
@@ -27068,6 +27746,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostra una notch aperta più piccola, con solo il lettore musicale - nessuna scheda, calendario o specchio."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toont een kleiner geopend venster met alleen de muziekspeler. Zonder tabbladen, agenda of spiegel."
           }
         },
         "pt-BR" : {
@@ -27098,6 +27782,12 @@
             "value" : "Casuale"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shuffle"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27124,6 +27814,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dimensions"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grootte"
           }
         },
         "pt-BR" : {
@@ -27270,6 +27966,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Piccolo"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klein"
           }
         },
         "pt-BR" : {
@@ -27898,6 +28600,12 @@
             "value" : "Stable"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stabiel"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27921,6 +28629,12 @@
             "value" : "Les versions « Stable » et « Bêta » proviennent des versions officielles."
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'Stabiel' en 'Beta' komen van officiële releases."
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27942,6 +28656,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Basculer si l'écran préféré est indisponible"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wisselen als voorkeursscherm niet beschikbaar is"
           }
         }
       }
@@ -28337,6 +29057,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "L'helper dello sfondo è andato in crash o è stato chiuso da macOS. Si riavvia automaticamente nel prossimo evento OSD."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De achtergrondhelper is gecrasht of door macOS afgesloten. Deze wordt automatisch opnieuw gestart bij de volgende OSD-gebeurtenis."
           }
         },
         "pt-BR" : {
@@ -29449,6 +30175,12 @@
             "value" : "Canal de mise à jour"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updatekanaal"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -29954,6 +30686,12 @@
             "value" : "Utiliser %@ à la place"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gebruikt in plaats daarvan %@"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -29981,6 +30719,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Utilisation de %@ à la place. Vos préférences « À l'écoute » sont préservées."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gebruikt in plaats daarvan %@. Je 'Huidig onderdeel' voorkeur blijft bewaard."
           }
         },
         "pt-BR" : {
@@ -30018,6 +30762,12 @@
             "value" : "Uso temporaneo di %@"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gebruikt tijdelijk %@"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -30051,6 +30801,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uso temporaneo di %@. La tua preferenza per la Riproduzione in corso è conservata."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gebruikt tijdelijk %@. Je 'Huidig onderdeel' voorkeur blijft bewaard."
           }
         },
         "pt-BR" : {
@@ -31231,6 +31987,12 @@
             "value" : "Fenêtre"
           }
         },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Venster"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
@@ -31270,6 +32032,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Funziona con la maggior parte delle app multimediali, inclusi i browser, per rilevare ciò che è in riproduzione. Nota: Questo potrebbe essere rimosso in una futura versione di macOS."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Werkt met de meeste media-apps, waaronder browsers, om te detecteren wat er wordt afgespeeld. Opmerking: deze functie wordt mogelijk in een toekomstige versie van macOS verwijderd."
           }
         },
         "pt-BR" : {
