@@ -14,6 +14,8 @@ struct AppearanceSettingsView: View {
     @Default(.customAccentColorData) var customAccentColorData
     @State private var customAccentColor: Color = .accentColor
     @State private var selectedPresetColor: PresetAccentColor?
+    @Default(.liquidGlassNotch) var liquidGlassNotch
+    @Default(.liquidGlassTint) var liquidGlassTint
 
     var body: some View {
         Form {
@@ -145,9 +147,32 @@ struct AppearanceSettingsView: View {
             Defaults.Toggle(key: .settingsIconInNotch) {
                 Text("Show settings icon in notch")
             }
+            Toggle(isOn: $liquidGlassNotch) {
+                Text("Liquid Glass background", comment: "Toggle for the Liquid Glass open notch background.")
+            }
+            .disabled(!Self.supportsLiquidGlass)
+            if liquidGlassNotch && Self.supportsLiquidGlass {
+                Slider(value: $liquidGlassTint, in: 0...0.8) {
+                    Text("Glass darkness", comment: "Slider controlling how dark the Liquid Glass notch background is.")
+                }
+            }
         } header: {
             Text("Notch chrome")
+        } footer: {
+            Text(
+                Self.supportsLiquidGlass
+                    ? "Liquid Glass applies to the open notch; the closed notch stays black to blend with the camera housing."
+                    : "Liquid Glass requires macOS 26 or later.",
+                comment: "Footer explaining the Liquid Glass notch background."
+            )
+            .foregroundStyle(.secondary)
+            .font(.caption)
         }
+    }
+
+    private static var supportsLiquidGlass: Bool {
+        if #available(macOS 26.0, *) { return true }
+        return false
     }
 
     private var idleSection: some View {
