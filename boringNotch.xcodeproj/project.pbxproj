@@ -21,6 +21,11 @@
 		1113ABD02E80E6BB00EC13B2 /* ThumbnailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1113ABCF2E80E6BB00EC13B2 /* ThumbnailService.swift */; };
 		111BE95D2ECD71E10079DD4E /* AsyncXPCConnection in Frameworks */ = {isa = PBXBuildFile; productRef = 111BE95C2ECD71E10079DD4E /* AsyncXPCConnection */; };
 		111BE9952ECF2DF40079DD4E /* DragDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111BE9942ECF2DEF0079DD4E /* DragDetector.swift */; };
+		A1F10A012F00000100000002 /* DragPasteboardContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F10A012F00000100000001 /* DragPasteboardContent.swift */; };
+		A1F10A022F00000100000002 /* PointerShakeDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F10A022F00000100000001 /* PointerShakeDetector.swift */; };
+		A1F10A032F00000100000002 /* FloatingShelfPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F10A032F00000100000001 /* FloatingShelfPlacement.swift */; };
+		A1F10A042F00000100000002 /* FloatingShelfController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F10A042F00000100000001 /* FloatingShelfController.swift */; };
+		A1F10A052F00000100000002 /* FloatingShelfPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F10A052F00000100000001 /* FloatingShelfPanel.swift */; };
 		111BEA512ECFBF7F0079DD4E /* MacroVisionKit in Frameworks */ = {isa = PBXBuildFile; productRef = 111BEA502ECFBF7F0079DD4E /* MacroVisionKit */; };
 		111BEA5F2ED07A340079DD4E /* MacroVisionKit in Frameworks */ = {isa = PBXBuildFile; productRef = 111BEA5E2ED07A340079DD4E /* MacroVisionKit */; };
 		111BEA6F2ED166E20079DD4E /* MacroVisionKit in Frameworks */ = {isa = PBXBuildFile; productRef = 111BEA6E2ED166E20079DD4E /* MacroVisionKit */; };
@@ -197,6 +202,11 @@
 		1113ABC32E80E27000EC13B2 /* ShelfItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfItemView.swift; sourceTree = "<group>"; };
 		1113ABCF2E80E6BB00EC13B2 /* ThumbnailService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailService.swift; sourceTree = "<group>"; };
 		111BE9942ECF2DEF0079DD4E /* DragDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragDetector.swift; sourceTree = "<group>"; };
+		A1F10A012F00000100000001 /* DragPasteboardContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragPasteboardContent.swift; sourceTree = "<group>"; };
+		A1F10A022F00000100000001 /* PointerShakeDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointerShakeDetector.swift; sourceTree = "<group>"; };
+		A1F10A032F00000100000001 /* FloatingShelfPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingShelfPlacement.swift; sourceTree = "<group>"; };
+		A1F10A042F00000100000001 /* FloatingShelfController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingShelfController.swift; sourceTree = "<group>"; };
+		A1F10A052F00000100000001 /* FloatingShelfPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingShelfPanel.swift; sourceTree = "<group>"; };
 		112B0EB32E30DD0F00562D6C /* mediaremote-adapter.pl */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = "mediaremote-adapter.pl"; sourceTree = "<group>"; };
 		112B0EB52E30DD0F00562D6C /* MediaRemoteAdapterTestClient */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = MediaRemoteAdapterTestClient; sourceTree = "<group>"; };
 		112B0EBA2E30DD5000562D6C /* MediaRemoteAdapter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaRemoteAdapter.framework; path = "mediaremote-adapter/MediaRemoteAdapter.framework"; sourceTree = "<group>"; };
@@ -387,6 +397,8 @@
 				1113ABBA2E80E27000EC13B2 /* QuickLookService.swift */,
 				1113ABBC2E80E27000EC13B2 /* ShelfActionService.swift */,
 				1113ABBD2E80E27000EC13B2 /* ShelfDropService.swift */,
+				A1F10A032F00000100000001 /* FloatingShelfPlacement.swift */,
+				A1F10A042F00000100000001 /* FloatingShelfController.swift */,
 				1113ABBE2E80E27000EC13B2 /* ShelfPersistenceService.swift */,
 			);
 			path = Services;
@@ -411,6 +423,7 @@
 				A1F000022F00000100000001 /* ShelfItemInteractionView.swift */,
 				E49B58CAC648403F864E6D78 /* ShelfContextMenu.swift */,
 				9A987A032C73CA66005CA465 /* ShelfView.swift */,
+				A1F10A052F00000100000001 /* FloatingShelfPanel.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -536,6 +549,8 @@
 			isa = PBXGroup;
 			children = (
 				111BE9942ECF2DEF0079DD4E /* DragDetector.swift */,
+				A1F10A012F00000100000001 /* DragPasteboardContent.swift */,
+				A1F10A022F00000100000001 /* PointerShakeDetector.swift */,
 				B1A78C812C8BA08100BD51B0 /* FullscreenMediaDetection.swift */,
 				5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */,
 			);
@@ -983,6 +998,11 @@
 				11CFC65B2E097E9D00748C80 /* WelcomeView.swift in Sources */,
 				14D570C02C5EA5870011E668 /* AnimatedFace.swift in Sources */,
 				111BE9952ECF2DF40079DD4E /* DragDetector.swift in Sources */,
+				A1F10A012F00000100000002 /* DragPasteboardContent.swift in Sources */,
+				A1F10A022F00000100000002 /* PointerShakeDetector.swift in Sources */,
+				A1F10A032F00000100000002 /* FloatingShelfPlacement.swift in Sources */,
+				A1F10A042F00000100000002 /* FloatingShelfController.swift in Sources */,
+				A1F10A052F00000100000002 /* FloatingShelfPanel.swift in Sources */,
 				B1D365D02C6A9A6C0047BDBC /* SystemEventIndicatorModifier.swift in Sources */,
 				1194E87C2EA19E09009C82D6 /* ImageProcessingService.swift in Sources */,
 				1194E8872EA6DDA7009C82D6 /* BoringNotchSkyLightWindow.swift in Sources */,

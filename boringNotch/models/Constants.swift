@@ -292,6 +292,25 @@ enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     }
 }
 
+enum ShakeSensitivity: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case low
+    case medium
+    case high
+
+    var id: String { rawValue }
+
+    var localizedString: String {
+        switch self {
+        case .low:
+            return String(localized: "Low", comment: "Floating shelf shake sensitivity: Low")
+        case .medium:
+            return String(localized: "Medium", comment: "Floating shelf shake sensitivity: Medium")
+        case .high:
+            return String(localized: "High", comment: "Floating shelf shake sensitivity: High")
+        }
+    }
+}
+
 // Action to perform when Option (⌥) is held while pressing media keys
 enum OptionKeyAction: String, CaseIterable, Identifiable, Defaults.Serializable {
     case openSettings
@@ -535,6 +554,10 @@ extension Defaults.Keys {
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
     static let reverseShelfOrdering = Key<Bool>("reverseShelfOrdering", default: false)
+    static let floatingShelf = Key<Bool>("floatingShelf", default: true)
+    static let floatingShelfShakeTrigger = Key<Bool>("floatingShelfShakeTrigger", default: true)
+    static let floatingShelfShiftTrigger = Key<Bool>("floatingShelfShiftTrigger", default: true)
+    static let floatingShelfShakeSensitivity = Key<ShakeSensitivity>("floatingShelfShakeSensitivity", default: .medium)
 
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
