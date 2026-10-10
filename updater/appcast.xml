@@ -2,12 +2,12 @@
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <item>
-            <title>2.8-rc.1</title>
-            <pubDate>Fri, 25 Sep 2026 09:34:13 +0000</pubDate>
+            <title>2.8-rc.2</title>
+            <pubDate>Sat, 10 Oct 2026 02:12:47 +0000</pubDate>
             <link>https://github.com/TheBoredTeam/boring.notch/releases</link>
             <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>282</sparkle:version>
-            <sparkle:shortVersionString>2.8-rc.1</sparkle:shortVersionString>
+            <sparkle:version>297</sparkle:version>
+            <sparkle:shortVersionString>2.8-rc.2</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <description>&lt;!-- &lt;h2&gt;✨ What's New&lt;/h2&gt;
 
@@ -73,6 +73,7 @@
     &lt;li&gt;&lt;strong&gt;Camera recovery&lt;/strong&gt; – Improved permission handling, camera selection, disconnect/reconnect recovery, interruption handling, sleep/wake recovery, and display lifecycle management.&lt;/li&gt;
     &lt;li&gt;&lt;strong&gt;Camera selection&lt;/strong&gt; – Added camera selection for the Mirror feature, with an Automatic mode that prefers the built-in camera. — @ReubenCowell&lt;/li&gt;
     &lt;li&gt;&lt;strong&gt;Mirror controls&lt;/strong&gt; – Added a setting to switch between mirrored and natural camera output. — @anmolmalhotra97&lt;/li&gt;
+&lt;li&gt;Fixed mirror sizing and alignment&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h3&gt;⚙️ Settings &amp;amp; Appearance&lt;/h3&gt;
@@ -113,37 +114,41 @@
     &lt;li&gt;Improved locale-aware formatting across settings, battery, OSD, progress indicators, and accessibility labels.&lt;/li&gt;
     &lt;li&gt;Improved localization coverage for media controls, Shelf actions, native dialogs, and settings.&lt;/li&gt;
     &lt;li&gt;Improved concurrency safety, lifecycle management, and internal architecture to reduce races, retain cycles, and unnecessary background work. — @Dbhardwaj99&lt;/li&gt;
+    &lt;li&gt;Renamed app from boringNotch to Boring Notch&lt;/li&gt;
     &lt;li&gt;Updated dependencies used by the project.&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;hr&gt;
 &lt;h2&gt;👋 New Contributors&lt;/h2&gt;
-&lt;p&gt;@adam-dziuk · @karadoganyi · @benjaminfrombe · @daemonsloth · @mlbonniec · @KoukeNeko · @Amorfx · @ftery0 · @anmolmalhotra97 · @colinchambachan · @ReubenCowell · @cjuriartec · @lasersushi · @Etzeo · @yannip1234 · @TemujinCalidius · @ShehanCes · @isaacau502 · @SpaceCypher · @morriisan · @Dbhardwaj99 · @rogedev · @Subhanshu20101 · @notluquis&lt;/p&gt;
+&lt;p&gt;@adam-dziuk · @karadoganyi · @benjaminfrombe · @daemonsloth · @mlbonniec · @KoukeNeko · @Amorfx · @ftery0 · @anmolmalhotra97 · @colinchambachan · @ReubenCowell · @cjuriartec · @lasersushi · @Etzeo · @yannip1234 · @TemujinCalidius · @ShehanCes · @isaacau502 · @SpaceCypher · @morriisan · @Dbhardwaj99 · @rogedev · @Subhanshu20101 · @notluquis @DavideSirico&lt;/p&gt;
 
 &lt;p&gt;Thank you to everyone who contributed code, translations, testing, bug reports, and feedback to this release!&lt;/p&gt;
 
 &lt;h3&gt;📄 Full Changelog&lt;/h3&gt;
-&lt;p&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.7.3...v2.8-rc.0"&gt;Compare v2.7.3 → v2.8-rc.0&lt;/a&gt;&lt;/p&gt; --&gt;
+&lt;p&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.7.3...v2.8"&gt;Compare v2.7.3 → v2.8&lt;/a&gt;&lt;/p&gt; --&gt;
 
 &lt;h2&gt;🛠️ Fixes &amp;amp; Improvements&lt;/h2&gt;
 &lt;ul&gt;
-    &lt;li&gt;Fixed performance issues causing high CPU utilization for some users — @DavideSirico and @Alexander5015&lt;/li&gt;
-    &lt;li&gt;Fixed mirror sizing and alignment&lt;/li&gt;
-    &lt;li&gt;Fixed UI bugs with notifications&lt;/li&gt;
-    &lt;li&gt;Fixed Audio output selector hover broken and improved design &lt;/li&gt;
-    &lt;li&gt;Renamed boringNotch to Boring Notch&lt;/li&gt;
-    &lt;li&gt;Updated dependencies used by the project.&lt;/li&gt;
+    &lt;li&gt;Add a display setting that allows the notch to follow the active display&lt;/li&gt;
+    &lt;li&gt;Fix artwork for streamed Apple Music tracks — @ludovickjankowski-web&lt;/li&gt;
+    &lt;li&gt;Fix inline sneak peek when music live activity is off — @DavideSirico&lt;/li&gt;
+    &lt;li&gt;Open Settings when app is reopened while running — @AcornElf&lt;/li&gt;
+    &lt;li&gt;Improve album artwork processing efficiency — @ericrcwu001&lt;/li&gt;
+    &lt;li&gt;Add option to hide the source app icon on album art — @SwastikTripathi&lt;/li&gt;
+    &lt;li&gt;Migrate legacy non-notch heights to the supported minimum&lt;/li&gt;
+    &lt;li&gt;Improved localization coverage and accuracy&lt;/li&gt;
+    &lt;li&gt;Updated dependencies used by the project&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;hr&gt;
 &lt;h2&gt;👋 New Contributors&lt;/h2&gt;
-&lt;p&gt;@DavideSirico&lt;/p&gt;
+&lt;p&gt;@AcornElf · @ludovickjankowski-web · @SwastikTripathi · @ericrcwu001 &lt;/p&gt;
 
 &lt;p&gt;Thank you to everyone who contributed code, translations, testing, bug reports, and feedback to this release!&lt;/p&gt;
 
 &lt;h3&gt;📄 Full Changelog&lt;/h3&gt;
-&lt;p&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.8-rc.0...v2.8-rc.1"&gt;Compare v2.8-rc.0 → v2.8-rc.1&lt;/p&gt;</description>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.8-rc.1/boringNotch.dmg" length="10629350" type="application/octet-stream" sparkle:edSignature="Y+9JNs6D8eMWRjGQ73wzr0W1rbpNCNtyYV0g2NrUSfszuCdbG4VVmZACg/wHkV+tupIXvj5mcdpPKvA5HWjtCQ==" />
+&lt;p&gt;&lt;a href="https://github.com/TheBoredTeam/boring.notch/compare/v2.8-rc.1...v2.8-rc.2"&gt;Compare v2.8-rc.1 → v2.8-rc.2&lt;/p&gt;</description>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/v2.8-rc.2/boringNotch.dmg" length="10670989" type="application/octet-stream" sparkle:edSignature="Aj18DjMWTvhUacDs1bEs7HTuRaH7e+FVzBv9v3DIJmHlm/a+s9reIdini+Z7pkKpRygKS4clOOmmKAmnLSGiAQ==" />
         </item>
         <item>
             <title>2.7.3</title>
