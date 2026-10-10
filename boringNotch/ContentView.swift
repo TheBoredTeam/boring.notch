@@ -38,6 +38,7 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.showMuteIndicator) var showMuteIndicator
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -273,6 +274,11 @@ struct ContentView: View {
                             .fill(.black)
                             .frame(height: 1)
                             .padding(.horizontal, topCornerRadius)
+                    }
+                    .overlay {
+                        if showMuteIndicator && !isNotchHeightZero {
+                            MuteIndicatorEdges(isNotchClosed: vm.notchState == .closed, shape: currentNotchShape)
+                        }
                     }
                     .shadow(
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
