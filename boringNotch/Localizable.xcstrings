@@ -16026,6 +16026,12 @@
         }
       }
     },
+    "Low Power: Off" : {
+
+    },
+    "Low Power: On" : {
+
+    },
     "Lunar is not installed or not reachable" : {
       "comment" : "Text displayed in a warning banner at the top of the screen when Lunar is not installed or not reachable.",
       "localizations" : {
@@ -30165,6 +30171,9 @@
           }
         }
       }
+    },
+    "Unplugged" : {
+
     },
     "Update channel" : {
       "comment" : "Software updates channel picker label",

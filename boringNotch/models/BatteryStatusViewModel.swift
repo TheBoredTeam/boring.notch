@@ -27,21 +27,23 @@ final class BatteryStatusViewModel: ObservableObject {
         case charging(isCharging: Bool, level: Float)
     }
 
+    /// Each label is a literal so the string catalog picks it up for translation;
+    /// keys built from a variable (`LocalizedStringKey(key)`) are never extracted
+    /// and stayed in English.
     var statusText: LocalizedStringKey {
         switch lastStatus {
         case .plugged(let plugged):
-            return LocalizedStringKey(plugged ? "Plugged In" : "Unplugged")
+            return plugged ? "Plugged In" : "Unplugged"
         case .lowPower(let enabled):
-            let key = enabled ? "Low Power: On" : "Low Power: Off"
-            return LocalizedStringKey(key)
+            return enabled ? "Low Power: On" : "Low Power: Off"
         case .charging(let isCharging, let level):
             if isCharging {
-                return LocalizedStringKey("Charging battery")
+                return "Charging battery"
             }
             if level < 100 {
-                return LocalizedStringKey("Not charging")
+                return "Not charging"
             }
-            return LocalizedStringKey("Full charge")
+            return "Full charge"
         }
     }
 
