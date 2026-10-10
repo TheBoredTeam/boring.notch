@@ -17,6 +17,11 @@ struct ShortcutsSettingsView: View {
                 Text("Notch")
             }
             Section {
+                KeyboardShortcuts.Recorder("Start/Pause Timer:", name: .togglePomodoro)
+            } header: {
+                Text("Timer")
+            }
+            Section {
                 KeyboardShortcuts.Recorder("Toggle Sneak Peek:", name: .toggleSneakPeek)
             } header: {
                 Text("Media")

@@ -5,6 +5,7 @@
 //  Created by Hugo Persson on 2024-08-25.
 //
 
+import Defaults
 import SwiftUI
 
 struct TabModel: Identifiable {
@@ -16,15 +17,27 @@ struct TabModel: Identifiable {
 
 let tabs = [
     TabModel(label: "Home", icon: "house.fill", view: .home),
-    TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)
+    TabModel(label: "Shelf", icon: "tray.fill", view: .shelf),
+    TabModel(label: "Timer", icon: "timer", view: .timer)
 ]
+
+@MainActor
+var visibleTabs: [TabModel] {
+    tabs.filter { tab in
+        switch tab.view {
+        case .home: return true
+        case .shelf: return Defaults[.boringShelf]
+        case .timer: return Defaults[.enablePomodoro]
+        }
+    }
+}
 
 struct TabSelectionView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Namespace var animation
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(tabs) { tab in
+            ForEach(visibleTabs) { tab in
                     TabButton(label: tab.label, icon: tab.icon, selected: coordinator.currentView == tab.view) {
                         withAnimation(.smooth) {
                             coordinator.currentView = tab.view
