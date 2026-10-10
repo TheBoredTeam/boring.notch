@@ -138,6 +138,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var screenLockedObserver: Any?
     private var screenUnlockedObserver: Any?
     private var observers: [Any] = []
+    private var activeDisplayObserver: NSObjectProtocol?
+    private var displayModeTask: Task<Void, Never>?
+    private var observedDisplayMode: DisplayMode?
 
     /// Kept for existing internal readers; the state itself moved to the manager.
     var windows: [String: NSWindow] { windowManager.windows }
@@ -146,6 +149,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var vm: BoringViewModel { windowManager.primaryViewModel }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        return false
+    }
+
+    @MainActor
+    func applicationShouldHandleReopen(
+        _ sender: NSApplication,
+        hasVisibleWindows flag: Bool
+    ) -> Bool {
+        SettingsWindowController.shared.showWindow()
         return false
     }
 
@@ -175,6 +187,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         observers.forEach { NotificationCenter.default.removeObserver($0) }
         observers.removeAll()
+
+        displayModeTask?.cancel()
+        MainActor.assumeIsolated { setActiveDisplayObserver(enabled: false, reposition: false) }
     }
 
     @MainActor
@@ -189,6 +204,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         SettingsWindowController.shared.setCamera(camera)
+        migrateDisplayModeIfNeeded()
 
         NotificationCenter.default.addObserver(
             self,
@@ -212,26 +228,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in
                 self?.windowManager.adjustWindowPosition()
                 self?.windowManager.setupDragDetectors()
-            }
-        })
-
-        observers.append(NotificationCenter.default.addObserver(
-            forName: Notification.Name.automaticallySwitchDisplayChanged, object: nil, queue: nil
-        ) { [weak self] _ in
-            guard let self = self, let window = self.window else { return }
-            Task { @MainActor in
-                window.alphaValue = self.coordinator.selectedScreenUUID == self.coordinator.preferredScreenUUID ? 1 : 0
-            }
-        })
-
-        observers.append(NotificationCenter.default.addObserver(
-            forName: Notification.Name.showOnAllDisplaysChanged, object: nil, queue: nil
-        ) { [weak self] _ in
-            Task { @MainActor in
-                guard let self = self else { return }
-                self.windowManager.cleanupWindows(shouldInvert: true)
-                self.windowManager.adjustWindowPosition(changeAlpha: true)
-                self.windowManager.setupDragDetectors()
             }
         })
 
@@ -307,7 +303,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
                 var viewModel = self.vm
 
-                if Defaults[.showOnAllDisplays] {
+                if Defaults[.displayMode] == .allDisplays {
                     for screen in NSScreen.screens {
                         if screen.frame.contains(mouseLocation) {
                             if let uuid = screen.displayUUID, let screenViewModel = self.viewModels[uuid] {
@@ -351,6 +347,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         windowManager.prepareInitialWindows()
 
+        displayModeTask = Task { @MainActor [weak self] in
+            for await mode in Defaults.updates(.displayMode, initial: true) {
+                guard let self else { return }
+
+                let previousMode = self.observedDisplayMode
+                self.observedDisplayMode = mode
+
+                if let previousMode, (previousMode == .allDisplays) != (mode == .allDisplays) {
+                    self.windowManager.cleanupWindows(shouldInvert: true)
+                }
+
+                self.setActiveDisplayObserver(enabled: mode == .activeDisplay, reposition: false)
+                self.windowManager.adjustWindowPosition(changeAlpha: true)
+                self.windowManager.setupDragDetectors()
+            }
+        }
+
         if coordinator.firstLaunch {
             DispatchQueue.main.async {
                 self.showOnboardingWindow()
@@ -377,6 +390,56 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         else { return }
         let next = (current + offset + tabs.count) % tabs.count
         selectTab(at: next)
+    }
+
+    private func migrateDisplayModeIfNeeded() {
+        let defaults = UserDefaults.standard
+        guard defaults.object(forKey: "displayMode") == nil else { return }
+
+        let mode: DisplayMode
+        if Defaults[.showOnAllDisplays] {
+            mode = .allDisplays
+        } else if Defaults[.followActiveDisplay] {
+            mode = .activeDisplay
+        } else if Defaults[.automaticallySwitchDisplay] {
+            mode = .fallbackIfPreferredUnavailable
+        } else {
+            mode = .preferredDisplay
+        }
+
+        Defaults[.displayMode] = mode
+    }
+
+    private static let activeDisplayDidChangeNotification =
+        Notification.Name("NSWorkspaceActiveDisplayDidChangeNotification")
+
+    @MainActor
+    private func setActiveDisplayObserver(enabled: Bool, reposition: Bool = true) {
+        let workspaceCenter = NSWorkspace.shared.notificationCenter
+
+        if enabled {
+            guard activeDisplayObserver == nil else { return }
+
+            activeDisplayObserver = workspaceCenter.addObserver(
+                forName: Self.activeDisplayDidChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    self.windowManager.adjustWindowPosition(changeAlpha: true)
+                    self.windowManager.setupDragDetectors()
+                }
+            }
+        } else if let observer = activeDisplayObserver {
+            workspaceCenter.removeObserver(observer)
+            activeDisplayObserver = nil
+        }
+
+        guard reposition else { return }
+
+        windowManager.adjustWindowPosition(changeAlpha: true)
+        windowManager.setupDragDetectors()
     }
 
     func playWelcomeSound() {

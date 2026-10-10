@@ -139,6 +139,9 @@ struct MediaSettingsView: View {
                 Defaults.Toggle(key: .lightingEffect) {
                     Text("Enable blur effect behind album art")
                 }
+                Defaults.Toggle(key: .showMediaSourceAppIcon) {
+                    Text("Show source app icon on album art")
+                }
                 Picker("Slider color", selection: $sliderColor) {
                     ForEach(SliderColorEnum.allCases, id: \.self) { option in
                         Text(option.localizedString)
