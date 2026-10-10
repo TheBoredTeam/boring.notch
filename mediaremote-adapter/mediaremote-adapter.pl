@@ -56,11 +56,18 @@ OPTIONS:
     --no-diff: Disable diffing and always dump all metadata
     --debounce=N: Delay in milliseconds to prevent spam (0 by default)
   get, stream
-    --micros: Replaces the following time keys with microsecond equivalents
+    --micros: Replaces the following time keys with microsecond equivalents:
       "duration" -> "durationMicros"
       "elapsedTime" -> "elapsedTimeMicros"
       "elapsedTimeNow" -> "elapsedTimeNowMicros"
       "timestamp" -> "timestampEpochMicros" (converted to epoch time)
+    --no-artwork: Omits "artworkData" and "artworkMimeType" from the payload.
+      Useful for consumers that do not render artwork, since this avoids
+      emitting several hundred kilobytes of base64 data per update.
+    --allow-missing-title: By default, media with a null or absent title is
+      ignored. This flag leads to media with a null or absent title being
+      emitted. The consumer needs to explicitly handle the possibility of the
+      title being null or absent.
     --human-readable, -h: Makes values human-readable. Use only for debugging.
       The JSON output is pretty-printed and the following keys are adapted:
       "artworkData" -> Binary data is truncated to a shorter representation
@@ -125,7 +132,7 @@ sub parse_options {
   my $i = $start_index;
   while ($i <= $#ARGV) {
     my $arg = $ARGV[$i];
-    if ($arg =~ /^--([a-z\\-]+)(?:=(.*))?$/) {
+    if ($arg =~ /^--([a-z:\.\\-]+)(?:=(.*))?$/) {
       my $key = $1;
       my $value = defined $2 ? $2 : undef;
       $arg_map{$key} = $value;
@@ -196,8 +203,17 @@ elsif ($function_name eq "stream") {
     elsif ($key eq "micros") {
       set_env_option($options, $key);
     }
+    elsif ($key eq "no-artwork") {
+      set_env_option($options, $key);
+    }
+    elsif ($key eq "allow-missing-title") {
+      set_env_option($options, $key);
+    }
     elsif ($key eq "human-readable" || $key eq "h") {
       set_env_option($options, "human-readable");
+    }
+    elsif ($key eq "experimental-peculiar-debounce:com.tidal.desktop") {
+      set_env_option_value($options, $key);
     }
     else {
       fail "Unrecognized option '$key'";
@@ -209,6 +225,12 @@ elsif ($function_name eq "get") {
   my $options = parse_options(0);
   foreach my $key (keys %{$options}) {
     if ($key eq "micros") {
+      set_env_option($options, $key);
+    }
+    elsif ($key eq "no-artwork") {
+      set_env_option($options, $key);
+    }
+    elsif ($key eq "allow-missing-title") {
       set_env_option($options, $key);
     }
     elsif ($key eq "human-readable" || $key eq "h") {
