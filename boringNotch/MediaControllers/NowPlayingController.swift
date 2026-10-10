@@ -70,6 +70,37 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
 
     private var streamSession: NowPlayingStreamSession?
 
+    /// Runs the adapter (the script and arguments that follow it) in this very
+    /// process, next to a watcher that stops it once the app is gone. Without
+    /// it, the adapter outlived an app that was killed (Xcode's Stop button,
+    /// Force Quit, a crash) and kept running with launchd as its parent.
+    ///
+    /// The watcher waits for end-of-file on stdin: the app holds the only write
+    /// end of that pipe, and the system closes it however the app ends. Killing
+    /// this process still stops the adapter at once, and the adapter's exit
+    /// status is this process's own. Without a pipe on stdin, nothing is watched.
+    private static let adapterWatcher = """
+        my $adapter = $$;
+        my $watcher = fork() // die "fork: $!";
+        if ($watcher == 0) {
+            exit 0 unless -p STDIN;
+            open(STDOUT, ">", "/dev/null");
+            my $rin = "";
+            vec($rin, fileno(STDIN), 1) = 1;
+            while (getppid() == $adapter) {
+                next unless select(my $rout = $rin, undef, undef, 1) > 0;
+                my $read = sysread(STDIN, my $buffer, 64);
+                next unless defined $read && $read == 0;
+                kill "TERM", $adapter;
+                sleep 1;
+                kill "KILL", $adapter;
+                last;
+            }
+            exit 0;
+        }
+        exec($^X, @ARGV) or die "exec: $!";
+        """
+
     // MARK: - Initialization
     init() throws {
         let resources = try NowPlayingResources.load()
@@ -190,7 +221,9 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
-        process.arguments = [adapterScriptURL.path, adapterFrameworkPath, "stream"]
+        process.arguments = ["-e", Self.adapterWatcher, adapterScriptURL.path, adapterFrameworkPath, "stream"]
+        // Held open by the app: the watcher stops the adapter when it closes.
+        process.standardInput = Pipe()
 
         let session = NowPlayingStreamSession(
             process: process,
