@@ -272,7 +272,11 @@ final class VolumeManager: NSObject, ObservableObject {
             (volume != nil && abs(volume! - rawVolume) > 0.0005) || effectiveMuted != isMuted
         // The initial fetch arms change detection without touching the date;
         // only later device-reported changes bring the OSD up.
-        if changed && didInitialFetch { lastChangeAt = Date() }
+        if changed && didInitialFetch {
+            lastChangeAt = Date()
+            let displayVolume = effectiveMuted ? 0 : (volume ?? rawVolume)
+            NotchUIEventBus.events.send(.sneakPeek(type: .volume, value: CGFloat(displayVolume)))
+        }
         if let volume { rawVolume = volume }
         isMuted = effectiveMuted
         didInitialFetch = true
