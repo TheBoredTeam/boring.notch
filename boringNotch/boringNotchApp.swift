@@ -276,15 +276,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        // Tab shortcuts aren't customizable, so drop any binding recorded by an older build
+        KeyboardShortcuts.reset(KeyboardShortcuts.Name.tabShortcuts)
+
         // Disabled until a notch opens — see TabShortcutController
         TabShortcutController.updateRegistration()
 
-        KeyboardShortcuts.onKeyDown(for: .selectTab1) { [weak self] in
-            self?.selectTab(at: 0)
-        }
-
-        KeyboardShortcuts.onKeyDown(for: .selectTab2) { [weak self] in
-            self?.selectTab(at: 1)
+        for (index, name) in KeyboardShortcuts.Name.selectTabShortcuts.enumerated() {
+            KeyboardShortcuts.onKeyDown(for: name) { [weak self] in
+                self?.selectTab(at: index)
+            }
         }
 
         KeyboardShortcuts.onKeyDown(for: .nextTab) { [weak self] in
@@ -376,10 +377,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         coordinator.applyOSDSources()
     }
 
+    /// Selects the tab at `index`, falling back to the last tab when `index` is past the end.
     private func selectTab(at index: Int) {
-        guard coordinator.tabsVisible, tabs.indices.contains(index) else { return }
+        guard coordinator.tabsVisible, !tabs.isEmpty else { return }
         withAnimation(.smooth) {
-            coordinator.currentView = tabs[index].view
+            coordinator.currentView = tabs[min(index, tabs.count - 1)].view
         }
     }
 

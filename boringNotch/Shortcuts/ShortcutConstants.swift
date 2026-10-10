@@ -12,13 +12,20 @@ extension KeyboardShortcuts.Name {
     static let toggleSneakPeek = Self("toggleSneakPeek", initial: .init(.h, modifiers: [.command, .shift]))
     static let toggleNotchOpen = Self("toggleNotchOpen", initial: .init(.i, modifiers: [.command, .shift]))
 
-    // Tab shortcuts are only registered while the notch is open (see TabShortcutController)
-    static let selectTab1 = Self("selectTab1", initial: .init(.one, modifiers: [.command]))
-    static let selectTab2 = Self("selectTab2", initial: .init(.two, modifiers: [.command]))
+    // Tab shortcuts are only registered while the notch is open (see TabShortcutController).
+    // They're fixed, not user-recordable: tabs will be defined by extensions, so a
+    // shortcut maps to a tab position rather than a specific feature.
+
+    /// ⌘1–⌘8, selecting the tab at that position (clamped to the last tab).
+    static let selectTabShortcuts: [Self] = [KeyboardShortcuts.Key.one, .two, .three, .four, .five, .six, .seven, .eight]
+        .enumerated()
+        .map { index, key in
+            Self("selectTab\(index + 1)", initial: .init(key, modifiers: [.command]))
+        }
     static let nextTab = Self("nextTab", initial: .init(.tab, modifiers: [.control]))
     static let previousTab = Self("previousTab", initial: .init(.tab, modifiers: [.control, .shift]))
 
-    static let tabShortcuts: [Self] = [.selectTab1, .selectTab2, .nextTab, .previousTab]
+    static let tabShortcuts: [Self] = selectTabShortcuts + [.nextTab, .previousTab]
 }
 
 /// The notch never becomes key, so tab shortcuts have to be global hotkeys.
