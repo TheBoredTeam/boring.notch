@@ -524,20 +524,15 @@ struct ContentView: View {
                            // Old sneak peek music
                            else if coordinator.sneakPeekState(for: vm.screenUUID).type == .music {
                                if vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard {
-                                   HStack(alignment: .center) {
-                                       Image(systemName: "music.note")
-                                       GeometryReader { geo in
-                                           MarqueeText(musicManager.songTitle + " - " + musicManager.artistName, color: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray, delayDuration: 1.0, frameWidth: geo.size.width)
-                                       }
-                                   }
-                                   .foregroundStyle(.gray)
-                                   .padding(.bottom, 10)
+                                   standardMusicPeek()
                                }
                            }
+                       } else if showingPersistentStandardPeek {
+                           standardMusicPeek()
                        }
                         }
                       }
-                      .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (vm.notchState == .closed))) { view in
+                      .conditionalModifier(showingStandardPeekLine) { view in
                           view
                               .fixedSize()
                       }
@@ -657,9 +652,9 @@ struct ContentView: View {
 
     /// True while the song-change peek is expanding the closed pill inline.
     private var showingInlineMusicPeek: Bool {
-        coordinator.expandingView.show
-            && coordinator.expandingView.type == .music
-            && Defaults[.sneakPeekStyles] == .inline
+        guard Defaults[.sneakPeekStyles] == .inline else { return false }
+        return (coordinator.expandingView.show && coordinator.expandingView.type == .music)
+            || showingPersistentMusicPeek
     }
 
     /// Width of the black centre section of the closed music pill.
@@ -724,19 +719,14 @@ struct ContentView: View {
                     // vertically centered, so top-aligned labels sat visibly
                     // high against it.
                     HStack(alignment: .center) {
-                        if coordinator.expandingView.show
-                            && coordinator.expandingView.type == .music {
+                        if showingInlineMusicPeek {
                             MarqueeText(
                                 musicManager.songTitle,
                                 color: Defaults[.coloredSpectrogram]
                                     ? Color(nsColor: musicManager.avgColor) : Color.gray,
                                 delayDuration: 0.4,
-                                frameWidth: inlineMusicPeekLabelWidth
-                            )
-                            .opacity(
-                                (coordinator.expandingView.show
-                                    && Defaults[.sneakPeekStyles] == .inline)
-                                    ? 1 : 0
+                                frameWidth: inlineMusicPeekLabelWidth,
+                                loops: !showingPersistentMusicPeek
                             )
                             Spacer(minLength: vm.closedNotchSize.width)
                             // Song Artist
@@ -748,12 +738,6 @@ struct ContentView: View {
                                     Defaults[.coloredSpectrogram]
                                         ? Color(nsColor: musicManager.avgColor)
                                         : Color.gray
-                                )
-                                .opacity(
-                                    (coordinator.expandingView.show
-                                        && coordinator.expandingView.type == .music
-                                        && Defaults[.sneakPeekStyles] == .inline)
-                                        ? 1 : 0
                                 )
                         }
                     }
