@@ -20,6 +20,7 @@ struct ContentView: View {
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
+    @ObservedObject var timerManager = TimerManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
@@ -36,6 +37,7 @@ struct ContentView: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.visualizerBackgroundEnabled) var visualizerBackgroundEnabled
 
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
@@ -65,6 +67,18 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
+        } else if coordinator.expandingView.type == .timer && coordinator.expandingView.show
+            && vm.notchState == .closed
+        {
+            chinWidth = 500
+        } else if coordinator.expandingView.type == .bluetooth && coordinator.expandingView.show
+            && vm.notchState == .closed && Defaults[.enableBluetoothLiveActivity]
+        {
+            chinWidth = 560
+        } else if !coordinator.expandingView.show && vm.notchState == .closed
+            && timerManager.isTimerActive && Defaults[.showTimerLiveActivity] && !vm.hideOnClosed
+        {
+            chinWidth += (max(0, vm.effectiveClosedNotchHeight - 16) + 64)
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -100,7 +114,17 @@ struct ContentView: View {
                         : cornerRadiusInsets.closed.bottom
                     )
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
-                    .background(.black)
+                    .background {
+                        ZStack(alignment: .bottom) {
+                            Color.black
+                            if vm.notchState == .open && visualizerBackgroundEnabled
+                                && musicManager.isPlaying && coordinator.currentView == .home
+                            {
+                                NotchVisualizerBackground()
+                                    .transition(.opacity)
+                            }
+                        }
+                    }
                     .clipShape(currentNotchShape)
                     .overlay(alignment: .top) {
                         Rectangle()
@@ -284,9 +308,24 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+                      } else if coordinator.expandingView.type == .timer && coordinator.expandingView.show
+                          && vm.notchState == .closed
+                      {
+                          TimerCompletionActivity()
+                      } else if coordinator.expandingView.type == .bluetooth
+                          && coordinator.expandingView.show && vm.notchState == .closed
+                          && Defaults[.enableBluetoothLiveActivity]
+                      {
+                          BluetoothDeviceActivity()
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
+                      } else if !coordinator.expandingView.show && vm.notchState == .closed
+                          && timerManager.isTimerActive && Defaults[.showTimerLiveActivity]
+                          && !vm.hideOnClosed
+                      {
+                          TimerLiveActivity()
+                              .frame(alignment: .center)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
@@ -349,6 +388,10 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
+                    case .timer:
+                        TimerView()
+                    case .clipboard:
+                        ClipboardHistoryView()
                     }
                 }
                 .transition(
