@@ -95,6 +95,8 @@
 		14D570C92C5F38890011E668 /* BoringViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570C82C5F38890011E668 /* BoringViewModel.swift */; };
 		14D570CB2C5F4B2C0011E668 /* BatteryStatusViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */; };
 		14D570D22C5F6C6A0011E668 /* BoringExtrasMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */; };
+		1A45B4A02FB21CAF0061EA48 /* CapsLockManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A45B49F2FB21CA20061EA48 /* CapsLockManager.swift */; };
+		1A45B4A22FB21CAF0061EA48 /* CapsLockIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A45B4A12FB21CA20061EA48 /* CapsLockIndicatorView.swift */; };
 		1A8B65187F974EE9B7664F5C /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0268933F488E47DFB58E48CF /* VisualEffectView.swift */; };
 		201C3E071A104384B8629328 /* AudioOutputRouteResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFAD1670A870402D88BFFE47 /* AudioOutputRouteResolver.swift */; };
 		3C1B922F0813671B2886CF43 /* MeetingLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CA22021D89A9E4FF88A618D /* MeetingLink.swift */; };
@@ -268,6 +270,8 @@
 		14D570C82C5F38890011E668 /* BoringViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringViewModel.swift; sourceTree = "<group>"; };
 		14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryStatusViewModel.swift; sourceTree = "<group>"; };
 		14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringExtrasMenu.swift; sourceTree = "<group>"; };
+		1A45B49F2FB21CA20061EA48 /* CapsLockManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapsLockManager.swift; sourceTree = "<group>"; };
+		1A45B4A12FB21CA20061EA48 /* CapsLockIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapsLockIndicatorView.swift; sourceTree = "<group>"; };
 		3CA22021D89A9E4FF88A618D /* MeetingLink.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MeetingLink.swift; sourceTree = "<group>"; };
 		507266DA2C908E2E00A2D00D /* HoverButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverButton.swift; sourceTree = "<group>"; };
 		5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKeyInterceptor.swift; sourceTree = "<group>"; };
@@ -573,6 +577,7 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				1A45B49F2FB21CA20061EA48 /* CapsLockManager.swift */,
 				11DB26652EDD0BE1001EA0CF /* LyricsService.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
@@ -772,6 +777,7 @@
 				9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */,
 				14D570C52C5F38210011E668 /* BoringHeader.swift */,
 				14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */,
+				1A45B4A12FB21CA20061EA48 /* CapsLockIndicatorView.swift */,
 			);
 			path = Notch;
 			sourceTree = "<group>";
@@ -1036,6 +1042,8 @@
 				14D570C92C5F38890011E668 /* BoringViewModel.swift in Sources */,
 				C0D300012F60000100000001 /* DropInteractionState.swift in Sources */,
 				14D570BC2C5E98EB0011E668 /* generic.swift in Sources */,
+				1A45B4A02FB21CAF0061EA48 /* CapsLockManager.swift in Sources */,
+				1A45B4A22FB21CAF0061EA48 /* CapsLockIndicatorView.swift in Sources */,
 				14D570C62C5F38210011E668 /* BoringHeader.swift in Sources */,
 				14C08BB62C8DE42D000F8AA0 /* CalendarManager.swift in Sources */,
 				1443E7F32C609DCE0027C1FC /* matters.swift in Sources */,
