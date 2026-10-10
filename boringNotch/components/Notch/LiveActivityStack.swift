@@ -22,11 +22,13 @@ import SwiftUI
 /// iOS separates them from live activities.
 enum LiveActivityItem: Identifiable, Equatable {
     case notification(SystemNotification)
+    case pomodoro
     case music
 
     var id: String {
         switch self {
         case .notification(let notification): "notification-\(notification.id)"
+        case .pomodoro: "pomodoro"
         case .music: "music"
         }
     }

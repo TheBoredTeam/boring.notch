@@ -28,6 +28,11 @@ struct ShortcutsSettingsView: View {
                 .foregroundStyle(.secondary)
                 .font(.caption)
             }
+            Section {
+                KeyboardShortcuts.Recorder("Start / Pause Pomodoro:", name: .togglePomodoro)
+            } header: {
+                Text("Pomodoro")
+            }
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Shortcuts")

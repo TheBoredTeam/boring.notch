@@ -1,6 +1,96 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Changes apply to the next phase that starts. A phase already in progress keeps its length." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Changes apply to the next phase that starts. A phase already in progress keeps its length." } }
+      }
+    },
+    "Enable Pomodoro timer" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Enable Pomodoro timer" } }
+      }
+    },
+    "Focus" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Focus" } }
+      }
+    },
+    "Focus sessions before a long break" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Focus sessions before a long break" } }
+      }
+    },
+    "Long break" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Long break" } }
+      }
+    },
+    "Pause Pomodoro" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Pause Pomodoro" } }
+      }
+    },
+    "Play a sound when a phase ends" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Play a sound when a phase ends" } }
+      }
+    },
+    "Pomodoro" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Pomodoro" } }
+      }
+    },
+    "Ready when you are" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Ready when you are" } }
+      }
+    },
+    "Reset Pomodoro" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Reset Pomodoro" } }
+      }
+    },
+    "Show countdown in the closed notch" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Show countdown in the closed notch" } }
+      }
+    },
+    "Short break" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Short break" } }
+      }
+    },
+    "Skip to next Pomodoro phase" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Skip to next Pomodoro phase" } }
+      }
+    },
+    "Start Pomodoro" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start Pomodoro" } }
+      }
+    },
+    "Start the next phase automatically" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start the next phase automatically" } }
+      }
+    },
+    "Stay on one thing" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stay on one thing" } }
+      }
+    },
+    "Step away for a bit" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Step away for a bit" } }
+      }
+    },
+    "Start / Pause Pomodoro:" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start / Pause Pomodoro:" } }
+      }
+    },
     "" : {
       "localizations" : {
         "en" : {
