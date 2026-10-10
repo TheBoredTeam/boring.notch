@@ -276,6 +276,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        // Tab shortcuts aren't customizable, so drop any binding recorded by an older build
+        KeyboardShortcuts.reset(KeyboardShortcuts.Name.tabShortcuts)
+
+        // Disabled until a notch opens — see TabShortcutController
+        TabShortcutController.updateRegistration()
+
+        for (index, name) in KeyboardShortcuts.Name.selectTabShortcuts.enumerated() {
+            KeyboardShortcuts.onKeyDown(for: name) { [weak self] in
+                self?.selectTab(at: index)
+            }
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .nextTab) { [weak self] in
+            self?.cycleTab(by: 1)
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .previousTab) { [weak self] in
+            self?.cycleTab(by: -1)
+        }
+
         KeyboardShortcuts.onKeyDown(for: .toggleNotchOpen) { [weak self] in
             Task { [weak self] in
                 guard let self = self else { return }
@@ -355,6 +375,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // make sure OSD subsystems are in the right state now that initial
         // notch windows have been created/cleaned up
         coordinator.applyOSDSources()
+    }
+
+    /// Selects the tab at `index`, falling back to the last tab when `index` is past the end.
+    private func selectTab(at index: Int) {
+        guard coordinator.tabsVisible, !tabs.isEmpty else { return }
+        withAnimation(.smooth) {
+            coordinator.currentView = tabs[min(index, tabs.count - 1)].view
+        }
+    }
+
+    /// Steps through `tabs` by `offset`, wrapping around at either end.
+    private func cycleTab(by offset: Int) {
+        guard coordinator.tabsVisible,
+              let current = tabs.firstIndex(where: { $0.view == coordinator.currentView })
+        else { return }
+        let next = (current + offset + tabs.count) % tabs.count
+        selectTab(at: next)
     }
 
     private func migrateDisplayModeIfNeeded() {
