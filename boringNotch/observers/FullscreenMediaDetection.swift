@@ -17,9 +17,12 @@ final class FullscreenMediaDetector: ObservableObject {
     @Published var fullscreenStatus: [String: Bool] = [:]
 
     private var monitorTask: Task<Void, Never>?
+    private var lastSpaces: [MacroVisionKit.FullScreenMonitor.SpaceInfo] = []
+    private var cancellables = Set<AnyCancellable>()
 
     private init() {
         startMonitoring()
+        observeInputs()
     }
 
     deinit {
@@ -30,9 +33,28 @@ final class FullscreenMediaDetector: ObservableObject {
         monitorTask = Task { @MainActor in
             let stream = await FullScreenMonitor.shared.spaceChanges()
             for await spaces in stream {
+                lastSpaces = spaces
                 updateStatus(with: spaces)
             }
         }
+    }
+
+    // The status also depends on the now-playing source and the hide option,
+    // so recompute when either changes, not only on space changes.
+    private func observeInputs() {
+        let sourceChanged = MusicManager.shared.$bundleIdentifier
+            .removeDuplicates()
+            .map { _ in () }
+        let optionChanged = Defaults.publisher(.hideNotchOption)
+            .map { _ in () }
+
+        sourceChanged.merge(with: optionChanged)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] in
+                guard let self else { return }
+                self.updateStatus(with: self.lastSpaces)
+            }
+            .store(in: &cancellables)
     }
 
     private func updateStatus(with spaces: [MacroVisionKit.FullScreenMonitor.SpaceInfo]) {
