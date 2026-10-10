@@ -45,7 +45,7 @@ struct ExpandedItem {
 final class BoringViewCoordinator: ObservableObject {
     static let shared = BoringViewCoordinator()
 
-    @Published var currentView: NotchViews = .home
+    @Published var currentView: NotchViews = Defaults[.defaultNotchView]
     @Published var helloAnimationRunning: Bool = false
     private var osdEnableTask: Task<Void, Never>?
 
@@ -58,7 +58,7 @@ final class BoringViewCoordinator: ObservableObject {
             if !alwaysShowTabs {
                 openLastTabByDefault = false
                 if ShelfStateViewModel.shared.isEmpty || !Defaults[.openShelfByDefault] {
-                    currentView = .home
+                    currentView = resolveDefaultView()
                 }
             }
         }
@@ -91,6 +91,7 @@ final class BoringViewCoordinator: ObservableObject {
     private var accessibilityObserver: Any?
     private var osdReplacementCancellable: AnyCancellable?
     private var boringShelfCancellable: AnyCancellable?
+    private var showCalendarCancellable: AnyCancellable?
     private var osdSourceCancellables: [AnyCancellable] = []
     private var notificationLiveActivityCancellable: AnyCancellable?
     private var uiEventCancellable: AnyCancellable?
@@ -188,7 +189,19 @@ final class BoringViewCoordinator: ObservableObject {
                 Task { @MainActor in
                     guard let self = self else { return }
                     if !change.newValue && self.currentView == .shelf {
-                        self.currentView = .home
+                        self.currentView = self.resolveDefaultView()
+                    }
+                }
+            }
+
+        // Same guard for the calendar tab: disabling it while it's open must
+        // not leave the notch on a tab that no longer renders.
+        showCalendarCancellable = Defaults.publisher(.showCalendar)
+            .sink { [weak self] change in
+                Task { @MainActor in
+                    guard let self = self else { return }
+                    if !change.newValue && self.currentView == .calendar {
+                        self.currentView = self.resolveDefaultView()
                     }
                 }
             }
@@ -415,7 +428,16 @@ final class BoringViewCoordinator: ObservableObject {
         }
     }
 
+    /// The tab the notch falls back to: the one chosen in Settings when it's
+    /// still enabled, otherwise the first enabled tab. Music is always
+    /// enabled, so this never returns nothing.
+    func resolveDefaultView() -> NotchViews {
+        let preferred = Defaults[.defaultNotchView]
+        if preferred.isEnabled { return preferred }
+        return NotchViews.enabledViews.first ?? .music
+    }
+
     func showEmpty() {
-        currentView = .home
+        currentView = resolveDefaultView()
     }
 }
