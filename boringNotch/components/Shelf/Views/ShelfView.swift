@@ -74,7 +74,13 @@ struct ShelfView: View {
                 transaction.animation = vm.animation
             }
             .contentShape(Rectangle())
-            .onTapGesture { selection.clear() }
+            // Tapping empty shelf space deselects — but this SwiftUI tap also
+            // fires on item clicks (alongside the item's own AppKit handler),
+            // which would instantly wipe a fresh selection. Skip the clear when
+            // an item was just clicked.
+            .onTapGesture {
+                if !selection.didJustClickItem { selection.clear() }
+            }
     }
 
     var content: some View {
