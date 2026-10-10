@@ -9,6 +9,7 @@
 //  glue (shortcuts, onboarding, termination) and forwards to this manager.
 //
 
+import Combine
 import Defaults
 import SwiftUI
 
@@ -27,6 +28,7 @@ final class NotchWindowManager {
     private(set) var primaryWindow: NSWindow?
     let primaryViewModel: BoringViewModel
     private var primaryDragDetector: DragDetector?
+    private var windowSizeSubscriptions: [ObjectIdentifier: AnyCancellable] = [:]
 
     private(set) var isScreenLocked: Bool = false
     private var windowScreenDidChangeObserver: Any?
@@ -104,6 +106,7 @@ final class NotchWindowManager {
 
         if shouldCleanupMulti {
             for (uuid, context) in contexts {
+                windowSizeSubscriptions.removeValue(forKey: ObjectIdentifier(context.viewModel))
                 context.window?.close()
                 if let window = context.window {
                     NotchSpaceManager.shared.notchSpace.windows.remove(window)
@@ -114,6 +117,7 @@ final class NotchWindowManager {
         } else {
             primaryDragDetector?.stopMonitoring()
             primaryDragDetector = nil
+            windowSizeSubscriptions.removeValue(forKey: ObjectIdentifier(primaryViewModel))
             if let window = primaryWindow {
                 window.close()
                 NotchSpaceManager.shared.notchSpace.windows.remove(window)
@@ -146,6 +150,30 @@ final class NotchWindowManager {
             rootView: ContentView()
                 .environmentObject(viewModel)
         )
+
+        let modelID = ObjectIdentifier(viewModel)
+        windowSizeSubscriptions[modelID] = viewModel.$notchSize
+            .removeDuplicates()
+            .sink { [weak window, weak viewModel] size in
+                Task { @MainActor in
+                    guard let window, let viewModel else { return }
+                    let screen = viewModel.screenUUID.flatMap { NSScreen.screen(withUUID: $0) }
+                        ?? window.screen
+                        ?? NSScreen.main
+                    guard let screen else { return }
+                    let width = max(windowSize.width, size.width)
+                    let height = max(windowSize.height, size.height + shadowPadding)
+                    window.setFrame(
+                        NSRect(
+                            x: screen.frame.midX - width / 2,
+                            y: screen.frame.maxY - height,
+                            width: width,
+                            height: height
+                        ),
+                        display: true
+                    )
+                }
+            }
 
         window.orderFrontRegardless()
         NotchSpaceManager.shared.notchSpace.windows.insert(window)
@@ -188,6 +216,9 @@ final class NotchWindowManager {
 
             // Remove windows for screens that no longer exist
             for uuid in contexts.keys where !currentScreenUUIDs.contains(uuid) {
+                if let viewModel = contexts[uuid]?.viewModel {
+                    windowSizeSubscriptions.removeValue(forKey: ObjectIdentifier(viewModel))
+                }
                 if let window = contexts[uuid]?.window {
                     window.close()
                     NotchSpaceManager.shared.notchSpace.windows.remove(window)
@@ -249,7 +280,11 @@ final class NotchWindowManager {
             coordinator.selectedScreenUUID = selectedUUID
 
             primaryViewModel.screenUUID = selectedScreen.displayUUID
-            primaryViewModel.notchSize = getClosedNotchSize(screenUUID: selectedScreen.displayUUID)
+            if primaryViewModel.notchState == .closed {
+                primaryViewModel.notchSize = getClosedNotchSize(screenUUID: selectedScreen.displayUUID)
+            } else {
+                primaryViewModel.refreshOpenSize()
+            }
 
             if primaryWindow == nil {
                 primaryWindow = createBoringNotchWindow(for: selectedScreen, with: primaryViewModel)
