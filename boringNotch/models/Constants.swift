@@ -500,6 +500,9 @@ extension Defaults.Keys {
     static let osdReplacement = Key<Bool>(PreferenceCompatibility.migratedKeyName("osdReplacement", from: "hudReplacement"), default: false)
     static let inlineOSD = Key<Bool>(PreferenceCompatibility.migratedKeyName("inlineOSD", from: "inlineHUD"), default: false)
 
+    // MARK: Bluetooth accessories
+    static let showBluetoothAccessories = Key<Bool>("showBluetoothAccessories", default: false)
+
     // MARK: Layout
     /// Swaps the opened notch for a smaller, player-only layout: no tab
     /// bar, calendar or mirror. Off by default so existing users keep the
