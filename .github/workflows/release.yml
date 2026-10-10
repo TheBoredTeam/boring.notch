@@ -333,7 +333,7 @@ jobs:
             Release/
 
       - name: Upload generated appcast
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: appcast-${{ env.IS_BETA }}
           path: appcast-*.xml
@@ -631,7 +631,7 @@ jobs:
           fi
 
       - name: Upload cask artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: homebrew-cask-${{ env.VERSION }}
           path: boring-notch*.rb
