@@ -13,6 +13,23 @@ import QuickLook
 import QuickLookUI
 import AppKit
 
+struct ShelfQuickLookRequestGeneration: Sendable {
+    private var value: UInt = 0
+
+    mutating func begin() -> UInt {
+        value &+= 1
+        return value
+    }
+
+    mutating func invalidate() {
+        value &+= 1
+    }
+
+    func isCurrent(_ candidate: UInt) -> Bool {
+        candidate == value
+    }
+}
+
 @MainActor
 final class QuickLookService: ObservableObject {
     @Published var urls: [URL] = []
@@ -24,34 +41,71 @@ final class QuickLookService: ObservableObject {
     private var accessingURLs: [URL] = []
     private var previewPanelObserver: Any?
     private var selectionCancellable: AnyCancellable?
+    private var selectionTask: Task<Void, Never>?
+    private var requestGeneration = ShelfQuickLookRequestGeneration()
+    private let shelfState: ShelfStateViewModel
+    private let presentsPanel: Bool
 
-    init() {
-        selectionCancellable = ShelfSelectionModel.shared.$selectedIDs
-            .dropFirst()
-            .sink { [weak self] selectedIDs in
-                self?.updateFromShelfSelection(selectedIDs: selectedIDs)
-            }
+    init(
+        shelfState: ShelfStateViewModel = .shared,
+        observeShelfSelection: Bool = true,
+        presentsPanel: Bool = true
+    ) {
+        self.shelfState = shelfState
+        self.presentsPanel = presentsPanel
+        if observeShelfSelection {
+            selectionCancellable = ShelfSelectionModel.shared.$selectedIDs
+                .dropFirst()
+                .sink { [weak self] selectedIDs in
+                    self?.selectionTask?.cancel()
+                    self?.selectionTask = Task { [weak self] in
+                        await self?.applyShelfSelection(selectedIDs: selectedIDs)
+                    }
+                }
+        }
     }
 
     func show(urls: [URL], selectFirst: Bool = true, slideshow: Bool = false) {
         guard !urls.isEmpty else { return }
-        stopAccessingCurrentURLs()
-        accessingURLs = urls.filter { url in
+        selectionTask?.cancel()
+        let generation = requestGeneration.begin()
+        present(urls: urls, selectFirst: selectFirst, generation: generation)
+    }
+
+    private func present(urls: [URL], selectFirst: Bool, generation: UInt) {
+        guard requestGeneration.isCurrent(generation) else { return }
+        let replacementURLs = urls.filter { url in
             if url.isFileURL {
                 return url.startAccessingSecurityScopedResource()
             }
             return true
         }
-        self.urls = accessingURLs
+        guard !replacementURLs.isEmpty else {
+            hide()
+            return
+        }
+
+        let isReplacingVisiblePreview = selectedURL != nil
+        stopAccessingCurrentURLs()
+        accessingURLs = replacementURLs
+        self.urls = replacementURLs
         self.isQuickLookOpen = true
+
+        if selectFirst, isReplacingVisiblePreview {
+            selectedURL = replacementURLs.first
+        }
 
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(50))
-            if selectFirst {
-                self.selectedURL = accessingURLs.first
+            if selectFirst,
+               !isReplacingVisiblePreview,
+               self.requestGeneration.isCurrent(generation),
+               self.isQuickLookOpen {
+                self.selectedURL = replacementURLs.first
             }
         }
 
+        guard presentsPanel else { return }
         // Observe the shared Quick Look preview panel closing so we can relinquish security scope
         let panel = QLPreviewPanel.shared()
         // Remove any existing observer for previous panel
@@ -63,6 +117,8 @@ final class QuickLookService: ObservableObject {
     }
 
     func hide() {
+        selectionTask?.cancel()
+        requestGeneration.invalidate()
         stopAccessingCurrentURLs()
         selectedURL = nil
         urls.removeAll()
@@ -82,11 +138,6 @@ final class QuickLookService: ObservableObject {
             url.stopAccessingSecurityScopedResource()
         }
         accessingURLs.removeAll()
-        // If Quick Look panel was closed externally, also remove observer and clear reference
-        if let panel = previewPanel {
-            NotificationCenter.default.removeObserver(self, name: NSWindow.willCloseNotification, object: panel)
-            previewPanel = nil
-        }
     }
 
     func updateSelection(urls: [URL]) {
@@ -94,40 +145,58 @@ final class QuickLookService: ObservableObject {
         show(urls: urls, selectFirst: true)
     }
 
-    private func updateFromShelfSelection(selectedIDs: Set<UUID>) {
+    func applyShelfSelection(selectedIDs: Set<UUID>) async {
         guard isQuickLookOpen else { return }
         guard !selectedIDs.isEmpty else {
             hide()
             return
         }
 
-        let urls: [URL] = ShelfStateViewModel.shared.items.compactMap { item in
-            guard selectedIDs.contains(item.id) else { return nil }
-            if let fileURL = item.fileURL {
-                return fileURL
+        let generation = requestGeneration.begin()
+
+        var resolvedURLs: [URL] = []
+        for item in shelfState.items where selectedIDs.contains(item.id) {
+            switch item.kind {
+            case .file:
+                if let file = await shelfState.resolveFile(
+                    for: item,
+                    intent: .userInitiated,
+                    refresh: true
+                ) {
+                    resolvedURLs.append(file.url)
+                }
+            case .link(let url):
+                resolvedURLs.append(url)
+            case .text:
+                break
             }
-            if case .link(let url) = item.kind {
-                return url
-            }
-            return nil
         }
 
-        if !urls.isEmpty {
-            updateSelection(urls: urls)
+        guard !Task.isCancelled,
+              requestGeneration.isCurrent(generation),
+              isQuickLookOpen else { return }
+        guard !resolvedURLs.isEmpty else {
+            hide()
+            return
         }
+        present(urls: resolvedURLs, selectFirst: true, generation: generation)
     }
 }
 
 extension QuickLookService {
     @objc private func previewPanelWillClose(_ notification: Notification) {
         guard let panel = notification.object as? QLPreviewPanel, panel === previewPanel else { return }
-        // Ensure cleanup happens on main actor
-        Task { @MainActor in
-            stopAccessingCurrentURLs()
-            selectedURL = nil
-            urls.removeAll()
-            isQuickLookOpen = false
-            // Remove observer and clear reference
+        handleNativePreviewClose()
+    }
+
+    func handleNativePreviewClose() {
+        selectionTask?.cancel()
+        requestGeneration.invalidate()
+        stopAccessingCurrentURLs()
+        selectedURL = nil
+        urls.removeAll()
+        isQuickLookOpen = false
+        if let panel = previewPanel {
             NotificationCenter.default.removeObserver(self, name: NSWindow.willCloseNotification, object: panel)
             previewPanel = nil
         }

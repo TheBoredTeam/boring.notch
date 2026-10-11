@@ -28,7 +28,7 @@ struct ShelfView: View {
                 FileShareView(dropInteraction: dropInteraction)
                     .aspectRatio(1, contentMode: .fit)
                 panel(quickLookService: quickLookService)
-                    .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $interaction.dragDetectorTargeting) { providers in
+                    .onDrop(of: ShelfTransferTypes.acceptedTypes, isTargeted: $interaction.dragDetectorTargeting) { providers in
                         handleDrop(providers: providers)
                     }
             }
@@ -93,7 +93,7 @@ struct ShelfView: View {
                 }
                 .padding(-spacing)
                 .scrollIndicators(.never)
-                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $interaction.dragDetectorTargeting) { providers in
+                .onDrop(of: ShelfTransferTypes.acceptedTypes, isTargeted: $interaction.dragDetectorTargeting) { providers in
                     handleDrop(providers: providers)
                 }
             }
