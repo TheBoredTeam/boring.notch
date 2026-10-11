@@ -243,7 +243,6 @@ struct BoringBatteryView: View {
     @State var isForNotification: Bool = false
 
     @State private var showPopupMenu: Bool = false
-    @State private var isPressed: Bool = false
     @State private var isHoveringButton: Bool = false
     @State private var isHoveringPopover: Bool = false
     @State private var hideTask: Task<Void, Never>?
@@ -276,6 +275,15 @@ struct BoringBatteryView: View {
             }
         }
         .buttonStyle(ScaleButtonStyle())
+        .onHover { hovering in
+            isHoveringButton = hovering
+            if hovering {
+                hideTask?.cancel()
+                hideTask = nil
+            } else {
+                scheduleHideIfNeeded()
+            }
+        }
         .popover(
             isPresented: $showPopupMenu,
             arrowEdge: .bottom) {
@@ -303,11 +311,12 @@ struct BoringBatteryView: View {
             }
         }
         .onChange(of: showPopupMenu) {
-            vm.isBatteryPopoverActive = showPopupMenu
+            vm.isPopoverActive = showPopupMenu
         }
         .onDisappear {
             hideTask?.cancel()
             hideTask = nil
+            vm.isPopoverActive = false
         }
     }
 
