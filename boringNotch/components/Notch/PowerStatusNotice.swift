@@ -23,7 +23,6 @@ struct PowerStatusNotice: View {
                 label
                 battery.hidden()
             }
-            .frame(minWidth: 76, alignment: .leading)
 
             Rectangle()
                 .fill(.black)
@@ -33,7 +32,6 @@ struct PowerStatusNotice: View {
                 label.hidden()
                 battery
             }
-            .frame(minWidth: 76, alignment: .trailing)
         }
         .frame(height: height, alignment: .center)
     }
