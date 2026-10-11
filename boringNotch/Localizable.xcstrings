@@ -2159,6 +2159,9 @@
         }
       }
     },
+    "Audio is processed locally for the visualizer and never recorded, stored, or shared." : {
+
+    },
     "Audio output" : {
       "localizations" : {
         "es" : {
@@ -3610,6 +3613,9 @@
         }
       }
     },
+    "Boring Notch can analyze the audio playing from your music app to draw a live FFT waveform in the notch, with only a minimal impact on CPU usage." : {
+
+    },
     "Boring Notch can check for updates in the background. You can still check manually from the menu bar at any time." : {
       "comment" : "A description of the software update permission.",
       "localizations" : {
@@ -3681,6 +3687,12 @@
         }
       }
     },
+    "Boring Notch can show all your upcoming events in one place. Access to your calendar is needed to display your schedule." : {
+
+    },
+    "Boring Notch can show your scheduled reminders alongside your calendar events. Access to Reminders is needed to display your reminders." : {
+
+    },
     "Boring Notch could not verify Now Playing. Try again, or reopen the app if it keeps happening." : {
       "comment" : "Recoverable Now Playing probe failure message.",
       "localizations" : {
@@ -3721,6 +3733,9 @@
           }
         }
       }
+    },
+    "Boring Notch includes a mirror feature that lets you quickly check your appearance using your camera, right from the notch. Camera access is required only to show this live preview. You can turn the mirror feature on or off at any time in the app." : {
+
     },
     "Boring Notch lost its Now Playing connection. Reconnecting automatically..." : {
       "comment" : "Now Playing runtime failure message shown before an automatic recovery attempt.",
@@ -3768,6 +3783,9 @@
           }
         }
       }
+    },
+    "Boring Notch Settings" : {
+
     },
     "Boring Notch's Now Playing components are unavailable. Reopen or reinstall the app." : {
       "comment" : "Now Playing setup failure message shown when required bundled components cannot be used.",
@@ -5933,6 +5951,9 @@
           }
         }
       }
+    },
+    "Choose files to share via %@" : {
+
     },
     "Choose how the calendar is displayed in the notch." : {
       "comment" : "A description of the settings for the calendar.",
@@ -10149,6 +10170,12 @@
         }
       }
     },
+    "Enable Calendar Access" : {
+
+    },
+    "Enable Camera Access" : {
+
+    },
     "Enable gestures" : {
       "localizations" : {
         "cs" : {
@@ -10561,6 +10588,12 @@
           }
         }
       }
+    },
+    "Enable Real-Time Audio" : {
+
+    },
+    "Enable Reminders Access" : {
+
     },
     "Enable shelf" : {
       "localizations" : {
@@ -19499,6 +19532,9 @@
         }
       }
     },
+    "Onboarding" : {
+
+    },
     "Only Apple displays are supported. In multi-display setups, the brightness OSD appears on the active display if supported, or on another supported display otherwise." : {
       "comment" : "Tooltip for the brightness OSD warning.",
       "localizations" : {
@@ -24173,6 +24209,9 @@
           }
         }
       }
+    },
+    "Select Files for %@" : {
+
     },
     "Select the music source you want to use. You can change this later in the app settings." : {
       "localizations" : {
@@ -31542,6 +31581,12 @@
         }
       }
     },
+    "Your calendar data is only used to show your events and is never shared." : {
+
+    },
+    "Your camera is never used without your consent, and nothing is recorded or stored." : {
+
+    },
     "Your macOS system accent color" : {
       "localizations" : {
         "de" : {
@@ -31653,6 +31698,9 @@
           }
         }
       }
+    },
+    "Your reminders data is only used to show your reminders and is never shared." : {
+
     },
     "YouTube Music" : {
       "comment" : "YouTube Music service name.",
