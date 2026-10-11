@@ -57,6 +57,36 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         reply(AXIsProcessTrusted())
     }
 
+    @objc func migrateLegacyAppBundle(
+        from sourcePath: String,
+        to destinationPath: String,
+        with reply: @escaping (Bool) -> Void
+    ) {
+        let sourceURL = URL(fileURLWithPath: sourcePath).standardizedFileURL
+        let destinationURL = URL(fileURLWithPath: destinationPath).standardizedFileURL
+        let fileManager = FileManager.default
+
+        guard sourceURL.lastPathComponent == BoringNotchAppBundleNames.legacy,
+              destinationURL.lastPathComponent == BoringNotchAppBundleNames.current,
+              sourceURL.deletingLastPathComponent() == destinationURL.deletingLastPathComponent(),
+              fileManager.fileExists(atPath: sourceURL.path),
+              !fileManager.fileExists(atPath: destinationURL.path)
+        else {
+            NSLog("[boringNotch] refused legacy bundle migration for %@ -> %@", sourcePath, destinationPath)
+            reply(false)
+            return
+        }
+
+        do {
+            try fileManager.moveItem(at: sourceURL, to: destinationURL)
+            NSWorkspace.shared.noteFileSystemChanged(destinationURL.deletingLastPathComponent().path)
+            reply(true)
+        } catch {
+            NSLog("[boringNotch] legacy bundle migration failed for %@: %@", sourcePath, error.localizedDescription)
+            reply(false)
+        }
+    }
+
     @objc func requestAccessibilityAuthorization() {
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
         AXIsProcessTrustedWithOptions(options)
@@ -92,8 +122,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
     // MARK: - Notification Center banners
 
-    /// One watcher for the whole helper: `BoringNotchXPCHelper` is created per
-    /// connection, the AX observer must not be.
     private static let watcher = NotificationWatcher()
 
     @objc func startNotificationWatching(with reply: @escaping (Bool) -> Void) {
@@ -114,7 +142,6 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             NSLog("[boringNotch] could not obtain notification delegate proxy — banners will not reach the app")
         }
 
-        // The AX observer needs a live run loop; the helper's is on main.
         DispatchQueue.main.async {
             let watcher = Self.watcher
             watcher.onBanner = { notification in

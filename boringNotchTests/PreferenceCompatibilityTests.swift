@@ -3,6 +3,7 @@
 //  boringNotchTests
 //
 
+import Foundation
 import XCTest
 @testable import boringNotch
 
@@ -125,5 +126,81 @@ final class PreferenceCompatibilityTests: XCTestCase {
                 XCTAssertNil(defaults.object(forKey: legacy))
             }
         }
+    }
+}
+
+@MainActor
+final class LegacyAppBundleMigrationTests: XCTestCase {
+    private var temporaryDirectory: URL!
+    private let fileManager = FileManager.default
+
+    override func setUpWithError() throws {
+        temporaryDirectory = fileManager.temporaryDirectory
+            .appendingPathComponent("LegacyAppBundleMigrationTests-\(UUID().uuidString)", isDirectory: true)
+        try fileManager.createDirectory(at: temporaryDirectory, withIntermediateDirectories: true)
+    }
+
+    override func tearDownWithError() throws {
+        if let temporaryDirectory {
+            try fileManager.removeItem(at: temporaryDirectory)
+        }
+    }
+
+    func testMigratesOnlyTheLegacyProductName() throws {
+        let legacyURL = temporaryDirectory
+            .appendingPathComponent(LegacyAppBundleMigration.legacyBundleName, isDirectory: true)
+        let destinationURL = temporaryDirectory
+            .appendingPathComponent(LegacyAppBundleMigration.currentBundleName, isDirectory: true)
+        let markerURL = legacyURL.appendingPathComponent("marker")
+        try fileManager.createDirectory(at: legacyURL, withIntermediateDirectories: true)
+        try Data("updated".utf8).write(to: markerURL)
+
+        let migratedURL = try XCTUnwrap(
+            LegacyAppBundleMigration.migrateIfNeeded(at: legacyURL, fileManager: fileManager)
+        )
+
+        XCTAssertEqual(migratedURL.standardizedFileURL, destinationURL.standardizedFileURL)
+        XCTAssertFalse(fileManager.fileExists(atPath: legacyURL.path))
+        XCTAssertEqual(try Data(contentsOf: destinationURL.appendingPathComponent("marker")), Data("updated".utf8))
+    }
+
+    func testMigrationDestinationIsTheRenamedSibling() throws {
+        let legacyURL = temporaryDirectory
+            .appendingPathComponent(LegacyAppBundleMigration.legacyBundleName, isDirectory: true)
+
+        XCTAssertEqual(
+            LegacyAppBundleMigration.destinationURL(for: legacyURL)?.lastPathComponent,
+            LegacyAppBundleMigration.currentBundleName
+        )
+        XCTAssertEqual(
+            LegacyAppBundleMigration.destinationURL(for: legacyURL)?.deletingLastPathComponent(),
+            temporaryDirectory.standardizedFileURL
+        )
+    }
+
+    func testCurrentProductNameIsNotMoved() throws {
+        let currentURL = temporaryDirectory
+            .appendingPathComponent(LegacyAppBundleMigration.currentBundleName, isDirectory: true)
+        try fileManager.createDirectory(at: currentURL, withIntermediateDirectories: true)
+
+        XCTAssertNil(
+            try LegacyAppBundleMigration.migrateIfNeeded(at: currentURL, fileManager: fileManager)
+        )
+        XCTAssertTrue(fileManager.fileExists(atPath: currentURL.path))
+    }
+
+    func testExistingDestinationIsNeverOverwritten() throws {
+        let legacyURL = temporaryDirectory
+            .appendingPathComponent(LegacyAppBundleMigration.legacyBundleName, isDirectory: true)
+        let destinationURL = temporaryDirectory
+            .appendingPathComponent(LegacyAppBundleMigration.currentBundleName, isDirectory: true)
+        try fileManager.createDirectory(at: legacyURL, withIntermediateDirectories: true)
+        try fileManager.createDirectory(at: destinationURL, withIntermediateDirectories: true)
+
+        XCTAssertThrowsError(
+            try LegacyAppBundleMigration.migrateIfNeeded(at: legacyURL, fileManager: fileManager)
+        )
+        XCTAssertTrue(fileManager.fileExists(atPath: legacyURL.path))
+        XCTAssertTrue(fileManager.fileExists(atPath: destinationURL.path))
     }
 }
