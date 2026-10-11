@@ -8,18 +8,36 @@
 import AVFoundation
 import AppKit
 import Foundation
+import os
 import os.lock
 
 struct CameraDevice: Identifiable, Equatable {
+    /// Coarse hardware class. The raw value doubles as the Automatic preference order.
+    enum Kind: Int, Equatable {
+        case builtIn = 0
+        case continuity = 1
+        case deskView = 2
+        case external = 3
+    }
+
     let id: String
     let name: String
-    let isExternal: Bool
+    let kind: Kind
+}
+
+/// The user's persisted choice. Device discovery never rewrites it; only an
+/// explicit selection does.
+enum CameraSelection: Equatable, Hashable {
+    case automatic
+    case device(String)
 }
 
 enum CameraSessionEvent: @unchecked Sendable {
     case authorization(AVAuthorizationStatus)
     case devices([CameraDevice])
-    case started(previewLayer: AVCaptureVideoPreviewLayer, device: CameraDevice)
+    case started(session: AVCaptureSession, device: CameraDevice)
+    /// macOS temporarily suspended the capture session. User intent is unchanged.
+    case interrupted
     case stopped
     case failed(String)
 }
@@ -29,16 +47,28 @@ protocol CameraSessionEngine: AnyObject {
 
     func refresh()
     func requestAccess()
-    func start(cameraID: String?)
+    func start(selection: CameraSelection)
     func stop()
     func shutdown()
+}
+
+func preferredCamera(from devices: [CameraDevice], selection: CameraSelection) -> CameraDevice? {
+    switch selection {
+    case .device(let id):
+        return devices.first { $0.id == id }
+    case .automatic:
+        return devices.min { ($0.kind.rawValue, $0.id) < ($1.kind.rawValue, $1.id) }
+    }
 }
 
 /// Owns AVFoundation objects and serializes all session work away from the UI.
 private final class CameraEngineState: @unchecked Sendable {
     var captureSession: AVCaptureSession?
-    var activeCameraID: String?
+    var activeInput: AVCaptureDeviceInput?
+    var activeDeviceID: String?
+    var selection: CameraSelection = .automatic
     var shouldRun = false
+    var lastPublishedDevices: [CameraDevice]?
     let callbacks = OSAllocatedUnfairLock(initialState: CameraEngineCallbacks())
 }
 
@@ -56,6 +86,11 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
             }
         }
     }
+
+    private static let log = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "boringNotch",
+        category: "camera"
+    )
 
     private let sessionQueue = DispatchQueue(
         label: "BoringNotch.CameraSessionEngine",
@@ -118,18 +153,21 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
         shutdown()
     }
 
+    // MARK: - Public API (thread-safe, all work serialized on sessionQueue)
+
     func refresh() {
         let state = state
         sessionQueue.async {
             guard !state.callbacks.withLock({ $0.isShutDown }) else { return }
             Self.publishAuthorization(state: state)
-            Self.publishDevices(state: state)
+            Self.reconcile(state: state)
         }
     }
 
     func requestAccess() {
         let status = AVCaptureDevice.authorizationStatus(for: .video)
         let state = state
+        let queue = sessionQueue
         Self.publish(.authorization(status), state: state)
 
         guard status == .notDetermined else {
@@ -139,21 +177,25 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
             return
         }
 
-        let queue = sessionQueue
         AVCaptureDevice.requestAccess(for: .video) { granted in
             Self.publish(.authorization(granted ? .authorized : .denied), state: state)
             if granted {
-                Self.refresh(state: state, queue: queue)
+                queue.async {
+                    guard !state.callbacks.withLock({ $0.isShutDown }) else { return }
+                    Self.publishAuthorization(state: state)
+                    Self.reconcile(state: state)
+                }
             }
         }
     }
 
-    func start(cameraID: String?) {
+    func start(selection: CameraSelection) {
         let state = state
         sessionQueue.async {
             guard !state.callbacks.withLock({ $0.isShutDown }) else { return }
             state.shouldRun = true
-            Self.startSession(cameraID: cameraID, state: state)
+            state.selection = selection
+            Self.reconcile(state: state)
         }
     }
 
@@ -162,7 +204,11 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
         sessionQueue.async {
             guard !state.callbacks.withLock({ $0.isShutDown }) else { return }
             state.shouldRun = false
-            Self.cleanupSession(state: state)
+            // Full teardown, not just stopRunning(): a configured-but-idle
+            // session that macOS paused (no attached preview layer) never
+            // re-streams when startRunning() is called again, which broke
+            // second starts and starts after closing the notch.
+            Self.teardownSession(state: state)
             Self.publish(.stopped, state: state)
         }
     }
@@ -174,124 +220,173 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
         }
         sessionQueue.sync {
             state.shouldRun = false
-            Self.cleanupSession(state: state)
+            Self.teardownSession(state: state)
         }
     }
 
-    private static func refresh(state: CameraEngineState, queue: DispatchQueue) {
-        queue.async {
-            guard !state.callbacks.withLock({ $0.isShutDown }) else { return }
-            publishAuthorization(state: state)
-            publishDevices(state: state)
-        }
-    }
+    // MARK: - Reconciliation (sessionQueue only)
 
-    private static func publishAuthorization(state: CameraEngineState) {
-        publish(.authorization(AVCaptureDevice.authorizationStatus(for: .video)), state: state)
-    }
-
-    private static func publishDevices(state: CameraEngineState) {
+    /// Single entry point that enforces the desired session state for the
+    /// current selection + intent: discover, publish the list, and make the
+    /// session match. Idempotent; never starts capture unless `shouldRun`.
+    private static func reconcile(state: CameraEngineState) {
         let devices = discoveredDevices()
-        publish(.devices(devices), state: state)
-
-        // A running preview should recover after a camera is unplugged and
-        // replugged, or after another camera becomes available.
-        if state.shouldRun, !devices.isEmpty, state.captureSession == nil {
-            startSession(cameraID: state.activeCameraID, state: state)
+        if devices != state.lastPublishedDevices {
+            state.lastPublishedDevices = devices
+            publish(.devices(devices), state: state)
         }
-    }
 
-    private static func discoveredDevices() -> [CameraDevice] {
-        let discovery = AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.external, .builtInWideAngleCamera],
-            mediaType: .video,
-            position: .unspecified
-        )
-
-        return discovery.devices
-            .sorted { lhs, rhs in
-                if lhs.deviceType == rhs.deviceType {
-                    return lhs.localizedName < rhs.localizedName
-                }
-                return lhs.deviceType == .external
-            }
-            .map {
-                CameraDevice(
-                    id: $0.uniqueID,
-                    name: $0.localizedName,
-                    isExternal: $0.deviceType == .external
-                )
-            }
-    }
-
-    private static func startSession(cameraID: String?, state: CameraEngineState) {
+        guard state.shouldRun else { return }
         guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else {
             publishAuthorization(state: state)
             return
         }
 
-        let discovery = AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.external, .builtInWideAngleCamera],
-            mediaType: .video,
-            position: .unspecified
-        )
-        let devices = discovery.devices
-        guard !devices.isEmpty else {
-            publish(.devices([]), state: state)
+        guard let preferred = preferredCamera(from: devices, selection: state.selection),
+              let device = AVCaptureDevice(uniqueID: preferred.id) else {
+            // No cameras at all, or an explicitly selected camera is absent.
+            // The selection and the intent are preserved; a later device event
+            // retries. Never silently fall back to a different camera here.
+            teardownSession(state: state)
+            publish(.stopped, state: state)
             return
         }
 
-        let requestedID = cameraID ?? state.activeCameraID
-        let videoDevice = devices.first { $0.uniqueID == requestedID }
-            ?? devices.sorted { lhs, rhs in
-                if lhs.deviceType == rhs.deviceType {
-                    return lhs.localizedName < rhs.localizedName
-                }
-                return lhs.deviceType == .external
-            }.first!
+        attachCamera(device: device, preferred: preferred, state: state)
+    }
 
-        cleanupSession(state: state)
+    /// Reuse the configured session whenever possible; recreate it only as a
+    /// recovery fallback.
+    private static func attachCamera(device: AVCaptureDevice, preferred: CameraDevice, state: CameraEngineState) {
+        // Fast path: the requested camera is already attached.
+        if let session = state.captureSession, let input = state.activeInput,
+           input.device.uniqueID == device.uniqueID {
+            if session.isRunning {
+                publish(.started(session: session, device: preferred), state: state)
+                return
+            }
+            session.startRunning()
+            if session.isRunning {
+                publish(.started(session: session, device: preferred), state: state)
+            } else {
+                rebuildSession(for: device, preferred: preferred, state: state)
+            }
+            return
+        }
+
+        // Camera switch: replace the video input on the live session and
+        // preserve both the session and its running state. Only attempted
+        // while the session is actively streaming; a stopped one is rebuilt
+        // below (a paused session cannot be reliably revived).
+        if let session = state.captureSession, session.isRunning,
+           swapInput(to: device, on: session, state: state), session.isRunning {
+            publish(.started(session: session, device: preferred), state: state)
+            return
+        }
+
+        rebuildSession(for: device, preferred: preferred, state: state)
+    }
+
+    private static func swapInput(to device: AVCaptureDevice, on session: AVCaptureSession, state: CameraEngineState) -> Bool {
+        guard let newInput = try? AVCaptureDeviceInput(device: device) else { return false }
+
+        session.beginConfiguration()
+        if let oldInput = state.activeInput {
+            session.removeInput(oldInput)
+        }
+        let added = session.canAddInput(newInput)
+        if added {
+            session.addInput(newInput)
+        }
+        session.commitConfiguration()
+
+        guard added else { return false }
+        state.activeInput = newInput
+        state.activeDeviceID = device.uniqueID
+        return true
+    }
+
+    private static func rebuildSession(for device: AVCaptureDevice, preferred: CameraDevice, state: CameraEngineState) {
+        teardownSession(state: state)
+
+        let session = AVCaptureSession()
+        session.beginConfiguration()
+        // The mirror preview is a fixed 142pt square on a retina panel.
+        // `.medium` lets the hardware negotiate the smallest frame it offers
+        // (typically 480×360) instead of pinning an exact preset, which keeps
+        // ISP/power draw low for the long periods the mirror stays open and
+        // works on cameras that reject fixed-size presets.
+        if session.canSetSessionPreset(.medium) {
+            session.sessionPreset = .medium
+        }
 
         do {
-            let session = AVCaptureSession()
-            session.beginConfiguration()
-            session.sessionPreset = .high
-
-            let input = try AVCaptureDeviceInput(device: videoDevice)
+            let input = try AVCaptureDeviceInput(device: device)
             guard session.canAddInput(input) else {
                 throw CameraSessionError.cannotAddInput
             }
             session.addInput(input)
             session.commitConfiguration()
-
-            session.startRunning()
-            state.captureSession = session
-            state.activeCameraID = videoDevice.uniqueID
-
-            let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-            previewLayer.videoGravity = .resizeAspectFill
-            let camera = CameraDevice(
-                id: videoDevice.uniqueID,
-                name: videoDevice.localizedName,
-                isExternal: videoDevice.deviceType == .external
-            )
-            publish(.started(previewLayer: previewLayer, device: camera), state: state)
         } catch {
-            cleanupSession(state: state)
             publish(.failed(error.localizedDescription), state: state)
+            return
+        }
+
+        session.startRunning()
+        if session.isRunning {
+            state.captureSession = session
+            state.activeInput = session.inputs.first as? AVCaptureDeviceInput
+            state.activeDeviceID = device.uniqueID
+            publish(.started(session: session, device: preferred), state: state)
+        } else {
+            publish(.failed("The camera could not be started"), state: state)
         }
     }
 
-    private static func cleanupSession(state: CameraEngineState) {
-        guard let session = state.captureSession else { return }
-        if session.isRunning {
-            session.stopRunning()
+    private static func teardownSession(state: CameraEngineState) {
+        if let session = state.captureSession {
+            if session.isRunning {
+                session.stopRunning()
+            }
+            session.beginConfiguration()
+            session.inputs.forEach(session.removeInput)
+            session.commitConfiguration()
         }
-        session.beginConfiguration()
-        session.inputs.forEach(session.removeInput)
-        session.outputs.forEach(session.removeOutput)
-        session.commitConfiguration()
         state.captureSession = nil
+        state.activeInput = nil
+        state.activeDeviceID = nil
+    }
+
+    private static func publishStarted(state: CameraEngineState) {
+        guard let session = state.captureSession, session.isRunning,
+              let id = state.activeDeviceID,
+              let device = discoveredDevices().first(where: { $0.id == id }) else { return }
+        publish(.started(session: session, device: device), state: state)
+    }
+
+    private static func discoveredDevices() -> [CameraDevice] {
+        let discovery = AVCaptureDevice.DiscoverySession(
+            deviceTypes: [.builtInWideAngleCamera, .continuityCamera, .deskViewCamera, .external],
+            mediaType: .video,
+            position: .unspecified
+        )
+
+        var seen = Set<String>()
+        return discovery.devices.compactMap { device in
+            guard seen.insert(device.uniqueID).inserted else { return nil }
+            let kind: CameraDevice.Kind
+            switch device.deviceType {
+            case .builtInWideAngleCamera: kind = .builtIn
+            case .continuityCamera: kind = .continuity
+            case .deskViewCamera: kind = .deskView
+            default: kind = .external
+            }
+            return CameraDevice(id: device.uniqueID, name: device.localizedName, kind: kind)
+        }
+    }
+
+    private static func publishAuthorization(state: CameraEngineState) {
+        publish(.authorization(AVCaptureDevice.authorizationStatus(for: .video)), state: state)
     }
 
     private static func publish(_ event: CameraSessionEvent, state: CameraEngineState) {
@@ -302,42 +397,46 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
         }
     }
 
+    // MARK: - System events
+
     @objc private func deviceWasDisconnected(_ notification: Notification) {
         let deviceID = (notification.object as? AVCaptureDevice)?.uniqueID
         let state = state
         sessionQueue.async {
             guard !state.callbacks.withLock({ $0.isShutDown }) else { return }
-            if deviceID == state.activeCameraID {
-                Self.cleanupSession(state: state)
+            if deviceID == state.activeDeviceID {
+                // The attached camera vanished: tear the session down. The
+                // user's selection and intent stay untouched; for `automatic`
+                // the reconciliation below picks the next available camera.
+                Self.teardownSession(state: state)
             }
-            Self.publishDevices(state: state)
+            Self.reconcile(state: state)
         }
     }
 
     @objc private func deviceWasConnected(_: Notification) {
-        refresh()
-    }
-
-    @objc private func sessionRuntimeError(_ notification: Notification) {
-        let hasError = notification.userInfo?[AVCaptureSessionErrorKey] != nil
         let state = state
         sessionQueue.async {
-            guard !state.callbacks.withLock({ $0.isShutDown }), state.shouldRun else { return }
-            Self.cleanupSession(state: state)
-            Self.startSession(cameraID: state.activeCameraID, state: state)
-            if !hasError {
-                NSLog("Camera session reported an unknown runtime error and was restarted")
-            }
+            guard !state.callbacks.withLock({ $0.isShutDown }) else { return }
+            Self.reconcile(state: state)
         }
     }
 
     @objc private func sessionWasInterrupted(_ notification: Notification) {
+        // macOS exposes no interruption reason for AVCaptureSession; log what
+        // is available for diagnosis.
+        Self.log.info(
+            "capture session interrupted (userInfo: \(notification.userInfo?.count ?? 0, privacy: .public))"
+        )
+
         let sessionID = (notification.object as? AVCaptureSession).map(ObjectIdentifier.init)
         let state = state
         sessionQueue.async {
             guard !state.callbacks.withLock({ $0.isShutDown }),
-                  sessionID == state.captureSession.map(ObjectIdentifier.init) else { return }
-            Self.publish(.stopped, state: state)
+                  sessionID == nil || sessionID == state.captureSession.map(ObjectIdentifier.init) else { return }
+            // Interruption is not an intentional stop: shouldRun is unchanged
+            // and the session is kept, so the interruption ending can recover.
+            Self.publish(.interrupted, state: state)
         }
     }
 
@@ -345,19 +444,48 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
         let sessionID = (notification.object as? AVCaptureSession).map(ObjectIdentifier.init)
         let state = state
         sessionQueue.async {
-            guard !state.callbacks.withLock({ $0.isShutDown }),
-                  state.shouldRun,
-                  sessionID == state.captureSession.map(ObjectIdentifier.init),
-                  let session = state.captureSession else { return }
+            guard !state.callbacks.withLock({ $0.isShutDown }), state.shouldRun else { return }
+            guard let session = state.captureSession,
+                  sessionID == nil || sessionID == ObjectIdentifier(session) else {
+                Self.reconcile(state: state)
+                return
+            }
             if !session.isRunning {
                 session.startRunning()
             }
             if session.isRunning {
-                let camera = Self.discoveredDevices().first(where: { $0.id == state.activeCameraID })
-                if let camera {
-                    let layer = AVCaptureVideoPreviewLayer(session: session)
-                    layer.videoGravity = .resizeAspectFill
-                    Self.publish(.started(previewLayer: layer, device: camera), state: state)
+                Self.publishStarted(state: state)
+            } else {
+                Self.reconcile(state: state)
+            }
+        }
+    }
+
+    @objc private func sessionRuntimeError(_ notification: Notification) {
+        let error = notification.userInfo?[AVCaptureSessionErrorKey] as? NSError
+        Self.log.error(
+            "capture session runtime error: domain=\(error?.domain ?? "unknown", privacy: .public) code=\(error?.code ?? -1, privacy: .public) \(error?.localizedDescription ?? "no description", privacy: .public)"
+        )
+
+        let state = state
+        sessionQueue.async {
+            guard !state.callbacks.withLock({ $0.isShutDown }), state.shouldRun else { return }
+            // A runtime error must never wake the camera from an intentional stop.
+            guard let session = state.captureSession else { return }
+
+            // Media-services resets surface as this error on macOS; existing
+            // session objects are stale, so recover through reconciliation.
+            // DeviceWasDisconnected / DeviceNotConnected are handled by the
+            // device-disconnect path, so just retry the normal restart here.
+            if error?.domain == AVFoundationErrorDomain,
+               error?.code == -11819 /* AVErrorMediaServicesWereReset (iOS) */ {
+                Self.reconcile(state: state)
+            } else if !session.isRunning {
+                session.startRunning()
+                if session.isRunning {
+                    Self.publishStarted(state: state)
+                } else {
+                    Self.reconcile(state: state)
                 }
             }
         }
@@ -366,11 +494,14 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
     @objc private func systemWillSleep(_: Notification) {
         let state = state
         sessionQueue.async {
-            guard !state.callbacks.withLock({ $0.isShutDown }), let session = state.captureSession else { return }
-            if session.isRunning {
-                session.stopRunning()
-                Self.publish(.stopped, state: state)
-            }
+            guard !state.callbacks.withLock({ $0.isShutDown }),
+                  state.captureSession != nil else { return }
+            // Tear the session down rather than pausing it: nothing can render
+            // while the machine sleeps, and a fresh session on wake avoids the
+            // paused-session-never-resumes failure mode. shouldRun is kept, so
+            // the wake path rebuilds and resumes automatically.
+            Self.teardownSession(state: state)
+            Self.publish(.interrupted, state: state)
         }
     }
 
@@ -378,13 +509,18 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
         let state = state
         sessionQueue.async {
             guard !state.callbacks.withLock({ $0.isShutDown }), state.shouldRun else { return }
-            if let session = state.captureSession, !session.isRunning {
+            guard let session = state.captureSession else {
+                Self.reconcile(state: state)
+                return
+            }
+            if !session.isRunning {
                 session.startRunning()
-                if session.isRunning {
-                    Self.publishDevices(state: state)
-                }
-            } else if state.captureSession == nil {
-                Self.startSession(cameraID: state.activeCameraID, state: state)
+            }
+            if session.isRunning {
+                Self.publishStarted(state: state)
+            } else {
+                // The camera may have disappeared during sleep.
+                Self.reconcile(state: state)
             }
         }
     }

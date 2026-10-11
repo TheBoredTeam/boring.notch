@@ -11,6 +11,37 @@ import KeyboardShortcuts
 import Sparkle
 import SwiftUI
 
+@MainActor
+enum LegacyAppBundleMigration {
+    static let legacyBundleName = BoringNotchAppBundleNames.legacy
+    static let currentBundleName = BoringNotchAppBundleNames.current
+    static var isRelaunching = false
+
+    enum MigrationError: Swift.Error {
+        case destinationExists(URL)
+    }
+
+    static func destinationURL(for bundleURL: URL) -> URL? {
+        guard bundleURL.lastPathComponent == legacyBundleName else { return nil }
+        return bundleURL.deletingLastPathComponent()
+            .appendingPathComponent(currentBundleName, isDirectory: true)
+    }
+
+    @discardableResult
+    static func migrateIfNeeded(
+        at bundleURL: URL,
+        fileManager: FileManager = .default
+    ) throws -> URL? {
+        guard let destinationURL = destinationURL(for: bundleURL) else { return nil }
+        guard !fileManager.fileExists(atPath: destinationURL.path) else {
+            throw MigrationError.destinationExists(destinationURL)
+        }
+
+        try fileManager.moveItem(at: bundleURL, to: destinationURL)
+        return destinationURL
+    }
+}
+
 @main
 struct DynamicNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -27,11 +58,30 @@ struct DynamicNotchApp: App {
         let sparkleUpdaterDelegate = BoringSparkleUpdaterDelegate()
         self.sparkleUpdaterDelegate = sparkleUpdaterDelegate
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: sparkleUpdaterDelegate, userDriverDelegate: nil)
+            startingUpdater: false, updaterDelegate: sparkleUpdaterDelegate, userDriverDelegate: nil)
         SoftwareUpdateStore.updater = updaterController.updater
 
         // Initialize the settings window controller with the updater controller
         SettingsWindowController.shared.setUpdaterController(updaterController)
+
+        let updaterController = self.updaterController
+        Task { @MainActor in
+            let sourceURL = Bundle.main.bundleURL
+            if let destinationURL = LegacyAppBundleMigration.destinationURL(for: sourceURL) {
+                let migrated = await XPCHelperClient.shared.migrateLegacyAppBundle(
+                    from: sourceURL,
+                    to: destinationURL
+                )
+                if migrated {
+                    ApplicationRelauncher.restart(at: destinationURL) {
+                        LegacyAppBundleMigration.isRelaunching = true
+                    }
+                    return
+                }
+                NSLog("Failed to migrate legacy Boring Notch app bundle at %@", sourceURL.path)
+            }
+            updaterController.startUpdater()
+        }
     }
 
     var body: some Scene {
@@ -88,6 +138,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var screenLockedObserver: Any?
     private var screenUnlockedObserver: Any?
     private var observers: [Any] = []
+    private var activeDisplayObserver: NSObjectProtocol?
+    private var displayModeTask: Task<Void, Never>?
+    private var observedDisplayMode: DisplayMode?
 
     /// Kept for existing internal readers; the state itself moved to the manager.
     var windows: [String: NSWindow] { windowManager.windows }
@@ -99,7 +152,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
 
+    @MainActor
+    func applicationShouldHandleReopen(
+        _ sender: NSApplication,
+        hasVisibleWindows flag: Bool
+    ) -> Bool {
+        SettingsWindowController.shared.showWindow()
+        return false
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
+        if LegacyAppBundleMigration.isRelaunching { return }
+
         // Flush debounced shelf persistence to avoid losing recent changes
         ShelfStateViewModel.shared.flushSync()
 
@@ -123,6 +187,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         observers.forEach { NotificationCenter.default.removeObserver($0) }
         observers.removeAll()
+
+        displayModeTask?.cancel()
+        MainActor.assumeIsolated { setActiveDisplayObserver(enabled: false, reposition: false) }
     }
 
     @MainActor
@@ -137,6 +204,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         SettingsWindowController.shared.setCamera(camera)
+        migrateDisplayModeIfNeeded()
 
         NotificationCenter.default.addObserver(
             self,
@@ -160,26 +228,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in
                 self?.windowManager.adjustWindowPosition()
                 self?.windowManager.setupDragDetectors()
-            }
-        })
-
-        observers.append(NotificationCenter.default.addObserver(
-            forName: Notification.Name.automaticallySwitchDisplayChanged, object: nil, queue: nil
-        ) { [weak self] _ in
-            guard let self = self, let window = self.window else { return }
-            Task { @MainActor in
-                window.alphaValue = self.coordinator.selectedScreenUUID == self.coordinator.preferredScreenUUID ? 1 : 0
-            }
-        })
-
-        observers.append(NotificationCenter.default.addObserver(
-            forName: Notification.Name.showOnAllDisplaysChanged, object: nil, queue: nil
-        ) { [weak self] _ in
-            Task { @MainActor in
-                guard let self = self else { return }
-                self.windowManager.cleanupWindows(shouldInvert: true)
-                self.windowManager.adjustWindowPosition(changeAlpha: true)
-                self.windowManager.setupDragDetectors()
             }
         })
 
@@ -236,7 +284,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
                 var viewModel = self.vm
 
-                if Defaults[.showOnAllDisplays] {
+                if Defaults[.displayMode] == .allDisplays {
                     for screen in NSScreen.screens {
                         if screen.frame.contains(mouseLocation) {
                             if let uuid = screen.displayUUID, let screenViewModel = self.viewModels[uuid] {
@@ -280,6 +328,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         windowManager.prepareInitialWindows()
 
+        displayModeTask = Task { @MainActor [weak self] in
+            for await mode in Defaults.updates(.displayMode, initial: true) {
+                guard let self else { return }
+
+                let previousMode = self.observedDisplayMode
+                self.observedDisplayMode = mode
+
+                if let previousMode, (previousMode == .allDisplays) != (mode == .allDisplays) {
+                    self.windowManager.cleanupWindows(shouldInvert: true)
+                }
+
+                self.setActiveDisplayObserver(enabled: mode == .activeDisplay, reposition: false)
+                self.windowManager.adjustWindowPosition(changeAlpha: true)
+                self.windowManager.setupDragDetectors()
+            }
+        }
+
         if coordinator.firstLaunch {
             DispatchQueue.main.async {
                 self.showOnboardingWindow()
@@ -290,6 +355,56 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // make sure OSD subsystems are in the right state now that initial
         // notch windows have been created/cleaned up
         coordinator.applyOSDSources()
+    }
+
+    private func migrateDisplayModeIfNeeded() {
+        let defaults = UserDefaults.standard
+        guard defaults.object(forKey: "displayMode") == nil else { return }
+
+        let mode: DisplayMode
+        if Defaults[.showOnAllDisplays] {
+            mode = .allDisplays
+        } else if Defaults[.followActiveDisplay] {
+            mode = .activeDisplay
+        } else if Defaults[.automaticallySwitchDisplay] {
+            mode = .fallbackIfPreferredUnavailable
+        } else {
+            mode = .preferredDisplay
+        }
+
+        Defaults[.displayMode] = mode
+    }
+
+    private static let activeDisplayDidChangeNotification =
+        Notification.Name("NSWorkspaceActiveDisplayDidChangeNotification")
+
+    @MainActor
+    private func setActiveDisplayObserver(enabled: Bool, reposition: Bool = true) {
+        let workspaceCenter = NSWorkspace.shared.notificationCenter
+
+        if enabled {
+            guard activeDisplayObserver == nil else { return }
+
+            activeDisplayObserver = workspaceCenter.addObserver(
+                forName: Self.activeDisplayDidChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    self.windowManager.adjustWindowPosition(changeAlpha: true)
+                    self.windowManager.setupDragDetectors()
+                }
+            }
+        } else if let observer = activeDisplayObserver {
+            workspaceCenter.removeObserver(observer)
+            activeDisplayObserver = nil
+        }
+
+        guard reposition else { return }
+
+        windowManager.adjustWindowPosition(changeAlpha: true)
+        windowManager.setupDragDetectors()
     }
 
     func playWelcomeSound() {

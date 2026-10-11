@@ -19,6 +19,7 @@ permissions:
 
 env:
   PROJECT_NAME: boringNotch
+  APP_NAME: Boring Notch
   BETA_CHANNEL_NAME: beta
 
 jobs:
@@ -302,7 +303,7 @@ jobs:
           path: Release
 
       - name: Create embedded release notes
-        run: printf '%s' "$RELEASE_NOTES" > Release/boringNotch.html
+        run: printf '%s' "$RELEASE_NOTES" > "Release/${PROJECT_NAME}.html"
 
       - name: Fetch Sparkle generate_appcast
         uses: ./.github/actions/fetch-generate-appcast
@@ -579,7 +580,7 @@ jobs:
       - name: Generate cask files
         run: |
           set -euo pipefail
-          DMG_URL="https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/boringNotch.dmg"
+          DMG_URL="https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/${PROJECT_NAME}.dmg"
 
           # Retry SHA calculation (release may need a moment to propagate)
           for attempt in 1 2 3; do
@@ -604,10 +605,10 @@ jobs:
             end
             auto_updates true
             depends_on macos: :sonoma
-            app "boringNotch.app"
+            app "Boring Notch.app"
 
             postflight do
-              app_path = appdir/"boringNotch.app"
+              app_path = appdir/"Boring Notch.app"
               next unless app_path.exist?
               system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", app_path]
             end
@@ -707,10 +708,10 @@ jobs:
           fi
           {
             if [[ "${RELEASE_SUCCEEDED}" == "true" ]]; then
-              echo "✅ Released boringNotch v${VERSION} (${BUILD_TYPE} build ${BUILD_NUMBER})"
+              echo "✅ Released Boring Notch v${VERSION} (${BUILD_TYPE} build ${BUILD_NUMBER})"
               echo "🍺 Homebrew cask updated"
               echo "📱 Sparkle appcast updated"
             else
-              echo "❌ Release failed${VERSION:+ for boringNotch v${VERSION}}"
+              echo "❌ Release failed${VERSION:+ for Boring Notch v${VERSION}}"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
