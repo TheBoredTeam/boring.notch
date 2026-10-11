@@ -28,6 +28,11 @@ struct ShortcutsSettingsView: View {
                 .foregroundStyle(.secondary)
                 .font(.caption)
             }
+            Section {
+                KeyboardShortcuts.Recorder("Toggle Microphone:", name: .toggleMicrophone)
+            } header: {
+                Text("System")
+            }
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Shortcuts")

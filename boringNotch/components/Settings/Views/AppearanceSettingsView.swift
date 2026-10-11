@@ -145,6 +145,12 @@ struct AppearanceSettingsView: View {
             Defaults.Toggle(key: .settingsIconInNotch) {
                 Text("Show settings icon in notch")
             }
+            Defaults.Toggle(key: .showMicrophoneButtonInNotch) {
+                Text("Show microphone mute button")
+            }
+            Defaults.Toggle(key: .showMuteIndicator) {
+                Text("Show mute indicator when closed")
+            }
         } header: {
             Text("Notch chrome")
         }
