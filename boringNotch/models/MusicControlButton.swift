@@ -110,8 +110,8 @@ enum MusicControlButton: String, CaseIterable, Identifiable, Codable, Defaults.S
             return "goforward.15"
         case .mediaOutput:
             // Placeholder for the settings picker; the live button swaps in
-            // the actual route's glyph (laptop / headphones / AirPods).
-            return "laptopcomputer"
+            // the actual route's glyph (Mac / headphones / AirPods).
+            return "macbook"
         case .none:
             return ""
         }
