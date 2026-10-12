@@ -11,6 +11,7 @@
 
 import XCTest
 import SwiftUI
+import Defaults
 @testable import boringNotch
 
 final class LiquidGlassScrimTests: XCTestCase {
@@ -98,6 +99,21 @@ final class LiquidGlassScrimTests: XCTestCase {
             floorTransparency: -1
         )
         XCTAssertEqual(negative.last?.color, Color.black.opacity(0))
+    }
+}
+
+final class LiquidGlassParametersTests: XCTestCase {
+
+    /// A default outside its own slider range would make the control jump the
+    /// first time it is touched, so the two have to agree.
+    func testDefaultsAreInsideTheirRanges() {
+        XCTAssertTrue(LiquidGlassParameters.refractionRange.contains(Defaults.Keys.glassRefraction.defaultValue))
+        XCTAssertTrue(LiquidGlassParameters.blurRange.contains(Defaults.Keys.glassBlur.defaultValue))
+        XCTAssertTrue(LiquidGlassParameters.dispersionRange.contains(Defaults.Keys.glassDispersion.defaultValue))
+        XCTAssertTrue(LiquidGlassParameters.lensHeightRange.contains(Defaults.Keys.glassLensHeight.defaultValue))
+        XCTAssertTrue(LiquidGlassParameters.coreHeightRange.contains(Defaults.Keys.glassCoreHeight.defaultValue))
+        XCTAssertTrue(LiquidGlassParameters.fadeSoftnessRange.contains(Defaults.Keys.glassFadeSoftness.defaultValue))
+        XCTAssertTrue(LiquidGlassParameters.floorTransparencyRange.contains(Defaults.Keys.glassFloorTransparency.defaultValue))
     }
 }
 

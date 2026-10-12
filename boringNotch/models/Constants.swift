@@ -449,6 +449,14 @@ extension Defaults.Keys {
     /// Liquid Glass refraction background for the notch surface (macOS 26+ only).
     /// The closed notch stays black so it keeps blending with the camera housing.
     static let enableLiquidGlass = Key<Bool>("enableLiquidGlass", default: false)
+    /// Surface parameters behind the Appearance pane's Liquid Glass tuning.
+    static let glassRefraction = Key<Double>("glassRefraction", default: 24)
+    static let glassBlur = Key<Double>("glassBlur", default: 0)
+    static let glassDispersion = Key<Double>("glassDispersion", default: 4)
+    static let glassLensHeight = Key<Double>("glassLensHeight", default: 23)
+    static let glassCoreHeight = Key<Double>("glassCoreHeight", default: 80)
+    static let glassFadeSoftness = Key<Double>("glassFadeSoftness", default: 100)
+    static let glassFloorTransparency = Key<Double>("glassFloorTransparency", default: 0.23)
     static let cornerRadiusScaling = Key<Bool>("cornerRadiusScaling", default: true)
 
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)

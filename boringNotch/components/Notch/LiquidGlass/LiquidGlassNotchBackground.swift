@@ -8,6 +8,18 @@
 import Defaults
 import SwiftUI
 
+/// Defaults and bounds for the surface parameters, shared by the renderer and the
+/// Appearance pane so a slider can never describe a value the surface cannot take.
+enum LiquidGlassParameters {
+    static let refractionRange: ClosedRange<Double> = 0...100
+    static let blurRange: ClosedRange<Double> = 0...30
+    static let dispersionRange: ClosedRange<Double> = 0...15
+    static let lensHeightRange: ClosedRange<Double> = 10...60
+    static let coreHeightRange: ClosedRange<Double> = 20...80
+    static let fadeSoftnessRange: ClosedRange<Double> = 10...100
+    static let floorTransparencyRange: ClosedRange<Double> = 0...0.50
+}
+
 /// The notch surface: a refraction backdrop with a black scrim on top of it.
 ///
 /// The scrim is what keeps the camera housing concealed, so the backdrop can stay
@@ -19,24 +31,22 @@ struct LiquidGlassNotchBackground: View {
     let bottomRadius: CGFloat
 
     @Default(.enableLiquidGlass) var enableLiquidGlass
-
-    private static let coreHeight: CGFloat = 80
-    private static let fadeSoftness: CGFloat = 100
-    private static let floorTransparency: CGFloat = 0.23
-
-    private static let refraction: Double = 24
-    private static let blur: Double = 0
-    private static let dispersion: Double = 4
-    private static let lensHeight: Double = 23
+    @Default(.glassRefraction) var refraction
+    @Default(.glassBlur) var blur
+    @Default(.glassDispersion) var dispersion
+    @Default(.glassLensHeight) var lensHeight
+    @Default(.glassCoreHeight) var coreHeight
+    @Default(.glassFadeSoftness) var fadeSoftness
+    @Default(.glassFloorTransparency) var floorTransparency
 
     var body: some View {
         if enableLiquidGlass && LiquidGlassAvailability.isSupported {
             ZStack {
                 LiquidGlassBackdropRepresentable(
-                    refraction: Self.refraction,
-                    lensHeight: Self.lensHeight,
-                    blur: Self.blur,
-                    aberration: Self.dispersion,
+                    refraction: refraction,
+                    lensHeight: lensHeight,
+                    blur: blur,
+                    aberration: dispersion,
                     topRadius: topRadius,
                     bottomRadius: bottomRadius
                 )
@@ -44,9 +54,11 @@ struct LiquidGlassNotchBackground: View {
 
                 NotchBlackFadeScrim(
                     shape: shape,
-                    coreHeight: Self.coreHeight,
-                    fadeSoftness: Self.fadeSoftness,
-                    floorTransparency: Self.floorTransparency
+                    // shortcut: a core shorter than the closed notch lets the glass
+                    // show while closed; clamp to the closed height if that matters.
+                    coreHeight: coreHeight,
+                    fadeSoftness: fadeSoftness,
+                    floorTransparency: floorTransparency
                 )
             }
         } else {
