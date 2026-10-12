@@ -44,9 +44,9 @@ struct OnboardingView: View {
             case .cameraPermission:
                 PermissionsRequestView(
                     icon: Image(systemName: "camera.fill"),
-                    title: String(localized: "Enable Camera Access"),
-                    description: String(localized: "Boring Notch includes a mirror feature that lets you quickly check your appearance using your camera, right from the notch. Camera access is required only to show this live preview. You can turn the mirror feature on or off at any time in the app."),
-                    privacyNote: String(localized: "Your camera is never used without your consent, and nothing is recorded or stored."),
+                    title: "Enable Camera Access",
+                    description: "Boring Notch includes a mirror feature that lets you quickly check your appearance using your camera, right from the notch. Camera access is required only to show this live preview. You can turn the mirror feature on or off at any time in the app.",
+                    privacyNote: "Your camera is never used without your consent, and nothing is recorded or stored.",
                     onAllow: {
                         Task {
                             await requestCameraPermission()
@@ -66,9 +66,9 @@ struct OnboardingView: View {
             case .calendarPermission:
                 PermissionsRequestView(
                     icon: Image(systemName: "calendar"),
-                    title: String(localized: "Enable Calendar Access"),
-                    description: String(localized: "Boring Notch can show all your upcoming events in one place. Access to your calendar is needed to display your schedule."),
-                    privacyNote: String(localized: "Your calendar data is only used to show your events and is never shared."),
+                    title: "Enable Calendar Access",
+                    description: "Boring Notch can show all your upcoming events in one place. Access to your calendar is needed to display your schedule.",
+                    privacyNote: "Your calendar data is only used to show your events and is never shared.",
                     onAllow: {
                         Task {
                                 await requestCalendarPermission()
@@ -88,9 +88,9 @@ struct OnboardingView: View {
                 case .remindersPermission:
                     PermissionsRequestView(
                         icon: Image(systemName: "checklist"),
-                        title: String(localized: "Enable Reminders Access"),
-                        description: String(localized: "Boring Notch can show your scheduled reminders alongside your calendar events. Access to Reminders is needed to display your reminders."),
-                        privacyNote: String(localized: "Your reminders data is only used to show your reminders and is never shared."),
+                        title: "Enable Reminders Access",
+                        description: "Boring Notch can show your scheduled reminders alongside your calendar events. Access to Reminders is needed to display your reminders.",
+                        privacyNote: "Your reminders data is only used to show your reminders and is never shared.",
                         onAllow: {
                             Task {
                                 await requestRemindersPermission()
@@ -110,9 +110,9 @@ struct OnboardingView: View {
             case .audioCapturePermission:
                 PermissionsRequestView(
                     icon: Image(systemName: "waveform"),
-                    title: String(localized: "Enable Real-Time Audio"),
-                    description: String(localized: "Boring Notch can analyze the audio playing from your music app to draw a live FFT waveform in the notch, with only a minimal impact on CPU usage."),
-                    privacyNote: String(localized: "Audio is processed locally for the visualizer and never recorded, stored, or shared."),
+                    title: "Enable Real-Time Audio",
+                    description: "Boring Notch can analyze the audio playing from your music app to draw a live FFT waveform in the notch, with only a minimal impact on CPU usage.",
+                    privacyNote: "Audio is processed locally for the visualizer and never recorded, stored, or shared.",
                     onAllow: {
                         Task {
                             let granted = await requestAudioCapturePermission()
@@ -135,9 +135,9 @@ struct OnboardingView: View {
             case .accessibilityPermission:
                 PermissionsRequestView(
                     icon: Image(systemName: AccessibilityPermission.systemImageName),
-                    title: String(localized: "Enable \(AccessibilityPermission.displayName)"),
-                    description: String(localized: "\(AccessibilityPermission.displayName) is only needed when using built-in macOS control sources for OSD replacement. External sources like BetterDisplay or Lunar do not require it. You can enable it later in OSD settings if needed."),
-                    privacyNote: String(localized: "\(AccessibilityPermission.displayName) is used only to improve media and brightness notifications. No data is collected or shared."),
+                    title: "Enable \(AccessibilityPermission.displayName)",
+                    description: "\(AccessibilityPermission.displayName) is only needed when using built-in macOS control sources for OSD replacement. External sources like BetterDisplay or Lunar do not require it. You can enable it later in OSD settings if needed.",
+                    privacyNote: "\(AccessibilityPermission.displayName) is used only to improve media and brightness notifications. No data is collected or shared.",
                     onAllow: {
                         withAnimation(.easeInOut(duration: 0.6)) {
                             step = .musicPermission
