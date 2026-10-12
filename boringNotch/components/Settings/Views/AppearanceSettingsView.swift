@@ -15,9 +15,8 @@ struct AppearanceSettingsView: View {
     @Default(.glassBlur) var glassBlur
     @Default(.glassDispersion) var glassDispersion
     @Default(.glassLensHeight) var glassLensHeight
-    @Default(.glassCoreHeight) var glassCoreHeight
-    @Default(.glassFadeSoftness) var glassFadeSoftness
-    @Default(.glassFloorTransparency) var glassFloorTransparency
+    @Default(.glassFadeStart) var glassFadeStart
+    @Default(.glassFadeEndOpacity) var glassFadeEndOpacity
     @Default(.useCustomAccentColor) var useCustomAccentColor
     @Default(.customAccentColorData) var customAccentColorData
     @State private var customAccentColor: Color = .accentColor
@@ -206,28 +205,20 @@ struct AppearanceSettingsView: View {
                             display: "\(Int(glassLensHeight)) pt"
                         )
                         parameterSlider(
-                            "Camera core height",
-                            comment: "Liquid Glass parameter controlling the solid black region over the camera housing.",
-                            value: $glassCoreHeight,
-                            range: LiquidGlassParameters.coreHeightRange,
+                            "Fade start",
+                            comment: "Liquid Glass parameter controlling the height where the solid black band starts fading into the glass.",
+                            value: $glassFadeStart,
+                            range: fadeStartRange,
                             step: 1,
-                            display: "\(Int(glassCoreHeight)) pt"
+                            display: "\(Int(glassFadeStart)) pt"
                         )
                         parameterSlider(
-                            "Fade softness",
-                            comment: "Liquid Glass parameter controlling how gradually the black region fades out.",
-                            value: $glassFadeSoftness,
-                            range: LiquidGlassParameters.fadeSoftnessRange,
-                            step: 1,
-                            display: "\(Int(glassFadeSoftness)) pt"
-                        )
-                        parameterSlider(
-                            "Floor opacity",
-                            comment: "Liquid Glass parameter controlling how dark the bottom of the surface stays.",
-                            value: $glassFloorTransparency,
-                            range: LiquidGlassParameters.floorTransparencyRange,
+                            "Fade end opacity",
+                            comment: "Liquid Glass parameter controlling how dark the surface is where the fade ends, at the bottom edge.",
+                            value: $glassFadeEndOpacity,
+                            range: LiquidGlassParameters.fadeEndOpacityRange,
                             step: 0.01,
-                            display: "\(Int(glassFloorTransparency * 100))%"
+                            display: "\(Int(glassFadeEndOpacity * 100))%"
                         )
                     }
                     .padding(.vertical, 6)
@@ -247,6 +238,15 @@ struct AppearanceSettingsView: View {
             .foregroundStyle(.secondary)
             .font(.caption)
         }
+    }
+
+    /// The surface clamps the fade start to the closed notch height, so offering
+    /// anything below it would be a slider the renderer ignores.
+    private var fadeStartRange: ClosedRange<Double> {
+        let closedHeight = Double(
+            getClosedNotchSize(screenUUID: coordinator.selectedScreenUUID).height
+        )
+        return closedHeight...LiquidGlassParameters.fadeStartRange.upperBound
     }
 
     private func parameterSlider(

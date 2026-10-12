@@ -269,7 +269,8 @@ struct ContentView: View {
                         LiquidGlassNotchBackground(
                             shape: currentNotchShape,
                             topRadius: topCornerRadius,
-                            bottomRadius: bottomCornerRadius
+                            bottomRadius: bottomCornerRadius,
+                            closedNotchHeight: displayClosedNotchHeight
                         )
                     }
                     .clipShape(currentNotchShape)

@@ -5,95 +5,148 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 import XCTest
+import AppKit
 import SwiftUI
 import Defaults
 @testable import boringNotch
 
 final class LiquidGlassScrimTests: XCTestCase {
 
-    private let coreHeight: CGFloat = 80
-    private let fadeSoftness: CGFloat = 100
-    private let floorTransparency: CGFloat = 0.23
+    private let fadeStart: CGFloat = 80
+    private let fadeEndOpacity: CGFloat = 0.23
+    private let solidBlackHeight: CGFloat = 32
 
-    func testOpenedNotchHoldsCameraCoreOpaqueThenFades() {
+    private func opacities(_ stops: [Gradient.Stop]) -> [Double] {
+        stops.map { NSColor($0.color).alphaComponent }
+    }
+
+    /// The scrim is one ramp: locations ascend, opacity only ever falls, and it
+    /// starts fully opaque in the solid band and ends on `bottom` at the
+    /// bottom edge of the surface.
+    private func assertSingleRamp(_ stops: [Gradient.Stop], endingAt bottom: Double) {
+        let alphas = opacities(stops)
+
+        XCTAssertEqual(stops.first?.location ?? -1, 0, accuracy: 0.0001)
+        XCTAssertEqual(stops.last?.location ?? -1, 1, accuracy: 0.0001)
+        XCTAssertEqual(alphas.first ?? -1, 1, accuracy: 0.0001)
+        XCTAssertEqual(alphas.last ?? -1, bottom, accuracy: 0.0001)
+
+        for (previous, next) in zip(stops, stops.dropFirst()) {
+            XCTAssertLessThanOrEqual(previous.location, next.location)
+        }
+        for (previous, next) in zip(alphas, alphas.dropFirst()) {
+            XCTAssertLessThanOrEqual(next, previous + 0.0001)
+        }
+    }
+
+    func testOpenedNotchStaysOpaqueToTheFadeStartThenFadesToTheBottomEdge() {
         let totalHeight: CGFloat = 190
         let stops = NotchScrimCalculator.hardwareScrimStops(
             totalHeight: totalHeight,
-            coreHeight: coreHeight,
-            fadeSoftness: fadeSoftness,
-            floorTransparency: floorTransparency
+            fadeStart: fadeStart,
+            solidBlackHeight: solidBlackHeight,
+            fadeEndOpacity: fadeEndOpacity
         )
 
-        XCTAssertEqual(stops.count, 6)
-        XCTAssertEqual(stops[0].location, 0, accuracy: 0.0001)
-        XCTAssertEqual(stops[1].location, coreHeight / totalHeight, accuracy: 0.0001)
-        XCTAssertEqual(stops.last?.location ?? -1, 1, accuracy: 0.0001)
-
-        // The camera core is fully opaque; the fade that follows is monotonic.
+        // Everything above the fade start is fully opaque, and the fade into the
+        // glass is one monotonic ramp from there to the bottom edge of the surface.
         XCTAssertEqual(stops[0].color, .black)
         XCTAssertEqual(stops[1].color, .black)
-        XCTAssertEqual(stops[2].color, Color.black.opacity(0.65))
-        XCTAssertEqual(stops[3].color, Color.black.opacity(0.18))
-        XCTAssertEqual(stops[4].color, Color.black.opacity(Double(floorTransparency)))
+        XCTAssertEqual(stops[1].location, fadeStart / totalHeight, accuracy: 0.0001)
+        assertSingleRamp(stops, endingAt: Double(fadeEndOpacity))
     }
 
-    func testOpenedNotchFloorReachesTheBottomEdge() {
+    func testRampLandsOnFadeEndOpacityAtTheBottomEdge() {
         let stops = NotchScrimCalculator.hardwareScrimStops(
             totalHeight: 190,
-            coreHeight: coreHeight,
-            fadeSoftness: fadeSoftness,
-            floorTransparency: floorTransparency
+            fadeStart: fadeStart,
+            solidBlackHeight: solidBlackHeight,
+            fadeEndOpacity: fadeEndOpacity
         )
 
-        XCTAssertEqual(stops[4].color, stops[5].color)
-        XCTAssertEqual(stops.last?.location, 1)
+        XCTAssertEqual(opacities(stops).last ?? -1, Double(fadeEndOpacity), accuracy: 0.0001)
+        XCTAssertEqual(stops.last?.location ?? -1, 1, accuracy: 0.0001)
     }
 
-    func testClosedHeightIsSolidBlack() {
-        // 38pt closed notch, and anything else at or under the camera core.
-        for totalHeight in [CGFloat(38), CGFloat(80)] {
+    func testLaterFadeStartLeavesLessRoomForTheRamp() {
+        let shallow = NotchScrimCalculator.hardwareScrimStops(
+            totalHeight: 190, fadeStart: 40, solidBlackHeight: solidBlackHeight,
+            fadeEndOpacity: fadeEndOpacity
+        )
+        let deep = NotchScrimCalculator.hardwareScrimStops(
+            totalHeight: 190, fadeStart: 140, solidBlackHeight: solidBlackHeight,
+            fadeEndOpacity: fadeEndOpacity
+        )
+
+        // Both ramps end at the bottom edge; a later fade start just gets there
+        // faster, which is the whole point of splitting the two controls.
+        XCTAssertEqual(shallow[1].location, 40.0 / 190.0, accuracy: 0.0001)
+        XCTAssertEqual(deep[1].location, 140.0 / 190.0, accuracy: 0.0001)
+        assertSingleRamp(shallow, endingAt: Double(fadeEndOpacity))
+        assertSingleRamp(deep, endingAt: Double(fadeEndOpacity))
+    }
+
+    /// The shipped default fade start is shorter than every closed notch height,
+    /// so the surface has to clamp it: without that the closed notch renders a
+    /// ramp and the desktop shows through the camera housing.
+    func testClosedNotchStaysSolidBlackWithTheShippedDefault() {
+        let defaultFadeStart = CGFloat(Defaults.Keys.glassFadeStart.defaultValue)
+        let defaultFadeEndOpacity = CGFloat(Defaults.Keys.glassFadeEndOpacity.defaultValue)
+
+        for closedHeight in [CGFloat(32), CGFloat(38), CGFloat(45)] {
             let stops = NotchScrimCalculator.hardwareScrimStops(
-                totalHeight: totalHeight,
-                coreHeight: coreHeight,
-                fadeSoftness: fadeSoftness,
-                floorTransparency: floorTransparency
+                totalHeight: closedHeight,
+                fadeStart: defaultFadeStart,
+                solidBlackHeight: closedHeight,
+                fadeEndOpacity: defaultFadeEndOpacity
             )
 
-            XCTAssertEqual(stops.count, 2, "height \(totalHeight) should be solid black")
+            XCTAssertEqual(
+                stops.count, 2,
+                "closed height \(closedHeight) with the default fade start must stay solid black"
+            )
             XCTAssertEqual(stops[0].color, .black)
             XCTAssertEqual(stops[1].color, .black)
         }
+    }
+
+    func testFadeNeverStartsAboveTheClosedNotchHeight() {
+        let stops = NotchScrimCalculator.hardwareScrimStops(
+            totalHeight: 190,
+            fadeStart: 20,
+            solidBlackHeight: 38,
+            fadeEndOpacity: fadeEndOpacity
+        )
+
+        XCTAssertEqual(stops[1].location, 38.0 / 190.0, accuracy: 0.0001)
+        assertSingleRamp(stops, endingAt: Double(fadeEndOpacity))
     }
 
     func testDegenerateHeightStillReturnsStops() {
         for totalHeight in [CGFloat(0), CGFloat(-100)] {
             let stops = NotchScrimCalculator.hardwareScrimStops(
                 totalHeight: totalHeight,
-                coreHeight: coreHeight,
-                fadeSoftness: fadeSoftness,
-                floorTransparency: floorTransparency
+                fadeStart: fadeStart,
+                solidBlackHeight: solidBlackHeight,
+                fadeEndOpacity: fadeEndOpacity
             )
 
             XCTAssertEqual(stops.count, 2)
         }
     }
 
-    func testFloorIsClampedToHalfOpacity() {
-        let tooDark = NotchScrimCalculator.hardwareScrimStops(
-            totalHeight: 190,
-            coreHeight: coreHeight,
-            fadeSoftness: fadeSoftness,
-            floorTransparency: 0.9
+    func testFadeEndOpacityIsClampedToValidRange() {
+        let opaque = NotchScrimCalculator.hardwareScrimStops(
+            totalHeight: 190, fadeStart: fadeStart, solidBlackHeight: solidBlackHeight,
+            fadeEndOpacity: 2
         )
-        XCTAssertEqual(tooDark.last?.color, Color.black.opacity(0.5))
+        assertSingleRamp(opaque, endingAt: 1)
 
-        let negative = NotchScrimCalculator.hardwareScrimStops(
-            totalHeight: 190,
-            coreHeight: coreHeight,
-            fadeSoftness: fadeSoftness,
-            floorTransparency: -1
+        let clear = NotchScrimCalculator.hardwareScrimStops(
+            totalHeight: 190, fadeStart: fadeStart, solidBlackHeight: solidBlackHeight,
+            fadeEndOpacity: -1
         )
-        XCTAssertEqual(negative.last?.color, Color.black.opacity(0))
+        assertSingleRamp(clear, endingAt: 0)
     }
 }
 
@@ -106,9 +159,8 @@ final class LiquidGlassParametersTests: XCTestCase {
         XCTAssertTrue(LiquidGlassParameters.blurRange.contains(Defaults.Keys.glassBlur.defaultValue))
         XCTAssertTrue(LiquidGlassParameters.dispersionRange.contains(Defaults.Keys.glassDispersion.defaultValue))
         XCTAssertTrue(LiquidGlassParameters.lensHeightRange.contains(Defaults.Keys.glassLensHeight.defaultValue))
-        XCTAssertTrue(LiquidGlassParameters.coreHeightRange.contains(Defaults.Keys.glassCoreHeight.defaultValue))
-        XCTAssertTrue(LiquidGlassParameters.fadeSoftnessRange.contains(Defaults.Keys.glassFadeSoftness.defaultValue))
-        XCTAssertTrue(LiquidGlassParameters.floorTransparencyRange.contains(Defaults.Keys.glassFloorTransparency.defaultValue))
+        XCTAssertTrue(LiquidGlassParameters.fadeStartRange.contains(Defaults.Keys.glassFadeStart.defaultValue))
+        XCTAssertTrue(LiquidGlassParameters.fadeEndOpacityRange.contains(Defaults.Keys.glassFadeEndOpacity.defaultValue))
     }
 }
 
@@ -131,7 +183,8 @@ final class LiquidGlassAvailabilityTests: XCTestCase {
         let background = LiquidGlassNotchBackground(
             shape: NotchShape(),
             topRadius: 19,
-            bottomRadius: 24
+            bottomRadius: 24,
+            closedNotchHeight: 32
         )
         .frame(width: 200, height: 190)
         // Use SwiftUI's writable override without changing the system setting.

@@ -454,9 +454,10 @@ extension Defaults.Keys {
     static let glassBlur = Key<Double>("glassBlur", default: 0.5)
     static let glassDispersion = Key<Double>("glassDispersion", default: 4)
     static let glassLensHeight = Key<Double>("glassLensHeight", default: 23)
-    static let glassCoreHeight = Key<Double>("glassCoreHeight", default: 80)
-    static let glassFadeSoftness = Key<Double>("glassFadeSoftness", default: 100)
-    static let glassFloorTransparency = Key<Double>("glassFloorTransparency", default: 0.23)
+    /// Height where the solid black band gives way to the glass fade, in points.
+    static let glassFadeStart = Key<Double>("glassFadeStart", default: 20)
+    /// Opacity the fade ends on at the bottom edge of the open panel.
+    static let glassFadeEndOpacity = Key<Double>("glassFadeEndOpacity", default: 0.50)
     static let cornerRadiusScaling = Key<Bool>("cornerRadiusScaling", default: true)
 
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)
