@@ -222,7 +222,7 @@ struct AppearanceSettingsView: View {
                             display: "\(Int(glassFadeSoftness)) pt"
                         )
                         parameterSlider(
-                            "Floor transparency",
+                            "Floor opacity",
                             comment: "Liquid Glass parameter controlling how dark the bottom of the surface stays.",
                             value: $glassFloorTransparency,
                             range: LiquidGlassParameters.floorTransparencyRange,
@@ -266,6 +266,7 @@ struct AppearanceSettingsView: View {
                     .foregroundStyle(.secondary)
             }
             Slider(value: value, in: range, step: step)
+                .accessibilityLabel(Text(title, comment: comment))
         }
     }
 

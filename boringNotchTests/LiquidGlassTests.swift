@@ -4,11 +4,6 @@
 //
 //  SPDX-License-Identifier: GPL-3.0-only
 //
-//  The scrim is the only part of Liquid Glass that is pure arithmetic, and it is
-//  also the part that keeps the camera housing concealed — so it is the part worth
-//  pinning down here.
-//
-
 import XCTest
 import SwiftUI
 import Defaults
@@ -118,6 +113,49 @@ final class LiquidGlassParametersTests: XCTestCase {
 }
 
 final class LiquidGlassAvailabilityTests: XCTestCase {
+
+    @MainActor
+    func testReduceTransparencyKeepsEnabledBackgroundOpaque() throws {
+        guard LiquidGlassAvailability.isSupported else {
+            throw XCTSkip("The host cannot render the glass backdrop")
+        }
+
+        let wasEnabled = Defaults[.enableLiquidGlass]
+        Defaults[.enableLiquidGlass] = true
+        defer { Defaults[.enableLiquidGlass] = wasEnabled }
+
+        func containsBackdrop(_ view: NSView) -> Bool {
+            view is LiquidGlassBackdropView || view.subviews.contains(where: containsBackdrop)
+        }
+
+        let background = LiquidGlassNotchBackground(
+            shape: NotchShape(),
+            topRadius: 19,
+            bottomRadius: 24
+        )
+        .frame(width: 200, height: 190)
+        // Use SwiftUI's writable override without changing the system setting.
+        let hostingView = NSHostingView(
+            rootView: background.environment(\._accessibilityReduceTransparency, false)
+        )
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 200, height: 190),
+            styleMask: .borderless,
+            backing: .buffered,
+            defer: false
+        )
+        window.contentView = hostingView
+        hostingView.layoutSubtreeIfNeeded()
+        XCTAssertTrue(containsBackdrop(hostingView))
+
+        hostingView.rootView = background.environment(\._accessibilityReduceTransparency, true)
+        hostingView.layoutSubtreeIfNeeded()
+        XCTAssertFalse(containsBackdrop(hostingView))
+
+        hostingView.rootView = background.environment(\._accessibilityReduceTransparency, false)
+        hostingView.layoutSubtreeIfNeeded()
+        XCTAssertTrue(containsBackdrop(hostingView))
+    }
 
     func testAvailabilityIsStable() {
         XCTAssertEqual(LiquidGlassAvailability.isSupported, LiquidGlassAvailability.isSupported)

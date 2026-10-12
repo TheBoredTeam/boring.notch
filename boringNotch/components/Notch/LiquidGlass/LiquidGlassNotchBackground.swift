@@ -30,6 +30,7 @@ struct LiquidGlassNotchBackground: View {
     let topRadius: CGFloat
     let bottomRadius: CGFloat
 
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Default(.enableLiquidGlass) var enableLiquidGlass
     @Default(.glassRefraction) var refraction
     @Default(.glassBlur) var blur
@@ -40,7 +41,7 @@ struct LiquidGlassNotchBackground: View {
     @Default(.glassFloorTransparency) var floorTransparency
 
     var body: some View {
-        if enableLiquidGlass && LiquidGlassAvailability.isSupported {
+        if enableLiquidGlass && !reduceTransparency && LiquidGlassAvailability.isSupported {
             ZStack {
                 LiquidGlassBackdropRepresentable(
                     refraction: refraction,
