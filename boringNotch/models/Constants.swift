@@ -451,7 +451,7 @@ extension Defaults.Keys {
     static let enableLiquidGlass = Key<Bool>("enableLiquidGlass", default: false)
     /// Surface parameters behind the Appearance pane's Liquid Glass tuning.
     static let glassRefraction = Key<Double>("glassRefraction", default: 24)
-    static let glassBlur = Key<Double>("glassBlur", default: 0)
+    static let glassBlur = Key<Double>("glassBlur", default: 0.5)
     static let glassDispersion = Key<Double>("glassDispersion", default: 4)
     static let glassLensHeight = Key<Double>("glassLensHeight", default: 23)
     static let glassCoreHeight = Key<Double>("glassCoreHeight", default: 80)

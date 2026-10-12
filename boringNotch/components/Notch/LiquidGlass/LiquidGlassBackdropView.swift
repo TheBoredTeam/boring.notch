@@ -157,8 +157,8 @@ final class LiquidGlassBackdropView: NSView {
         filter.setValue(0.0, forKey: "inputRefractionDistance1")
         filter.setValue(1.0, forKey: "inputRefractionOpacity")
 
-        // 2. Blur stays at zero by default: the point of the pipeline is a clear
-        //    surface, not another translucent panel.
+        // 2. Blur is barely off zero by default: the point of the pipeline is a
+        //    clear surface, not another translucent panel.
         filter.setValue(blur, forKey: "inputBlurRadius")
         filter.setValue(blur * 1.5, forKey: "inputBlurFillBlurRadius")
         filter.setValue(0.85, forKey: "inputBlurOpacity0")
