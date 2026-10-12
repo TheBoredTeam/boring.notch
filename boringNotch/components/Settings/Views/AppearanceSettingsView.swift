@@ -145,8 +145,24 @@ struct AppearanceSettingsView: View {
             Defaults.Toggle(key: .settingsIconInNotch) {
                 Text("Show settings icon in notch")
             }
+            Defaults.Toggle(key: .enableLiquidGlass) {
+                Text(
+                    "Liquid Glass background",
+                    comment: "Toggle for the Liquid Glass open notch background."
+                )
+            }
+            .disabled(!LiquidGlassAvailability.isSupported)
         } header: {
             Text("Notch chrome")
+        } footer: {
+            Text(
+                LiquidGlassAvailability.isSupported
+                    ? "Liquid Glass refracts the desktop along the open notch's edge. The closed notch stays black to blend with the camera housing."
+                    : "Liquid Glass requires macOS 26 or later.",
+                comment: "Footer explaining the Liquid Glass notch background."
+            )
+            .foregroundStyle(.secondary)
+            .font(.caption)
         }
     }
 

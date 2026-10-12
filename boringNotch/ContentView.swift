@@ -77,22 +77,22 @@ struct ContentView: View {
         return max(0, baseClosedTop * scaleFactor)
     }
 
-    private var currentNotchShape: NotchShape {
+    private var bottomCornerRadius: CGFloat {
         // Scale bottom corner radius for closed notch shape when scaling is enabled.
-        let baseClosedBottom = cornerRadiusInsets.closed.bottom
-        let bottomCorner: CGFloat
-
         if vm.notchState == .open {
-            bottomCorner = openedInsets.bottom
-        } else if let scaleFactor = cornerRadiusScaleFactor {
-            bottomCorner = max(0, baseClosedBottom * scaleFactor)
-        } else {
-            bottomCorner = displayClosedNotchHeight > 0 ? baseClosedBottom : 0
+            return openedInsets.bottom
         }
 
-        return NotchShape(
+        guard let scaleFactor = cornerRadiusScaleFactor else {
+            return displayClosedNotchHeight > 0 ? cornerRadiusInsets.closed.bottom : 0
+        }
+        return max(0, cornerRadiusInsets.closed.bottom * scaleFactor)
+    }
+
+    private var currentNotchShape: NotchShape {
+        NotchShape(
             topCornerRadius: topCornerRadius,
-            bottomCornerRadius: bottomCorner
+            bottomCornerRadius: bottomCornerRadius
         )
     }
 
@@ -265,7 +265,13 @@ struct ContentView: View {
                         vm.notchState == .open ? openedInsets.top : cornerRadiusInsets.closed.bottom
                     )
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
-                    .background(.black)
+                    .background {
+                        LiquidGlassNotchBackground(
+                            shape: currentNotchShape,
+                            topRadius: topCornerRadius,
+                            bottomRadius: bottomCornerRadius
+                        )
+                    }
                     .clipShape(currentNotchShape)
                           .overlay(alignment: .top) {
                               displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
