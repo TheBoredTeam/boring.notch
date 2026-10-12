@@ -29,18 +29,28 @@ struct MarqueeText: View {
     let color: Color
     let delayDuration: Double
     let frameWidth: CGFloat
+    let maxHeight: CGFloat?
 
     @State private var animate = false
     @State private var textSize: CGSize = .zero
     @State private var offset: CGFloat = 0
 
-    init(_ text: String, font: Font = .body, nsFont: NSFont.TextStyle = .body, color: Color = .primary, delayDuration: Double = 3.0, frameWidth: CGFloat) {
+    init(
+        _ text: String,
+        font: Font = .body,
+        nsFont: NSFont.TextStyle = .body,
+        color: Color = .primary,
+        delayDuration: Double = 3.0,
+        frameWidth: CGFloat,
+        maxHeight: CGFloat? = nil
+    ) {
         self.text = text
         self.font = font
         self.nsFont = nsFont
         self.color = color
         self.delayDuration = delayDuration
         self.frameWidth = frameWidth
+        self.maxHeight = maxHeight
     }
 
     private var needsScrolling: Bool {
@@ -83,7 +93,7 @@ struct MarqueeText: View {
             .frame(width: frameWidth, alignment: .leading)
             .clipped()
         }
-        .frame(height: textSize.height * 1.3)
+        .frame(height: maxHeight.map { min(textSize.height * 1.3, $0) } ?? textSize.height * 1.3)
     }
 }
 
