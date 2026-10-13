@@ -205,10 +205,6 @@ struct MediaSettingsView: View {
                     .font(.caption)
                 }
             }
-        } else {
-            footerText(
-                "'Now Playing' was the only option on previous versions and works with all media apps."
-            )
         }
     }
 

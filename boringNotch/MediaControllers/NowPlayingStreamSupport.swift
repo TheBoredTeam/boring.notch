@@ -187,6 +187,8 @@ final class NowPlayingStreamSession {
             return
         }
 
+        try? reader.outputPipe.fileHandleForWriting.close()
+
         let session = self
         readTask = Task { @MainActor [reader, session] in
             await reader.readJSONLines(as: NowPlayingUpdate.self) { update in
@@ -248,4 +250,42 @@ struct NowPlayingPayload: Codable, Sendable {
     let parentApplicationBundleIdentifier: String?
     let bundleIdentifier: String?
     let volume: Double?
+}
+
+extension NowPlayingUpdate {
+    func applying(to previous: PlaybackState, at now: Date = Date()) -> PlaybackState {
+        let isDiff = diff == true
+        var state = isDiff ? previous : PlaybackState(bundleIdentifier: "")
+        let payload = payload
+        state.title = payload.title ?? (isDiff ? previous.title : "")
+        state.artist = payload.artist ?? (isDiff ? previous.artist : "")
+        state.album = payload.album ?? (isDiff ? previous.album : "")
+        state.bundleIdentifier = payload.parentApplicationBundleIdentifier
+            ?? payload.bundleIdentifier ?? (isDiff ? previous.bundleIdentifier : "")
+        state.duration = payload.duration ?? (isDiff ? previous.duration : 0)
+        state.isPlaying = payload.playing ?? (isDiff ? previous.isPlaying : false)
+        state.playbackRate = payload.playbackRate ?? (isDiff ? previous.playbackRate : 1)
+        state.lastUpdated = payload.timestamp.flatMap { ISO8601DateFormatter().date(from: $0) } ?? now
+
+        if let elapsedTime = payload.elapsedTime {
+            state.currentTime = elapsedTime
+        } else if isDiff {
+            let elapsed = previous.isPlaying
+                ? max(0, state.lastUpdated.timeIntervalSince(previous.lastUpdated)) * previous.playbackRate : 0
+            state.currentTime = previous.currentTime + elapsed
+        } else {
+            state.currentTime = 0
+        }
+        state.currentTime = max(0, state.currentTime)
+        if state.duration > 0 {
+            state.currentTime = min(state.currentTime, state.duration)
+        }
+        if let mode = payload.shuffleMode { state.isShuffled = mode != 1 }
+        if let mode = payload.repeatMode { state.repeatMode = RepeatMode(rawValue: mode) ?? .off }
+        if let artwork = payload.artworkData {
+            state.artwork = Data(base64Encoded: artwork.trimmingCharacters(in: .whitespacesAndNewlines))
+        }
+        state.volume = payload.volume ?? (isDiff ? previous.volume : 0.5)
+        return state
+    }
 }
