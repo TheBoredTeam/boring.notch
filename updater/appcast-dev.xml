@@ -4,17 +4,17 @@
         <title>Boring Notch</title>
         <item>
             <title>2.8-beta.0</title>
-            <pubDate>Wed, 14 Oct 2026 03:25:20 +0000</pubDate>
+            <pubDate>Thu, 15 Oct 2026 03:24:43 +0000</pubDate>
             <link>https://github.com/TheBoredTeam/boring.notch/commits/dev</link>
             <sparkle:channel>dev</sparkle:channel>
-            <sparkle:version>302</sparkle:version>
+            <sparkle:version>303</sparkle:version>
             <sparkle:shortVersionString>2.8-beta.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <description><![CDATA[<h2>Nightly dev</h2>
-<p>Commit: <code>30dd715ad62de6f3e78c43d995a2654ba42e7d5f</code></p>
-<p>Source: <a href="https://github.com/TheBoredTeam/boring.notch/commit/30dd715ad62de6f3e78c43d995a2654ba42e7d5f">View commit</a></p>
+<p>Commit: <code>a41da2a0d593e76c41193b5a90bed779c8a05a08</code></p>
+<p>Source: <a href="https://github.com/TheBoredTeam/boring.notch/commit/a41da2a0d593e76c41193b5a90bed779c8a05a08">View commit</a></p>
 ]]></description>
-            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/nightly/boringNotch-nightly.dmg" length="10663142" type="application/octet-stream" sparkle:edSignature="I7crG6xXZawXhPm8A+vVEadZiRYGexstqzuDgZxVVjQDK4v0kNwEbfzmDE8dFQXLx/nRX5ysSpvWRQqbPr3HDw=="/>
+            <enclosure url="https://github.com/TheBoredTeam/boring.notch/releases/download/nightly/boringNotch-nightly.dmg" length="10663188" type="application/octet-stream" sparkle:edSignature="BXD/6YSod9OcATHK2lZC8Tj7fV+z9noJhGNwM7psjIGERwdccmRgMWohCKq4gjNo5NvPq6FrK2eG0Q2P178DCQ=="/>
         </item>
     </channel>
 </rss>
