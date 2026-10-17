@@ -45,9 +45,6 @@ struct ContentView: View {
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
     private let nowPlayingFallbackNoticeWidth: CGFloat = 330
-    /// Matches the popovers' dismiss delay; long enough to reach a control
-    /// inside the panel without closing under the pointer.
-    private let hoverExitDelayMilliseconds = 350
 
     // MARK: - Corner Radius Scaling
     private var cornerRadiusScaleFactor: CGFloat? {
@@ -333,6 +330,11 @@ struct ContentView: View {
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
                         scheduleCloseIfNotHovering(overNotch: vm)
+                    }
+                    .onChange(of: vm.notchState) { _, state in
+                        if state == .open {
+                            FloatingShelfController.shared.notchDidOpen()
+                        }
                     }
                     // A new notification always takes the front of the stack,
                     // even if the user had swiped away to music.
