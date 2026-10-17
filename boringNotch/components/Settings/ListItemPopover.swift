@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ListItemPopover<Content: View>: View {
     let content: () -> Content
-    
+
     @State private var isPresented: Bool = false
     var body: some View {
         Button {
@@ -25,4 +25,3 @@ struct ListItemPopover<Content: View>: View {
         })
     }
 }
-

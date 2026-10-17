@@ -5,7 +5,6 @@
 //  Created by Alexander on 2025-06-23.
 //
 
-
 import SwiftUI
 
 struct OnboardingFinishView: View {
@@ -30,7 +29,7 @@ struct OnboardingFinishView: View {
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
-            
+
             Spacer()
             Spacer()
 

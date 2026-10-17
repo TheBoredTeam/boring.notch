@@ -10,69 +10,78 @@ import Defaults
 import SwiftUI
 
 struct CameraPreviewView: View {
-    @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject var webcamManager: WebcamManager
-    
-    // Track if authorization request is in progress to avoid multiple requests
-    @State private var isRequestingAuthorization: Bool = false
+    let camera: CameraModel
+    @Default(.isMirrored) private var isMirrored
+
+    private static let mirrorSide: CGFloat = 130
+
+    private static var mirrorCornerRadius: CGFloat {
+        Defaults[.mirrorShape] == .rectangle ? MusicPlayerImageSizes.cornerRadiusInset.opened : mirrorSide / 2
+    }
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                if let previewLayer = webcamManager.previewLayer {
-                    CameraPreviewLayerView(previewLayer: previewLayer)
-                        .scaleEffect(x: -1, y: 1)
-                        .clipShape(RoundedRectangle(cornerRadius: Defaults[.mirrorShape] == .rectangle ? !Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.closed : MusicPlayerImageSizes.cornerRadiusInset.opened : 100))
-                        .frame(width: geometry.size.width, height: geometry.size.width)
-                        .opacity(webcamManager.isSessionRunning ? 1 : 0)
-                }
+        ZStack {
+            if let session = camera.activeSession {
+                CameraPreviewLayerView(
+                    session: session,
+                    isMirrored: isMirrored
+                )
+                .frame(width: Self.mirrorSide, height: Self.mirrorSide)
+                .clipShape(RoundedRectangle(cornerRadius: Self.mirrorCornerRadius))
+                .opacity(camera.isSessionRunning ? 1 : 0)
+            }
 
-                if !webcamManager.isSessionRunning {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: Defaults[.mirrorShape] == .rectangle ? !Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.closed : 12 : 100)
-                            .fill(Color(red: 20/255, green: 20/255, blue: 20/255))
-                            .strokeBorder(.white.opacity(0.04), lineWidth: 1)
-                            .frame(width: geometry.size.width, height: geometry.size.width)
-                        VStack(spacing: 8) {
-                            Image(systemName: webcamManager.authorizationStatus == .denied ? "exclamationmark.triangle" : "web.camera")
-                                .foregroundStyle(.gray)
-                                .font(.system(size: geometry.size.width/3.5))
-                            Text(webcamManager.authorizationStatus == .denied ? "Access Denied" : "Mirror")
-                                .font(.caption2)
-                                .foregroundColor(.gray)
-                        }
+            if !camera.isSessionRunning {
+                ZStack {
+                    RoundedRectangle(cornerRadius: Self.mirrorCornerRadius)
+                        .fill(Color(red: 20/255, green: 20/255, blue: 20/255))
+                        .strokeBorder(.white.opacity(0.04), lineWidth: 1)
+                        .frame(width: Self.mirrorSide, height: Self.mirrorSide)
+                    VStack(spacing: 8) {
+                        Image(systemName: camera.state == .permissionDenied ? "exclamationmark.triangle" : "web.camera")
+                            .foregroundStyle(.gray)
+                            .font(.system(size: Self.mirrorSide / 3.5))
+                        Text(mirrorPlaceholderTitle)
+                            .font(.caption2)
+                            .foregroundColor(.gray)
                     }
                 }
             }
-            .onTapGesture {
-                handleCameraTap()
-            }
-            .onDisappear {
-                webcamManager.stopSession()
-            }
         }
-        .aspectRatio(1, contentMode: .fit)
+        .frame(width: Self.mirrorSide, height: Self.mirrorSide)
+        .onTapGesture {
+            handleCameraTap()
+        }
     }
-    
-    private func handleCameraTap() {
-        if isRequestingAuthorization {
-            return // Prevent multiple authorization requests
+
+    private var mirrorPlaceholderTitle: String {
+        switch camera.state {
+        case .permissionDenied:
+            NSLocalizedString("Access Denied", comment: "Camera permission placeholder title")
+        case .interrupted:
+            NSLocalizedString("Paused", comment: "Camera interrupted placeholder title")
+        case .unavailable:
+            NSLocalizedString("No Camera", comment: "No camera available placeholder title")
+        default:
+            NSLocalizedString("Mirror", comment: "Camera mirror placeholder title")
         }
-        
-        switch webcamManager.authorizationStatus {
-        case .authorized:
-            if webcamManager.isSessionRunning {
-                webcamManager.stopSession()
-            } else if webcamManager.cameraAvailable {
-                webcamManager.startSession()
+    }
+
+    private func handleCameraTap() {
+        switch camera.state {
+        case .running, .interrupted:
+            camera.stopSession()
+        case .stopped, .unavailable, .failed:
+            if camera.cameraAvailable {
+                camera.startSession()
             }
-        case .denied, .restricted:
+        case .permissionDenied:
             DispatchQueue.main.async {
                 let alert = NSAlert()
-                alert.messageText = "Camera Access Required"
-                alert.informativeText = "Please allow camera access in System Settings to use the mirror feature."
-                alert.addButton(withTitle: "Open System Settings")
-                alert.addButton(withTitle: "Cancel")
+                alert.messageText = NSLocalizedString("Camera Access Required", comment: "Camera permission alert title")
+                alert.informativeText = NSLocalizedString("Please allow camera access in System Settings to use the mirror feature.", comment: "Mirror camera permission alert message")
+                alert.addButton(withTitle: NSLocalizedString("Open System Settings", comment: "Button title that opens System Settings"))
+                alert.addButton(withTitle: NSLocalizedString("Cancel", comment: "Cancel button title"))
 
                 if alert.runModal() == .alertFirstButtonReturn {
                     if let settingsURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {
@@ -80,39 +89,112 @@ struct CameraPreviewView: View {
                     }
                 }
             }
-        case .notDetermined:
-            isRequestingAuthorization = true
-            webcamManager.checkAndRequestVideoAuthorization()
-            // Reset the request flag after a reasonable delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                isRequestingAuthorization = false
-            }
-        @unknown default:
+        case .permissionRequired:
+            camera.requestAccess()
+        case .requestingPermission, .starting:
             break
         }
     }
 }
 
+/// AppKit-native preview: owns its own `AVCaptureVideoPreviewLayer` as a
+/// sublayer and keeps mirroring at the capture-connection level so SwiftUI
+/// transforms are not involved.
 struct CameraPreviewLayerView: NSViewRepresentable {
-    let previewLayer: AVCaptureVideoPreviewLayer
+    let session: AVCaptureSession
+    let isMirrored: Bool
 
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView(frame: .zero)
-        previewLayer.frame = view.bounds
-        previewLayer.videoGravity = .resizeAspectFill
-        view.layer = previewLayer
-        view.wantsLayer = true
+    func makeNSView(context: Context) -> CameraPreviewNSView {
+        let view = CameraPreviewNSView()
+        view.attach(session: session, isMirrored: isMirrored)
         return view
     }
 
-    func updateNSView(_ nsView: NSView, context: Context) {
+    func updateNSView(_ nsView: CameraPreviewNSView, context: Context) {
+        nsView.attach(session: session, isMirrored: isMirrored)
+    }
+
+    func dismantleNSView(_ nsView: CameraPreviewNSView, coordinator: ()) {
+        nsView.detach()
+    }
+}
+
+final class CameraPreviewNSView: NSView {
+    private var previewLayer: AVCaptureVideoPreviewLayer?
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        // The backing layer must exist before `attach` adds the preview
+        // sublayer, otherwise addSublayer silently no-ops and nothing renders.
+        wantsLayer = true
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        wantsLayer = true
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        // Re-apply in case the view was moved into a window after attaching;
+        // also fixes frames set while detached.
+        if previewLayer != nil {
+            layoutPreview()
+        }
+    }
+
+    override func layout() {
+        super.layout()
+        layoutPreview()
+    }
+
+    func attach(session: AVCaptureSession, isMirrored: Bool) {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        previewLayer.frame = nsView.bounds
+        defer { CATransaction.commit() }
+
+        if let previewLayer, previewLayer.session === session {
+            applyMirroring(isMirrored, to: previewLayer)
+            layoutPreview()
+            return
+        }
+
+        previewLayer?.removeFromSuperlayer()
+
+        let layer = AVCaptureVideoPreviewLayer(session: session)
+        layer.videoGravity = .resizeAspectFill
+        layer.autoresizingMask = [.layerWidthSizable, .layerHeightSizable]
+        layer.frame = bounds
+        self.layer?.addSublayer(layer)
+        previewLayer = layer
+
+        applyMirroring(isMirrored, to: layer)
+    }
+
+    func detach() {
+        previewLayer?.removeFromSuperlayer()
+        previewLayer = nil
+    }
+
+    private func layoutPreview() {
+        guard let previewLayer else { return }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        previewLayer.frame = bounds
         CATransaction.commit()
+    }
+
+    /// Mirroring belongs to the capture connection, not the view hierarchy.
+    private func applyMirroring(_ isMirrored: Bool, to layer: AVCaptureVideoPreviewLayer) {
+        if let connection = layer.connection, connection.isVideoMirroringSupported {
+            // Preview connections are front-facing-mirrored by default; align
+            // the presentation with the user's "Flip video" preference.
+            connection.automaticallyAdjustsVideoMirroring = false
+            connection.isVideoMirrored = isMirrored
+        }
     }
 }
 
 #Preview {
-    CameraPreviewView(webcamManager: .shared)
+    CameraPreviewView(camera: CameraModel())
 }
