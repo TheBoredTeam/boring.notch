@@ -38,6 +38,8 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.liquidGlassNotch) var liquidGlassNotch
+    @Default(.liquidGlassTint) var liquidGlassTint
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -75,6 +77,23 @@ struct ContentView: View {
             return displayClosedNotchHeight > 0 ? baseClosedTop : 0
         }
         return max(0, baseClosedTop * scaleFactor)
+    }
+
+    /// The closed notch always stays black so it blends with the hardware cutout;
+    /// only the open panel turns to glass.
+    private var usesLiquidGlass: Bool {
+        liquidGlassNotch && vm.notchState == .open
+    }
+
+    @ViewBuilder
+    private var notchBackground: some View {
+        if #available(macOS 26.0, *), usesLiquidGlass {
+            Color.clear
+                .glassEffect(.regular.tint(.black.opacity(liquidGlassTint)), in: currentNotchShape)
+                .transition(.opacity)
+        } else {
+            Color.black
+        }
     }
 
     private var currentNotchShape: NotchShape {
@@ -265,7 +284,7 @@ struct ContentView: View {
                         vm.notchState == .open ? openedInsets.top : cornerRadiusInsets.closed.bottom
                     )
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
-                    .background(.black)
+                    .background { notchBackground }
                     .clipShape(currentNotchShape)
                           .overlay(alignment: .top) {
                               displayClosedNotchHeight.isZero && vm.notchState == .closed ? nil
