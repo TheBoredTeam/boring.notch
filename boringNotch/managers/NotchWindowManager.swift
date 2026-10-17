@@ -125,6 +125,9 @@ final class NotchWindowManager {
             primaryWindow = nil
         }
 
+        // the torn-down notches can't be open anymore
+        TabShortcutController.reset()
+
         // ensure OSD integration reflects the current window state
         BoringViewCoordinator.shared.applyOSDSources()
     }
