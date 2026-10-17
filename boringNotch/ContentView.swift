@@ -545,12 +545,14 @@ struct ContentView: View {
                         }
                     } else {
                         switch coordinator.currentView {
-                        case .home:
+                        case .music:
                             NotchHomeView(
                                 albumArtNamespace: albumArtNamespace,
                                 horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
                                 isHoveringMusicArea: $isHoveringMusicArea
                             )
+                        case .calendar:
+                            NotchCalendarView()
                         case .shelf:
                             ShelfView(
                                 dropInteraction: vm.dropInteraction,
@@ -1015,7 +1017,7 @@ extension ContentView {
             if Defaults[.compactMode] {
                 return !musicManager.isPlayerIdle && isHoveringMusicArea
             }
-            return coordinator.currentView == .home && !musicManager.isPlayerIdle && isHoveringMusicArea
+            return coordinator.currentView == .music && !musicManager.isPlayerIdle && isHoveringMusicArea
         }
     }
 }
