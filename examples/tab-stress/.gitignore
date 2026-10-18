@@ -1,0 +1,3 @@
+dist/
+.build/
+__pycache__/
