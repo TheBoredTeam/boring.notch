@@ -85,12 +85,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         MusicManager.shared.destroy()
         cleanupDragDetectors()
         cleanupWindows()
+        // Stop capturing before the final write, then flush the debounced snapshot — without
+        // this the last captures before quit are lost.
+        ClipboardMonitor.shared.stop()
+        ClipboardPersistenceService.shared.flush()
         XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
     }
 
     @MainActor
     func onScreenLocked(_ notification: Notification) {
         isScreenLocked = true
+        // Don't record anything while the login window is up.
+        ClipboardMonitor.shared.stop()
         if !Defaults[.showOnLockScreen] {
             cleanupWindows()
         } else {
@@ -101,6 +107,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @MainActor
     func onScreenUnlocked(_ notification: Notification) {
         isScreenLocked = false
+        ClipboardMonitor.shared.startIfEnabled()
         if !Defaults[.showOnLockScreen] {
             adjustWindowPosition(changeAlpha: true)
         } else {
@@ -222,12 +229,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func handleDragEntersNotchRegion(onScreen screen: NSScreen) {
         guard let uuid = screen.displayUUID else { return }
         
+        // Only select the shelf tab if it is actually visible; otherwise just open the notch.
+        let shouldSelectShelf = Defaults[.boringShelf]
+
         if Defaults[.showOnAllDisplays], let viewModel = viewModels[uuid] {
             viewModel.open()
-            coordinator.currentView = .shelf
+            if shouldSelectShelf { coordinator.currentView = .shelf }
         } else if !Defaults[.showOnAllDisplays], let windowScreen = window?.screen, screen == windowScreen {
             vm.open()
-            coordinator.currentView = .shelf
+            if shouldSelectShelf { coordinator.currentView = .shelf }
         }
     }
 
@@ -421,6 +431,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         setupDragDetectors()
+
+        ClipboardMonitor.shared.startIfEnabled()
+        // Reclaim blob files orphaned by a crash between trimming the history and deleting them.
+        ClipboardStore.shared.collectGarbage()
 
         if coordinator.firstLaunch {
             DispatchQueue.main.async {
