@@ -47,3 +47,14 @@ jobs:
         verbosity: xcpretty
         upload-logs: always
         configuration: release
+
+    - name: Test the activity host and extension contracts
+      run: swift test --jobs 4
+
+    - name: Smoke-test native extension installation and tabs
+      run: |
+        bash examples/live-activity-extension/build.sh
+        bash examples/live-activity-extension/smoke.sh
+        bash examples/live-activity-extension/smoke-install.sh
+        python3 examples/tab-stress/build.py --jobs 4
+        bash examples/tab-stress/smoke.sh
