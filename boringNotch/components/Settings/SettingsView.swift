@@ -644,6 +644,13 @@ struct Media: View {
                     "Show music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
+                Toggle(
+                    "Show calendar live activity",
+                    isOn: $coordinator.calendarLiveActivityEnabled.animation()
+                )
+                .onChange(of: coordinator.calendarLiveActivityEnabled) { _, on in
+                    CalendarLiveActivityViewModel.shared.setEnabled(on)
+                }
                 Toggle("Show sneak peek on playback changes", isOn: $enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $sneakPeekStyles) {
                     ForEach(SneakPeekStyle.allCases) { style in
