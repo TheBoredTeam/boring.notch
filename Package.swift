@@ -21,7 +21,7 @@ let package = Package(
             name: "ActivityHostTests",
             dependencies: ["boringNotch"],
             path: "boringNotchTests",
-            sources: ["LiveActivityServiceTests.swift", "NotchActivityLayoutTests.swift", "ExtensionArchiveTests.swift", "ExtensionPackageTests.swift", "ExtensionActivityDescriptorTests.swift", "LiveActivityCenterTests.swift", "ExtensionCatalogTests.swift", "ExtensionStoreTransferTests.swift", "LockedLiveActivityViewTests.swift", "ExtensionTabDescriptorTests.swift", "ExtensionTabInteractionTests.swift", "NotchWorkspaceLayoutTests.swift"]
+            sources: ["ExtensionTabRegistryTests.swift", "ExtensionTabScaleTests.swift", "LiveActivityServiceTests.swift", "NotchActivityLayoutTests.swift", "ExtensionArchiveTests.swift", "ExtensionPackageTests.swift", "ExtensionActivityDescriptorTests.swift", "LiveActivityCenterTests.swift", "ExtensionCatalogTests.swift", "ExtensionStoreTransferTests.swift", "LockedLiveActivityViewTests.swift", "ExtensionTabDescriptorTests.swift", "ExtensionTabInteractionTests.swift", "NotchWorkspaceLayoutTests.swift"]
         )
     ]
 )
