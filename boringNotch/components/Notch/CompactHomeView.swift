@@ -104,11 +104,14 @@ struct CompactHomeView: View {
                 .frame(width: textWidth, alignment: .leading)
 
                 ZStack {
-                    AudioSpectrumView(isPlaying: $musicManager.isPlaying)
-                        .foregroundStyle(coloredSpectrogram
+                    Rectangle()
+                        .fill(coloredSpectrogram
                             ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6)
                             : .gray)
-                    .frame(width: vizBarWidth, height: 16)
+                        .mask {
+                            AudioSpectrumView(isPlaying: $musicManager.isPlaying)
+                        }
+                        .frame(width: vizBarWidth, height: 16)
                 }
                 .frame(width: vizBlockWidth)
             }
