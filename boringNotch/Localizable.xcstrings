@@ -2172,6 +2172,12 @@
             "state" : "translated",
             "value" : "Le son est traité localement pour le visualiseur et n'est jamais enregistré, stocké ou partagé."
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio wordt lokaal verwerkt voor de visualizer en wordt nooit opgenomen, opgeslagen of gedeeld."
+          }
         }
       }
     },
@@ -3651,6 +3657,12 @@
             "state" : "translated",
             "value" : "Boring Notch peut analyser la lecture audio depuis votre application musicale pour animer dans l'encoche la forme d'onde FFT en temps réel, avec un impact minimal sur l'utilisation du processeur."
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch kan de audio analyseren die via je muziek-app wordt afgespeeld om een live FFT-golfvorm in de inkeping weer te geven, met slechts een minimale invloed op het CPU-gebruik."
+          }
         }
       }
     },
@@ -3738,6 +3750,12 @@
             "state" : "translated",
             "value" : "Boring Notch peut afficher tous vos événements à venir en un seul endroit. L'accès à votre calendrier est nécessaire pour afficher votre planning."
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch kan al je aankomende afspraken op één plek weergeven. Toegang tot je agenda is nodig om je planning weer te geven."
+          }
         }
       }
     },
@@ -3747,6 +3765,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boring Notch peut afficher vos rappels programmés à côté des événements de votre calendrier. L'accès aux rappels est nécessaire pour afficher vos rappels."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch kan je geplande herinneringen naast je agenda-afspraken weergeven. Toegang tot 'Herinneringen' is nodig om je herinneringen weer te geven."
           }
         }
       }
@@ -3798,6 +3822,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boring Notch comprend une fonction de miroir qui vous permet de vérifier rapidement votre apparence à l'aide de votre caméra, directement depuis l'encoche. L'accès à la caméra n'est nécessaire que pour afficher cet aperçu en direct. Vous pouvez activer ou désactiver la fonction miroir à tout moment dans l'application."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch bevat een spiegel-functie waarmee je snel je uiterlijk kunt controleren met je camera, rechtstreeks vanuit de inkeping. Toegang tot de camera is alleen nodig om dit live voorbeeld weer te geven. Je kunt de spiegel-functie op elk moment vanuit de app in- of uitschakelen."
           }
         }
       }
@@ -9546,6 +9576,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Comportement de l'affichage"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schermgedrag"
           }
         }
       }
@@ -15943,6 +15979,12 @@
             "state" : "translated",
             "value" : "Mode économie d'énergie désactivée"
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Energiebesparing: uit"
+          }
         }
       }
     },
@@ -15952,6 +15994,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mode économie d'énergie activée"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Energiebesparing: aan"
           }
         }
       }
@@ -32068,6 +32116,12 @@
             "state" : "translated",
             "value" : "Vos données de calendrier sont uniquement utilisées pour afficher vos événements et ne sont jamais partagées."
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je agendagegevens worden uitsluitend gebruikt om je afspraken weer te geven en worden nooit gedeeld."
+          }
         }
       }
     },
@@ -32077,6 +32131,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Votre caméra n'est jamais utilisée sans votre consentement, et rien n'est enregistré ou stocké."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je camera wordt nooit zonder jouw toestemming gebruikt en er wordt niets opgenomen of opgeslagen."
           }
         }
       }
@@ -32199,6 +32259,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vos données de rappels sont uniquement utilisées pour afficher vos rappels et ne sont jamais partagées."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je herinneringsgegevens worden uitsluitend gebruikt om je herinneringen weer te geven en worden nooit gedeeld."
           }
         }
       }
