@@ -27,6 +27,13 @@ public enum NotchState {
 public enum NotchViews {
     case home
     case shelf
+    case timer
+    case clipboard
+}
+
+enum VisualizerBackgroundStyle: String, CaseIterable, Defaults.Serializable {
+    case bars = "Bars"
+    case pulse = "Pulse"
 }
 
 enum SettingsEnum {
