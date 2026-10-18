@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import AppKit
 import ApplicationServices
 import IOKit
 import CoreGraphics
@@ -187,5 +188,19 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             }
             return nil
         }()
+    }
+
+    // MARK: - Application Management
+    
+    @objc func quitApp(pid: pid_t, force: Bool, with reply: @escaping (Bool) -> Void) {
+        if let app = NSRunningApplication(processIdentifier: pid) {
+            let success = force ? app.forceTerminate() : app.terminate()
+            reply(success)
+        } else {
+            // Fallback to POSIX kill if NSRunningApplication fails to find it
+            let signal = force ? SIGKILL : SIGTERM
+            let result = kill(pid, signal)
+            reply(result == 0)
+        }
     }
 }
