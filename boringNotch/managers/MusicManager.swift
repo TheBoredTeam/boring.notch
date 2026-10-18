@@ -108,6 +108,19 @@ final class MusicManager: ObservableObject {
     var isFetchingLyrics: Bool { lyricsService.isFetchingLyrics }
     var syncedLyrics: [(time: Double, text: String)] { lyricsService.syncedLyrics }
     @Published var isFavoriteTrack: Bool = false
+    /// Browser tabs currently playing audio, YouTube first
+    @Published var audioSources: [AudioSource] = []
+    /// Title of the tab picked with the arrows in the island
+    @Published var selectedAudioSource: String? = nil
+    /// Tabs that played audio, kept in the list while open although their sound indicator is gone
+    @Published private var knownAudioSources: Set<String> = []
+    /// Play state set from the island, trusted until the tab's sound indicator catches up
+    @Published private var playbackOverrides: [String: PlaybackOverride] = [:]
+
+    private struct PlaybackOverride {
+        let playing: Bool
+        let date = Date()
+    }
 
     private var artworkData: Data?
 
@@ -762,6 +775,13 @@ final class MusicManager: ObservableObject {
     }
 
     func togglePlay() {
+        if isShowingOtherSource, let source = currentAudioSource, let bundleID = bundleIdentifier {
+            toggleShownSourcePlayback(source, bundleID: bundleID)
+            return
+        }
+        if let source = currentAudioSource {
+            playbackOverrides[source.title] = PlaybackOverride(playing: !isPlaying)
+        }
         Task {
             await activeController?.togglePlay()
         }
@@ -802,6 +822,19 @@ final class MusicManager: ObservableObject {
             return
         }
 
+        let title = currentAudioSource?.title ?? songTitle
+        Task {
+            // Browsers play media in tabs: select the tab with this title first, then bring the app forward
+            if await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true) {
+                _ = await XPCHelperClient.shared.activateBrowserTab(bundleIdentifier: bundleID, title: title)
+            }
+            await MainActor.run {
+                self.launchApp(bundleID: bundleID)
+            }
+        }
+    }
+
+    private func launchApp(bundleID: String) {
         let workspace = NSWorkspace.shared
         if let appURL = workspace.urlForApplication(withBundleIdentifier: bundleID) {
             let configuration = NSWorkspace.OpenConfiguration()
@@ -815,6 +848,142 @@ final class MusicManager: ObservableObject {
         } else {
             Log.music.error("Failed to find app with bundle ID: \(bundleID)")
         }
+    }
+
+    // MARK: - Browser audio sources
+
+    /// The tab the island follows: the one picked with the arrows or a swipe, otherwise YouTube when several
+    /// tabs play, otherwise the one the browser reports as Now Playing
+    var currentAudioSource: AudioSource? {
+        if let selected = selectedAudioSource, let source = audioSources.first(where: { $0.title == selected }) {
+            return source
+        }
+        let playing = audioSources.filter(sourceIsPlaying)
+        if playing.count > 1 {
+            return playing.first
+        }
+        return audioSources.first { matchesNowPlaying($0) } ?? playing.first
+    }
+
+    /// True when the island shows a tab other than the one the browser reports as Now Playing
+    var isShowingOtherSource: Bool {
+        currentAudioSource.map { !matchesNowPlaying($0) } ?? false
+    }
+
+    var displayIsPlaying: Bool {
+        guard isShowingOtherSource, let source = currentAudioSource else { return isPlaying }
+        return sourceIsPlaying(source)
+    }
+
+    var audioSourceIndex: Int? {
+        currentAudioSource.flatMap { current in audioSources.firstIndex { $0.title == current.title } }
+    }
+
+    private func sourceIsPlaying(_ source: AudioSource) -> Bool {
+        if let override = playbackOverrides[source.title], Date().timeIntervalSince(override.date) < 5 {
+            return override.playing
+        }
+        return source.isPlaying
+    }
+
+    private func matchesNowPlaying(_ source: AudioSource) -> Bool {
+        !songTitle.isEmpty && source.title.localizedCaseInsensitiveContains(songTitle)
+    }
+
+    func refreshAudioSources() {
+        guard let bundleID = bundleIdentifier else { return }
+        Task {
+            guard await XPCHelperClient.shared.isAccessibilityAuthorized() else { return }
+            let json = await XPCHelperClient.shared.listAudioTabs(bundleIdentifier: bundleID)
+            let object = (try? JSONSerialization.jsonObject(with: json) as? [String: Any]) ?? [:]
+            let items = object["sources"] as? [[String: String]] ?? []
+            let openTabs = Set(object["openTabs"] as? [String] ?? [])
+            await MainActor.run {
+                var sources = items.map {
+                    AudioSource(title: $0["title"] ?? "", host: $0["host"] ?? "",
+                                icon: Self.image(fromDataURL: $0["icon"] ?? ""),
+                                artworkURL: URL(string: $0["artwork"] ?? ""), isPlaying: $0["playing"] == "1")
+                }
+                sources.compactMap(\.artworkURL).forEach(self.loadSourceArtwork)
+                self.knownAudioSources.formUnion(sources.filter(\.isPlaying).map(\.title))
+                // A closed tab, or one showing another page, has no tab with that title any more
+                if !openTabs.isEmpty {
+                    self.knownAudioSources.formIntersection(openTabs)
+                }
+                let listed = Set(sources.map(\.title))
+                sources += self.audioSources
+                    .filter { self.knownAudioSources.contains($0.title) && !listed.contains($0.title) }
+                    .map { AudioSource(title: $0.title, host: $0.host, icon: $0.icon, artworkURL: $0.artworkURL, isPlaying: false) }
+                self.playbackOverrides = self.playbackOverrides.filter { Date().timeIntervalSince($0.value.date) < 5 }
+
+                let isYouTube: (AudioSource) -> Bool = { $0.host.contains("youtube") || $0.title.localizedCaseInsensitiveContains("youtube") }
+                sources = sources.filter(isYouTube) + sources.filter { !isYouTube($0) }
+                if self.audioSources != sources {
+                    self.audioSources = sources
+                }
+                if let selected = self.selectedAudioSource, !sources.contains(where: { $0.title == selected }) {
+                    self.selectedAudioSource = nil
+                }
+            }
+        }
+    }
+
+    func switchAudioSource(by offset: Int) {
+        guard !audioSources.isEmpty else { return }
+        let count = audioSources.count
+        let current = audioSourceIndex ?? (offset > 0 ? -1 : 0)
+        selectedAudioSource = audioSources[((current + offset) % count + count) % count].title
+    }
+
+    /// Video thumbnails of browser sources, by URL
+    @Published private(set) var sourceArtwork: [URL: NSImage] = [:]
+    private var sourceArtworkRequests: Set<URL> = []
+
+    /// Artwork for a browser source: its video thumbnail once loaded, otherwise the site icon
+    func artwork(for source: AudioSource) -> NSImage? {
+        source.artworkURL.flatMap { sourceArtwork[$0] } ?? source.icon
+    }
+
+    private func loadSourceArtwork(_ url: URL) {
+        guard sourceArtwork[url] == nil, sourceArtworkRequests.insert(url).inserted else { return }
+        Task {
+            guard let (data, _) = try? await URLSession.shared.data(from: url), let image = NSImage(data: data) else {
+                await MainActor.run { _ = self.sourceArtworkRequests.remove(url) }
+                return
+            }
+            await MainActor.run {
+                // Thumbnails of closed tabs aren't needed any more
+                if self.sourceArtwork.count > 30 {
+                    self.sourceArtwork.removeAll()
+                }
+                self.sourceArtwork[url] = image
+            }
+        }
+    }
+
+    /// Pauses or resumes the tab shown in the island through its page player; without a usable player
+    /// button the tab is opened instead, to press play there
+    private func toggleShownSourcePlayback(_ source: AudioSource, bundleID: String) {
+        Task {
+            let result = await XPCHelperClient.shared.toggleBrowserTabPlayback(bundleIdentifier: bundleID, title: source.title)
+            if result == -1 {
+                _ = await XPCHelperClient.shared.activateBrowserTab(bundleIdentifier: bundleID, title: source.title)
+            }
+            await MainActor.run {
+                if result == -1 {
+                    self.launchApp(bundleID: bundleID)
+                } else {
+                    self.playbackOverrides[source.title] = PlaybackOverride(playing: result == 0)
+                }
+            }
+        }
+    }
+
+    private static func image(fromDataURL string: String) -> NSImage? {
+        guard string.hasPrefix("data:"), let comma = string.firstIndex(of: ","),
+              string[..<comma].hasSuffix(";base64"),
+              let data = Data(base64Encoded: String(string[string.index(after: comma)...])) else { return nil }
+        return NSImage(data: data)
     }
 
     func forceUpdate() {
@@ -872,5 +1041,36 @@ final class MusicManager: ObservableObject {
                 }
             }
         }
+    }
+}
+
+/// A browser tab that plays audio or belongs to a video/music site
+struct AudioSource: Equatable {
+    let title: String
+    let host: String
+    let icon: NSImage?
+    /// Video thumbnail, for YouTube video pages
+    let artworkURL: URL?
+    /// The tab shows a sound indicator
+    let isPlaying: Bool
+
+    static func == (lhs: AudioSource, rhs: AudioSource) -> Bool {
+        lhs.title == rhs.title && lhs.host == rhs.host && (lhs.icon == nil) == (rhs.icon == nil)
+            && lhs.artworkURL == rhs.artworkURL && lhs.isPlaying == rhs.isPlaying
+    }
+
+    /// Tab title without notification counters and the site name ("(3) Video - YouTube" → "Video")
+    var displayTitle: String {
+        let text = title.replacingOccurrences(of: #"^\(\d+\)\s*"#, with: "", options: .regularExpression)
+        let separators = [" - ", " — ", " | "]
+        // A short last part is the site name; a long one is a description, so keep what comes before it
+        if let last = separators.compactMap({ text.range(of: $0, options: .backwards) }).max(by: { $0.lowerBound < $1.lowerBound }),
+           text.distance(from: last.upperBound, to: text.endIndex) <= 25 {
+            return String(text[..<last.lowerBound])
+        }
+        if let first = separators.compactMap({ text.range(of: $0) }).min(by: { $0.lowerBound < $1.lowerBound }) {
+            return String(text[..<first.lowerBound])
+        }
+        return text
     }
 }
