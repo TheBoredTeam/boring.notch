@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  sizeMatters.swift
 //  boringNotch
@@ -14,8 +17,16 @@ let batterySneakSize: CGSize = .init(width: 160, height: 1)
 
 let shadowPadding: CGFloat = 20
 let openNotchSize: CGSize = .init(width: 640, height: 190)
-let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)
+// The detached tab strip and its hoverable gap remain in the notch window.
+let windowSize: CGSize = .init(width: openNotchSize.width,
+                               height: openNotchSize.height + NotchTabStripMetrics.floatingReservation + shadowPadding)
 let cornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
+
+/// Compact workspaces use the same rounded silhouette as the compact player.
+let compactCornerRadiusInsets: (opened: (top: CGFloat, bottom: CGFloat), closed: (top: CGFloat, bottom: CGFloat)) = (opened: (top: 35, bottom: 35), closed: cornerRadiusInsets.closed)
+
+/// Keep activity content clear of the physical camera bezel.
+let liveActivityEdgeMargin: CGFloat = 8
 
 enum MusicPlayerImageSizes {
     static let cornerRadiusInset: (opened: CGFloat, closed: CGFloat) = (opened: 13.0, closed: 4.0)

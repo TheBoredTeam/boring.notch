@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  ShelfItemView.swift
 //  boringNotch
@@ -9,6 +12,7 @@ import SwiftUI
 import AppKit
 
 struct ShelfView: View {
+    var compact: Bool = false
     @EnvironmentObject var vm: BoringViewModel
     @StateObject var tvm = ShelfStateViewModel.shared
     @StateObject var selection = ShelfSelectionModel.shared
@@ -16,10 +20,16 @@ struct ShelfView: View {
     private let spacing: CGFloat = 8
 
     var body: some View {
-        HStack(spacing: 12) {
-            FileShareView()
-                .aspectRatio(1, contentMode: .fit)
-                .environmentObject(vm)
+        HStack(spacing: compact ? 8 : 12) {
+            if compact {
+                FileShareView(compact: true)
+                    .frame(width: 72)
+                    .environmentObject(vm)
+            } else {
+                FileShareView()
+                    .aspectRatio(1, contentMode: .fit)
+                    .environmentObject(vm)
+            }
             panel
                 .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
                     handleDrop(providers: providers)
@@ -68,7 +78,7 @@ struct ShelfView: View {
             )
             .overlay {
                 content
-                    .padding()
+                    .padding(compact ? 8 : 16)
             }
             .transaction { transaction in
                 transaction.animation = vm.animation
@@ -80,7 +90,7 @@ struct ShelfView: View {
     var content: some View {
         Group {
             if tvm.isEmpty {
-                VStack(spacing: 10) {
+                VStack(spacing: compact ? 6 : 10) {
                     Image(systemName: "tray.and.arrow.down")
                         .symbolVariant(.fill)
                         .symbolRenderingMode(.hierarchical)
@@ -89,7 +99,7 @@ struct ShelfView: View {
                     
                     Text("Drop files here")
                         .foregroundStyle(.gray)
-                        .font(.system(.title3, design: .rounded))
+                        .font(.system(compact ? .callout : .title3, design: .rounded))
                         .fontWeight(.medium)
                 }
             } else {

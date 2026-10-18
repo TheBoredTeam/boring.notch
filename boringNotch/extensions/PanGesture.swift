@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  PanGesture.swift
 //  boringNotch
@@ -19,23 +22,29 @@ enum PanDirection {
 }
 
 extension View {
-    func panGesture(direction: PanDirection, threshold: CGFloat = 4, action: @escaping (CGFloat, NSEvent.Phase) -> Void) -> some View {
+    func panGesture(direction: PanDirection, enabled: Bool = true, threshold: CGFloat = 4, action: @escaping (CGFloat, NSEvent.Phase) -> Void) -> some View {
         self
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
+                        guard enabled else { return }
                         let s = direction.signed(from: value.translation)
                         guard s > 0, s.magnitude >= threshold else { return }
                         action(s.magnitude, .changed)
                     }
-                    .onEnded { _ in action(0, .ended) }
+                    .onEnded { _ in
+                        guard enabled else { return }
+                        action(0, .ended)
+                    },
+                including: enabled ? .all : .subviews
             )
-            .background(ScrollMonitor(direction: direction, threshold: threshold, action: action))
+            .background(ScrollMonitor(direction: direction, enabled: enabled, threshold: threshold, action: action))
     }
 }
 
 private struct ScrollMonitor: NSViewRepresentable {
     let direction: PanDirection
+    let enabled: Bool
     let threshold: CGFloat
     let action: (CGFloat, NSEvent.Phase) -> Void
 
@@ -44,27 +53,42 @@ private struct ScrollMonitor: NSViewRepresentable {
         context.coordinator.installMonitor(on: view)
         return view
     }
-    func updateNSView(_ nsView: NSView, context: Context) {}
+    func updateNSView(_ nsView: NSView, context: Context) {
+        context.coordinator.update(enabled: enabled, action: action)
+    }
     static func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) { coordinator.removeMonitor() }
 
-    func makeCoordinator() -> Coordinator { 
-        Coordinator(direction: direction, threshold: threshold, action: action) 
+    func makeCoordinator() -> Coordinator {
+        Coordinator(direction: direction, enabled: enabled, threshold: threshold, action: action)
     }
 
     @MainActor final class Coordinator: NSObject {
         private let direction: PanDirection
         private let threshold: CGFloat
-        private let action: (CGFloat, NSEvent.Phase) -> Void
+        private var action: (CGFloat, NSEvent.Phase) -> Void
+        private var enabled: Bool
         private var monitor: Any?
         private var accumulated: CGFloat = 0
         private var active = false
             private var endTask: Task<Void, Never>?
         private let noiseThreshold: CGFloat = 0.2
 
-        init(direction: PanDirection, threshold: CGFloat, action: @escaping (CGFloat, NSEvent.Phase) -> Void) {
+        init(direction: PanDirection, enabled: Bool, threshold: CGFloat, action: @escaping (CGFloat, NSEvent.Phase) -> Void) {
             self.direction = direction
+            self.enabled = enabled
             self.threshold = threshold
             self.action = action
+        }
+
+        func update(enabled: Bool, action: @escaping (CGFloat, NSEvent.Phase) -> Void) {
+            self.enabled = enabled
+            self.action = action
+            if !enabled {
+                accumulated = 0
+                active = false
+                endTask?.cancel()
+                endTask = nil
+            }
         }
 
         private func scheduleEndTimeout() {
@@ -105,6 +129,7 @@ private struct ScrollMonitor: NSViewRepresentable {
         }
 
         private func handleScroll(_ event: NSEvent) {
+            guard enabled else { return }
             if event.phase == .ended || event.momentumPhase == .ended {
                 if active {
                     action(accumulated.magnitude, .ended)
