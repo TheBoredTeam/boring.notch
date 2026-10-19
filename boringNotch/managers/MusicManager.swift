@@ -850,6 +850,69 @@ final class MusicManager: ObservableObject {
         }
     }
 
+    /// Video thumbnails of browser sources, by URL
+    @Published private(set) var sourceArtwork: [URL: NSImage] = [:]
+    private var sourceArtworkRequests: Set<URL> = []
+
+    func forceUpdate() {
+        // Request immediate update from the active controller
+        Task { [weak self] in
+            if self?.activeController?.isActive() == true {
+                if let youtubeController = self?.activeController as? YouTubeMusicController {
+                    await youtubeController.pollPlaybackState()
+                } else {
+                    await self?.activeController?.updatePlaybackInfo()
+                }
+            }
+        }
+    }
+
+    func syncVolumeFromActiveApp() async {
+        // Check if bundle identifier is valid and if the app is actually running
+        guard let bundleID = bundleIdentifier, !bundleID.isEmpty,
+              NSWorkspace.shared.runningApplications.contains(where: { $0.bundleIdentifier == bundleID }) else { return }
+
+        var script: String?
+        if bundleID == MediaAppBundleID.appleMusic {
+            script = """
+            tell application "Music"
+                if it is running then
+                    get sound volume
+                else
+                    return 50
+                end if
+            end tell
+            """
+        } else if bundleID == MediaAppBundleID.spotify {
+            script = """
+            tell application "Spotify"
+                if it is running then
+                    get sound volume
+                else
+                    return 50
+                end if
+            end tell
+            """
+        } else {
+            // For unsupported apps, don't sync volume
+            return
+        }
+
+        if let volumeScript = script,
+           let result = try? await AppleScriptHelper.execute(volumeScript) {
+            let volumeValue = result.int32Value
+            let currentVolume = Double(volumeValue) / 100.0
+
+            await MainActor.run {
+                if abs(currentVolume - self.volume) > 0.01 {
+                    self.volume = currentVolume
+                }
+            }
+        }
+    }
+}
+
+extension MusicManager {
     // MARK: - Browser audio sources
 
     /// The tab the island follows: the one picked with the arrows or a swipe, otherwise YouTube when several
@@ -935,10 +998,6 @@ final class MusicManager: ObservableObject {
         selectedAudioSource = audioSources[((current + offset) % count + count) % count].title
     }
 
-    /// Video thumbnails of browser sources, by URL
-    @Published private(set) var sourceArtwork: [URL: NSImage] = [:]
-    private var sourceArtworkRequests: Set<URL> = []
-
     /// Artwork for a browser source: its video thumbnail once loaded, otherwise the site icon
     func artwork(for source: AudioSource) -> NSImage? {
         source.artworkURL.flatMap { sourceArtwork[$0] } ?? source.icon
@@ -984,63 +1043,6 @@ final class MusicManager: ObservableObject {
               string[..<comma].hasSuffix(";base64"),
               let data = Data(base64Encoded: String(string[string.index(after: comma)...])) else { return nil }
         return NSImage(data: data)
-    }
-
-    func forceUpdate() {
-        // Request immediate update from the active controller
-        Task { [weak self] in
-            if self?.activeController?.isActive() == true {
-                if let youtubeController = self?.activeController as? YouTubeMusicController {
-                    await youtubeController.pollPlaybackState()
-                } else {
-                    await self?.activeController?.updatePlaybackInfo()
-                }
-            }
-        }
-    }
-
-    func syncVolumeFromActiveApp() async {
-        // Check if bundle identifier is valid and if the app is actually running
-        guard let bundleID = bundleIdentifier, !bundleID.isEmpty,
-              NSWorkspace.shared.runningApplications.contains(where: { $0.bundleIdentifier == bundleID }) else { return }
-
-        var script: String?
-        if bundleID == MediaAppBundleID.appleMusic {
-            script = """
-            tell application "Music"
-                if it is running then
-                    get sound volume
-                else
-                    return 50
-                end if
-            end tell
-            """
-        } else if bundleID == MediaAppBundleID.spotify {
-            script = """
-            tell application "Spotify"
-                if it is running then
-                    get sound volume
-                else
-                    return 50
-                end if
-            end tell
-            """
-        } else {
-            // For unsupported apps, don't sync volume
-            return
-        }
-
-        if let volumeScript = script,
-           let result = try? await AppleScriptHelper.execute(volumeScript) {
-            let volumeValue = result.int32Value
-            let currentVolume = Double(volumeValue) / 100.0
-
-            await MainActor.run {
-                if abs(currentVolume - self.volume) > 0.01 {
-                    self.volume = currentVolume
-                }
-            }
-        }
     }
 }
 
