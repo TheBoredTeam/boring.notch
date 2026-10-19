@@ -77,7 +77,7 @@ final class FloatingShelfController {
         let wasContentDrag = trackingContentDrag
         trackingContentDrag = false
         shakeDetector.reset()
-        guard wasContentDrag || isPresented else { return }
+        guard wasContentDrag else { return }
         scheduleDropReleaseCheck()
     }
 
@@ -165,35 +165,24 @@ final class FloatingShelfController {
         }
     }
 
-    /// A drop already happened on the panel, so the pointer counts as having visited.
     private func scheduleNotchStyleDismiss() {
         dismissTask?.cancel()
         dismissTask = Task { @MainActor in
-            var hasVisited = true
             while !Task.isCancelled, self.isPresented {
-                guard self.readyToClose(hasVisited: &hasVisited) else {
+                let pointerInside = self.panel?.frame.contains(NSEvent.mouseLocation) == true
+                guard FloatingShelfDismissPolicy.shouldClose(pointerInside: pointerInside) else {
                     try? await Task.sleep(for: .milliseconds(50))
                     continue
                 }
                 try? await Task.sleep(for: .milliseconds(hoverExitDelayMilliseconds))
                 guard !Task.isCancelled, self.isPresented else { return }
-                if self.readyToClose(hasVisited: &hasVisited) {
+                let stillInside = self.panel?.frame.contains(NSEvent.mouseLocation) == true
+                if FloatingShelfDismissPolicy.shouldClose(pointerInside: stillInside) {
                     self.dismiss()
                     return
                 }
             }
         }
-    }
-
-    private func readyToClose(hasVisited: inout Bool) -> Bool {
-        let pointerInside = panel?.frame.contains(NSEvent.mouseLocation) == true
-        if pointerInside {
-            hasVisited = true
-        }
-        return FloatingShelfDismissPolicy.shouldClose(
-            hasVisited: hasVisited,
-            pointerInside: pointerInside
-        )
     }
 
     private func dismiss() {

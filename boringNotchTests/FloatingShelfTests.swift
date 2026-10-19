@@ -145,23 +145,8 @@ final class FloatingShelfTests: XCTestCase {
     }
 
     func testDismissWaitsWhileThePointerIsInside() {
-        XCTAssertFalse(closing(pointerInside: true))
-        XCTAssertTrue(closing())
-    }
-
-    func testDismissWaitsUntilThePointerHasVisited() {
-        XCTAssertFalse(closing(hasVisited: false))
-        XCTAssertFalse(closing(hasVisited: false, pointerInside: true))
-    }
-
-    private func closing(
-        hasVisited: Bool = true,
-        pointerInside: Bool = false
-    ) -> Bool {
-        FloatingShelfDismissPolicy.shouldClose(
-            hasVisited: hasVisited,
-            pointerInside: pointerInside
-        )
+        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(pointerInside: true))
+        XCTAssertTrue(FloatingShelfDismissPolicy.shouldClose(pointerInside: false))
     }
 
     func testEachTriggerCanPresentOnItsOwn() {

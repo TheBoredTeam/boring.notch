@@ -30,7 +30,7 @@ final class DragSession {
     private init() {}
 
     /// Moves arrive only after the drag pasteboard holds droppable content. `onEnd` arrives
-    /// on mouse-up for the button press that was being tracked.
+    /// on mouse-up for that content drag, not for a click that never picked anything up.
     @discardableResult
     func subscribe(onMove: @escaping (CGPoint) -> Void, onEnd: @escaping () -> Void) -> UUID {
         let id = UUID()
@@ -69,9 +69,13 @@ final class DragSession {
 
         mouseUpMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] _ in
             guard let self, self.isDragging else { return }
+            let endedContentDrag = self.isContentDragging
             self.isDragging = false
             self.isContentDragging = false
             self.pasteboardChangeCount = -1
+            // A plain click never became a content drag. Notifying subscribers would
+            // look like the drag that opened the floating target had ended.
+            guard endedContentDrag else { return }
             let subscribers = Array(self.subscribers.values)
             for subscriber in subscribers {
                 subscriber.onEnd()

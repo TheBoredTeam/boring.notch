@@ -37,7 +37,6 @@ struct ShelfDropWell: View {
     var appearanceSession: Int = 0
 
     @StateObject private var shelfState = ShelfStateViewModel.shared
-    @State private var idsAtDrop: Set<UUID> = []
     @State private var revealedIDs: Set<UUID> = []
     private let spacing: CGFloat = 8
 
@@ -50,13 +49,7 @@ struct ShelfDropWell: View {
     var body: some View {
         ShelfQuickLookHost { quickLookService in
             dropChrome(quickLookService: quickLookService)
-                .onChange(of: shelfState.isLoading) { _, loading in
-                    guard !showsShelvedItems, !loading else { return }
-                    let added = shelfState.items.map(\.id).filter { !idsAtDrop.contains($0) }
-                    revealedIDs.formUnion(added)
-                }
                 .onChange(of: appearanceSession) {
-                    idsAtDrop = []
                     revealedIDs = []
                 }
         }
@@ -77,6 +70,9 @@ struct ShelfDropWell: View {
                     ShelfBackgroundInteractionView()
                     content(quickLookService: quickLookService)
                         .padding()
+                        // The floating preview only displays the drop. Hit testing would let a
+                        // right-click or drag-out pull the pointer out of the panel and close it.
+                        .allowsHitTesting(showsShelvedItems)
                 }
             }
             .transaction { transaction in
@@ -86,6 +82,8 @@ struct ShelfDropWell: View {
                 handleDrop(providers: providers)
             }
             .onAppear {
+                // The floating panel is created at launch. Validating bookmarks belongs to the notch shelf.
+                guard showsShelvedItems else { return }
                 shelfState.cleanupInvalidItems()
             }
     }
@@ -138,10 +136,11 @@ struct ShelfDropWell: View {
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
         guard !ShelfSelectionModel.shared.isDragging else { return false }
         dropInteraction.dropEvent = true
-        if !showsShelvedItems {
-            idsAtDrop = Set(shelfState.items.map(\.id))
+        let showsPreview = !showsShelvedItems
+        shelfState.load(providers) { matched in
+            guard showsPreview else { return }
+            revealedIDs = Set(matched.map(\.id))
         }
-        shelfState.load(providers)
         // The notch does this when a drag enters it. A floating drop never opens the notch,
         // so the next hover would otherwise stay on the previous tab.
         BoringViewCoordinator.shared.currentView = .shelf

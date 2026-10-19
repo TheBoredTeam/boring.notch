@@ -70,10 +70,7 @@ enum FloatingShelfTriggerPolicy {
 }
 
 enum FloatingShelfDismissPolicy {
-    static func shouldClose(
-        hasVisited: Bool,
-        pointerInside: Bool
-    ) -> Bool {
-        hasVisited && !pointerInside
+    static func shouldClose(pointerInside: Bool) -> Bool {
+        !pointerInside
     }
 }
