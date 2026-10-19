@@ -302,11 +302,11 @@ enum ShakeSensitivity: String, CaseIterable, Identifiable, Defaults.Serializable
     var localizedString: String {
         switch self {
         case .low:
-            return String(localized: "Low", comment: "Floating shelf shake sensitivity: Low")
+            return String(localized: "Low", comment: "Drop target shake sensitivity: Low")
         case .medium:
-            return String(localized: "Medium", comment: "Floating shelf shake sensitivity: Medium")
+            return String(localized: "Medium", comment: "Drop target shake sensitivity: Medium")
         case .high:
-            return String(localized: "High", comment: "Floating shelf shake sensitivity: High")
+            return String(localized: "High", comment: "Drop target shake sensitivity: High")
         }
     }
 }

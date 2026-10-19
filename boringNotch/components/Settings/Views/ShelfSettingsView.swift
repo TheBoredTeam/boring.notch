@@ -55,7 +55,7 @@ struct ShelfSettingsView: View {
 
             Section {
                 Defaults.Toggle(key: .floatingShelf) {
-                    Text("Enable floating shelf")
+                    Text("Enable drop target")
                 }
                 Defaults.Toggle(key: .floatingShelfShakeTrigger) {
                     Text("Open by shaking while dragging")
@@ -72,11 +72,12 @@ struct ShelfSettingsView: View {
                 }
                 .disabled(!floatingShelf)
             } header: {
-                Text("Floating shelf")
+                Text("Drop target")
             } footer: {
-                Text("Opens a drop target beside the pointer while you drag files or text. Shake the pointer or hold Shift to open it. Dropped files are added to the shelf, and the target closes when the pointer leaves.")
+                Text("Shows a target beside the pointer while dragging files or text. Dropped items are added to the shelf, and the target closes when the pointer leaves.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
                     .font(.caption)
-                    .foregroundColor(.secondary)
             }
             .disabled(!boringShelf)
 
@@ -130,8 +131,9 @@ struct ShelfSettingsView: View {
                 }
             } footer: {
                 Text("Choose which service to use when sharing files from the shelf. Click the shelf button to select files, or drag files onto it to share immediately.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
                     .font(.caption)
-                    .foregroundColor(.secondary)
             }
         }
         .accentColor(.effectiveAccent)

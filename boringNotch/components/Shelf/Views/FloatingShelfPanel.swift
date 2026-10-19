@@ -92,7 +92,7 @@ final class FloatingShelfPanel: NSPanel {
         level = .floating
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         // Borderless windows have no visible title, so VoiceOver would otherwise announce an unnamed window.
-        setAccessibilityTitle(String(localized: "Floating shelf"))
+        setAccessibilityTitle(String(localized: "Drop target"))
     }
 }
 
