@@ -369,6 +369,53 @@ final class XPCHelperClient: NSObject, ObservableObject {
             return false
         }
     }
+
+    // MARK: - Browser Tabs
+
+    func activateBrowserTab(bundleIdentifier: String, title: String, raise: Bool = true) async -> Bool {
+        do {
+            let service = ensureRemoteService()
+            return try await service.withContinuation { service, continuation in
+                service.activateBrowserTab(bundleIdentifier, matching: title, raise: raise) { success in
+                    continuation.resume(returning: success)
+                }
+            }
+        } catch {
+            lastError = .transport(underlying: error)
+            return false
+        }
+    }
+
+    /// Browser tabs playing audio or on video/music sites as JSON
+    /// `{"sources": [{"title", "host", "icon", "artwork", "playing"}], "openTabs": [title]}`
+    func listAudioTabs(bundleIdentifier: String) async -> Data {
+        do {
+            let service = ensureRemoteService()
+            return try await service.withContinuation { service, continuation in
+                service.listAudioTabs(bundleIdentifier) { json in
+                    continuation.resume(returning: json)
+                }
+            }
+        } catch {
+            lastError = .transport(underlying: error)
+            return Data("{}".utf8)
+        }
+    }
+
+    /// 1 paused, 0 resumed, -1 no player button found in the tab
+    func toggleBrowserTabPlayback(bundleIdentifier: String, title: String) async -> Int {
+        do {
+            let service = ensureRemoteService()
+            return try await service.withContinuation { service, continuation in
+                service.toggleBrowserTabPlayback(bundleIdentifier, matching: title) { result in
+                    continuation.resume(returning: result)
+                }
+            }
+        } catch {
+            lastError = .transport(underlying: error)
+            return -1
+        }
+    }
 }
 
 // MARK: - Notification Center banners
