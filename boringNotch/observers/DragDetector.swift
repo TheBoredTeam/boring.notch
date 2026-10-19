@@ -7,94 +7,87 @@
 
 import Cocoa
 
-final class DragDetector {
-    // MARK: - Callbacks
+/// One global watch for a file, link, or text drag. Notch detectors and the floating shelf
+/// subscribe instead of each installing their own mouse monitors.
+final class DragSession {
+    static let shared = DragSession()
 
-    typealias VoidCallback = () -> Void
-    typealias PositionCallback = (_ globalPoint: CGPoint) -> Void
+    private struct Subscriber {
+        var onMove: (CGPoint) -> Void
+        var onEnd: () -> Void
+    }
 
-    var onDragEntersNotchRegion: VoidCallback?
-    var onDragExitsNotchRegion: VoidCallback?
-    var onDragMove: PositionCallback?
-
+    private var subscribers: [UUID: Subscriber] = [:]
     private var mouseDownMonitor: Any?
     private var mouseDraggedMonitor: Any?
     private var mouseUpMonitor: Any?
 
-    private var pasteboardChangeCount: Int = -1
-    private var isDragging: Bool = false
-    private var isContentDragging: Bool = false
-    private var hasEnteredNotchRegion: Bool = false
-
-    private let notchRegion: CGRect
+    private var pasteboardChangeCount = -1
+    private var isDragging = false
+    private var isContentDragging = false
     private let dragPasteboard = NSPasteboard(name: .drag)
 
-    init(notchRegion: CGRect) {
-        self.notchRegion = notchRegion
+    private init() {}
+
+    /// Moves arrive only after the drag pasteboard holds droppable content. `onEnd` arrives
+    /// on mouse-up for the button press that was being tracked.
+    @discardableResult
+    func subscribe(onMove: @escaping (CGPoint) -> Void, onEnd: @escaping () -> Void) -> UUID {
+        let id = UUID()
+        subscribers[id] = Subscriber(onMove: onMove, onEnd: onEnd)
+        if subscribers.count == 1 {
+            installMonitors()
+        }
+        return id
     }
 
-    // MARK: - Private Helpers
-
-    /// Checks if the drag pasteboard contains valid content types that can be dropped on the shelf
-    private func hasValidDragContent() -> Bool {
-        DragPasteboardContent.isDroppable(dragPasteboard)
+    func unsubscribe(_ id: UUID) {
+        guard subscribers.removeValue(forKey: id) != nil else { return }
+        if subscribers.isEmpty {
+            removeMonitors()
+        }
     }
 
-    func startMonitoring() {
-        stopMonitoring()
-
-        // Track pasteboard to detect content drag
+    private func installMonitors() {
         mouseDownMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown]) { [weak self] _ in
-            guard let self = self else { return }
+            guard let self else { return }
             self.pasteboardChangeCount = self.dragPasteboard.changeCount
             self.isDragging = true
             self.isContentDragging = false
-            self.hasEnteredNotchRegion = false
         }
 
-        // Track drag movement and notch region intersection
         mouseDraggedMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDragged]) { [weak self] _ in
-            guard let self = self else { return }
-            guard self.isDragging else { return }
-
-            let newContent = self.dragPasteboard.changeCount != self.pasteboardChangeCount
-
-            // Detect if actual content is being dragged AND it's valid content
-            if newContent && !self.isContentDragging && self.hasValidDragContent() {
-                self.isContentDragging = true
-            }
-
-            // Only process position when content is being dragged
-            if self.isContentDragging {
-                let mouseLocation = NSEvent.mouseLocation
-                self.onDragMove?(mouseLocation)
-
-                // Track notch region entry/exit
-                let containsMouse = self.notchRegion.contains(mouseLocation)
-                if containsMouse && !self.hasEnteredNotchRegion {
-                    self.hasEnteredNotchRegion = true
-                    self.onDragEntersNotchRegion?()
-                } else if !containsMouse && self.hasEnteredNotchRegion {
-                    self.hasEnteredNotchRegion = false
-                    self.onDragExitsNotchRegion?()
-                }
+            guard let self, self.isDragging else { return }
+            self.noteContentDragIfNeeded()
+            guard self.isContentDragging else { return }
+            let point = NSEvent.mouseLocation
+            let subscribers = Array(self.subscribers.values)
+            for subscriber in subscribers {
+                subscriber.onMove(point)
             }
         }
 
         mouseUpMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] _ in
-            guard let self = self else { return }
-            guard self.isDragging else { return }
-
+            guard let self, self.isDragging else { return }
             self.isDragging = false
             self.isContentDragging = false
-            self.hasEnteredNotchRegion = false
             self.pasteboardChangeCount = -1
+            let subscribers = Array(self.subscribers.values)
+            for subscriber in subscribers {
+                subscriber.onEnd()
+            }
         }
     }
 
-    func stopMonitoring() {
-        [mouseDownMonitor, mouseDraggedMonitor, mouseUpMonitor].forEach { monitor in
-            if let monitor = monitor {
+    private func noteContentDragIfNeeded() {
+        let pasteboardChanged = dragPasteboard.changeCount != pasteboardChangeCount
+        guard pasteboardChanged, !isContentDragging, DragPasteboardContent.isDroppable(dragPasteboard) else { return }
+        isContentDragging = true
+    }
+
+    private func removeMonitors() {
+        for monitor in [mouseDownMonitor, mouseDraggedMonitor, mouseUpMonitor] {
+            if let monitor {
                 NSEvent.removeMonitor(monitor)
             }
         }
@@ -103,6 +96,60 @@ final class DragDetector {
         mouseUpMonitor = nil
         isDragging = false
         isContentDragging = false
+        pasteboardChangeCount = -1
+    }
+}
+
+final class DragDetector {
+    typealias VoidCallback = () -> Void
+    typealias PositionCallback = (_ globalPoint: CGPoint) -> Void
+
+    var onDragEntersNotchRegion: VoidCallback?
+    var onDragExitsNotchRegion: VoidCallback?
+    var onDragMove: PositionCallback?
+
+    private var subscription: UUID?
+    private var hasEnteredNotchRegion = false
+    private let notchRegion: CGRect
+
+    init(notchRegion: CGRect) {
+        self.notchRegion = notchRegion
+    }
+
+    func startMonitoring() {
+        stopMonitoring()
+        subscription = DragSession.shared.subscribe(
+            onMove: { [weak self] point in
+                self?.handleMove(point)
+            },
+            onEnd: { [weak self] in
+                self?.handleEnd()
+            }
+        )
+    }
+
+    func stopMonitoring() {
+        if let subscription {
+            DragSession.shared.unsubscribe(subscription)
+            self.subscription = nil
+        }
+        hasEnteredNotchRegion = false
+    }
+
+    private func handleMove(_ point: CGPoint) {
+        onDragMove?(point)
+
+        let containsMouse = notchRegion.contains(point)
+        if containsMouse && !hasEnteredNotchRegion {
+            hasEnteredNotchRegion = true
+            onDragEntersNotchRegion?()
+        } else if !containsMouse && hasEnteredNotchRegion {
+            hasEnteredNotchRegion = false
+            onDragExitsNotchRegion?()
+        }
+    }
+
+    private func handleEnd() {
         hasEnteredNotchRegion = false
     }
 

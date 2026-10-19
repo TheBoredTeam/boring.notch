@@ -121,37 +121,26 @@ final class FloatingShelfTests: XCTestCase {
     func testTriggerRequiresShelfFlagsAndAnActiveDrag() {
         XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
             shelfEnabled: false, floatingShelfEnabled: true, notchOpen: false, contentDragActive: true,
-            shake: true, shiftHeld: true, shortcutPressed: true
+            shake: true, shiftHeld: true
         ))
         XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
             shelfEnabled: true, floatingShelfEnabled: false, notchOpen: false, contentDragActive: true,
-            shake: true, shiftHeld: false, shortcutPressed: false
+            shake: true, shiftHeld: false
         ))
         XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
             shelfEnabled: true, floatingShelfEnabled: true, notchOpen: false, contentDragActive: false,
-            shake: true, shiftHeld: true, shortcutPressed: false
-        ))
-    }
-
-    func testShortcutOpensWithoutADrag() {
-        XCTAssertTrue(FloatingShelfTriggerPolicy.shouldPresent(
-            shelfEnabled: true, floatingShelfEnabled: true, notchOpen: false, contentDragActive: false,
-            shake: false, shiftHeld: false, shortcutPressed: true
+            shake: true, shiftHeld: true
         ))
     }
 
     func testOpenNotchBlocksEveryTrigger() {
         XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
             shelfEnabled: true, floatingShelfEnabled: true, notchOpen: true, contentDragActive: true,
-            shake: true, shiftHeld: false, shortcutPressed: false
+            shake: true, shiftHeld: false
         ))
         XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
             shelfEnabled: true, floatingShelfEnabled: true, notchOpen: true, contentDragActive: true,
-            shake: false, shiftHeld: true, shortcutPressed: false
-        ))
-        XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
-            shelfEnabled: true, floatingShelfEnabled: true, notchOpen: true, contentDragActive: false,
-            shake: false, shiftHeld: false, shortcutPressed: true
+            shake: false, shiftHeld: true
         ))
     }
 
@@ -168,52 +157,35 @@ final class FloatingShelfTests: XCTestCase {
         XCTAssertFalse(closing(hasVisited: false, pointerInside: true))
     }
 
-    func testShortcutShelfStaysUntilItHasBeenUsed() {
-        XCTAssertFalse(closing(hasVisited: true, awaitsUse: true))
-        XCTAssertFalse(closing(hasVisited: true, pointerInside: true, awaitsUse: true))
-        XCTAssertTrue(closing(awaitsUse: false))
-    }
-
     private func closing(
         hasVisited: Bool = true,
         pointerInside: Bool = false,
         sharingActive: Bool = false,
         grabbingItem: Bool = false,
-        menuOpen: Bool = false,
-        awaitsUse: Bool = false
+        menuOpen: Bool = false
     ) -> Bool {
         FloatingShelfDismissPolicy.shouldClose(
             hasVisited: hasVisited,
             pointerInside: pointerInside,
             sharingActive: sharingActive,
             grabbingItem: grabbingItem,
-            menuOpen: menuOpen,
-            awaitsUse: awaitsUse
+            menuOpen: menuOpen
         )
     }
 
     func testEachTriggerCanPresentOnItsOwn() {
-        XCTAssertTrue(presenting(shake: true, shiftHeld: false, shortcutPressed: false))
-        XCTAssertTrue(presenting(shake: false, shiftHeld: true, shortcutPressed: false))
-        XCTAssertTrue(presenting(shake: false, shiftHeld: false, shortcutPressed: true))
+        XCTAssertTrue(presenting(shake: true, shiftHeld: false))
+        XCTAssertTrue(presenting(shake: false, shiftHeld: true))
         XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
             shelfEnabled: true, floatingShelfEnabled: true, notchOpen: false, contentDragActive: true,
-            shake: false, shiftHeld: false, shortcutPressed: false
+            shake: false, shiftHeld: false
         ))
     }
 
     func testDisabledTriggersDoNotPresent() {
-        XCTAssertFalse(presenting(shake: true, shakeTriggerEnabled: false, shiftHeld: false, shortcutPressed: false))
-        XCTAssertFalse(presenting(shake: false, shiftHeld: true, shiftTriggerEnabled: false, shortcutPressed: false))
-        XCTAssertTrue(presenting(shake: true, shakeTriggerEnabled: false, shiftHeld: true, shortcutPressed: false))
-    }
-
-    func testShortcutIgnoresTheDragTriggerSettings() {
-        XCTAssertTrue(presenting(
-            shake: false, shakeTriggerEnabled: false,
-            shiftHeld: false, shiftTriggerEnabled: false,
-            shortcutPressed: true
-        ))
+        XCTAssertFalse(presenting(shake: true, shakeTriggerEnabled: false, shiftHeld: false))
+        XCTAssertFalse(presenting(shake: false, shiftHeld: true, shiftTriggerEnabled: false))
+        XCTAssertTrue(presenting(shake: true, shakeTriggerEnabled: false, shiftHeld: true))
     }
 
     // MARK: - Pasteboard
@@ -275,8 +247,7 @@ final class FloatingShelfTests: XCTestCase {
         shake: Bool,
         shakeTriggerEnabled: Bool = true,
         shiftHeld: Bool,
-        shiftTriggerEnabled: Bool = true,
-        shortcutPressed: Bool
+        shiftTriggerEnabled: Bool = true
     ) -> Bool {
         FloatingShelfTriggerPolicy.shouldPresent(
             shelfEnabled: true,
@@ -286,8 +257,7 @@ final class FloatingShelfTests: XCTestCase {
             shake: shake,
             shakeTriggerEnabled: shakeTriggerEnabled,
             shiftHeld: shiftHeld,
-            shiftTriggerEnabled: shiftTriggerEnabled,
-            shortcutPressed: shortcutPressed
+            shiftTriggerEnabled: shiftTriggerEnabled
         )
     }
 

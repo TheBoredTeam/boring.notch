@@ -61,13 +61,10 @@ enum FloatingShelfTriggerPolicy {
         shake: Bool,
         shakeTriggerEnabled: Bool = true,
         shiftHeld: Bool,
-        shiftTriggerEnabled: Bool = true,
-        shortcutPressed: Bool
+        shiftTriggerEnabled: Bool = true
     ) -> Bool {
         // The open notch already shows the shelf, so a second one is never stacked beside it.
-        guard shelfEnabled, floatingShelfEnabled, !notchOpen else { return false }
-        if shortcutPressed { return true }
-        guard contentDragActive else { return false }
+        guard shelfEnabled, floatingShelfEnabled, !notchOpen, contentDragActive else { return false }
         return (shake && shakeTriggerEnabled) || (shiftHeld && shiftTriggerEnabled)
     }
 }
@@ -78,10 +75,8 @@ enum FloatingShelfDismissPolicy {
         pointerInside: Bool,
         sharingActive: Bool,
         grabbingItem: Bool,
-        menuOpen: Bool,
-        awaitsUse: Bool = false
+        menuOpen: Bool
     ) -> Bool {
-        guard !awaitsUse else { return false }
-        return hasVisited && !pointerInside && !sharingActive && !grabbingItem && !menuOpen
+        hasVisited && !pointerInside && !sharingActive && !grabbingItem && !menuOpen
     }
 }
