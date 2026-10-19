@@ -8,42 +8,64 @@
 import SwiftUI
 import AppKit
 import Defaults
+import UniformTypeIdentifiers
 
 struct ShelfView: View {
     let dropInteraction: DropInteractionState
     let animation: Animation?
-    @StateObject var shelfState = ShelfStateViewModel.shared
 
+    var body: some View {
+        HStack(spacing: 12) {
+            FileShareView(dropInteraction: dropInteraction)
+                .aspectRatio(1, contentMode: .fit)
+            ShelfDropWell(
+                dropInteraction: dropInteraction,
+                animation: animation,
+                showsShelvedItems: true
+            )
+        }
+    }
+}
+
+/// The dashed drop target shared by the notch shelf and the floating panel.
+/// The notch shows everything already on the shelf. The floating panel shows only what this drop added.
+struct ShelfDropWell: View {
+    let dropInteraction: DropInteractionState
+    let animation: Animation?
+    var showsShelvedItems: Bool
+    /// Bumped each time the floating panel is shown, so the previous drop is not still sitting in the well.
+    var appearanceSession: Int = 0
+
+    @StateObject private var shelfState = ShelfStateViewModel.shared
+    @State private var idsAtDrop: Set<UUID> = []
+    @State private var revealedIDs: Set<UUID> = []
     private let spacing: CGFloat = 8
 
     private var displayedItems: [ShelfItem] {
-        Defaults[.reverseShelfOrdering] ? Array(shelfState.items.reversed()) : shelfState.items
+        let items = Defaults[.reverseShelfOrdering] ? Array(shelfState.items.reversed()) : shelfState.items
+        guard !showsShelvedItems else { return items }
+        return items.filter { revealedIDs.contains($0.id) }
     }
 
     var body: some View {
-        @Bindable var interaction = dropInteraction
-
         ShelfQuickLookHost { quickLookService in
-            HStack(spacing: 12) {
-                FileShareView(dropInteraction: dropInteraction)
-                    .aspectRatio(1, contentMode: .fit)
-                panel(quickLookService: quickLookService)
-                    .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $interaction.dragDetectorTargeting) { providers in
-                        handleDrop(providers: providers)
-                    }
-            }
+            dropChrome(quickLookService: quickLookService)
+                .onChange(of: shelfState.isLoading) { _, loading in
+                    guard !showsShelvedItems, !loading else { return }
+                    let added = shelfState.items.map(\.id).filter { !idsAtDrop.contains($0) }
+                    revealedIDs.formUnion(added)
+                }
+                .onChange(of: appearanceSession) {
+                    idsAtDrop = []
+                    revealedIDs = []
+                }
         }
     }
 
-    private func handleDrop(providers: [NSItemProvider]) -> Bool {
-        guard !ShelfSelectionModel.shared.isDragging else { return false }
-        dropInteraction.dropEvent = true
-        shelfState.load(providers)
-        return true
-    }
+    private func dropChrome(quickLookService: QuickLookService) -> some View {
+        @Bindable var interaction = dropInteraction
 
-    private func panel(quickLookService: QuickLookService) -> some View {
-        RoundedRectangle(cornerRadius: 16)
+        return RoundedRectangle(cornerRadius: 16)
             .stroke(
                 dropInteraction.dragDetectorTargeting
                     ? Color.accentColor.opacity(0.9)
@@ -60,48 +82,73 @@ struct ShelfView: View {
             .transaction { transaction in
                 transaction.animation = animation
             }
+            .onDrop(of: Self.dropTypes, isTargeted: $interaction.dragDetectorTargeting) { providers in
+                handleDrop(providers: providers)
+            }
+            .onAppear {
+                shelfState.cleanupInvalidItems()
+            }
     }
 
+    @ViewBuilder
     private func content(quickLookService: QuickLookService) -> some View {
         @Bindable var interaction = dropInteraction
 
-        return Group {
-            if shelfState.isEmpty {
-                VStack(spacing: 10) {
-                    Image(systemName: "tray.and.arrow.down")
-                        .symbolVariant(.fill)
-                        .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(.white, .gray)
-                        .imageScale(.large)
-
-                    Text("Drop files here")
-                        .foregroundStyle(.gray)
-                        .font(.system(.title3, design: .rounded))
-                        .fontWeight(.medium)
-                }
-            } else {
-                ScrollView(.horizontal) {
-                    LazyHStack(spacing: spacing) {
-                        ForEach(displayedItems) { item in
-                            ShelfItemView(
-                                item: item,
-                                quickLookService: quickLookService,
-                                dropInteraction: dropInteraction
-                            )
-                        }
+        if !showsShelvedItems, displayedItems.count == 1, let item = displayedItems.first {
+            ShelfItemView(
+                item: item,
+                quickLookService: quickLookService,
+                dropInteraction: dropInteraction
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if !displayedItems.isEmpty {
+            ScrollView(.horizontal) {
+                LazyHStack(spacing: spacing) {
+                    ForEach(displayedItems) { item in
+                        ShelfItemView(
+                            item: item,
+                            quickLookService: quickLookService,
+                            dropInteraction: dropInteraction
+                        )
                     }
                 }
-                .padding(-spacing)
-                .scrollIndicators(.never)
-                .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $interaction.dragDetectorTargeting) { providers in
-                    handleDrop(providers: providers)
-                }
+            }
+            .padding(-spacing)
+            .scrollIndicators(.never)
+            .onDrop(of: Self.dropTypes, isTargeted: $interaction.dragDetectorTargeting) { providers in
+                handleDrop(providers: providers)
+            }
+        } else {
+            VStack(spacing: 10) {
+                Image(systemName: "tray.and.arrow.down")
+                    .symbolVariant(.fill)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(.white, .gray)
+                    .imageScale(.large)
+
+                Text("Drop files here")
+                    .foregroundStyle(.gray)
+                    .font(.system(.title3, design: .rounded))
+                    .fontWeight(.medium)
+                    .multilineTextAlignment(.center)
             }
         }
-        .onAppear {
-            shelfState.cleanupInvalidItems()
-        }
     }
+
+    private func handleDrop(providers: [NSItemProvider]) -> Bool {
+        guard !ShelfSelectionModel.shared.isDragging else { return false }
+        dropInteraction.dropEvent = true
+        if !showsShelvedItems {
+            idsAtDrop = Set(shelfState.items.map(\.id))
+        }
+        shelfState.load(providers)
+        // The notch does this when a drag enters it. A floating drop never opens the notch,
+        // so the next hover would otherwise stay on the previous tab.
+        BoringViewCoordinator.shared.currentView = .shelf
+        return true
+    }
+
+    private static let dropTypes: [UTType] = [.fileURL, .url, .utf8PlainText, .plainText, .data]
 }
 
 private struct ShelfBackgroundInteractionView: NSViewRepresentable {

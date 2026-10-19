@@ -144,11 +144,8 @@ final class FloatingShelfTests: XCTestCase {
         ))
     }
 
-    func testDismissWaitsWhileHoveringSharingGrabbingOrInAMenu() {
+    func testDismissWaitsWhileThePointerIsInside() {
         XCTAssertFalse(closing(pointerInside: true))
-        XCTAssertFalse(closing(sharingActive: true))
-        XCTAssertFalse(closing(grabbingItem: true))
-        XCTAssertFalse(closing(menuOpen: true))
         XCTAssertTrue(closing())
     }
 
@@ -159,17 +156,11 @@ final class FloatingShelfTests: XCTestCase {
 
     private func closing(
         hasVisited: Bool = true,
-        pointerInside: Bool = false,
-        sharingActive: Bool = false,
-        grabbingItem: Bool = false,
-        menuOpen: Bool = false
+        pointerInside: Bool = false
     ) -> Bool {
         FloatingShelfDismissPolicy.shouldClose(
             hasVisited: hasVisited,
-            pointerInside: pointerInside,
-            sharingActive: sharingActive,
-            grabbingItem: grabbingItem,
-            menuOpen: menuOpen
+            pointerInside: pointerInside
         )
     }
 

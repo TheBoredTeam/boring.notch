@@ -8,8 +8,8 @@
 import CoreGraphics
 
 enum FloatingShelfPlacement {
-    /// Slightly under the open notch (640×190). Insets match the open tray, so the shelf row stays about the same height.
-    static let panelSize = CGSize(width: 544, height: 164)
+    /// Square drop well, large enough for one shelf item and its name.
+    static let panelSize = CGSize(width: 188, height: 188)
     static let screenMargin: CGFloat = 8
     /// Gap so the shelf sits beside the pointer instead of chasing it during the rest of the shake.
     static let cursorGap: CGFloat = 12
@@ -72,11 +72,8 @@ enum FloatingShelfTriggerPolicy {
 enum FloatingShelfDismissPolicy {
     static func shouldClose(
         hasVisited: Bool,
-        pointerInside: Bool,
-        sharingActive: Bool,
-        grabbingItem: Bool,
-        menuOpen: Bool
+        pointerInside: Bool
     ) -> Bool {
-        hasVisited && !pointerInside && !sharingActive && !grabbingItem && !menuOpen
+        hasVisited && !pointerInside
     }
 }

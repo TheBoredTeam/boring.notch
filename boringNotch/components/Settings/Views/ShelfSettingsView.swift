@@ -74,7 +74,7 @@ struct ShelfSettingsView: View {
             } header: {
                 Text("Floating shelf")
             } footer: {
-                Text("Opens a shelf beside the pointer while you drag files or text. Shake the pointer or hold Shift to open it. After a drop it stays up while you share, drag an item out, or use the menu, then closes when the pointer leaves.")
+                Text("Opens a drop target beside the pointer while you drag files or text. Shake the pointer or hold Shift to open it. Dropped files are added to the shelf, and the target closes when the pointer leaves.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

@@ -48,6 +48,7 @@ final class FloatingShelfPanel: NSPanel {
         if !isVisible {
             alphaValue = 0
         }
+        presentation.generation += 1
         orderFrontRegardless()
         withAnimation(StandardAnimations.open) {
             presentation.isShown = true
@@ -99,6 +100,7 @@ final class FloatingShelfPanel: NSPanel {
 private final class FloatingShelfPresentation {
     var isShown = false
     var anchor: UnitPoint = .top
+    var generation = 0
 }
 
 /// Clicks on the shelf background also count, so a grab does not require a focus click first.
@@ -111,9 +113,13 @@ private struct FloatingShelfChrome: View {
     let presentation: FloatingShelfPresentation
 
     var body: some View {
-        ShelfView(dropInteraction: dropInteraction, animation: nil)
-            // Inside the notch this 12pt inset is the gap around the shelf row.
-            // The extra top-corner inset only exists to clear NotchShape's ears.
+        ShelfDropWell(
+            dropInteraction: dropInteraction,
+            animation: nil,
+            showsShelvedItems: false,
+            appearanceSession: presentation.generation
+        )
+            // Same inset the notch uses around the shelf row.
             .padding(12)
             .frame(
                 width: FloatingShelfPlacement.panelSize.width,
