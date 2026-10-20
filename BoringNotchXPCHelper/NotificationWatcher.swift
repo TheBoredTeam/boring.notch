@@ -270,11 +270,14 @@ final class NotificationWatcher {
                     seen.insert(token)
                     guard !liveTokens.contains(token) else { continue }
 
+                    // With every app mirrored the banner is hidden before it
+                    // is read. Reading takes a few milliseconds, up to 200 ms
+                    // for an app's first banner while its bundle ID is
+                    // resolved, and the banner stays visible until hidden.
+                    if mirrorAllApps, !hide(window, for: token) { continue }
                     let notification = capture(banner, token: token)
-                    guard mirrorAllApps || isAllowed(notification) else { continue }
-                    guard park(window, for: token) else {
-                        NSLog("[boringNotch] could not hide notification banner \(token)")
-                        continue
+                    if !mirrorAllApps {
+                        guard isAllowed(notification), hide(window, for: token) else { continue }
                     }
 
                     liveTokens.insert(token)
@@ -346,6 +349,14 @@ final class NotificationWatcher {
         }
 
         return "ax-\(CFHash(banner))"
+    }
+
+    private func hide(_ window: AXUIElement, for token: String) -> Bool {
+        guard park(window, for: token) else {
+            NSLog("[boringNotch] could not hide notification banner \(token)")
+            return false
+        }
+        return true
     }
 
     private func park(_ window: AXUIElement, for token: String) -> Bool {
