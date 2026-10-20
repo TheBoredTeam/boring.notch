@@ -8,6 +8,7 @@
 import AppKit
 import ApplicationServices
 import IOKit
+import XPC
 
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     private weak var connection: NSXPCConnection?
@@ -123,6 +124,11 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     // MARK: - Notification Center banners
 
     private static let watcher = NotificationWatcher()
+    /// Held while banners are watched. Between XPC messages launchd treats
+    /// the helper as idle and may kill it under memory pressure
+    /// (JETSAM_REASON_MEMORY_IDLE_EXIT), which silently ends the watching.
+    /// Only touched on the main queue.
+    nonisolated(unsafe) private static var holdsWatchingTransaction = false
 
     @objc func startNotificationWatching(with reply: @escaping (Bool) -> Void) {
         // Capture the delegate for this connection before hopping queues —
@@ -155,13 +161,23 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
                 ])
             }
             let started = watcher.start()
+            if started && !Self.holdsWatchingTransaction {
+                xpc_transaction_begin()
+                Self.holdsWatchingTransaction = true
+            }
             NSLog("[boringNotch] notification watcher start -> \(started), AX trusted: \(AXIsProcessTrusted())")
             reply(started)
         }
     }
 
     @objc func stopNotificationWatching() {
-        DispatchQueue.main.async { Self.watcher.stop() }
+        DispatchQueue.main.async {
+            Self.watcher.stop()
+            if Self.holdsWatchingTransaction {
+                xpc_transaction_end()
+                Self.holdsWatchingTransaction = false
+            }
+        }
     }
 
     @objc func setNotificationFilter(_ bundleIDs: [String], allApps: Bool) {
