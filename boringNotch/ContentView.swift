@@ -38,6 +38,7 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.showClockWithoutNotch) var showClockWithoutNotch
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -470,7 +471,14 @@ struct ContentView: View {
                        }
                         // New case to enable compact notch on external displays
                         else if !vm.hasNotch {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: 11) // idle notch height is halved on non notch display
+                           // Compact mode also lands here while open, so the
+                           // clock is limited to the closed, visible notch.
+                           if showClockWithoutNotch && vm.notchState == .closed && !isNotchHeightZero {
+                               NotchClockView()
+                                   .frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
+                           } else {
+                               Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: 11) // idle notch height is halved on non notch display
+                           }
                        } else {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        }
