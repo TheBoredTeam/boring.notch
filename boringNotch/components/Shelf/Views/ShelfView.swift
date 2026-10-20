@@ -196,8 +196,7 @@ private struct ShelfBackgroundInteractionView: NSViewRepresentable {
         }
 
         override func mouseExited(with event: NSEvent) {
-            guard !keepsKeyboardFocus, let window else { return }
-            guard !window.frame.contains(NSEvent.mouseLocation) else { return }
+            guard !keepsKeyboardFocus else { return }
             releaseKeyboardFocus()
         }
 

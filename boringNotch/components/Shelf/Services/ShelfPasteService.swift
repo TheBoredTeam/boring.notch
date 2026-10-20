@@ -6,6 +6,7 @@
 //
 
 import AppKit
+import CryptoKit
 import Foundation
 import UniformTypeIdentifiers
 
@@ -36,6 +37,9 @@ enum ShelfPasteService {
         if item.availableType(from: [.fileURL, .URL, .png, .tiff, .string]) != nil {
             return true
         }
+        if item.types.contains(where: { UTType($0.rawValue)?.conforms(to: .plainText) == true }) {
+            return true
+        }
         return item.types.contains { type in
             guard !type.rawValue.hasPrefix("com.apple.pasteboard.") else { return false }
             return UTType(type.rawValue)?.preferredFilenameExtension != nil
@@ -48,6 +52,9 @@ enum ShelfPasteService {
         }
 
         if let url = webURL(from: pasteboardItem) {
+            if url.isFileURL {
+                return makeFileItem(for: url, isTemporary: false)
+            }
             return ShelfItem(kind: .link(url: url))
         }
 
@@ -56,7 +63,7 @@ enum ShelfPasteService {
             return makeFileItem(for: url, isTemporary: true)
         }
 
-        if let text = pasteboardItem.string(forType: .string), !text.isEmpty {
+        if let text = plainText(from: pasteboardItem) {
             return ShelfItem(kind: .text(string: text))
         }
 
@@ -109,6 +116,21 @@ enum ShelfPasteService {
         return nil
     }
 
+    private static func plainText(from item: NSPasteboardItem) -> String? {
+        if let text = item.string(forType: .string), !text.isEmpty {
+            return text
+        }
+        for type in item.types where type != .string {
+            guard let contentType = UTType(type.rawValue),
+                  contentType.conforms(to: .plainText),
+                  let text = item.string(forType: type),
+                  !text.isEmpty
+            else { continue }
+            return text
+        }
+        return nil
+    }
+
     private static func genericData(from item: NSPasteboardItem) -> (data: Data, fileExtension: String)? {
         let handledTypes: Set<NSPasteboard.PasteboardType> = [.fileURL, .URL, .png, .tiff, .string]
 
@@ -138,8 +160,12 @@ enum ShelfPasteService {
     }
 
     private static func writeTemporaryFile(_ data: Data, named name: String) async -> URL? {
-        await TemporaryFileStorageService.shared.createTempFile(
-            for: .data(data, suggestedName: name)
+        let digest = SHA256.hash(data: data)
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return await TemporaryFileStorageService.shared.createTempFile(
+            for: .data(data, suggestedName: name),
+            deduplicationKey: "paste-\(digest)"
         )
     }
 }
