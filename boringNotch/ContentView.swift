@@ -743,6 +743,15 @@ struct ContentView: View {
                     }
                     .padding(.horizontal, 8)
                 )
+                .overlay {
+                    // Without a hardware notch this middle part is visible
+                    // instead of hidden behind the cutout, so the clock
+                    // stays here while music plays. The inline peek labels
+                    // sit outside the notch width and leave it free.
+                    if showClockWithoutNotch && !vm.hasNotch {
+                        NotchClockView()
+                    }
+                }
                 .frame(width: musicActivityCenterWidth)
 
             HStack {

@@ -167,7 +167,7 @@ struct AppearanceSettingsView: View {
         } header: {
             Text("Idle state")
         } footer: {
-            Text("The clock shows in the closed notch while no music or notification is showing. With the face animation on, the face takes its place.")
+            Text("The clock shows in the closed notch, also while music is playing. Notifications cover it, and with the face animation on, the face takes its place while idle.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
