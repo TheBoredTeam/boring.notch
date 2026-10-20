@@ -16,6 +16,11 @@ private let structuralIdentifiers: Set<String> = [
     "widgets-overlay-view"
 ]
 private let settleDelay: TimeInterval = 0.15
+private let hiddenPosition = CGPoint(x: -10000, y: -10000)
+/// Notification Center slides a banner out before it orders the window out,
+/// and the window can only be moved until then (about half a second).
+/// Restoring it as soon as the banner is gone shows the end of that animation.
+private let restoreDelay: TimeInterval = 0.35
 
 private extension AXUIElement {
     subscript(attribute: String) -> Any? {
@@ -362,9 +367,15 @@ final class NotificationWatcher {
     private func park(_ window: AXUIElement, for token: String) -> Bool {
         let key = Int(bitPattern: CFHash(window))
         if parkedWindows[key] == nil {
-            guard let origin = window.point(kAXPositionAttribute) else { return false }
+            guard var origin = window.point(kAXPositionAttribute) else { return false }
+            if origin == hiddenPosition {
+                // Still hidden for the previous banner, whose restore was
+                // skipped, or left off screen by a helper that was killed.
+                // Remembering that as its place would keep banners hidden.
+                origin = parkedWindows.values.first?.origin ?? .zero
+            }
             parkedWindows[key] = (window, origin)
-            var hidden = CGPoint(x: -10000, y: -10000)
+            var hidden = hiddenPosition
             guard let value = AXValueCreate(.cgPoint, &hidden),
                   AXUIElementSetAttributeValue(window, kAXPositionAttribute as CFString, value) == .success
             else {
@@ -378,21 +389,31 @@ final class NotificationWatcher {
 
     private func restoreWindowIfUnused(_ token: String) {
         guard let key = parkedWindowByToken.removeValue(forKey: token),
-              !parkedWindowByToken.values.contains(key),
-              let parked = parkedWindows.removeValue(forKey: key)
+              !parkedWindowByToken.values.contains(key)
         else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + restoreDelay) { [weak self] in
+            guard let self else { return }
+            // A newer banner hidden in the meantime keeps the window parked.
+            guard self.parkedWindowByToken.isEmpty else {
+                self.parkedWindows.removeValue(forKey: key)
+                return
+            }
+            self.restoreWindow(forKey: key)
+        }
+    }
+
+    private func restoreWindow(forKey key: Int) {
+        guard let parked = parkedWindows.removeValue(forKey: key) else { return }
         var origin = parked.origin
         if let value = AXValueCreate(.cgPoint, &origin) {
             AXUIElementSetAttributeValue(parked.window, kAXPositionAttribute as CFString, value)
         }
     }
 
+    /// Immediate: on stop the helper may be about to exit.
     private func restoreAllWindows() {
-        for token in Array(parkedWindowByToken.keys) {
-            restoreWindowIfUnused(token)
-        }
+        Array(parkedWindows.keys).forEach(restoreWindow(forKey:))
         parkedWindowByToken.removeAll()
-        parkedWindows.removeAll()
     }
 
     private func capture(_ banner: AXUIElement, token: String) -> CapturedNotification {
