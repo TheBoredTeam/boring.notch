@@ -25,6 +25,14 @@ final class AudioOutputRouteResolver {
 
     private let stateQueue = DispatchQueue(label: "AudioOutputRouteResolver.state")
     private var cachedRouteKind: AudioOutputRouteKind = .unknown
+    private var cachedDeviceName: String = ""
+
+    /// Name of the current output device (e.g. "AirPods Pro"), or nil when
+    /// it can't be read — for labelling the volume HUD the way macOS does.
+    func outputDeviceName() -> String? {
+        let name = stateQueue.sync { cachedDeviceName }
+        return name.isEmpty ? nil : name
+    }
 
     /// Symbol for the current output route, independent of volume level —
     /// for the media-output button, which shows *where* audio is going
@@ -81,15 +89,16 @@ final class AudioOutputRouteResolver {
     }
 
     private func refreshCachedRouteKind() {
-        let currentRoute = currentRouteKind()
+        let currentRoute = currentRoute()
         stateQueue.sync {
-            self.cachedRouteKind = currentRoute
+            self.cachedRouteKind = currentRoute.kind
+            self.cachedDeviceName = currentRoute.deviceName
         }
     }
 
-    private func currentRouteKind() -> AudioOutputRouteKind {
+    private func currentRoute() -> (kind: AudioOutputRouteKind, deviceName: String) {
         let deviceID = systemOutputDeviceID()
-        guard deviceID != kAudioObjectUnknown else { return .unknown }
+        guard deviceID != kAudioObjectUnknown else { return (.unknown, "") }
 
         let deviceName = readStringProperty(deviceID: deviceID, selector: kAudioObjectPropertyName)
         let manufacturer = readStringProperty(
@@ -98,11 +107,12 @@ final class AudioOutputRouteResolver {
         )
         let transportType = readTransportType(deviceID: deviceID)
 
-        return classifyOutputRoute(
+        let kind = classifyOutputRoute(
             deviceName: deviceName,
             manufacturer: manufacturer,
             transportType: transportType
         )
+        return (kind, deviceName)
     }
 
     private func systemOutputDeviceID() -> AudioObjectID {

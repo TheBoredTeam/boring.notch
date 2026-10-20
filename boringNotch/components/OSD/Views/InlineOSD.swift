@@ -25,6 +25,7 @@ struct InlineOSD: View {
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.75)
                     .allowsTightening(true)
                     .contentTransition(.numericText())
             }
@@ -82,7 +83,8 @@ struct InlineOSD: View {
     func osdTypeName(_ type: SneakContentType) -> String {
         switch type {
             case .volume:
-                return NSLocalizedString("Volume", comment: "")
+                return AudioOutputRouteResolver.shared.outputDeviceName()
+                    ?? NSLocalizedString("Volume", comment: "")
             case .brightness:
                 return NSLocalizedString("Brightness", comment: "")
             case .backlight:
