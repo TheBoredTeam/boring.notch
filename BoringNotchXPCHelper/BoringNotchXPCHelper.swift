@@ -171,12 +171,21 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     }
 
     @objc func stopNotificationWatching() {
-        DispatchQueue.main.async {
-            Self.watcher.stop()
-            if Self.holdsWatchingTransaction {
-                xpc_transaction_end()
-                Self.holdsWatchingTransaction = false
-            }
+        DispatchQueue.main.async { Self.stopWatching() }
+    }
+
+    /// The app quit or crashed. Stop at once: the open transaction keeps the
+    /// helper alive for a few seconds after the app is gone, and a banner it
+    /// hides in that time would stay off screen once launchd kills it.
+    static func appConnectionDidInvalidate() {
+        DispatchQueue.main.async { stopWatching() }
+    }
+
+    private static func stopWatching() {
+        watcher.stop()
+        if holdsWatchingTransaction {
+            xpc_transaction_end()
+            holdsWatchingTransaction = false
         }
     }
 
