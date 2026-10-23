@@ -141,29 +141,12 @@ final class FloatingDropTargetController {
         let dropped = panel?.dropInteraction.dropEvent == true
         panel?.dropInteraction.dropEvent = false
         if dropped {
-            showDroppedItemThenDismiss()
-        } else {
-            dismiss()
-        }
-    }
-
-    /// The file is shelved asynchronously. Wait until it is in the shelf, leave it on screen
-    /// long enough to see, then use the same pointer-leave close as the notch.
-    private func showDroppedItemThenDismiss() {
-        dismissTask?.cancel()
-        dismissTask = Task { @MainActor in
-            let deadline = ContinuousClock.now.advanced(by: .seconds(3))
-            while !Task.isCancelled,
-                  ShelfStateViewModel.shared.isLoading,
-                  ContinuousClock.now < deadline {
-                try? await Task.sleep(for: .milliseconds(50))
-            }
-            guard !Task.isCancelled, self.isPresented else { return }
-            try? await Task.sleep(for: .milliseconds(700))
-            guard !Task.isCancelled, self.isPresented else { return }
-            self.panel?.dismissWhenPointerLeaves { [weak self] in
+            // ShelfDropWell observes the shared shelf state and renders the item when loading finishes.
+            panel?.dismissWhenPointerLeaves { [weak self] in
                 self?.dismiss()
             }
+        } else {
+            dismiss()
         }
     }
 
