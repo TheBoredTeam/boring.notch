@@ -11,6 +11,11 @@ enum FloatingDropTargetPlacement {
     /// Square drop well, large enough for one shelf item and its name.
     static let panelSize = CGSize(width: 188, height: 188)
     static let screenMargin: CGFloat = 8
+    static let visibleItemLimit = 3
+    private static let shelfItemWidth: CGFloat = 115
+    private static let shelfItemSpacing: CGFloat = 8
+    /// Panel padding (12 per side) plus drop-well content padding (16 per side).
+    private static let horizontalInsets: CGFloat = 56
     /// Gap so the target sits beside the pointer instead of chasing it during the rest of the shake.
     static let cursorGap: CGFloat = 12
 
@@ -25,6 +30,32 @@ enum FloatingDropTargetPlacement {
             screenFrame: screenFrame
         )
         return CGRect(origin: origin, size: panelSize)
+    }
+
+    static func previewSize(itemCount: Int) -> CGSize {
+        let visibleCount = min(max(itemCount, 1), visibleItemLimit)
+        let itemsWidth = CGFloat(visibleCount) * shelfItemWidth
+            + CGFloat(visibleCount - 1) * shelfItemSpacing
+        return CGSize(
+            width: max(panelSize.width, itemsWidth + horizontalInsets),
+            height: panelSize.height
+        )
+    }
+
+    static func previewFrame(currentFrame: CGRect, itemCount: Int, screenFrame: CGRect) -> CGRect {
+        frame(matching: previewSize(itemCount: itemCount), currentFrame: currentFrame, screenFrame: screenFrame)
+    }
+
+    /// Keeps the panel's vertical edge and center while its animated width changes.
+    static func frame(matching size: CGSize, currentFrame: CGRect, screenFrame: CGRect) -> CGRect {
+        let preferredOrigin = CGPoint(
+            x: currentFrame.midX - size.width / 2,
+            y: currentFrame.minY
+        )
+        return CGRect(
+            origin: clampedOrigin(preferredOrigin, panelSize: size, screenFrame: screenFrame),
+            size: size
+        )
     }
 
     /// Point in the panel nearest the pointer, in unit coordinates with y measured from the top

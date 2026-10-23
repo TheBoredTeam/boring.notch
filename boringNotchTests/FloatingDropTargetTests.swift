@@ -117,6 +117,51 @@ final class FloatingDropTargetTests: XCTestCase {
         XCTAssertEqual(right.maxX, screen.maxX - FloatingDropTargetPlacement.screenMargin, accuracy: 0.1)
     }
 
+    func testPreviewExpandsForThreeItemsThenCapsItsWidth() {
+        let one = FloatingDropTargetPlacement.previewSize(itemCount: 1)
+        let two = FloatingDropTargetPlacement.previewSize(itemCount: 2)
+        let three = FloatingDropTargetPlacement.previewSize(itemCount: 3)
+        let many = FloatingDropTargetPlacement.previewSize(itemCount: 12)
+
+        XCTAssertEqual(one, FloatingDropTargetPlacement.panelSize)
+        XCTAssertGreaterThan(two.width, one.width)
+        XCTAssertGreaterThan(three.width, two.width)
+        XCTAssertEqual(many, three)
+    }
+
+    func testExpandedPreviewStaysCenteredAndClampedToTheScreen() {
+        let centered = FloatingDropTargetPlacement.previewFrame(
+            currentFrame: CGRect(x: 626, y: 200, width: 188, height: 188),
+            itemCount: 3,
+            screenFrame: screen
+        )
+        XCTAssertEqual(centered.midX, 720, accuracy: 0.1)
+
+        let leftEdge = FloatingDropTargetPlacement.previewFrame(
+            currentFrame: CGRect(x: 8, y: 200, width: 188, height: 188),
+            itemCount: 3,
+            screenFrame: screen
+        )
+        XCTAssertEqual(leftEdge.minX, screen.minX + FloatingDropTargetPlacement.screenMargin, accuracy: 0.1)
+    }
+
+    func testRemovingItemsShrinksThePreviewBackTowardTheSquare() {
+        let expanded = FloatingDropTargetPlacement.previewFrame(
+            currentFrame: CGRect(x: 626, y: 200, width: 188, height: 188),
+            itemCount: 3,
+            screenFrame: screen
+        )
+        let reduced = FloatingDropTargetPlacement.previewFrame(
+            currentFrame: expanded,
+            itemCount: 1,
+            screenFrame: screen
+        )
+
+        XCTAssertEqual(reduced.size, FloatingDropTargetPlacement.panelSize)
+        XCTAssertEqual(reduced.midX, expanded.midX, accuracy: 0.1)
+        XCTAssertEqual(reduced.minY, expanded.minY, accuracy: 0.1)
+    }
+
     // MARK: - Trigger
 
     func testTriggerRequiresShelfFlagsAndAnActiveDrag() {

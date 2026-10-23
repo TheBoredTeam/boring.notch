@@ -25,6 +25,7 @@ struct ShelfDropWell: View {
     @State private var revealedIDs: Set<UUID> = []
     /// Session that produced `revealedIDs`. A newer presentation renders nothing until its own drop resolves.
     @State private var revealedDuring = -1
+    @State private var reportedPreviewCount = 0
     private let spacing: CGFloat = 8
 
     private var displayedItems: [ShelfItem] {
@@ -40,6 +41,10 @@ struct ShelfDropWell: View {
                 .onChange(of: appearanceSession) {
                     revealedIDs = []
                     revealedDuring = -1
+                    reportedPreviewCount = 0
+                }
+                .onChange(of: displayedItems.count) { _, count in
+                    reportPreviewCount(count)
                 }
         }
     }
@@ -78,23 +83,12 @@ struct ShelfDropWell: View {
     private func content(quickLookService: QuickLookService) -> some View {
         @Bindable var interaction = dropInteraction
 
-        if !showsShelvedItems, displayedItems.count == 1, let item = displayedItems.first {
-            ShelfItemView(
-                item: item,
-                quickLookService: quickLookService,
-                dropInteraction: dropInteraction
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if !displayedItems.isEmpty {
+        if displayedItems.isEmpty {
+            emptyDropContent
+        } else if showsShelvedItems {
             ScrollView(.horizontal) {
                 LazyHStack(spacing: spacing) {
-                    ForEach(displayedItems) { item in
-                        ShelfItemView(
-                            item: item,
-                            quickLookService: quickLookService,
-                            dropInteraction: dropInteraction
-                        )
-                    }
+                    itemViews(quickLookService: quickLookService)
                 }
             }
             .padding(-spacing)
@@ -102,20 +96,47 @@ struct ShelfDropWell: View {
             .onDrop(of: ShelfDropService.supportedContentTypes, isTargeted: $interaction.dragDetectorTargeting) { providers in
                 handleDrop(providers: providers)
             }
-        } else {
-            VStack(spacing: 10) {
-                Image(systemName: "tray.and.arrow.down")
-                    .symbolVariant(.fill)
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(.white, .gray)
-                    .imageScale(.large)
-
-                Text("Drop files here")
-                    .foregroundStyle(.gray)
-                    .font(.system(.title3, design: .rounded))
-                    .fontWeight(.medium)
-                    .multilineTextAlignment(.center)
+        } else if displayedItems.count > FloatingDropTargetPlacement.visibleItemLimit {
+            ScrollView(.horizontal) {
+                itemRow(quickLookService: quickLookService)
             }
+            .scrollIndicators(.never)
+        } else {
+            itemRow(quickLookService: quickLookService)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        }
+    }
+
+    private func itemRow(quickLookService: QuickLookService) -> some View {
+        HStack(spacing: spacing) {
+            itemViews(quickLookService: quickLookService)
+        }
+        .animation(animation, value: displayedItems.map(\.id))
+    }
+
+    private func itemViews(quickLookService: QuickLookService) -> some View {
+        ForEach(displayedItems) { item in
+            ShelfItemView(
+                item: item,
+                quickLookService: quickLookService,
+                dropInteraction: dropInteraction
+            )
+        }
+    }
+
+    private var emptyDropContent: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "tray.and.arrow.down")
+                .symbolVariant(.fill)
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(.white, .gray)
+                .imageScale(.large)
+
+            Text("Drop files here")
+                .foregroundStyle(.gray)
+                .font(.system(.title3, design: .rounded))
+                .fontWeight(.medium)
+                .multilineTextAlignment(.center)
         }
     }
 
@@ -143,8 +164,22 @@ struct ShelfDropWell: View {
             guard previewSession.isCurrent(token) else { return }
             revealedIDs = Set(matched.map(\.id))
             revealedDuring = token.generation
-            onPreviewEvent?(.resolved)
+            reportedPreviewCount = matched.count
+            onPreviewEvent?(.resolved(itemCount: matched.count))
         }
+    }
+
+    /// Removal changes the visible count after the drop has already resolved.
+    /// The initial resolve reports its own count, so this only follows later changes.
+    private func reportPreviewCount(_ count: Int) {
+        guard !showsShelvedItems,
+              revealedDuring == appearanceSession,
+              reportedPreviewCount > 0,
+              count != reportedPreviewCount else {
+            return
+        }
+        reportedPreviewCount = count
+        onPreviewEvent?(.changed(itemCount: count))
     }
 }
 

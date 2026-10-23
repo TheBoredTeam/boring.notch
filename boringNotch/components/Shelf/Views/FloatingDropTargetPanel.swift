@@ -13,7 +13,8 @@ import SwiftUI
 
 enum FloatingDropTargetPreviewEvent {
     case started
-    case resolved
+    case resolved(itemCount: Int)
+    case changed(itemCount: Int)
 }
 
 @MainActor
@@ -53,6 +54,7 @@ final class FloatingDropTargetPanel: NSPanel {
     private var onPointerExit: (@MainActor () -> Void)?
     private var shelfDragCancellable: AnyCancellable?
     private var fadeGeneration = 0
+    private let shelfAnimation = BoringAnimations().animation
     var isWaitingForPointerExit: Bool { onPointerExit != nil }
 
     init() {
@@ -67,11 +69,14 @@ final class FloatingDropTargetPanel: NSPanel {
             rootView: FloatingDropTargetChrome(
                 dropInteraction: dropInteraction,
                 presentation: presentation,
+                shelfAnimation: shelfAnimation,
                 onHoverChanged: { [weak self] in self?.handlePointerHover($0) },
                 previewSession: previewSession,
-                onPreviewEvent: { [weak self] event in self?.onPreviewEvent?(event) }
+                onPreviewEvent: { [weak self] event in self?.onPreviewEvent?(event) },
+                onLayoutSize: { [weak self] size in self?.matchWindow(to: size) }
             )
         )
+        roundContentCorners()
         shelfDragCancellable = ShelfSelectionModel.shared.$isDragging
             .removeDuplicates()
             .sink { [weak self] isDragging in
@@ -93,6 +98,8 @@ final class FloatingDropTargetPanel: NSPanel {
         cancelPointerExitDismissal()
         dropInteraction.reset()
         fadeGeneration += 1
+        presentation.panelSize = FloatingDropTargetPlacement.panelSize
+        presentation.previewItemCount = 0
         presentation.anchor = UnitPoint(x: anchor.x, y: anchor.y)
         ignoresMouseEvents = false
         if !isVisible {
@@ -105,6 +112,28 @@ final class FloatingDropTargetPanel: NSPanel {
             presentation.isShown = true
         }
         fade(to: 1, completion: nil)
+    }
+
+    func showPreview(itemCount: Int) {
+        guard itemCount > 0 else { return }
+        presentation.previewItemCount = itemCount
+        let size = FloatingDropTargetPlacement.previewSize(itemCount: itemCount)
+        // The item row uses this same spring. The window follows the resulting layout
+        // instead of running a second, non-spring frame animation.
+        withAnimation(shelfAnimation) {
+            presentation.panelSize = size
+        }
+    }
+
+    private func matchWindow(to size: CGSize) {
+        guard size.width > 1, size.height > 1, let screen else { return }
+        let next = FloatingDropTargetPlacement.frame(
+            matching: size,
+            currentFrame: frame,
+            screenFrame: screen.frame
+        )
+        guard abs(next.width - frame.width) > 0.5 || abs(next.minX - frame.minX) > 0.5 else { return }
+        setFrame(next, display: true)
     }
 
     func hide(completion: @escaping () -> Void) {
@@ -194,6 +223,14 @@ final class FloatingDropTargetPanel: NSPanel {
         // Borderless windows have no visible title, so VoiceOver would otherwise announce an unnamed window.
         setAccessibilityTitle(String(localized: "Drop target"))
     }
+
+    /// Clip the window while its frame animates. A SwiftUI clip animates separately from
+    /// that frame and briefly becomes square.
+    private func roundContentCorners() {
+        contentView?.wantsLayer = true
+        contentView?.layer?.cornerRadius = cornerRadiusInsets.opened.bottom
+        contentView?.layer?.masksToBounds = true
+    }
 }
 
 @Observable
@@ -201,6 +238,8 @@ private final class FloatingDropTargetPresentation {
     var isShown = false
     var anchor: UnitPoint = .top
     var generation = 0
+    var panelSize = FloatingDropTargetPlacement.panelSize
+    var previewItemCount = 0
 }
 
 /// Clicks on the shelf background also count, so a grab does not require a focus click first.
@@ -208,17 +247,27 @@ private final class FirstMouseHostingView<Content: View>: NSHostingView<Content>
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 }
 
+private struct FloatingDropTargetLayoutSizeKey: PreferenceKey {
+    static var defaultValue: CGSize = .zero
+
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
+        value = nextValue()
+    }
+}
+
 private struct FloatingDropTargetChrome: View {
     let dropInteraction: DropInteractionState
     let presentation: FloatingDropTargetPresentation
+    let shelfAnimation: Animation
     let onHoverChanged: (Bool) -> Void
     let previewSession: FloatingDropTargetPreviewSession
     let onPreviewEvent: @MainActor (FloatingDropTargetPreviewEvent) -> Void
+    let onLayoutSize: (CGSize) -> Void
 
     var body: some View {
         ShelfDropWell(
             dropInteraction: dropInteraction,
-            animation: nil,
+            animation: shelfAnimation,
             showsShelvedItems: false,
             appearanceSession: presentation.generation,
             previewSession: previewSession,
@@ -226,15 +275,27 @@ private struct FloatingDropTargetChrome: View {
         )
             // Same inset the notch uses around the shelf row.
             .padding(12)
-            .frame(
-                width: FloatingDropTargetPlacement.panelSize.width,
-                height: FloatingDropTargetPlacement.panelSize.height
-            )
+            .frame(width: presentation.panelSize.width, height: presentation.panelSize.height)
+            .background {
+                GeometryReader { proxy in
+                    Color.clear.preference(key: FloatingDropTargetLayoutSizeKey.self, value: proxy.size)
+                }
+            }
             .background(.black)
-            .clipShape(
-                RoundedRectangle(cornerRadius: cornerRadiusInsets.opened.bottom, style: .continuous)
-            )
+            .onPreferenceChange(FloatingDropTargetLayoutSizeKey.self, perform: onLayoutSize)
             .scaleEffect(presentation.isShown ? 1 : 0.9, anchor: presentation.anchor)
             .onHover(perform: onHoverChanged)
+            .overlay(alignment: .bottomTrailing) {
+                if presentation.previewItemCount > FloatingDropTargetPlacement.visibleItemLimit {
+                    Text("\(presentation.previewItemCount) items")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(.black.opacity(0.7), in: Capsule())
+                        .padding(8)
+                        .allowsHitTesting(false)
+                }
+            }
     }
 }

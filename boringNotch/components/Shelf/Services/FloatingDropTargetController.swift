@@ -171,11 +171,19 @@ final class FloatingDropTargetController {
         case .started:
             previewReady = false
             panel?.suspendPointerExit()
-        case .resolved:
+        case .resolved(let itemCount):
             previewReady = true
+            panel?.showPreview(itemCount: itemCount)
             guard awaitingPreview else { return }
             awaitingPreview = false
             armPointerLeave()
+        case .changed(let itemCount):
+            guard previewReady else { return }
+            if itemCount == 0 {
+                dismiss()
+            } else {
+                panel?.showPreview(itemCount: itemCount)
+            }
         }
     }
 
