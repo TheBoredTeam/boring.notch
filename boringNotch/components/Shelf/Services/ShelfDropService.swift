@@ -10,6 +10,23 @@ import Foundation
 import UniformTypeIdentifiers
 
 struct ShelfDropService {
+    static let supportedContentTypes: [UTType] = [.fileURL, .url, .utf8PlainText, .plainText, .data]
+
+    /// The drag monitor only opens the floating target for content it can identify without
+    /// loading providers. Generic data remains accepted once a drop reaches the shelf.
+    private static let detectablePasteboardTypes: [NSPasteboard.PasteboardType] = [
+        .fileURL,
+        NSPasteboard.PasteboardType(UTType.url.identifier),
+        .string
+    ]
+
+    static func canAccept(_ pasteboard: NSPasteboard) -> Bool {
+        guard let items = pasteboard.pasteboardItems, !items.isEmpty else { return false }
+        return items.allSatisfy { item in
+            item.types.contains { detectablePasteboardTypes.contains($0) }
+        }
+    }
+
     static func items(from providers: [NSItemProvider]) async -> [ShelfItem] {
         // Process providers concurrently for better performance with large drops
         await withTaskGroup(of: ShelfItem?.self) { group in
