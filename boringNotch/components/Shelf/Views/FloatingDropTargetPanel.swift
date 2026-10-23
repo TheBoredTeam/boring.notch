@@ -273,6 +273,20 @@ private struct FloatingDropTargetChrome: View {
             previewSession: previewSession,
             onPreviewEvent: onPreviewEvent
         )
+            .overlay(alignment: .bottomTrailing) {
+                if presentation.previewItemCount > FloatingDropTargetPlacement.visibleItemLimit {
+                    Text("\(presentation.previewItemCount) items")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(.black.opacity(0.7), in: Capsule())
+                        // The dashed stroke is centered on the well edge. This inset keeps the
+                        // count inside the well instead of sitting on the corner.
+                        .padding(14)
+                        .allowsHitTesting(false)
+                }
+            }
             // Same inset the notch uses around the shelf row.
             .padding(12)
             .frame(width: presentation.panelSize.width, height: presentation.panelSize.height)
@@ -285,17 +299,5 @@ private struct FloatingDropTargetChrome: View {
             .onPreferenceChange(FloatingDropTargetLayoutSizeKey.self, perform: onLayoutSize)
             .scaleEffect(presentation.isShown ? 1 : 0.9, anchor: presentation.anchor)
             .onHover(perform: onHoverChanged)
-            .overlay(alignment: .bottomTrailing) {
-                if presentation.previewItemCount > FloatingDropTargetPlacement.visibleItemLimit {
-                    Text("\(presentation.previewItemCount) items")
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(.black.opacity(0.7), in: Capsule())
-                        .padding(8)
-                        .allowsHitTesting(false)
-                }
-            }
     }
 }
