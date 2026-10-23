@@ -51,20 +51,3 @@ enum FloatingDropTargetPlacement {
         return min(max(value, lower), upper)
     }
 }
-
-enum FloatingDropTargetTriggerPolicy {
-    static func shouldPresent(
-        shelfEnabled: Bool,
-        floatingDropTargetEnabled: Bool,
-        notchOpen: Bool,
-        contentDragActive: Bool,
-        shake: Bool,
-        shakeTriggerEnabled: Bool = true,
-        shiftHeld: Bool,
-        shiftTriggerEnabled: Bool = true
-    ) -> Bool {
-        // The open notch already shows the shelf, so a drop target is never stacked beside it.
-        guard shelfEnabled, floatingDropTargetEnabled, !notchOpen, contentDragActive else { return false }
-        return (shake && shakeTriggerEnabled) || (shiftHeld && shiftTriggerEnabled)
-    }
-}
