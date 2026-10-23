@@ -148,9 +148,6 @@ struct ShelfDropWell: View {
         } else {
             revealDroppedItems(from: providers)
         }
-        // The notch does this when a drag enters it. A floating drop never opens the notch,
-        // so the next hover would otherwise stay on the previous tab.
-        BoringViewCoordinator.shared.currentView = .shelf
         return true
     }
 
@@ -166,11 +163,17 @@ struct ShelfDropWell: View {
             revealedDuring = token.generation
             reportedPreviewCount = matched.count
             onPreviewEvent?(.resolved(itemCount: matched.count))
+            // The notch selects the shelf when a drag enters it. A floating drop does not,
+            // so select it here only when the shelf actually contains something.
+            if !shelfState.isEmpty {
+                BoringViewCoordinator.shared.currentView = .shelf
+            }
         }
     }
 
     /// Removal changes the visible count after the drop has already resolved.
     /// The initial resolve reports its own count, so this only follows later changes.
+    /// The notch is still closed, so an emptied shelf has to leave the shelf tab itself.
     private func reportPreviewCount(_ count: Int) {
         guard !showsShelvedItems,
               revealedDuring == appearanceSession,
@@ -180,6 +183,9 @@ struct ShelfDropWell: View {
         }
         reportedPreviewCount = count
         onPreviewEvent?(.changed(itemCount: count))
+        if shelfState.isEmpty {
+            BoringViewCoordinator.shared.currentView = .home
+        }
     }
 }
 
