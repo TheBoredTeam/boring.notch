@@ -7,7 +7,7 @@
 
 import Cocoa
 
-/// One global watch for a file, link, or text drag. Notch detectors and the floating shelf
+/// One global watch for a file, link, or text drag. Notch detectors and the floating drop target
 /// subscribe instead of each installing their own mouse monitors.
 final class DragSession {
     static let shared = DragSession()
@@ -85,7 +85,7 @@ final class DragSession {
 
     private func noteContentDragIfNeeded() {
         let pasteboardChanged = dragPasteboard.changeCount != pasteboardChangeCount
-        guard pasteboardChanged, !isContentDragging, DragPasteboardContent.isDroppable(dragPasteboard) else { return }
+        guard pasteboardChanged, !isContentDragging, ShelfDropService.canAccept(dragPasteboard) else { return }
         isContentDragging = true
     }
 

@@ -292,7 +292,7 @@ enum SneakPeekStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
     }
 }
 
-enum ShakeSensitivity: String, CaseIterable, Identifiable, Defaults.Serializable {
+enum DropTargetShakeSensitivity: String, CaseIterable, Identifiable, Defaults.Serializable {
     case low
     case medium
     case high
@@ -554,10 +554,11 @@ extension Defaults.Keys {
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
     static let reverseShelfOrdering = Key<Bool>("reverseShelfOrdering", default: false)
-    static let floatingShelf = Key<Bool>("floatingShelf", default: true)
-    static let floatingShelfShakeTrigger = Key<Bool>("floatingShelfShakeTrigger", default: true)
-    static let floatingShelfShiftTrigger = Key<Bool>("floatingShelfShiftTrigger", default: true)
-    static let floatingShelfShakeSensitivity = Key<ShakeSensitivity>("floatingShelfShakeSensitivity", default: .medium)
+    // Keep the stored key names for compatibility with existing preferences.
+    static let floatingDropTarget = Key<Bool>("floatingShelf", default: true)
+    static let floatingDropTargetShakeTrigger = Key<Bool>("floatingShelfShakeTrigger", default: true)
+    static let floatingDropTargetShiftTrigger = Key<Bool>("floatingShelfShiftTrigger", default: true)
+    static let floatingDropTargetShakeSensitivity = Key<DropTargetShakeSensitivity>("floatingShelfShakeSensitivity", default: .medium)
 
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)

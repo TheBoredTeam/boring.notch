@@ -1,5 +1,5 @@
 //
-//  FloatingShelfPlacement.swift
+//  FloatingDropTargetPlacement.swift
 //  boringNotch
 //
 //  SPDX-License-Identifier: GPL-3.0-only
@@ -7,11 +7,11 @@
 
 import CoreGraphics
 
-enum FloatingShelfPlacement {
+enum FloatingDropTargetPlacement {
     /// Square drop well, large enough for one shelf item and its name.
     static let panelSize = CGSize(width: 188, height: 188)
     static let screenMargin: CGFloat = 8
-    /// Gap so the shelf sits beside the pointer instead of chasing it during the rest of the shake.
+    /// Gap so the target sits beside the pointer instead of chasing it during the rest of the shake.
     static let cursorGap: CGFloat = 12
 
     static func frame(cursor: CGPoint, screenFrame: CGRect, panelSize: CGSize = panelSize) -> CGRect {
@@ -52,10 +52,10 @@ enum FloatingShelfPlacement {
     }
 }
 
-enum FloatingShelfTriggerPolicy {
+enum FloatingDropTargetTriggerPolicy {
     static func shouldPresent(
         shelfEnabled: Bool,
-        floatingShelfEnabled: Bool,
+        floatingDropTargetEnabled: Bool,
         notchOpen: Bool,
         contentDragActive: Bool,
         shake: Bool,
@@ -63,14 +63,8 @@ enum FloatingShelfTriggerPolicy {
         shiftHeld: Bool,
         shiftTriggerEnabled: Bool = true
     ) -> Bool {
-        // The open notch already shows the shelf, so a second one is never stacked beside it.
-        guard shelfEnabled, floatingShelfEnabled, !notchOpen, contentDragActive else { return false }
+        // The open notch already shows the shelf, so a drop target is never stacked beside it.
+        guard shelfEnabled, floatingDropTargetEnabled, !notchOpen, contentDragActive else { return false }
         return (shake && shakeTriggerEnabled) || (shiftHeld && shiftTriggerEnabled)
-    }
-}
-
-enum FloatingShelfDismissPolicy {
-    static func shouldClose(pointerInside: Bool) -> Bool {
-        !pointerInside
     }
 }

@@ -8,7 +8,6 @@
 import SwiftUI
 import AppKit
 import Defaults
-import UniformTypeIdentifiers
 
 struct ShelfView: View {
     let dropInteraction: DropInteractionState
@@ -78,7 +77,7 @@ struct ShelfDropWell: View {
             .transaction { transaction in
                 transaction.animation = animation
             }
-            .onDrop(of: Self.dropTypes, isTargeted: $interaction.dragDetectorTargeting) { providers in
+            .onDrop(of: ShelfDropService.supportedContentTypes, isTargeted: $interaction.dragDetectorTargeting) { providers in
                 handleDrop(providers: providers)
             }
             .onAppear {
@@ -113,7 +112,7 @@ struct ShelfDropWell: View {
             }
             .padding(-spacing)
             .scrollIndicators(.never)
-            .onDrop(of: Self.dropTypes, isTargeted: $interaction.dragDetectorTargeting) { providers in
+            .onDrop(of: ShelfDropService.supportedContentTypes, isTargeted: $interaction.dragDetectorTargeting) { providers in
                 handleDrop(providers: providers)
             }
         } else {
@@ -146,8 +145,6 @@ struct ShelfDropWell: View {
         BoringViewCoordinator.shared.currentView = .shelf
         return true
     }
-
-    private static let dropTypes: [UTType] = [.fileURL, .url, .utf8PlainText, .plainText, .data]
 }
 
 private struct ShelfBackgroundInteractionView: NSViewRepresentable {

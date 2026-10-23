@@ -179,7 +179,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         MainActor.assumeIsolated {
             MusicManager.shared.destroy()
             windowManager.cleanup()
-            FloatingShelfController.shared.stop()
+            FloatingDropTargetController.shared.stop()
         }
         BetterDisplayManager.shared.stopObserving()
         LunarManager.shared.stopListening()
@@ -328,7 +328,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         syncNotchHeightIfNeeded()
 
         windowManager.prepareInitialWindows()
-        FloatingShelfController.shared.start { [weak windowManager] in
+        FloatingDropTargetController.shared.start { [weak windowManager] in
             windowManager?.isAnyNotchOpen ?? false
         }
 

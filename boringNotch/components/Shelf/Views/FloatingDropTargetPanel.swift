@@ -1,5 +1,5 @@
 //
-//  FloatingShelfPanel.swift
+//  FloatingDropTargetPanel.swift
 //  boringNotch
 //
 //  SPDX-License-Identifier: GPL-3.0-only
@@ -13,20 +13,26 @@ import SwiftUI
 /// Drop target shown beside the pointer. It must be allowed to become key:
 /// a nonactivating panel that refuses key status never receives an in-progress drag.
 @MainActor
-final class FloatingShelfPanel: NSPanel {
+final class FloatingDropTargetPanel: NSPanel {
     let dropInteraction = DropInteractionState()
-    private let presentation = FloatingShelfPresentation()
+    private let presentation = FloatingDropTargetPresentation()
+    private var pointerExitTask: Task<Void, Never>?
+    private var onPointerExit: (@MainActor () -> Void)?
 
     init() {
         super.init(
-            contentRect: NSRect(origin: .zero, size: FloatingShelfPlacement.panelSize),
+            contentRect: NSRect(origin: .zero, size: FloatingDropTargetPlacement.panelSize),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
         configureWindow()
         contentView = FirstMouseHostingView(
-            rootView: FloatingShelfChrome(dropInteraction: dropInteraction, presentation: presentation)
+            rootView: FloatingDropTargetChrome(
+                dropInteraction: dropInteraction,
+                presentation: presentation,
+                onHoverChanged: { [weak self] in self?.handlePointerHover($0) }
+            )
         )
     }
 
@@ -34,15 +40,14 @@ final class FloatingShelfPanel: NSPanel {
     override var canBecomeMain: Bool { false }
 
     func resetAppearance() {
-        dropInteraction.dragDetectorTargeting = false
-        dropInteraction.generalDropTargeting = false
-        dropInteraction.dropZoneTargeting = false
-        dropInteraction.dropEvent = false
+        cancelPointerExitDismissal()
+        dropInteraction.reset()
     }
 
     /// The content scales in SwiftUI; the window alpha fades separately because the
     /// window shadow does not follow SwiftUI content as it scales.
     func show(growingFrom anchor: CGPoint) {
+        cancelPointerExitDismissal()
         presentation.anchor = UnitPoint(x: anchor.x, y: anchor.y)
         ignoresMouseEvents = false
         if !isVisible {
@@ -57,6 +62,7 @@ final class FloatingShelfPanel: NSPanel {
     }
 
     func hide(completion: @escaping () -> Void) {
+        cancelPointerExitDismissal()
         ignoresMouseEvents = true
         withAnimation(StandardAnimations.close) {
             presentation.isShown = false
@@ -67,6 +73,35 @@ final class FloatingShelfPanel: NSPanel {
             self.orderOut(nil)
             completion()
         }
+    }
+
+    func dismissWhenPointerLeaves(_ action: @escaping @MainActor () -> Void) {
+        onPointerExit = action
+        handlePointerHover(frame.contains(NSEvent.mouseLocation))
+    }
+
+    private func handlePointerHover(_ inside: Bool) {
+        pointerExitTask?.cancel()
+        pointerExitTask = nil
+        guard !inside, onPointerExit != nil else { return }
+        pointerExitTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(hoverExitDelayMilliseconds))
+            guard !Task.isCancelled,
+                  let self,
+                  !self.frame.contains(NSEvent.mouseLocation),
+                  let onPointerExit = self.onPointerExit else {
+                return
+            }
+            self.onPointerExit = nil
+            self.pointerExitTask = nil
+            onPointerExit()
+        }
+    }
+
+    private func cancelPointerExitDismissal() {
+        pointerExitTask?.cancel()
+        pointerExitTask = nil
+        onPointerExit = nil
     }
 
     private func fade(to alpha: CGFloat, completion: (@MainActor () -> Void)?) {
@@ -97,7 +132,7 @@ final class FloatingShelfPanel: NSPanel {
 }
 
 @Observable
-private final class FloatingShelfPresentation {
+private final class FloatingDropTargetPresentation {
     var isShown = false
     var anchor: UnitPoint = .top
     var generation = 0
@@ -108,9 +143,10 @@ private final class FirstMouseHostingView<Content: View>: NSHostingView<Content>
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 }
 
-private struct FloatingShelfChrome: View {
+private struct FloatingDropTargetChrome: View {
     let dropInteraction: DropInteractionState
-    let presentation: FloatingShelfPresentation
+    let presentation: FloatingDropTargetPresentation
+    let onHoverChanged: (Bool) -> Void
 
     var body: some View {
         ShelfDropWell(
@@ -122,13 +158,14 @@ private struct FloatingShelfChrome: View {
             // Same inset the notch uses around the shelf row.
             .padding(12)
             .frame(
-                width: FloatingShelfPlacement.panelSize.width,
-                height: FloatingShelfPlacement.panelSize.height
+                width: FloatingDropTargetPlacement.panelSize.width,
+                height: FloatingDropTargetPlacement.panelSize.height
             )
             .background(.black)
             .clipShape(
                 RoundedRectangle(cornerRadius: cornerRadiusInsets.opened.bottom, style: .continuous)
             )
             .scaleEffect(presentation.isShown ? 1 : 0.9, anchor: presentation.anchor)
+            .onHover(perform: onHoverChanged)
     }
 }

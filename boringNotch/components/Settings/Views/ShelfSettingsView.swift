@@ -13,9 +13,9 @@ struct ShelfSettingsView: View {
     @Default(.quickShareProvider) var quickShareProvider
     @Default(.expandedDragDetection) var expandedDragDetection: Bool
     @Default(.boringShelf) var boringShelf: Bool
-    @Default(.floatingShelf) var floatingShelf: Bool
-    @Default(.floatingShelfShakeTrigger) var floatingShelfShakeTrigger: Bool
-    @Default(.floatingShelfShakeSensitivity) var floatingShelfShakeSensitivity
+    @Default(.floatingDropTarget) var floatingDropTarget: Bool
+    @Default(.floatingDropTargetShakeTrigger) var floatingDropTargetShakeTrigger: Bool
+    @Default(.floatingDropTargetShakeSensitivity) var floatingDropTargetShakeSensitivity
     @StateObject private var quickShareService = QuickShareService.shared
 
     private var selectedProvider: QuickShareProvider? {
@@ -54,23 +54,23 @@ struct ShelfSettingsView: View {
             }
 
             Section {
-                Defaults.Toggle(key: .floatingShelf) {
+                Defaults.Toggle(key: .floatingDropTarget) {
                     Text("Enable drop target")
                 }
-                Defaults.Toggle(key: .floatingShelfShakeTrigger) {
+                Defaults.Toggle(key: .floatingDropTargetShakeTrigger) {
                     Text("Open by shaking while dragging")
                 }
-                .disabled(!floatingShelf)
-                Picker("Shake sensitivity", selection: $floatingShelfShakeSensitivity) {
-                    ForEach(ShakeSensitivity.allCases) { sensitivity in
+                .disabled(!floatingDropTarget)
+                Picker("Shake sensitivity", selection: $floatingDropTargetShakeSensitivity) {
+                    ForEach(DropTargetShakeSensitivity.allCases) { sensitivity in
                         Text(sensitivity.localizedString).tag(sensitivity)
                     }
                 }
-                .disabled(!floatingShelf || !floatingShelfShakeTrigger)
-                Defaults.Toggle(key: .floatingShelfShiftTrigger) {
+                .disabled(!floatingDropTarget || !floatingDropTargetShakeTrigger)
+                Defaults.Toggle(key: .floatingDropTargetShiftTrigger) {
                     Text("Open by holding Shift while dragging")
                 }
-                .disabled(!floatingShelf)
+                .disabled(!floatingDropTarget)
             } header: {
                 Text("Drop target")
             } footer: {

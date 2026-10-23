@@ -1,5 +1,5 @@
 //
-//  FloatingShelfController.swift
+//  FloatingDropTargetController.swift
 //  boringNotch
 //
 //  SPDX-License-Identifier: GPL-3.0-only
@@ -11,11 +11,11 @@ import Defaults
 /// The notch drag detector stays responsible for opening the notch itself.
 /// This controller only decides when a content drag should also show a drop target beside the pointer.
 @MainActor
-final class FloatingShelfController {
-    static let shared = FloatingShelfController()
+final class FloatingDropTargetController {
+    static let shared = FloatingDropTargetController()
 
     private var shakeDetector = PointerShakeDetector()
-    private var panel: FloatingShelfPanel?
+    private var panel: FloatingDropTargetPanel?
     private var isPresented = false
     private var trackingContentDrag = false
     private var dismissTask: Task<Void, Never>?
@@ -64,7 +64,7 @@ final class FloatingShelfController {
     private func handleContentDragMoved(_ sample: PointerSample) {
         if !trackingContentDrag {
             trackingContentDrag = true
-            shakeDetector = PointerShakeDetector(sensitivity: Defaults[.floatingShelfShakeSensitivity])
+            shakeDetector = PointerShakeDetector(sensitivity: Defaults[.floatingDropTargetShakeSensitivity])
         }
 
         let shaken = shakeDetector.add(sample)
@@ -82,15 +82,15 @@ final class FloatingShelfController {
     }
 
     private func dragTriggerFires(shake: Bool, shiftHeld: Bool) -> Bool {
-        FloatingShelfTriggerPolicy.shouldPresent(
+        FloatingDropTargetTriggerPolicy.shouldPresent(
             shelfEnabled: Defaults[.boringShelf],
-            floatingShelfEnabled: Defaults[.floatingShelf],
+            floatingDropTargetEnabled: Defaults[.floatingDropTarget],
             notchOpen: isNotchOpen(),
             contentDragActive: true,
             shake: shake,
-            shakeTriggerEnabled: Defaults[.floatingShelfShakeTrigger],
+            shakeTriggerEnabled: Defaults[.floatingDropTargetShakeTrigger],
             shiftHeld: shiftHeld,
-            shiftTriggerEnabled: Defaults[.floatingShelfShiftTrigger]
+            shiftTriggerEnabled: Defaults[.floatingDropTargetShiftTrigger]
         )
     }
 
@@ -106,21 +106,21 @@ final class FloatingShelfController {
 
         dismissTask?.cancel()
         let panel = ensurePanel()
-        let frame = FloatingShelfPlacement.frame(cursor: cursor, screenFrame: screen.frame)
+        let frame = FloatingDropTargetPlacement.frame(cursor: cursor, screenFrame: screen.frame)
         panel.setFrame(frame, display: true)
-        panel.show(growingFrom: FloatingShelfPlacement.growthAnchor(cursor: cursor, frame: frame))
+        panel.show(growingFrom: FloatingDropTargetPlacement.growthAnchor(cursor: cursor, frame: frame))
         isPresented = true
         if Defaults[.enableHaptics] {
             NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
         }
-        Log.shelf.debug("Presented floating shelf")
+        Log.shelf.debug("Presented floating drop target")
     }
 
-    private func ensurePanel() -> FloatingShelfPanel {
+    private func ensurePanel() -> FloatingDropTargetPanel {
         if let panel {
             return panel
         }
-        let panel = FloatingShelfPanel()
+        let panel = FloatingDropTargetPanel()
         self.panel = panel
         return panel
     }
@@ -130,7 +130,7 @@ final class FloatingShelfController {
     private func scheduleDropReleaseCheck() {
         dismissTask?.cancel()
         dismissTask = Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(500))
+            try? await Task.sleep(for: .milliseconds(dropEventAcknowledgementDelayMilliseconds))
             guard !Task.isCancelled else { return }
             self.finishDragRelease()
         }
@@ -161,26 +161,8 @@ final class FloatingShelfController {
             guard !Task.isCancelled, self.isPresented else { return }
             try? await Task.sleep(for: .milliseconds(700))
             guard !Task.isCancelled, self.isPresented else { return }
-            self.scheduleNotchStyleDismiss()
-        }
-    }
-
-    private func scheduleNotchStyleDismiss() {
-        dismissTask?.cancel()
-        dismissTask = Task { @MainActor in
-            while !Task.isCancelled, self.isPresented {
-                let pointerInside = self.panel?.frame.contains(NSEvent.mouseLocation) == true
-                guard FloatingShelfDismissPolicy.shouldClose(pointerInside: pointerInside) else {
-                    try? await Task.sleep(for: .milliseconds(50))
-                    continue
-                }
-                try? await Task.sleep(for: .milliseconds(hoverExitDelayMilliseconds))
-                guard !Task.isCancelled, self.isPresented else { return }
-                let stillInside = self.panel?.frame.contains(NSEvent.mouseLocation) == true
-                if FloatingShelfDismissPolicy.shouldClose(pointerInside: stillInside) {
-                    self.dismiss()
-                    return
-                }
+            self.panel?.dismissWhenPointerLeaves { [weak self] in
+                self?.dismiss()
             }
         }
     }

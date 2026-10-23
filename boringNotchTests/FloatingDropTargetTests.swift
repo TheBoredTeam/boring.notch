@@ -1,5 +1,5 @@
 //
-//  FloatingShelfTests.swift
+//  FloatingDropTargetTests.swift
 //  boringNotchTests
 //
 
@@ -9,7 +9,7 @@ import XCTest
 
 @testable import boringNotch
 
-final class FloatingShelfTests: XCTestCase {
+final class FloatingDropTargetTests: XCTestCase {
 
     // MARK: - Shake
 
@@ -78,82 +78,77 @@ final class FloatingShelfTests: XCTestCase {
 
     // MARK: - Placement
 
-    func testShelfSitsBelowThePointer() {
-        let frame = FloatingShelfPlacement.frame(cursor: CGPoint(x: 720, y: 450), screenFrame: screen)
-        XCTAssertEqual(frame.size, FloatingShelfPlacement.panelSize)
+    func testDropTargetSitsBelowThePointer() {
+        let frame = FloatingDropTargetPlacement.frame(cursor: CGPoint(x: 720, y: 450), screenFrame: screen)
+        XCTAssertEqual(frame.size, FloatingDropTargetPlacement.panelSize)
         XCTAssertEqual(frame.midX, 720, accuracy: 0.1)
-        XCTAssertEqual(frame.maxY, 450 - FloatingShelfPlacement.cursorGap, accuracy: 0.1)
+        XCTAssertEqual(frame.maxY, 450 - FloatingDropTargetPlacement.cursorGap, accuracy: 0.1)
     }
 
-    func testShelfFlipsAboveThePointerNearTheBottomEdge() {
-        let frame = FloatingShelfPlacement.frame(cursor: CGPoint(x: 720, y: 20), screenFrame: screen)
+    func testDropTargetFlipsAboveThePointerNearTheBottomEdge() {
+        let frame = FloatingDropTargetPlacement.frame(cursor: CGPoint(x: 720, y: 20), screenFrame: screen)
         XCTAssertGreaterThanOrEqual(frame.minY, screen.minY)
-        XCTAssertGreaterThanOrEqual(frame.minY, 20 + FloatingShelfPlacement.cursorGap)
+        XCTAssertGreaterThanOrEqual(frame.minY, 20 + FloatingDropTargetPlacement.cursorGap)
     }
 
-    func testShelfGrowsFromTheEdgeNearestThePointer() {
+    func testDropTargetGrowsFromTheEdgeNearestThePointer() {
         let below = CGPoint(x: 720, y: 450)
-        let belowAnchor = FloatingShelfPlacement.growthAnchor(
+        let belowAnchor = FloatingDropTargetPlacement.growthAnchor(
             cursor: below,
-            frame: FloatingShelfPlacement.frame(cursor: below, screenFrame: screen)
+            frame: FloatingDropTargetPlacement.frame(cursor: below, screenFrame: screen)
         )
         XCTAssertEqual(belowAnchor.x, 0.5, accuracy: 0.01)
         XCTAssertEqual(belowAnchor.y, 0)
 
         let nearBottomLeft = CGPoint(x: 0, y: 20)
-        let aboveAnchor = FloatingShelfPlacement.growthAnchor(
+        let aboveAnchor = FloatingDropTargetPlacement.growthAnchor(
             cursor: nearBottomLeft,
-            frame: FloatingShelfPlacement.frame(cursor: nearBottomLeft, screenFrame: screen)
+            frame: FloatingDropTargetPlacement.frame(cursor: nearBottomLeft, screenFrame: screen)
         )
         XCTAssertEqual(aboveAnchor.x, 0)
         XCTAssertEqual(aboveAnchor.y, 1)
     }
 
-    func testShelfClampsToTheLeftAndRightEdges() {
-        let left = FloatingShelfPlacement.frame(cursor: CGPoint(x: 0, y: 450), screenFrame: screen)
-        let right = FloatingShelfPlacement.frame(cursor: CGPoint(x: screen.maxX, y: 450), screenFrame: screen)
-        XCTAssertEqual(left.minX, screen.minX + FloatingShelfPlacement.screenMargin, accuracy: 0.1)
-        XCTAssertEqual(right.maxX, screen.maxX - FloatingShelfPlacement.screenMargin, accuracy: 0.1)
+    func testDropTargetClampsToTheLeftAndRightEdges() {
+        let left = FloatingDropTargetPlacement.frame(cursor: CGPoint(x: 0, y: 450), screenFrame: screen)
+        let right = FloatingDropTargetPlacement.frame(cursor: CGPoint(x: screen.maxX, y: 450), screenFrame: screen)
+        XCTAssertEqual(left.minX, screen.minX + FloatingDropTargetPlacement.screenMargin, accuracy: 0.1)
+        XCTAssertEqual(right.maxX, screen.maxX - FloatingDropTargetPlacement.screenMargin, accuracy: 0.1)
     }
 
     // MARK: - Trigger
 
     func testTriggerRequiresShelfFlagsAndAnActiveDrag() {
-        XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
-            shelfEnabled: false, floatingShelfEnabled: true, notchOpen: false, contentDragActive: true,
+        XCTAssertFalse(FloatingDropTargetTriggerPolicy.shouldPresent(
+            shelfEnabled: false, floatingDropTargetEnabled: true, notchOpen: false, contentDragActive: true,
             shake: true, shiftHeld: true
         ))
-        XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
-            shelfEnabled: true, floatingShelfEnabled: false, notchOpen: false, contentDragActive: true,
+        XCTAssertFalse(FloatingDropTargetTriggerPolicy.shouldPresent(
+            shelfEnabled: true, floatingDropTargetEnabled: false, notchOpen: false, contentDragActive: true,
             shake: true, shiftHeld: false
         ))
-        XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
-            shelfEnabled: true, floatingShelfEnabled: true, notchOpen: false, contentDragActive: false,
+        XCTAssertFalse(FloatingDropTargetTriggerPolicy.shouldPresent(
+            shelfEnabled: true, floatingDropTargetEnabled: true, notchOpen: false, contentDragActive: false,
             shake: true, shiftHeld: true
         ))
     }
 
     func testOpenNotchBlocksEveryTrigger() {
-        XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
-            shelfEnabled: true, floatingShelfEnabled: true, notchOpen: true, contentDragActive: true,
+        XCTAssertFalse(FloatingDropTargetTriggerPolicy.shouldPresent(
+            shelfEnabled: true, floatingDropTargetEnabled: true, notchOpen: true, contentDragActive: true,
             shake: true, shiftHeld: false
         ))
-        XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
-            shelfEnabled: true, floatingShelfEnabled: true, notchOpen: true, contentDragActive: true,
+        XCTAssertFalse(FloatingDropTargetTriggerPolicy.shouldPresent(
+            shelfEnabled: true, floatingDropTargetEnabled: true, notchOpen: true, contentDragActive: true,
             shake: false, shiftHeld: true
         ))
-    }
-
-    func testDismissWaitsWhileThePointerIsInside() {
-        XCTAssertFalse(FloatingShelfDismissPolicy.shouldClose(pointerInside: true))
-        XCTAssertTrue(FloatingShelfDismissPolicy.shouldClose(pointerInside: false))
     }
 
     func testEachTriggerCanPresentOnItsOwn() {
         XCTAssertTrue(presenting(shake: true, shiftHeld: false))
         XCTAssertTrue(presenting(shake: false, shiftHeld: true))
-        XCTAssertFalse(FloatingShelfTriggerPolicy.shouldPresent(
-            shelfEnabled: true, floatingShelfEnabled: true, notchOpen: false, contentDragActive: true,
+        XCTAssertFalse(FloatingDropTargetTriggerPolicy.shouldPresent(
+            shelfEnabled: true, floatingDropTargetEnabled: true, notchOpen: false, contentDragActive: true,
             shake: false, shiftHeld: false
         ))
     }
@@ -169,21 +164,48 @@ final class FloatingShelfTests: XCTestCase {
     func testEmptyPasteboardIsNotDroppable() {
         let pasteboard = makePasteboard()
         pasteboard.clearContents()
-        XCTAssertFalse(DragPasteboardContent.isDroppable(pasteboard))
+        XCTAssertFalse(ShelfDropService.canAccept(pasteboard))
     }
 
     func testStringPasteboardIsDroppable() {
         let pasteboard = makePasteboard()
         pasteboard.clearContents()
         pasteboard.setString("notes", forType: .string)
-        XCTAssertTrue(DragPasteboardContent.isDroppable(pasteboard))
+        XCTAssertTrue(ShelfDropService.canAccept(pasteboard))
+    }
+
+    func testFileURLPasteboardIsDroppable() {
+        let pasteboard = makePasteboard()
+        pasteboard.clearContents()
+        pasteboard.setString("file:///tmp/example.txt", forType: .fileURL)
+        XCTAssertTrue(ShelfDropService.canAccept(pasteboard))
+    }
+
+    func testURLPasteboardIsDroppable() {
+        let pasteboard = makePasteboard()
+        pasteboard.clearContents()
+        pasteboard.setString("https://example.com", forType: .URL)
+        XCTAssertTrue(ShelfDropService.canAccept(pasteboard))
     }
 
     func testImageWithoutTextOrFileIsNotDroppable() {
         let pasteboard = makePasteboard()
         pasteboard.clearContents()
         pasteboard.setData(Data([0, 1, 2, 3]), forType: .tiff)
-        XCTAssertFalse(DragPasteboardContent.isDroppable(pasteboard))
+        XCTAssertFalse(ShelfDropService.canAccept(pasteboard))
+    }
+
+    func testPasteboardRejectsWhenAnyItemIsNotDroppable() {
+        let pasteboard = makePasteboard()
+        pasteboard.clearContents()
+
+        let text = NSPasteboardItem()
+        text.setString("notes", forType: .string)
+        let image = NSPasteboardItem()
+        image.setData(Data([0, 1, 2, 3]), forType: .tiff)
+
+        pasteboard.writeObjects([text, image])
+        XCTAssertFalse(ShelfDropService.canAccept(pasteboard))
     }
 
     // MARK: - Helpers
@@ -225,9 +247,9 @@ final class FloatingShelfTests: XCTestCase {
         shiftHeld: Bool,
         shiftTriggerEnabled: Bool = true
     ) -> Bool {
-        FloatingShelfTriggerPolicy.shouldPresent(
+        FloatingDropTargetTriggerPolicy.shouldPresent(
             shelfEnabled: true,
-            floatingShelfEnabled: true,
+            floatingDropTargetEnabled: true,
             notchOpen: false,
             contentDragActive: true,
             shake: shake,

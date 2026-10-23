@@ -27,7 +27,7 @@ struct PointerShakeDetector {
     private let minimumStep: CGFloat
     private let cooldown: TimeInterval = 0.8
 
-    init(sensitivity: ShakeSensitivity = .medium) {
+    init(sensitivity: DropTargetShakeSensitivity = .medium) {
         switch sensitivity {
         case .low:
             minimumReversals = 4

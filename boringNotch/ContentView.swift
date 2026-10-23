@@ -333,7 +333,7 @@ struct ContentView: View {
                     }
                     .onChange(of: vm.notchState) { _, state in
                         if state == .open {
-                            FloatingShelfController.shared.notchDidOpen()
+                            FloatingDropTargetController.shared.notchDidOpen()
                         }
                     }
                     // A new notification always takes the front of the stack,
@@ -398,7 +398,7 @@ struct ContentView: View {
             }
 
             anyDropDebounceTask = Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(500))
+                try? await Task.sleep(for: .milliseconds(dropEventAcknowledgementDelayMilliseconds))
                 guard !Task.isCancelled else { return }
 
                 if dropInteraction.dropEvent {
@@ -595,7 +595,7 @@ struct ContentView: View {
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
         }
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))
+        .onDrop(of: ShelfDropService.supportedContentTypes, delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))
     }
 
     private func nowPlayingFallbackNotice(_ notice: NowPlayingFallbackNotice) -> some View {
@@ -799,7 +799,7 @@ struct ContentView: View {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
+        .onDrop(of: ShelfDropService.supportedContentTypes, isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
             dropInteraction.dropEvent = true
             ShelfStateViewModel.shared.load(providers)
             return true
