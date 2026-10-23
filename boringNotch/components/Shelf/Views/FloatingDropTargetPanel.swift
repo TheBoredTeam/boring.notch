@@ -10,14 +10,48 @@ import Defaults
 import Observation
 import SwiftUI
 
+enum FloatingDropTargetPreviewEvent {
+    case started
+    case resolved
+}
+
+@MainActor
+final class FloatingDropTargetPreviewSession {
+    struct Token: Equatable {
+        let generation: Int
+        let serial: Int
+    }
+
+    private var generation = 0
+    private var serial = 0
+
+    func beginPresentation(generation: Int) {
+        self.generation = generation
+        serial = 0
+    }
+
+    func beginDrop() -> Token {
+        serial += 1
+        return Token(generation: generation, serial: serial)
+    }
+
+    func isCurrent(_ token: Token) -> Bool {
+        token.generation == generation && token.serial == serial
+    }
+}
+
 /// Drop target shown beside the pointer. It must be allowed to become key:
 /// a nonactivating panel that refuses key status never receives an in-progress drag.
 @MainActor
 final class FloatingDropTargetPanel: NSPanel {
     let dropInteraction = DropInteractionState()
+    var onPreviewEvent: (@MainActor (FloatingDropTargetPreviewEvent) -> Void)?
     private let presentation = FloatingDropTargetPresentation()
+    private let previewSession = FloatingDropTargetPreviewSession()
     private var pointerExitTask: Task<Void, Never>?
     private var onPointerExit: (@MainActor () -> Void)?
+    private var fadeGeneration = 0
+    var isWaitingForPointerExit: Bool { onPointerExit != nil }
 
     init() {
         super.init(
@@ -31,7 +65,9 @@ final class FloatingDropTargetPanel: NSPanel {
             rootView: FloatingDropTargetChrome(
                 dropInteraction: dropInteraction,
                 presentation: presentation,
-                onHoverChanged: { [weak self] in self?.handlePointerHover($0) }
+                onHoverChanged: { [weak self] in self?.handlePointerHover($0) },
+                previewSession: previewSession,
+                onPreviewEvent: { [weak self] event in self?.onPreviewEvent?(event) }
             )
         )
     }
@@ -48,12 +84,15 @@ final class FloatingDropTargetPanel: NSPanel {
     /// window shadow does not follow SwiftUI content as it scales.
     func show(growingFrom anchor: CGPoint) {
         cancelPointerExitDismissal()
+        dropInteraction.reset()
+        fadeGeneration += 1
         presentation.anchor = UnitPoint(x: anchor.x, y: anchor.y)
         ignoresMouseEvents = false
         if !isVisible {
             alphaValue = 0
         }
         presentation.generation += 1
+        previewSession.beginPresentation(generation: presentation.generation)
         orderFrontRegardless()
         withAnimation(StandardAnimations.open) {
             presentation.isShown = true
@@ -64,12 +103,14 @@ final class FloatingDropTargetPanel: NSPanel {
     func hide(completion: @escaping () -> Void) {
         cancelPointerExitDismissal()
         ignoresMouseEvents = true
+        fadeGeneration += 1
+        let generation = fadeGeneration
         withAnimation(StandardAnimations.close) {
             presentation.isShown = false
         }
         fade(to: 0) { [weak self] in
             // A show() during the fade takes the panel back, so it must stay on screen.
-            guard let self, !self.presentation.isShown else { return }
+            guard let self, self.fadeGeneration == generation else { return }
             self.orderOut(nil)
             completion()
         }
@@ -78,6 +119,11 @@ final class FloatingDropTargetPanel: NSPanel {
     func dismissWhenPointerLeaves(_ action: @escaping @MainActor () -> Void) {
         onPointerExit = action
         handlePointerHover(frame.contains(NSEvent.mouseLocation))
+    }
+
+    /// A newer drop has to stay up until its own preview resolves.
+    func suspendPointerExit() {
+        cancelPointerExitDismissal()
     }
 
     private func handlePointerHover(_ inside: Bool) {
@@ -122,9 +168,10 @@ final class FloatingDropTargetPanel: NSPanel {
         backgroundColor = .clear
         isMovable = false
         hidesOnDeactivate = false
-        // Above normal windows, still inside the level range a drag session will hit-test.
-        // screenSaver level draws the panel but the drag passes through it.
-        level = .floating
+        // One level above the notch window. `.floating` is underneath that window, so a
+        // drop on the overlapping square would hit the notch instead. `.screenSaver`
+        // draws the panel, but the drag passes through it.
+        level = BoringNotchSkyLightWindow.windowLevel + 1
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         // Borderless windows have no visible title, so VoiceOver would otherwise announce an unnamed window.
         setAccessibilityTitle(String(localized: "Drop target"))
@@ -147,13 +194,17 @@ private struct FloatingDropTargetChrome: View {
     let dropInteraction: DropInteractionState
     let presentation: FloatingDropTargetPresentation
     let onHoverChanged: (Bool) -> Void
+    let previewSession: FloatingDropTargetPreviewSession
+    let onPreviewEvent: @MainActor (FloatingDropTargetPreviewEvent) -> Void
 
     var body: some View {
         ShelfDropWell(
             dropInteraction: dropInteraction,
             animation: nil,
             showsShelvedItems: false,
-            appearanceSession: presentation.generation
+            appearanceSession: presentation.generation,
+            previewSession: previewSession,
+            onPreviewEvent: onPreviewEvent
         )
             // Same inset the notch uses around the shelf row.
             .padding(12)

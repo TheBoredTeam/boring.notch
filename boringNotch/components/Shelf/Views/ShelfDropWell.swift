@@ -17,14 +17,20 @@ struct ShelfDropWell: View {
     var showsShelvedItems: Bool
     /// Bumped each time the floating panel is shown, so the previous drop is not still sitting in the well.
     var appearanceSession: Int = 0
+    /// Tracks floating preview identity across panel presentations. Nil on the notch shelf.
+    var previewSession: FloatingDropTargetPreviewSession? = nil
+    var onPreviewEvent: (@MainActor (FloatingDropTargetPreviewEvent) -> Void)? = nil
 
     @StateObject private var shelfState = ShelfStateViewModel.shared
     @State private var revealedIDs: Set<UUID> = []
+    /// Session that produced `revealedIDs`. A newer presentation renders nothing until its own drop resolves.
+    @State private var revealedDuring = -1
     private let spacing: CGFloat = 8
 
     private var displayedItems: [ShelfItem] {
         let items = Defaults[.reverseShelfOrdering] ? Array(shelfState.items.reversed()) : shelfState.items
         guard !showsShelvedItems else { return items }
+        guard revealedDuring == appearanceSession else { return [] }
         return items.filter { revealedIDs.contains($0.id) }
     }
 
@@ -33,6 +39,7 @@ struct ShelfDropWell: View {
             dropChrome(quickLookService: quickLookService)
                 .onChange(of: appearanceSession) {
                     revealedIDs = []
+                    revealedDuring = -1
                 }
         }
     }
@@ -118,15 +125,29 @@ struct ShelfDropWell: View {
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
         guard !ShelfSelectionModel.shared.isDragging else { return false }
         dropInteraction.dropEvent = true
-        let showsPreview = !showsShelvedItems
-        shelfState.load(providers) { matched in
-            guard showsPreview else { return }
-            revealedIDs = Set(matched.map(\.id))
+        if showsShelvedItems {
+            shelfState.load(providers)
+        } else {
+            revealDroppedItems(from: providers)
         }
         // The notch does this when a drag enters it. A floating drop never opens the notch,
         // so the next hover would otherwise stay on the previous tab.
         BoringViewCoordinator.shared.currentView = .shelf
         return true
+    }
+
+    /// The floating well shows only this drop. A load that finishes after the panel is shown
+    /// again, or after a newer drop, must not write into the well.
+    private func revealDroppedItems(from providers: [NSItemProvider]) {
+        guard let previewSession else { return }
+        let token = previewSession.beginDrop()
+        onPreviewEvent?(.started)
+        shelfState.load(providers) { matched in
+            guard previewSession.isCurrent(token) else { return }
+            revealedIDs = Set(matched.map(\.id))
+            revealedDuring = token.generation
+            onPreviewEvent?(.resolved)
+        }
     }
 }
 

@@ -19,6 +19,8 @@ final class FloatingDropTargetController {
     private var isPresented = false
     private var trackingContentDrag = false
     private var dismissTask: Task<Void, Never>?
+    private var previewReady = false
+    private var awaitingPreview = false
 
     private var dragSubscription: UUID?
     private var isNotchOpen: () -> Bool = { false }
@@ -105,6 +107,8 @@ final class FloatingDropTargetController {
         guard let screen = NSScreen.screens.first(where: { $0.frame.contains(cursor) }) ?? NSScreen.main else { return }
 
         dismissTask?.cancel()
+        previewReady = false
+        awaitingPreview = false
         let panel = ensurePanel()
         let frame = FloatingDropTargetPlacement.frame(cursor: cursor, screenFrame: screen.frame)
         panel.setFrame(frame, display: true)
@@ -121,6 +125,9 @@ final class FloatingDropTargetController {
             return panel
         }
         let panel = FloatingDropTargetPanel()
+        panel.onPreviewEvent = { [weak self] event in
+            self?.handlePreview(event)
+        }
         self.panel = panel
         return panel
     }
@@ -141,18 +148,48 @@ final class FloatingDropTargetController {
         let dropped = panel?.dropInteraction.dropEvent == true
         panel?.dropInteraction.dropEvent = false
         if dropped {
-            // ShelfDropWell observes the shared shelf state and renders the item when loading finishes.
-            panel?.dismissWhenPointerLeaves { [weak self] in
-                self?.dismiss()
+            if previewReady {
+                armPointerLeave()
+            } else {
+                awaitingPreview = true
             }
-        } else {
-            dismiss()
+            return
+        }
+        // A drop already committed this panel to staying up. A later drag that misses
+        // the square does not close it while that preview is unresolved or the pointer is still inside.
+        if awaitingPreview || panel?.isWaitingForPointerExit == true {
+            return
+        }
+        dismiss()
+    }
+
+    /// `load` can finish before or after the mouse-up acknowledgement. Pointer-leave starts
+    /// only once this drop's items are in the well, so a slow file stays on screen.
+    private func handlePreview(_ event: FloatingDropTargetPreviewEvent) {
+        guard isPresented else { return }
+        switch event {
+        case .started:
+            previewReady = false
+            panel?.suspendPointerExit()
+        case .resolved:
+            previewReady = true
+            guard awaitingPreview else { return }
+            awaitingPreview = false
+            armPointerLeave()
+        }
+    }
+
+    private func armPointerLeave() {
+        panel?.dismissWhenPointerLeaves { [weak self] in
+            self?.dismiss()
         }
     }
 
     private func dismiss() {
         dismissTask?.cancel()
         dismissTask = nil
+        previewReady = false
+        awaitingPreview = false
         guard isPresented else { return }
         isPresented = false
         panel?.hide { [weak panel] in panel?.resetAppearance() }

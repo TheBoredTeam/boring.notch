@@ -5,6 +5,7 @@
 
 import AppKit
 import CoreGraphics
+import Defaults
 import XCTest
 
 @testable import boringNotch
@@ -157,6 +158,65 @@ final class FloatingDropTargetTests: XCTestCase {
         XCTAssertFalse(presenting(shake: true, shakeTriggerEnabled: false, shiftHeld: false))
         XCTAssertFalse(presenting(shake: false, shiftHeld: true, shiftTriggerEnabled: false))
         XCTAssertTrue(presenting(shake: true, shakeTriggerEnabled: false, shiftHeld: true))
+    }
+
+    // MARK: - Panel
+
+    @MainActor
+    func testPointerExitStaysArmedUntilANewDropSuspendsIt() {
+        let panel = FloatingDropTargetPanel()
+        panel.dismissWhenPointerLeaves {}
+        XCTAssertTrue(panel.isWaitingForPointerExit)
+
+        panel.suspendPointerExit()
+        XCTAssertFalse(panel.isWaitingForPointerExit)
+    }
+
+    @MainActor
+    func testDropTargetSitsAboveTheNotchWindow() {
+        let panel = FloatingDropTargetPanel()
+        XCTAssertEqual(panel.level.rawValue, BoringNotchSkyLightWindow.windowLevel.rawValue + 1)
+        XCTAssertLessThan(panel.level.rawValue, NSWindow.Level.screenSaver.rawValue)
+    }
+
+    @MainActor
+    func testPreviewSessionRejectsOlderDropsAndPresentations() {
+        let session = FloatingDropTargetPreviewSession()
+        session.beginPresentation(generation: 1)
+        let firstDrop = session.beginDrop()
+        let secondDrop = session.beginDrop()
+
+        XCTAssertFalse(session.isCurrent(firstDrop))
+        XCTAssertTrue(session.isCurrent(secondDrop))
+
+        session.beginPresentation(generation: 2)
+        XCTAssertFalse(session.isCurrent(secondDrop))
+    }
+
+    @MainActor
+    func testShowDuringHideDoesNotFinishTheInterruptedDismissal() async throws {
+        let previousAnimationSetting = Defaults[.enableOpeningAnimation]
+        let previousSpeed = Defaults[.animationSpeedMultiplier]
+        Defaults[.enableOpeningAnimation] = true
+        Defaults[.animationSpeedMultiplier] = 1
+        defer {
+            Defaults[.enableOpeningAnimation] = previousAnimationSetting
+            Defaults[.animationSpeedMultiplier] = previousSpeed
+        }
+
+        let panel = FloatingDropTargetPanel()
+        panel.show(growingFrom: .zero)
+        panel.dropInteraction.dropEvent = true
+        var hideCompleted = false
+        panel.hide { hideCompleted = true }
+        panel.show(growingFrom: .zero)
+
+        try await Task.sleep(for: .milliseconds(300))
+
+        XCTAssertFalse(hideCompleted)
+        XCTAssertFalse(panel.dropInteraction.dropEvent)
+        XCTAssertTrue(panel.isVisible)
+        panel.orderOut(nil)
     }
 
     // MARK: - Pasteboard
