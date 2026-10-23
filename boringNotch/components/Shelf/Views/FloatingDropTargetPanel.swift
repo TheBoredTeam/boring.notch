@@ -6,6 +6,7 @@
 //
 
 import AppKit
+import Combine
 import Defaults
 import Observation
 import SwiftUI
@@ -50,6 +51,7 @@ final class FloatingDropTargetPanel: NSPanel {
     private let previewSession = FloatingDropTargetPreviewSession()
     private var pointerExitTask: Task<Void, Never>?
     private var onPointerExit: (@MainActor () -> Void)?
+    private var shelfDragCancellable: AnyCancellable?
     private var fadeGeneration = 0
     var isWaitingForPointerExit: Bool { onPointerExit != nil }
 
@@ -70,6 +72,11 @@ final class FloatingDropTargetPanel: NSPanel {
                 onPreviewEvent: { [weak self] event in self?.onPreviewEvent?(event) }
             )
         )
+        shelfDragCancellable = ShelfSelectionModel.shared.$isDragging
+            .removeDuplicates()
+            .sink { [weak self] isDragging in
+                self?.handleShelfDragChanged(isDragging)
+            }
     }
 
     override var canBecomeKey: Bool { true }
@@ -129,7 +136,11 @@ final class FloatingDropTargetPanel: NSPanel {
     private func handlePointerHover(_ inside: Bool) {
         pointerExitTask?.cancel()
         pointerExitTask = nil
-        guard !inside, onPointerExit != nil else { return }
+        guard !inside,
+              onPointerExit != nil,
+              !ShelfSelectionModel.shared.isDragging else {
+            return
+        }
         pointerExitTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .milliseconds(hoverExitDelayMilliseconds))
             guard !Task.isCancelled,
@@ -142,6 +153,13 @@ final class FloatingDropTargetPanel: NSPanel {
             self.pointerExitTask = nil
             onPointerExit()
         }
+    }
+
+    private func handleShelfDragChanged(_ isDragging: Bool) {
+        pointerExitTask?.cancel()
+        pointerExitTask = nil
+        guard !isDragging, onPointerExit != nil else { return }
+        handlePointerHover(frame.contains(NSEvent.mouseLocation))
     }
 
     private func cancelPointerExitDismissal() {

@@ -59,9 +59,6 @@ struct ShelfDropWell: View {
                     ShelfBackgroundInteractionView()
                     content(quickLookService: quickLookService)
                         .padding()
-                        // The floating preview only displays the drop. Hit testing would let a
-                        // right-click or drag-out pull the pointer out of the panel and close it.
-                        .allowsHitTesting(showsShelvedItems)
                 }
             }
             .transaction { transaction in
