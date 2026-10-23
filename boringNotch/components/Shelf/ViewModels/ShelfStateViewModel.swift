@@ -15,8 +15,6 @@ final class ShelfStateViewModel: ObservableObject {
         didSet { schedulePersistence() }
     }
 
-    @Published var isLoading: Bool = false
-
     var isEmpty: Bool { items.isEmpty }
 
     // Debounced persistence
@@ -72,7 +70,6 @@ final class ShelfStateViewModel: ObservableObject {
             completion?([])
             return
         }
-        isLoading = true
         Task { [weak self] in
             let dropped = await ShelfDropService.items(from: providers)
             await MainActor.run {
@@ -81,7 +78,6 @@ final class ShelfStateViewModel: ObservableObject {
                 let keys = Set(dropped.map(\.identityKey))
                 let matched = self.items.filter { keys.contains($0.identityKey) }
                 completion?(matched)
-                self.isLoading = false
             }
         }
     }
