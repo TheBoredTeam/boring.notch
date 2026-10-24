@@ -75,6 +75,12 @@ final class NotificationWatcher {
     private var parkedWindowByToken: [String: Int] = [:]
     private var parkedWindows: [Int: (window: AXUIElement, origin: CGPoint)] = [:]
     private var bundleIDCache: [String: String] = [:]
+    /// The AX observer is bound to one Notification Center process. When it
+    /// exits (crash, killall, an OS update) the observer goes silent, so the
+    /// exit is watched and the watcher attaches to the relaunched instance.
+    private var exitSource: DispatchSourceProcess?
+    private var reattachWorkItem: DispatchWorkItem?
+    private let reattachAttempts = 30
 
     var isRunning: Bool { appElement != nil }
 
@@ -88,7 +94,7 @@ final class NotificationWatcher {
         guard AXIsProcessTrusted(), !isRunning,
               let application = NSRunningApplication.runningApplications(
                 withBundleIdentifier: notificationCenterBundleID
-              ).first else {
+              ).first(where: { !$0.isTerminated }) else {
             return false
         }
 
@@ -98,12 +104,53 @@ final class NotificationWatcher {
             return false
         }
 
+        watchForExit(of: application.processIdentifier)
         refreshObservedWindows()
         scan()
         return true
     }
 
     func stop() {
+        reattachWorkItem?.cancel()
+        reattachWorkItem = nil
+        exitSource?.cancel()
+        exitSource = nil
+        detach()
+    }
+
+    private func watchForExit(of processIdentifier: pid_t) {
+        exitSource?.cancel()
+        let source = DispatchSource.makeProcessSource(
+            identifier: processIdentifier, eventMask: .exit, queue: .main
+        )
+        source.setEventHandler { [weak self] in
+            guard let self else { return }
+            self.exitSource?.cancel()
+            self.exitSource = nil
+            self.detach()
+            self.reattach(remainingAttempts: self.reattachAttempts)
+        }
+        exitSource = source
+        source.resume()
+    }
+
+    /// launchd relaunches Notification Center within a moment; retry once a
+    /// second until the new instance accepts the observer.
+    private func reattach(remainingAttempts: Int) {
+        reattachWorkItem = nil
+        if start() { return }
+        guard remainingAttempts > 1 else {
+            NSLog("[boringNotch] Notification Center did not come back, banners are no longer watched")
+            return
+        }
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.reattach(remainingAttempts: remainingAttempts - 1)
+        }
+        reattachWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: workItem)
+    }
+
+    private func detach() {
         settleWorkItem?.cancel()
         settleWorkItem = nil
         if let observer = axObserver {
