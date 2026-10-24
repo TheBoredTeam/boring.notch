@@ -9927,6 +9927,12 @@
         }
       }
     },
+    "Drop files here or paste" : {
+      "comment" : "Hint shown in an empty shelf, where items can be dropped or pasted."
+    },
+    "Paste" : {
+      "comment" : "Context menu item: Paste"
+    },
     "Drop files here" : {
       "localizations" : {
         "cs" : {

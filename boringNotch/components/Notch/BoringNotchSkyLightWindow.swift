@@ -148,23 +148,24 @@ class BoringNotchSkyLightWindow: NSPanel {
 
     /// False by default so a click on the notch never activates the app or
     /// steals focus from whatever is frontmost — load-bearing for every
-    /// normal interaction (hover-to-open, music controls, OSD). A text field
-    /// needs this flipped on for the moment it's actually being typed into,
-    /// and back off the instant it isn't — never left permanently true.
+    /// normal interaction (hover-to-open, music controls, OSD). Input-driven
+    /// surfaces (text fields, the shelf paste target) flip this on only while
+    /// they actually own keyboard focus, and back off the instant they don't —
+    /// never left permanently true.
     ///
     /// This is the window class actually instantiated for the notch
     /// (createBoringNotchWindow uses BoringNotchSkyLightWindow, not the
     /// separate, unused BoringNotchWindow class) — an earlier fix targeted
     /// that unused class and silently did nothing.
-    var wantsKeyForTextInput = false {
+    var wantsKeyboardFocus = false {
         didSet {
-            guard wantsKeyForTextInput != oldValue else { return }
-            if wantsKeyForTextInput {
+            guard wantsKeyboardFocus != oldValue else { return }
+            if wantsKeyboardFocus {
                 makeKey()
             }
         }
     }
 
-    override var canBecomeKey: Bool { wantsKeyForTextInput }
+    override var canBecomeKey: Bool { wantsKeyboardFocus }
     override var canBecomeMain: Bool { false }
 }
