@@ -1,6 +1,6 @@
 # Codex conversation live activity
 
-This optional integration is a passive, read-only conversation status panel. It adds a Codex activity to the existing closed-notch stack, below notifications and above music. Opening the home tab shows recent Codex conversations; notifications and the shelf keep their existing precedence. The expanded panel can switch back to Music & Calendar.
+This optional integration is a read-only conversation status panel with shortcuts to Codex. It adds a Codex activity to the existing closed-notch stack, below notifications and above music. Opening the home tab shows recent Codex conversations; notifications and the shelf keep their existing precedence. The expanded panel can switch back to Music & Calendar.
 
 ## Connect
 
@@ -10,6 +10,7 @@ The folder grant covers the chosen directory, which can contain sensitive config
 
 ## Display and semantics
 
+- Click the closed Codex activity to open its primary running conversation in Codex. In the expanded panel, click a conversation title to open that conversation. Links use `codex://threads/<conversation-id>` and require the Codex desktop app; only UUID conversation IDs are accepted.
 - Refresh every two seconds, with running conversations first and up to 12 recent conversations in the scrollable panel.
 - Correlate runtime session IDs in `thread_turns` with conversation IDs in `threads` using rollout filenames.
 - Prefer the explicit conversation `name`, then `title`, and persist resolved names in the app-local cache.

@@ -16,6 +16,13 @@ struct CodexActivity: Identifiable, Equatable, Sendable {
     let startedAt: Date
     let updatedAt: Date
     let status: CodexTaskStatus
+
+    @MainActor
+    func openConversation() {
+        guard UUID(uuidString: id) != nil,
+              let url = URL(string: "codex://threads/\(id)") else { return }
+        NSWorkspace.shared.open(url)
+    }
 }
 
 enum CodexTaskStatus: String, Sendable {
@@ -447,8 +454,7 @@ struct CodexLiveActivityView: View {
 
     var body: some View {
         Button {
-            manager.isShowingDetails = true
-            viewModel.open()
+            manager.activeActivities.first?.openConversation()
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: "terminal.fill")
@@ -484,7 +490,7 @@ struct CodexLiveActivityView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .help("Show active Codex tasks")
+        .help("Open this conversation in Codex")
     }
 }
 
@@ -537,8 +543,14 @@ struct CodexActivityDetailsContent: View {
                                         .frame(width: 18)
                                 }
                                 VStack(alignment: .leading, spacing: 3) {
-                                    Text(activity.title).font(.subheadline.weight(.medium))
-                                        .foregroundStyle(.white).lineLimit(1)
+                                    Button {
+                                        activity.openConversation()
+                                    } label: {
+                                        Text(activity.title).font(.subheadline.weight(.medium))
+                                            .foregroundStyle(.white).lineLimit(1)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .help("Open this conversation in Codex")
                                     Text("\(activity.status.label) · \(Self.elapsedTime(since: activity.status == .running ? activity.startedAt : activity.updatedAt))")
                                         .font(.caption).foregroundStyle(activity.status.color)
                                 }
