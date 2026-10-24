@@ -947,6 +947,12 @@
     },
     "Actual Size" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tatsächliche Größe"
+          }
+        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1107,6 +1113,12 @@
     "Add Application…" : {
       "comment" : "A button that adds an application to the list of allowed notifications.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anwendung hinzufügen..."
+          }
+        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3436,6 +3448,12 @@
     },
     "Behavior" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verhalten"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3477,6 +3495,12 @@
     "Beta" : {
       "comment" : "Update channel: beta",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta"
+          }
+        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4646,6 +4670,12 @@
     "Camera" : {
       "comment" : "A label for the camera picker.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera"
+          }
+        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5389,6 +5419,12 @@
     "Check Again" : {
       "comment" : "A button that refreshes the availability of the 'Now Playing' media source.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erneut prüfen"
+          }
+        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7029,6 +7065,12 @@
     },
     "Compact mode" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompaktmodus"
+          }
+        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12173,6 +12215,12 @@
     },
     "From all apps" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von allen Apps"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18633,6 +18681,12 @@
     "No apps selected" : {
       "comment" : "A message displayed when no apps are selected in the notification settings.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Apps ausgewählt"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19719,6 +19773,12 @@
     },
     "Notifications" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mitteilungen"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25752,6 +25812,12 @@
     "Show charging wattage" : {
       "comment" : "A checkbox to show the wattage of the charging port.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ladeleistung in Watt anzeigen"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -26500,6 +26566,12 @@
     },
     "Show notifications in the notch" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benachrichtigungen in der Notch anzeigen"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27658,6 +27730,12 @@
     },
     "Shows a smaller opened notch with just the music player — no tabs, calendar or mirror." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeigt eine kleinere, geöffnete Notch mit nur dem Musikplayer — keine Tabs, Kalender oder Spiegel."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
