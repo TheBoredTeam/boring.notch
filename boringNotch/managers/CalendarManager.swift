@@ -30,6 +30,10 @@ final class CalendarManager: ObservableObject {
     /// EventKit can fire EKEventStoreChanged in bursts during syncs; reloads
     /// coalesce so the UI refreshes once per burst instead of per notification.
     private var reloadTask: Task<Void, Never>?
+    /// Start-of-day dates that have events/reminders, keyed by month plus the visibility filters.
+    private var daysWithEventsCache: [String: Set<Date>] = [:]
+    /// Bumped on invalidation so an in-flight fetch can't write stale data back into the cache.
+    private var daysWithEventsGeneration = 0
 
     private init() {
         self.currentWeekStartDate = CalendarManager.startOfDay(Date())
@@ -68,6 +72,7 @@ final class CalendarManager: ObservableObject {
         self.reminderLists = all.filter { $0.isReminder }
         self.allCalendars = all // for legacy compatibility, can be removed if not needed
         updateSelectedCalendars()
+        invalidateDaysWithEventsCache()
     }
 
     func checkCalendarAuthorization() async {
@@ -177,6 +182,7 @@ final class CalendarManager: ObservableObject {
 
         Defaults[.calendarSelectionState] = selectionState
         updateSelectedCalendars()
+        invalidateDaysWithEventsCache()
         await updateEvents()
     }
 
@@ -187,6 +193,36 @@ final class CalendarManager: ObservableObject {
     func updateCurrentDate(_ date: Date) async {
         currentWeekStartDate = Calendar.current.startOfDay(for: date)
         await updateEvents()
+    }
+
+    /// Days in `month` that have at least one visible event or reminder.
+    func daysWithEvents(in month: Date) async -> Set<Date> {
+        let calendar = Calendar.current
+        guard let interval = calendar.dateInterval(of: .month, for: month) else { return [] }
+        let key = Self.monthCacheKey(for: interval.start, calendar: calendar)
+            + "|\(Defaults[.hideAllDayEvents])|\(Defaults[.hideCompletedReminders])"
+        let generation = daysWithEventsGeneration
+        if let cached = daysWithEventsCache[key] {
+            return cached
+        }
+
+        let eventsResult = await calendarService.events(
+            from: interval.start,
+            to: interval.end,
+            calendars: selectedCalendars.map { $0.id }
+        )
+
+        var days = Set<Date>()
+        for event in eventsResult where shouldShowOnMonthGrid(event) {
+            for day in daysCovered(by: event, calendar: calendar) where day >= interval.start && day < interval.end {
+                days.insert(day)
+            }
+        }
+
+        if generation == daysWithEventsGeneration {
+            daysWithEventsCache[key] = days
+        }
+        return days
     }
 
     private func updateEvents() async {
@@ -201,10 +237,53 @@ final class CalendarManager: ObservableObject {
 
     func setReminderCompleted(reminderID: String, completed: Bool) async {
         await calendarService.setReminderCompleted(reminderID: reminderID, completed: completed)
+        invalidateDaysWithEventsCache()
         // Refresh events after updating
         events = await calendarService.events(
             from: currentWeekStartDate,
             to: Calendar.current.date(byAdding: .day, value: 1, to: currentWeekStartDate)!,
             calendars: selectedCalendars.map { $0.id })
+    }
+
+    private func invalidateDaysWithEventsCache() {
+        daysWithEventsCache.removeAll()
+        daysWithEventsGeneration += 1
+    }
+
+    private static func monthCacheKey(for monthStart: Date, calendar: Calendar) -> String {
+        let comps = calendar.dateComponents([.year, .month], from: monthStart)
+        return "\(comps.year ?? 0)-\(comps.month ?? 0)"
+    }
+
+    private func shouldShowOnMonthGrid(_ event: EventModel) -> Bool {
+        if case .reminder(let completed) = event.type {
+            if completed && Defaults[.hideCompletedReminders] {
+                return false
+            }
+        }
+        if event.isAllDay && Defaults[.hideAllDayEvents] {
+            return false
+        }
+        return true
+    }
+
+    /// Inclusive start-of-day dates covered by an event (handles exclusive midnight ends).
+    private func daysCovered(by event: EventModel, calendar: Calendar) -> [Date] {
+        let start = calendar.startOfDay(for: event.start)
+        var endExclusive = calendar.startOfDay(for: event.end)
+        if event.end > endExclusive {
+            endExclusive = calendar.date(byAdding: .day, value: 1, to: endExclusive) ?? endExclusive
+        }
+        if endExclusive <= start {
+            return [start]
+        }
+        var result: [Date] = []
+        var day = start
+        while day < endExclusive {
+            result.append(day)
+            guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }
+            day = next
+        }
+        return result
     }
 }
