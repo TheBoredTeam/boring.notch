@@ -13215,6 +13215,9 @@
         }
       }
     },
+    "Hidden" : {
+
+    },
     "Hide all-day events" : {
       "localizations" : {
         "cs" : {
@@ -15702,6 +15705,9 @@
         }
       }
     },
+    "Loading lyrics…" : {
+
+    },
     "Looking for devices…" : {
       "localizations" : {
         "fr" : {
@@ -16032,6 +16038,12 @@
           }
         }
       }
+    },
+    "Lyrics" : {
+
+    },
+    "Lyrics unavailable" : {
+
     },
     "Made with 🫶🏻 by not so boring not.people" : {
       "localizations" : {
@@ -26022,6 +26034,7 @@
       }
     },
     "Show lyrics below artist name" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -27655,6 +27668,9 @@
           }
         }
       }
+    },
+    "Shown" : {
+
     },
     "Shows a smaller opened notch with just the music player — no tabs, calendar or mirror." : {
       "localizations" : {
