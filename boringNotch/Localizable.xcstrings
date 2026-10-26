@@ -531,6 +531,15 @@
         }
       }
     },
+    "1. Open the authorization link below in your browser:" : {
+
+    },
+    "2. Click \"Allow\" on the last.fm page to authorize this app" : {
+
+    },
+    "3. Return here and click \"Complete Sign-in\"" : {
+
+    },
     "About" : {
       "localizations" : {
         "cs" : {
@@ -1955,6 +1964,12 @@
         }
       }
     },
+    "API Key" : {
+
+    },
+    "API Secret" : {
+
+    },
     "App" : {
       "localizations" : {
         "en" : {
@@ -2220,6 +2235,12 @@
           }
         }
       }
+    },
+    "Authenticated as %@" : {
+
+    },
+    "Authorization token received. Now complete the steps:" : {
+
     },
     "Auto-scroll to next event" : {
       "localizations" : {
@@ -2651,6 +2672,9 @@
           }
         }
       }
+    },
+    "Automatically sends information about listened tracks to last.fm. Requires API key and authorization." : {
+
     },
     "Automatically switch display if preferred is unavailable" : {
       "comment" : "Display behavior option: switch to the active display when the preferred display is unavailable.",
@@ -6560,6 +6584,9 @@
         }
       }
     },
+    "Click below to request an authorization token and open the last.fm authorization page in your browser." : {
+
+    },
     "Close" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -7073,6 +7100,9 @@
         }
       }
     },
+    "Complete Sign-in" : {
+
+    },
     "Compress" : {
       "comment" : "Context menu item: Compress",
       "localizations" : {
@@ -7243,6 +7273,9 @@
           }
         }
       }
+    },
+    "Connected to last.fm" : {
+
     },
     "Connects directly to the Apple Music app." : {
       "comment" : "Onboarding description of the Apple Music source.",
@@ -15408,6 +15441,12 @@
         }
       }
     },
+    "last.fm Scrobbling" : {
+
+    },
+    "last.fm/api/account" : {
+
+    },
     "Later" : {
       "localizations" : {
         "cs" : {
@@ -20331,6 +20370,9 @@
         }
       }
     },
+    "Open in browser" : {
+
+    },
     "Open in Calendar" : {
       "localizations" : {
         "fr" : {
@@ -22942,6 +22984,9 @@
         }
       }
     },
+    "Register an application at last.fm to get your API key and secret:" : {
+
+    },
     "Release name" : {
       "localizations" : {
         "cs" : {
@@ -24705,6 +24750,12 @@
           }
         }
       }
+    },
+    "Scrobble to last.fm" : {
+
+    },
+    "Scrobbling is now active. Tracks will be sent to last.fm automatically when you listen to music." : {
+
     },
     "Select Files for %@" : {
       "localizations" : {
@@ -27724,6 +27775,9 @@
         }
       }
     },
+    "Sign Out" : {
+
+    },
     "Sizing" : {
       "localizations" : {
         "en" : {
@@ -28571,6 +28625,15 @@
         }
       }
     },
+    "Start Authorization" : {
+
+    },
+    "Step 1: Get your API credentials" : {
+
+    },
+    "Step 2: Authorize this app" : {
+
+    },
     "System" : {
       "localizations" : {
         "de" : {
@@ -28830,6 +28893,9 @@
           }
         }
       }
+    },
+    "Test Scrobble" : {
+
     },
     "The background helper crashed or was closed by macOS. It restarts automatically on the next OSD event." : {
       "localizations" : {
@@ -32108,6 +32174,12 @@
           }
         }
       }
+    },
+    "Your API key" : {
+
+    },
+    "Your API secret" : {
+
     },
     "Your calendar data is only used to show your events and is never shared." : {
       "localizations" : {
