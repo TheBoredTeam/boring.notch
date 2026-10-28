@@ -295,6 +295,8 @@ struct MusicControlSlotButton: View {
                 VolumeControlView()
             case .favorite:
                 FavoriteControlButton()
+            case .rating:
+                StarRatingControlButton()
             case .goBackward:
                 HoverButton(icon: "gobackward.15", scale: .medium) {
                     MusicManager.shared.skip(seconds: -15)
@@ -345,6 +347,98 @@ struct MusicPlaybackTimeline<Content: View>: View {
 }
 
 private let musicPlaybackTickInterval: TimeInterval = 0.2
+
+struct StarRatingControlButton: View {
+    @EnvironmentObject private var vm: BoringViewModel
+    @ObservedObject private var musicManager = MusicManager.shared
+    @State private var showingPicker = false
+    @State private var isUpdating = false
+    @State private var updateFailed = false
+
+    var body: some View {
+        HoverButton(
+            icon: (musicManager.trackRating?.stars ?? 0) > 0 ? "star.fill" : "star",
+            iconColor: (musicManager.trackRating?.stars ?? 0) > 0 ? .yellow : .primary,
+            scale: .medium
+        ) {
+            updateFailed = false
+            showingPicker.toggle()
+        }
+        .disabled(!musicManager.canRateTrack)
+        .opacity(musicManager.canRateTrack ? 1 : 0.35)
+        .help("Rate library tracks using the Apple Music source")
+        .popover(isPresented: $showingPicker, arrowEdge: .bottom) {
+            StarRatingPicker(
+                stars: musicManager.trackRating?.stars ?? 0,
+                updateFailed: updateFailed,
+                onSelect: setRating
+            )
+            .disabled(isUpdating || !musicManager.canRateTrack)
+        }
+        .onChange(of: showingPicker) { _, isShowing in
+            vm.isPopoverActive = isShowing
+        }
+        .onChange(of: musicManager.trackRating?.trackID) { _, _ in
+            showingPicker = false
+        }
+        .onDisappear {
+            vm.isPopoverActive = false
+        }
+    }
+
+    private func setRating(_ stars: Int) {
+        guard let trackID = musicManager.trackRating?.trackID else { return }
+        isUpdating = true
+        updateFailed = false
+        Task { @MainActor in
+            defer { isUpdating = false }
+            do {
+                try await musicManager.setTrackRating(stars, for: trackID)
+            } catch {
+                updateFailed = true
+            }
+        }
+    }
+}
+
+struct StarRatingPicker: View {
+    let stars: Int
+    let updateFailed: Bool
+    let onSelect: (Int) -> Void
+
+    var body: some View {
+        VStack(spacing: 10) {
+            Text("Star rating")
+                .font(.headline)
+            HStack(spacing: 8) {
+                ForEach(1...5, id: \.self) { star in
+                    Button {
+                        onSelect(star)
+                    } label: {
+                        Image(systemName: star <= stars ? "star.fill" : "star")
+                            .foregroundStyle(.yellow)
+                            .font(.title3)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("\(star) out of 5 stars"))
+                    .accessibilityAddTraits(star == stars ? .isSelected : [])
+                }
+            }
+            Button("Remove rating") {
+                onSelect(0)
+            }
+            .disabled(stars == 0)
+            if updateFailed {
+                Text("Couldn't update the rating. Check Music and try again.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(16)
+        .frame(width: 220)
+    }
+}
 
 struct FavoriteControlButton: View {
     @ObservedObject var musicManager = MusicManager.shared
