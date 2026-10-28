@@ -744,7 +744,9 @@ struct ContentView: View {
                     ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
                     : Color.gray
                 )
-                .frame(width: 18, height: 12)
+                // As tall as the album art opposite, so the bars shrink with
+                // it on small notch heights instead of being cropped.
+                .frame(width: 18, height: max(0, scaledArtSize))
             }
             .frame(
                 width: max(
