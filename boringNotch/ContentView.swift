@@ -389,6 +389,9 @@ struct ContentView: View {
         .background(dragDetector)
         .preferredColorScheme(.dark)
         .environmentObject(vm)
+        .onChange(of: codexActivityManager.canShowDetails) { _, available in
+            if !available { codexActivityManager.isShowingDetails = false }
+        }
         .onChange(of: codexActivityManager.isShowingDetails) { _, showing in
             if vm.notchState == .open {
                 vm.notchSize = showing && coordinator.currentView == .home ? codexOpenNotchSize : openNotchSize

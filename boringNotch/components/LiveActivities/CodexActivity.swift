@@ -86,6 +86,11 @@ final class CodexActivityManager: ObservableObject {
         }
     }
 
+    /// Only offer the task panel when a healthy connection has real content.
+    var canShowDetails: Bool {
+        isEnabled && hasFolderAccess && errorMessage == nil && !recentActivities.isEmpty
+    }
+
     var primaryActivityTitle: String {
         activeActivities.first?.title ?? "Codex"
     }
@@ -149,6 +154,7 @@ final class CodexActivityManager: ObservableObject {
         codexFolderURL = nil
         isAccessingSecurityScopedResource = false
         hasFolderAccess = false
+        isShowingDetails = false
         recentActivities = []
         activeActivities = []
         activeActivityCount = 0
@@ -223,6 +229,7 @@ final class CodexActivityManager: ObservableObject {
             recentActivities = []
             activeActivities = []
             activeActivityCount = 0
+            isShowingDetails = false
             return
         }
 
@@ -231,6 +238,7 @@ final class CodexActivityManager: ObservableObject {
         activeActivities = snapshot.activities.filter { $0.status == .running }
         activeActivityCount = snapshot.totalCount
         errorMessage = snapshot.errorMessage
+        if !canShowDetails { isShowingDetails = false }
     }
 
     private func restoreFolderBookmark() {

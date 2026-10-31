@@ -10,6 +10,8 @@ The folder grant covers the chosen directory, which can contain sensitive config
 
 ## Display and semantics
 
+On each opening, playing media selects Music & Calendar; otherwise a healthy Codex connection with running conversations selects Codex. Idle, disconnected, empty, and failed connections use normal Home. Shelf selection remains explicit. The header's terminal/music button switches panels manually for the current opening. Repeated clicks while open preserve that choice; losing Codex availability returns to Home and its normal height.
+
 - Click the closed Codex activity to open its primary running conversation in Codex. In the expanded panel, click a conversation title to open that conversation. Links use `codex://threads/<conversation-id>` and require the Codex desktop app; only UUID conversation IDs are accepted.
 - Refresh every two seconds, with running conversations first and up to 12 recent conversations in the scrollable panel.
 - Correlate runtime session IDs in `thread_turns` with conversation IDs in `threads` using rollout filenames.
