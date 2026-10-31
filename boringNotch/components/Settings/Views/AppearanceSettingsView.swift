@@ -12,6 +12,7 @@ struct AppearanceSettingsView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.useCustomAccentColor) var useCustomAccentColor
     @Default(.customAccentColorData) var customAccentColorData
+    @Default(.showClockWithoutNotch) var showClockWithoutNotch
     @State private var customAccentColor: Color = .accentColor
     @State private var selectedPresetColor: PresetAccentColor?
 
@@ -155,8 +156,20 @@ struct AppearanceSettingsView: View {
             Defaults.Toggle(key: .showNotHumanFace) {
                 Text("Show cool face animation while inactive")
             }
+            Defaults.Toggle(key: .showClockWithoutNotch) {
+                Text("Show clock on displays without a notch")
+            }
+            if showClockWithoutNotch {
+                Defaults.Toggle(key: .clockShowsDate) {
+                    Text("Show date")
+                }
+            }
         } header: {
             Text("Idle state")
+        } footer: {
+            Text("The clock shows in the closed notch, also while music is playing. Notifications cover it, and with the face animation on, the face takes its place while idle.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 
