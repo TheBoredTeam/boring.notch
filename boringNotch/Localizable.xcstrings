@@ -49,6 +49,12 @@
             "value" : " (padrão)"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " (по умолчанию)"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -245,6 +251,12 @@
             "value" : "%@ só é necessário ao usar fontes de controle do macOS incorporadas para substituição do OSD. Fontes externas como BetterDisplay ou Lunar não precisam disso. Você pode ativá-lo mais tarde nas configurações OSD, se necessário."
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ необходим только при использовании встроенных источников управления macOS для замены OSD. Внешние источники, такие как BetterDisplay или Lunar не требуются. Вы можете включить его позже в настройках OSD."
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -284,6 +296,12 @@
             "state" : "translated",
             "value" : "%@ é usado apenas para melhorar a mídia e as notificações de brilho. Nenhum dado é coletado ou compartilhado."
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ используется только для улучшения уведомлений о медиа и яркости. Данные не собираются и не передаются."
+          }
         }
       }
     },
@@ -312,6 +330,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Notificação %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Уведомление %@"
           }
         },
         "tr" : {
@@ -360,6 +384,12 @@
             "value" : "%@ Necessário"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Требуется %@"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -396,6 +426,12 @@
           }
         },
         "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@x"
+          }
+        },
+        "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@x"
@@ -937,6 +973,12 @@
             "value" : "Acessibilidade"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Специальные возможности"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -947,6 +989,12 @@
     },
     "Actual Size" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tatsächliche Größe"
+          }
+        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -975,6 +1023,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tamanho Atual"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Актуальный размер"
           }
         },
         "tr" : {
@@ -1107,6 +1161,12 @@
     "Add Application…" : {
       "comment" : "A button that adds an application to the list of allowed notifications.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anwendung hinzufügen..."
+          }
+        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1129,6 +1189,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adicionar Aplicativo…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить приложение…"
           }
         },
         "tr" : {
@@ -1296,6 +1362,12 @@
             "value" : "Adicionar aos favoritos"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить в Избранное"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1334,6 +1406,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Todas os Aplicativos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Все приложения"
           }
         },
         "tr" : {
@@ -1600,6 +1678,12 @@
             "state" : "translated",
             "value" : "Altijd het actieve scherm volgen"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Всегда следить за активными дисплеями"
+          }
         }
       }
     },
@@ -1633,6 +1717,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sempre Abrir Com"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Всегда открывать с помощью"
           }
         },
         "tr" : {
@@ -1987,6 +2077,12 @@
             "value" : "App"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приложение"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2157,6 +2253,12 @@
             "value" : "Apps"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приложения"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2177,6 +2279,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Audio wordt lokaal verwerkt voor de visualizer en wordt nooit opgenomen, opgeslagen of gedeeld."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Аудио обрабатывается локально для визуализатора и никогда не записывается, не хранится и не публикуется."
           }
         }
       }
@@ -2211,6 +2319,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Saída de áudio"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Аудио выход"
           }
         },
         "tr" : {
@@ -2672,6 +2786,12 @@
             "state" : "translated",
             "value" : "Automatisch van scherm wisselen als voorkeursscherm niet beschikbaar is"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Автоматически переключать дисплей, если предпочитаемый не доступен"
+          }
         }
       }
     },
@@ -2826,6 +2946,12 @@
             "value" : "Remoção de fundo falhou"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Фоновое удаление не удалось"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2952,6 +3078,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Retroceder 15s"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Назад 15 с"
           }
         },
         "tr" : {
@@ -3436,6 +3568,12 @@
     },
     "Behavior" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verhalten"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3466,6 +3604,12 @@
             "value" : "Comportamento"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поведение"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3477,6 +3621,12 @@
     "Beta" : {
       "comment" : "Update channel: beta",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta"
+          }
+        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3495,6 +3645,12 @@
             "value" : "בטא"
           }
         },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "베타"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3505,6 +3661,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Beta"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Бета"
           }
         },
         "tr" : {
@@ -3540,6 +3702,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "BetterDisplay não está instalado ou não está em execução"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BetterDisplay не установлен или не запущен"
           }
         },
         "tr" : {
@@ -3663,6 +3831,12 @@
             "state" : "translated",
             "value" : "Boring Notch kan de audio analyseren die via je muziek-app wordt afgespeeld om een live FFT-golfvorm in de inkeping weer te geven, met slechts een minimale invloed op het CPU-gebruik."
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch может анализировать воспроизведение звука из вашего музыкального приложения, чтобы нарисовать форму звука живого FFT в вырезе, при минимальном влиянии на использование ЦП."
+          }
         }
       }
     },
@@ -3756,6 +3930,12 @@
             "state" : "translated",
             "value" : "Boring Notch kan al je aankomende afspraken op één plek weergeven. Toegang tot je agenda is nodig om je planning weer te geven."
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch может показать все ваши предстоящие события в одном месте. Доступ к календарю необходим для отображения вашего графика."
+          }
         }
       }
     },
@@ -3771,6 +3951,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boring Notch kan je geplande herinneringen naast je agenda-afspraken weergeven. Toegang tot 'Herinneringen' is nodig om je herinneringen weer te geven."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch может отображать ваши запланированные напоминания вместе с событиями календаря. Доступ к Напоминаниям необходим для их отображения."
           }
         }
       }
@@ -3808,6 +3994,12 @@
             "value" : "O Boring Notch não pôde verificar a Reprodução agora. Tente novamente ou reabra o aplicativo se continuar acontecendo."
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch не смог проверить воспроизведение. Попробуйте еще раз или перезапустите приложение, если это повторится."
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3828,6 +4020,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boring Notch bevat een spiegel-functie waarmee je snel je uiterlijk kunt controleren met je camera, rechtstreeks vanuit de inkeping. Toegang tot de camera is alleen nodig om dit live voorbeeld weer te geven. Je kunt de spiegel-functie op elk moment vanuit de app in- of uitschakelen."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В Boring Notch имеется зеркало, которое позволяет быстро проверить ваш внешний вид с помощью вашей камеры прямо в вырезе. Доступ к камере требуется только для отображения этого предварительного просмотра в реальном времени. Вы можете включить или выключить функцию зеркала в любое время в приложении."
           }
         }
       }
@@ -3871,6 +4069,12 @@
             "value" : "Boring Notch perdeu sua conexão com reproduzindo agora. Reconectando automaticamente..."
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch потерял соединение с воспроизведением. Автоматическое переподключение..."
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3891,6 +4095,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boring Notch instellingen"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки Boring Notch"
           }
         }
       }
@@ -3932,6 +4142,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Componentes do Notch não estão disponíveis. Reabra ou reinstale o aplicativo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Компоненты воспроизведения Boring Notch сейчас недоступны. Переоткройте или переустановите приложение."
           }
         },
         "tr" : {
@@ -4646,6 +4862,12 @@
     "Camera" : {
       "comment" : "A label for the camera picker.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera"
+          }
+        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4686,6 +4908,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Câmera"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Камера"
           }
         },
         "tr" : {
@@ -4729,6 +4957,12 @@
             "value" : "カメラへのアクセス権限が必要"
           }
         },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "카메라 접근 권한 필요"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4739,6 +4973,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "É necessário acesso à câmera"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Требуется доступ к камере"
           }
         },
         "tr" : {
@@ -5389,6 +5629,12 @@
     "Check Again" : {
       "comment" : "A button that refreshes the availability of the 'Now Playing' media source.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erneut prüfen"
+          }
+        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5429,6 +5675,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Verifique novamente"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверить снова"
           }
         },
         "tr" : {
@@ -5666,6 +5918,12 @@
             "value" : "Verificando disponibilidade de reprodução agora..."
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверка доступности воспроизведения..."
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5822,6 +6080,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Escolha um aplicativo para abrir o documento \"%@\"."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите приложение для открытия документа \"%@\"."
           }
         },
         "tr" : {
@@ -5988,6 +6252,12 @@
             "value" : "Escolher aplicativo"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбери приложение"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6121,6 +6391,12 @@
             "state" : "translated",
             "value" : "Kies bestanden om te delen via %@"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите файлы для отправки через %@"
+          }
         }
       }
     },
@@ -6161,6 +6437,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Escolha como o calendário é exibido no notch."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите, как календарь отображается в вырезе."
           }
         },
         "tr" : {
@@ -6438,6 +6720,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Limpar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очистить"
           }
         },
         "tr" : {
@@ -7029,6 +7317,12 @@
     },
     "Compact mode" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompaktmodus"
+          }
+        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7063,6 +7357,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Modo compacto"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Компактный вид"
           }
         },
         "tr" : {
@@ -7236,6 +7536,12 @@
             "value" : "Compressão:"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сжатие:"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7283,6 +7589,12 @@
             "value" : "Conecta-se diretamente ao app Apple Music."
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Прямое подключение к Apple Music."
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7328,6 +7640,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Conecta-se diretamente ao aplicativo Spotify."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Прямое подключение к Spotify."
           }
         },
         "tr" : {
@@ -7618,6 +7936,12 @@
             "value" : "Converter"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Конвертировать"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7662,6 +7986,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Converter imagem"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Конвертировать изображение"
           }
         },
         "tr" : {
@@ -8066,6 +8396,12 @@
             "value" : "Copiar Link da Reunião"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скопировать ссылку встречи"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8230,6 +8566,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Não foi possível verificar o Reproduzindo Agora"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось проверить воспроизведение"
           }
         },
         "tr" : {
@@ -8864,6 +9206,12 @@
             "value" : "Personalizado..."
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настраиваемое…"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9242,6 +9590,12 @@
             "value" : "Defina o que acontece quando você segura a tecla Opção enquanto pressiona as teclas de mídia."
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Определить действие для сочетания клавиш Option и медиа."
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9407,6 +9761,12 @@
             "value" : "Controle do Dispositivo e Acesso aos Dados"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Управление устройством и доступ к данным"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9561,6 +9921,12 @@
             "value" : "Descartar notificação"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скрыть уведомление"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9582,6 +9948,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Schermgedrag"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поведение отображения"
           }
         }
       }
@@ -9622,6 +9994,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Telas"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дисплеи"
           }
         },
         "tr" : {
@@ -10077,6 +10455,12 @@
             "value" : "ex.: 1920"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "напр., 1920"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10115,6 +10499,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Espaço vazio"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пустой слот"
           }
         },
         "tr" : {
@@ -10161,6 +10551,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Habilitar %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить %@"
           }
         },
         "tr" : {
@@ -10420,6 +10816,12 @@
             "state" : "translated",
             "value" : "Toegang tot Agenda inschakelen"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешить доступ к Календарю"
+          }
         }
       }
     },
@@ -10435,6 +10837,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Toegang tot Camera inschakelen"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешить доступ к камере"
           }
         }
       }
@@ -10865,6 +11273,12 @@
             "state" : "translated",
             "value" : "Real-time audio inschakelen"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить звук в реальном времени"
+          }
         }
       }
     },
@@ -10880,6 +11294,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Toegang tot Herinneringen inschakelen"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешить доступ к напоминаниям"
           }
         }
       }
@@ -11146,6 +11566,12 @@
             "value" : "Ativar:"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить:"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11309,6 +11735,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Eventos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "События"
           }
         },
         "tr" : {
@@ -11700,6 +12132,12 @@
             "value" : "Favorito"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Избранное"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11739,6 +12177,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Recursos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Возможности"
           }
         },
         "tr" : {
@@ -12018,6 +12462,12 @@
             "value" : "Girar vídeo"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отразить видео"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12064,6 +12514,12 @@
             "value" : "Formato:"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Формат:"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12108,6 +12564,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Avançar 15s"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вперед на 15с"
           }
         },
         "tr" : {
@@ -12163,6 +12625,12 @@
             "value" : "Forma do quadro"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Форма рамки"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12173,6 +12641,12 @@
     },
     "From all apps" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von allen Apps"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12201,6 +12675,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "De todos os apps"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Из всех приложений"
           }
         },
         "tr" : {
@@ -12679,6 +13159,12 @@
             "value" : "Gestos"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Жесты"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13050,6 +13536,12 @@
             "value" : "Permita %@ para que os controles de brilho da tecla do teclado integrado possam ser interceptados."
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешить %@ для управления яркостью клавиатуры."
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13077,6 +13569,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Conceder %@ aos banners de notificação do espelhamento."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешить %@ зеркалировать баннеры уведомлений."
           }
         },
         "tr" : {
@@ -13205,6 +13703,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Serviço de Ajuda Indisponível"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Служба поддержки недоступна"
           }
         },
         "tr" : {
@@ -14349,6 +14853,12 @@
             "value" : "Estado inativo"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Бездействие"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14508,6 +15018,12 @@
             "value" : "Conversão de Imagem Falhou"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ошибка конвертации изображения"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14540,6 +15056,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tamanho da imagem:"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Размер изображения:"
           }
         },
         "tr" : {
@@ -15015,6 +15537,12 @@
             "value" : "Junte-se à reunião %@"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Присоединиться к %@ встрече"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15047,6 +15575,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Juntar-se à reunião quando clicar em um evento"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Присоединяйтесь к встрече при нажатии на событие"
           }
         },
         "tr" : {
@@ -15173,6 +15707,12 @@
             "value" : "Mantenha itens da estante mais recentes na frente"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранять новые объекты спереди"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15206,6 +15746,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "O brilho do teclado atualmente suporta apenas a fonte embutida."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Яркость клавиатуры управляется только встроенным регулятором."
           }
         },
         "tr" : {
@@ -15398,6 +15944,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Grande"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Большой"
           }
         },
         "tr" : {
@@ -15728,6 +16280,12 @@
             "value" : "Procurando dispositivos…"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поиск устройств…"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15985,6 +16543,12 @@
             "state" : "translated",
             "value" : "Energiebesparing: uit"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Низкая мощность: выкл"
+          }
         }
       }
     },
@@ -16000,6 +16564,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Energiebesparing: aan"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Низкая мощность: Вкл"
           }
         }
       }
@@ -16023,6 +16593,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lunar não está instalado ou não está acessível"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lunar не установлен или недоступен"
           }
         },
         "tr" : {
@@ -18510,6 +19086,12 @@
             "value" : "Próximo"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Следующий"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18537,6 +19119,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Noturna"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ночные сборки"
           }
         },
         "tr" : {
@@ -18633,6 +19221,12 @@
     "No apps selected" : {
       "comment" : "A message displayed when no apps are selected in the notification settings.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Apps ausgewählt"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18649,6 +19243,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nenhum aplicativo selecionado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приложения не выбраны"
           }
         },
         "tr" : {
@@ -18678,6 +19278,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sem câmera"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нет камеры"
           }
         },
         "tr" : {
@@ -19363,6 +19969,12 @@
             "value" : "Entalhe"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вырез"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19483,6 +20095,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Entalhe chrome"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Хромированный вырез"
           }
         },
         "tr" : {
@@ -19719,6 +20337,12 @@
     },
     "Notifications" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mitteilungen"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19741,6 +20365,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Notificações"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Уведомления"
           }
         },
         "tr" : {
@@ -19872,6 +20502,12 @@
             "value" : "Componentes de reprodução não disponíveis agora"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Компоненты воспроизведения недоступны"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19905,6 +20541,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Conexão de reprodução atual perdida"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Потеряно соединение к воспроизведению"
           }
         },
         "tr" : {
@@ -19977,6 +20619,12 @@
             "value" : "OK"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20004,6 +20652,12 @@
             "state" : "translated",
             "value" : "Onboarding"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Онбординг"
+          }
         }
       }
     },
@@ -20026,6 +20680,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Somente Apple displays são suportadas. Em configurações de multi-exibição, o OSD de brilho aparece na tela ativa se suportado ou em outra tela suportada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поддерживаются только мониторы Apple. В конфигурациях с несколькими мониторами меню яркости OSD отображается на активном мониторе, если это поддерживается, или на другом поддерживаемом мониторе."
           }
         },
         "tr" : {
@@ -20055,6 +20715,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apenas apps selecionados são espelhados. Adicione aplicativos do seu Mac; nenhuma lista de aplicativos predefinidos é usada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зеркалятся только выбранные приложения. Добавляйте приложения со своего Mac; готовый список приложений не используется."
           }
         },
         "tr" : {
@@ -20203,6 +20869,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abrir um relatório de erro com a sua versão preenchida automaticamente"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть отчет об ошибке с вашей версией автоматически"
           }
         },
         "tr" : {
@@ -20355,6 +21027,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abrir no calendário"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть в Календаре"
           }
         },
         "tr" : {
@@ -20729,6 +21407,12 @@
             "value" : "Abrir configurações"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть Настройки"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21078,6 +21762,12 @@
             "value" : "Abre %@"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть %@"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21395,6 +22085,12 @@
             "value" : "Saída"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вывод"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21429,6 +22125,12 @@
             "value" : "Pausar"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пауза"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21456,6 +22158,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pausado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приостановлено"
           }
         },
         "tr" : {
@@ -21490,6 +22198,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "A Criação de PDF Falhou"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось создать PDF"
           }
         },
         "tr" : {
@@ -21638,6 +22352,12 @@
             "value" : "Reproduzir"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Воспроизвести"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21672,6 +22392,12 @@
             "value" : "Reproduzir/Pausar"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Старт/Пауза"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21704,6 +22430,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aparência do Player"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вид плеера"
           }
         },
         "tr" : {
@@ -21817,6 +22549,12 @@
             "value" : "Por favor, permita o acesso à câmera nas Configurações do Sistema para usar o recurso de espelhamento."
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для работы зеркала разрешите доступ к камере в Системных Настройках."
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21856,6 +22594,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Permita o acesso à câmera nas Configurações do Sistema."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пожалуйста, разрешите доступ к камере в Настройках системы."
           }
         },
         "tr" : {
@@ -22122,6 +22866,12 @@
             "value" : "Preservar Metadados"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранять метаданные"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22154,6 +22904,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Anterior"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Назад"
           }
         },
         "tr" : {
@@ -22934,6 +23690,12 @@
             "value" : "Aplicativos Recomendados"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Рекомендуемые приложения"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23690,6 +24452,12 @@
             "value" : "Remover dos Favoritos"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Убрать из избранных"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23949,6 +24717,12 @@
             "value" : "Renomear arquivo"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переименовать"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23981,6 +24755,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Repetir"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повтор"
           }
         },
         "tr" : {
@@ -24088,6 +24868,12 @@
             "value" : "Reportar um erro"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сообщить об ошибке"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -24115,6 +24901,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Requer %@. Somente banners visíveis são espelhados."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Требуется %@. Зеркалятся только видимые баннеры."
           }
         },
         "tr" : {
@@ -24156,6 +24948,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Requer um cliente de terceiros com o plugin API habilitado."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Требуется сторонний клиент с включенным API плагином."
           }
         },
         "tr" : {
@@ -24213,7 +25011,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Требуется macOS 14.2 или новее. Обновите macOS, чтобы включить отображение визуализации аудио в реальном времени."
+            "value" : "Требуется macOS 14.2 или новее. Обновите macOS, чтобы включить отображение визуализации аудио в реальном времени"
           }
         },
         "tr" : {
@@ -24718,6 +25516,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Selecteer bestanden voor %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбрать файлы для %@"
           }
         }
       }
@@ -25752,6 +26556,12 @@
     "Show charging wattage" : {
       "comment" : "A checkbox to show the wattage of the charging port.",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ladeleistung in Watt anzeigen"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25774,6 +26584,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostrar carregamento de voltagem"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отображать мощность зарядки"
           }
         },
         "tr" : {
@@ -26378,6 +27194,12 @@
             "value" : "Mostrar próxima notificação na fila"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать следующее уведомление в очереди"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -26500,6 +27322,12 @@
     },
     "Show notifications in the notch" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benachrichtigungen in der Notch anzeigen"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -26522,6 +27350,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostrar notificações no entalhe"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать уведомления в вырезе"
           }
         },
         "tr" : {
@@ -27331,6 +28165,12 @@
             "value" : "Mostrar tempo restante ao invés da duração"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать оставшееся время вместо продолжительности"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27653,11 +28493,23 @@
             "state" : "translated",
             "value" : "App-pictogram weergeven op albumhoes"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать иконку исходного приложения в обложке альбома"
+          }
         }
       }
     },
     "Shows a smaller opened notch with just the music player — no tabs, calendar or mirror." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeigt eine kleinere, geöffnete Notch mit nur dem Musikplayer — keine Tabs, Kalender oder Spiegel."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27680,6 +28532,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostrar um entalhe aberto menor com apenas o tocador de música — sem abas, calendário ou espelho."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать в маленьком открытом вырезе только плеер — без вкладок, календаря или зеркала."
           }
         },
         "tr" : {
@@ -27716,6 +28574,12 @@
             "value" : "Aleatório"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перемешать"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27748,6 +28612,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dimensionamento"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Размеры"
           }
         },
         "tr" : {
@@ -27900,6 +28770,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pequeno"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Маленький"
           }
         },
         "tr" : {
@@ -28235,7 +29111,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Обновления ПО"
+            "value" : "Обновление приложения"
           }
         },
         "tr" : {
@@ -28534,6 +29410,12 @@
             "value" : "Estável"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стабильная версия"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -28561,6 +29443,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Estável e Beta vem dos lançamentos oficiais."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стабильная и Бета-версии приходят из официальных релизов."
           }
         },
         "tr" : {
@@ -28811,6 +29699,12 @@
             "value" : "Configurações do sistema"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Системные Настройки"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -28855,6 +29749,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "O plano de fundo auxiliar travou ou foi fechado pelo macOS. Ele reiniciará automaticamente no próximo evento OSD."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сбой или закрытие фонового помощника. Он автоматически перезапустится при следующем OSD событии."
           }
         },
         "tr" : {
@@ -29965,6 +30865,12 @@
             "state" : "translated",
             "value" : "Losgekoppeld"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отключено"
+          }
         }
       }
     },
@@ -29987,6 +30893,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Canal de atualização"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Канал обновлений"
           }
         },
         "tr" : {
@@ -30311,6 +31223,12 @@
             "state" : "translated",
             "value" : "Voorkeurscherm gebruiken"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Использовать предпочтительный дисплей"
+          }
         }
       }
     },
@@ -30523,6 +31441,12 @@
             "value" : "Usando %@ no lugar"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вместо этого использовать %@"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -30556,6 +31480,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Use %@ em vez disso. Sua preferência do Tocando Agora foi preservada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вместо этого используйте %@. Ваши настройки теперь сохраняются."
           }
         },
         "tr" : {
@@ -30599,6 +31529,12 @@
             "value" : "Usando %@ temporariamente"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Временно используется %@"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -30638,6 +31574,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Use %@ em vez disso. Sua preferência do Tocando Agora foi preservada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Использование %@ временно сохраняется. Ваши настройки теперь сохраняются."
           }
         },
         "tr" : {
@@ -31518,6 +32460,12 @@
             "value" : "A semana começa em"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Неделя начинается с"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -31581,6 +32529,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Visualização semanal"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Еженедельный вид"
           }
         },
         "tr" : {
@@ -31824,6 +32778,12 @@
             "value" : "Janela"
           }
         },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Окно"
+          }
+        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -31869,6 +32829,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Funciona com a maioria dos aplicativos de mídia, incluindo navegadores, para detectar o que está tocando. Nota: Isso pode ser removido em uma futura versão do macOS."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Работает с большинством медиа-приложений, включая браузеры, для определения воспроизведения. Примечание: Это может быть удалено в будущей версии macOS."
           }
         },
         "tr" : {
@@ -32122,6 +33088,12 @@
             "state" : "translated",
             "value" : "Je agendagegevens worden uitsluitend gebruikt om je afspraken weer te geven en worden nooit gedeeld."
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Данные вашего календаря используются только для отображения ваших событий и никогда не передаются."
+          }
         }
       }
     },
@@ -32137,6 +33109,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Je camera wordt nooit zonder jouw toestemming gebruikt en er wordt niets opgenomen of opgeslagen."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваша камера никогда не используется без вашего согласия, ничего не записывается и не сохраняется."
           }
         }
       }
@@ -32265,6 +33243,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Je herinneringsgegevens worden uitsluitend gebruikt om je herinneringen weer te geven en worden nooit gedeeld."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Данные о напоминаниях используются только для отображения и никогда не передаются."
           }
         }
       }
