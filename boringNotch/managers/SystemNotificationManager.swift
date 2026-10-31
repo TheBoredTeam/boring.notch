@@ -24,10 +24,19 @@ final class SystemNotificationManager: ObservableObject {
     @Published private(set) var queuedNotifications: [SystemNotification] = []
 
     private let queueLimit = 5
-    private let displayDuration: TimeInterval = 8
     private var dismissTask: Task<Void, Never>?
     private var notificationObserver: NSObjectProtocol?
     private var isUserPresent = false
+
+    /// True while the notch is open only because a notification arrived
+    /// (notificationAutoExpand). The expanded view must not count that as the
+    /// user being present, or the countdown would never run.
+    private(set) var isAutoPresenting = false
+
+    /// 0 keeps the notification until the user dismisses it.
+    private var displayDuration: TimeInterval {
+        Defaults[.notificationDisplayDuration]
+    }
 
     private init() {
         notificationObserver = NotificationCenter.default.addObserver(
@@ -57,7 +66,14 @@ final class SystemNotificationManager: ObservableObject {
         dismissActive()
     }
 
+    func beginAutoPresentation() {
+        isAutoPresenting = true
+    }
+
     func holdActive() {
+        // The pointer is on the notch: from here on it behaves like a notch
+        // the user opened, whether or not it opened on its own.
+        isAutoPresenting = false
         isUserPresent = true
         dismissTask?.cancel()
         dismissTask = nil
@@ -66,7 +82,7 @@ final class SystemNotificationManager: ObservableObject {
     func resumeDismiss(after delay: TimeInterval = 2) {
         isUserPresent = false
         queuedNotifications.removeAll()
-        guard let notification = activeNotification else { return }
+        guard let notification = activeNotification, displayDuration > 0 else { return }
         dismissTask?.cancel()
         dismissTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(delay))
@@ -79,6 +95,7 @@ final class SystemNotificationManager: ObservableObject {
         guard token == nil || activeNotification?.id == token else { return }
         dismissTask?.cancel()
         dismissTask = nil
+        isAutoPresenting = false
         activeNotification = nil
         if isUserPresent {
             promoteNext()
@@ -174,8 +191,10 @@ final class SystemNotificationManager: ObservableObject {
     }
 
     private func scheduleDismiss(for token: String) {
+        let duration = displayDuration
+        guard duration > 0 else { return }
         dismissTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(self?.displayDuration ?? 8))
+            try? await Task.sleep(for: .seconds(duration))
             guard !Task.isCancelled else { return }
             await self?.dismissActive(token: token)
         }
