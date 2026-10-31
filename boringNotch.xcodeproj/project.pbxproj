@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BA7700010000000000000001 = {isa = PBXBuildFile; fileRef = BA7700010000000000000002; };
 		07FE456E7AEA085D9FCA6D97 /* MeetingLinkDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B2A5E5F4D28F1DD9CD0B09 /* MeetingLinkDetector.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -184,6 +185,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		BA7700010000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteriesView.swift; sourceTree = "<group>"; };
 		0268933F488E47DFB58E48CF /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
 		033B8885979E4EA1A78E8ADC /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
@@ -726,6 +728,7 @@
 			isa = PBXGroup;
 			children = (
 				9A0887312C7A693000C160EA /* TabButton.swift */,
+				BA7700010000000000000002,
 				9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */,
 			);
 			path = Tabs;
@@ -1066,6 +1069,7 @@
 				118EBE2D2E97165600D54B5A /* Bookmark.swift in Sources */,
 				11985BE02F37A3C800F81585 /* BetterDisplayManager.swift in Sources */,
 				11985BE22F37A3C800F81585 /* LunarManager.swift in Sources */,
+				BA7700010000000000000001,
 				9A0887352C7AFF8E00C160EA /* TabSelectionView.swift in Sources */,
 				112FB7352CCF16F70015238C /* NotchSpaceManager.swift in Sources */,
 				90ED6E81035940418671DCEA /* NotchWindowManager.swift in Sources */,
