@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  generic.swift
 //  boringNotch
@@ -22,11 +25,6 @@ public enum ContentType: Int, Codable, Hashable, Equatable {
 public enum NotchState {
     case closed
     case open
-}
-
-public enum NotchViews {
-    case home
-    case shelf
 }
 
 enum SettingsEnum {
