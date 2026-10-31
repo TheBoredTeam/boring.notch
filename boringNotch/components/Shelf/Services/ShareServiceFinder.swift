@@ -8,14 +8,12 @@
 import Cocoa
 
 class ShareServiceFinder: NSObject, NSSharingServicePickerDelegate {
-
     @MainActor
     private var onServicesCaptured: (([NSSharingService]) -> Void)?
 
     /// Returns share services asynchronously without blocking the UI
     @MainActor
     func findApplicableServices(for items: [Any], timeout: TimeInterval = 2.0) async -> [NSSharingService] {
-
         let dummyView = NSView(frame: .zero)
         let picker = NSSharingServicePicker(items: items)
         picker.delegate = self
@@ -28,19 +26,20 @@ class ShareServiceFinder: NSObject, NSSharingServicePickerDelegate {
                 self.onServicesCaptured = { services in
                     guard !didResume else { return }
                     didResume = true
+                    picker.close()
                     continuation.resume(returning: services)
                 }
             }
 
             picker.show(relativeTo: dummyView.bounds, of: dummyView, preferredEdge: .minY)
 
-
             // Timeout task
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(timeout))
                 guard !didResume else { return }
                 didResume = true
-                print("Warning: timed out waiting for sharing services")
+                picker.close()  // Ensure picker is closed even on timeout
+                Log.shelf.debug("Warning: timed out waiting for sharing services")
                 continuation.resume(returning: [])
             }
         }
