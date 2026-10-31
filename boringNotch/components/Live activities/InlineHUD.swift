@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  InlineHUDs.swift
 //  boringNotch
@@ -16,140 +19,142 @@ struct InlineHUD: View {
     @Binding var hoverAnimation: Bool
     @Binding var gestureProgress: CGFloat
     var body: some View {
-        HStack {
-            HStack(spacing: 5) {
-                Group {
-                    switch (type) {
-                        case .volume:
-                            if icon.isEmpty {
-                                Image(systemName: SpeakerSymbol(value))
-                                    .contentTransition(.interpolate)
-                                    .symbolVariant(value > 0 ? .none : .slash)
-                                    .frame(width: 20, height: 15, alignment: .leading)
-                            } else {
-                                Image(systemName: icon)
-                                    .contentTransition(.interpolate)
-                                    .opacity(value.isZero ? 0.6 : 1)
-                                    .scaleEffect(value.isZero ? 0.85 : 1)
-                                    .frame(width: 20, height: 15, alignment: .leading)
-                            }
-                        case .brightness:
-                            Image(systemName: BrightnessSymbol(value))
-                                .contentTransition(.interpolate)
-                                .frame(width: 20, height: 15, alignment: .center)
-                        case .backlight:
-                            Image(systemName: value > 0.5 ? "light.max" : "light.min")
-                                .contentTransition(.interpolate)
-                                .frame(width: 20, height: 15, alignment: .center)
-                        case .mic:
-                            Image(systemName: "mic")
-                                .symbolRenderingMode(.hierarchical)
-                                .symbolVariant(value > 0 ? .none : .slash)
-                                .contentTransition(.interpolate)
-                                .frame(width: 20, height: 15, alignment: .center)
-                        default:
-                            EmptyView()
+        let width = max(0, 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2)
+        let height = vm.closedNotchSize.height + (hoverAnimation ? 8 : 0)
+        NotchActivityHost(
+            contentID: "inline-hud",
+            safeAreaWidth: vm.closedNotchSize.width,
+            height: height,
+            maximumWidth: windowSize.width - 2 * cornerRadiusInsets.closed.bottom
+        ) {
+            InlineHUDLeading(type: type, value: value, icon: icon, width: width, height: height)
+        } trailing: {
+            InlineHUDTrailing(type: type, value: $value, width: width, height: height)
+        }
+    }
+}
+
+/// System content supplies two bounded regions; the host owns camera clearance.
+struct InlineHUDLeading: View {
+    let type: SneakContentType
+    let value: CGFloat
+    let icon: String
+    let width: CGFloat
+    let height: CGFloat
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Group {
+                switch type {
+                case .volume:
+                    if icon.isEmpty {
+                        Image(systemName: speakerSymbol)
+                            .contentTransition(.interpolate)
+                            .symbolVariant(value > 0 ? .none : .slash)
+                    } else {
+                        Image(systemName: icon)
+                            .contentTransition(.interpolate)
+                            .opacity(value.isZero ? 0.6 : 1)
+                            .scaleEffect(value.isZero ? 0.85 : 1)
                     }
+                case .brightness:
+                    Image(systemName: value > 0.6 ? "sun.max" : "sun.min")
+                        .contentTransition(.interpolate)
+                case .backlight:
+                    Image(systemName: value > 0.5 ? "light.max" : "light.min")
+                        .contentTransition(.interpolate)
+                case .mic:
+                    Image(systemName: "mic")
+                        .symbolRenderingMode(.hierarchical)
+                        .symbolVariant(value > 0 ? .none : .slash)
+                        .contentTransition(.interpolate)
+                default:
+                    EmptyView()
                 }
-                .foregroundStyle(.white)
-                .symbolVariant(.fill)
-                
-                Text(Type2Name(type))
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+            }
+            .frame(width: 20, height: 15)
+            .foregroundStyle(.white)
+            .symbolVariant(.fill)
+            .accessibilityHidden(true)
+
+            Text(typeName)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .lineLimit(1)
+                .allowsTightening(true)
+                .contentTransition(.numericText())
+        }
+        .frame(width: width, height: height, alignment: .leading)
+    }
+
+    private var speakerSymbol: String {
+        switch value {
+        case 0: "speaker"
+        case 0...0.3: "speaker.wave.1"
+        case 0.3...0.8: "speaker.wave.2"
+        case 0.8...1: "speaker.wave.3"
+        default: "speaker.wave.2"
+        }
+    }
+
+    private var typeName: String {
+        switch type {
+        case .volume: "Volume"
+        case .brightness: "Brightness"
+        case .backlight: "Backlight"
+        case .mic: "Mic"
+        default: ""
+        }
+    }
+}
+
+struct InlineHUDTrailing: View {
+    let type: SneakContentType
+    @Binding var value: CGFloat
+    let width: CGFloat
+    let height: CGFloat
+    @Default(.showClosedNotchHUDPercentage) private var showPercentage
+
+    var body: some View {
+        HStack {
+            if type == .mic {
+                Text(value.isZero ? "muted" : "unmuted")
+                    .foregroundStyle(.gray)
                     .lineLimit(1)
                     .allowsTightening(true)
-                    .contentTransition(.numericText())
-            }
-            .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.notchSize.height - (hoverAnimation ? 0 : 12), alignment: .leading)
-            
-            Rectangle()
-                .fill(.black)
-                .frame(width: vm.closedNotchSize.width - 20)
-            
-            HStack {
-                if (type == .mic) {
-                    Text(value.isZero ? "muted" : "unmuted")
-                        .foregroundStyle(.gray)
-                        .lineLimit(1)
-                        .allowsTightening(true)
-                        .multilineTextAlignment(.trailing)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                        .contentTransition(.interpolate)
-                } else {
-                        HStack {
-                        DraggableProgressBar(value: $value, onChange: { v in
-                            if type == .volume {
-                                VolumeManager.shared.setAbsolute(Float32(v))
-                            } else if type == .brightness {
-                                BrightnessManager.shared.setAbsolute(value: Float32(v))
-                            }
-                        })
-                        if (type == .volume && value.isZero) {
-                            Text("muted")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.gray)
-                                .lineLimit(1)
-                                .allowsTightening(true)
-                                .multilineTextAlignment(.trailing)
-                        } else if Defaults[.showClosedNotchHUDPercentage] {
-                            Text("\(Int(value * 100))%")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.gray)
-                                .lineLimit(1)
-                                .allowsTightening(true)
-                                .multilineTextAlignment(.trailing)
-                        }
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .contentTransition(.interpolate)
+            } else {
+                DraggableProgressBar(value: $value, onChange: { newValue in
+                    if type == .volume {
+                        VolumeManager.shared.setAbsolute(Float32(newValue))
+                    } else if type == .brightness {
+                        BrightnessManager.shared.setAbsolute(value: Float32(newValue))
                     }
+                })
+                .frame(maxWidth: .infinity)
+                if type == .volume && value.isZero {
+                    Text("muted").modifier(HUDValueStyle())
+                } else if showPercentage {
+                    Text("\(Int(value * 100))%").modifier(HUDValueStyle())
                 }
             }
-            .padding(.trailing, 4)
-            .frame(width: 100 - (hoverAnimation ? 0 : 12) + gestureProgress / 2, height: vm.closedNotchSize.height - (hoverAnimation ? 0 : 12), alignment: .center)
         }
-        .frame(height: vm.closedNotchSize.height + (hoverAnimation ? 8 : 0), alignment: .center)
+        .padding(.trailing, 4)
+        .frame(width: width, height: height)
     }
-    
-    func SpeakerSymbol(_ value: CGFloat) -> String {
-        switch(value) {
-            case 0:
-                return "speaker"
-            case 0...0.3:
-                return "speaker.wave.1"
-            case 0.3...0.8:
-                return "speaker.wave.2"
-            case 0.8...1:
-                return "speaker.wave.3"
-            default:
-                return "speaker.wave.2"
-        }
-    }
-    
-    func BrightnessSymbol(_ value: CGFloat) -> String {
-        switch(value) {
-            case 0...0.6:
-                return "sun.min"
-            case 0.6...1:
-                return "sun.max"
-            default:
-                return "sun.min"
-        }
-    }
-    
-    func Type2Name(_ type: SneakContentType) -> String {
-        switch(type) {
-            case .volume:
-                return "Volume"
-            case .brightness:
-                return "Brightness"
-            case .backlight:
-                return "Backlight"
-            case .mic:
-                return "Mic"
-            default:
-                return ""
-        }
+}
+
+private struct HUDValueStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.caption)
+            .fontWeight(.medium)
+            .foregroundStyle(.gray)
+            .lineLimit(1)
+            .allowsTightening(true)
+            .multilineTextAlignment(.trailing)
     }
 }
 
