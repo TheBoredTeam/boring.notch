@@ -241,6 +241,21 @@ final class XPCHelperClient: NSObject {
             return false
         }
     }
+
+    nonisolated func quitApp(pid: pid_t, force: Bool) async -> Bool {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            return try await service.withContinuation { service, continuation in
+                service.quitApp(pid: pid, force: force) { success in
+                    continuation.resume(returning: success)
+                }
+            }
+        } catch {
+            return false
+        }
+    }
 }
 
 extension Notification.Name {
