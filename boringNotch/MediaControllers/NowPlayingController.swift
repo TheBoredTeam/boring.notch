@@ -32,6 +32,7 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
     var supportsFavorite: Bool {
         let bundleID = playbackState.bundleIdentifier
         return bundleID == MediaAppBundleID.appleMusic
+            || nativeFavoriteSnapshot?.supports(NowPlayingFavoriteContext(playbackState)) == true
     }
 
     func setFavorite(_ favorite: Bool) async {
@@ -49,9 +50,17 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
                 """
                 try? await AppleScriptHelper.executeVoid(script)
             }
+        } else {
+            guard supportsFavorite,
+                  let pointer = CFBundleGetDataPointerForName(mediaRemoteBundle, "kMRMediaRemoteOptionIsNegative" as CFString)
+            else { return }
+            let key = pointer.assumingMemoryBound(to: CFString.self).pointee as String
+            // A negative like removes the like; it is not a dislike command.
+            MRMediaRemoteSendCommandFunction(21, [key: !favorite] as NSDictionary)
+            return
         }
 
-        // Update the favorite state locally and fetch updated info
+        // Read the state accepted by the player, including an unlike request.
         try? await Task.sleep(for: .milliseconds(150))
         await updatePlaybackInfo()
     }
@@ -69,6 +78,7 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
     private let runtimeFailureContinuation: AsyncStream<Void>.Continuation
 
     private var streamSession: NowPlayingStreamSession?
+    private var nativeFavoriteSnapshot: NowPlayingFavoriteSnapshot?
 
     // MARK: - Initialization
     init() throws {
@@ -297,6 +307,23 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
 
         newPlaybackState.volume = payload.volume ?? (diff ? self.playbackState.volume : 0.5)
 
+        let sameItem = NowPlayingFavoriteContext(newPlaybackState) == NowPlayingFavoriteContext(playbackState)
+        if sameItem {
+            newPlaybackState.isFavorite = playbackState.isFavorite
+        }
+        if newPlaybackState.bundleIdentifier != MediaAppBundleID.appleMusic {
+            let snapshot = NowPlayingFavoriteSnapshot.merging(
+                bundleIdentifier: resolvedBundleIdentifier,
+                enabled: payload.supportsIsLiked,
+                active: payload.isLiked,
+                previous: nativeFavoriteSnapshot,
+                preserving: diff && sameItem
+            )
+            nativeFavoriteSnapshot = snapshot
+            newPlaybackState.isFavorite = snapshot.enabled && snapshot.active
+        } else {
+            nativeFavoriteSnapshot = nil
+        }
         self.playbackState = newPlaybackState
     }
 
@@ -321,6 +348,7 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
             playbackState = updated
         }
     }
+
 }
 
 private extension NowPlayingController {
