@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  SettingsView.swift
 //  boringNotch
@@ -54,9 +57,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
-                // NavigationLink(value: "Extensions") {
-                //     Label("Extensions", systemImage: "puzzlepiece.extension")
-                // }
+                NavigationLink(value: "Extensions") {
+                    Label("Extensions", systemImage: "puzzlepiece.extension")
+                }
                 NavigationLink(value: "Advanced") {
                     Label("Advanced", systemImage: "gearshape.2")
                 }
@@ -88,7 +91,7 @@ struct SettingsView: View {
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
-                    GeneralSettings()
+                    ExtensionsSettingsView()
                 case "Advanced":
                     Advanced()
                 case "About":

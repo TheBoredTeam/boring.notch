@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Harsh Vardhan Goswami (@theboringhumane).
+// Attribution applies to the extension platform contributions.
+
 //
 //  boringNotchApp.swift
 //  boringNotchApp
@@ -82,6 +85,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             DistributedNotificationCenter.default().removeObserver(observer)
             screenUnlockedObserver = nil
         }
+        MainActor.assumeIsolated {
+            ExtensionManager.shared.stop()
+            BuiltinLiveActivitySource.shared.stop()
+        }
         MusicManager.shared.destroy()
         cleanupDragDetectors()
         cleanupWindows()
@@ -90,6 +97,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @MainActor
     func onScreenLocked(_ notification: Notification) {
+        ExtensionManager.shared.setScreenLocked(true)
         isScreenLocked = true
         if !Defaults[.showOnLockScreen] {
             cleanupWindows()
@@ -100,6 +108,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @MainActor
     func onScreenUnlocked(_ notification: Notification) {
+        ExtensionManager.shared.setScreenLocked(false)
         isScreenLocked = false
         if !Defaults[.showOnLockScreen] {
             adjustWindowPosition(changeAlpha: true)
@@ -280,6 +289,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        MainActor.assumeIsolated {
+            BuiltinLiveActivitySource.shared.start()
+            ExtensionManager.shared.start()
+        }
 
         NotificationCenter.default.addObserver(
             self,
