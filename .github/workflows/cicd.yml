@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - '*'
+      - 'stack/**'
   pull_request:
     branches:
       - '*'
+      - 'stack/**'
 
 # https://stackoverflow.com/a/72408109/6942800
 concurrency:
