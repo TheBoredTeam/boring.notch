@@ -1,6 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%lld out of 5 stars" : {
+      "extractionState" : "manual"
+    },
+    "Couldn't update the rating. Check Music and try again." : {
+      "extractionState" : "manual"
+    },
+    "Rate library tracks using the Apple Music source" : {
+      "extractionState" : "manual"
+    },
+    "Remove rating" : {
+      "extractionState" : "manual"
+    },
     "" : {
       "localizations" : {
         "en" : {
@@ -3941,6 +3953,9 @@
           }
         }
       }
+    },
+    "Star rating" : {
+      "extractionState" : "manual"
     },
     "boring.notch" : {
       "localizations" : {
