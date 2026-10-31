@@ -338,6 +338,11 @@ final class BoringViewCoordinator: ObservableObject {
         return sneakPeekStates.values.contains { $0.show }
     }
 
+    /// Whether the Home/Shelf tab bar is shown in the open notch header.
+    var tabsVisible: Bool {
+        Defaults[.boringShelf] && (!ShelfStateViewModel.shared.isEmpty || alwaysShowTabs)
+    }
+
     // Helper to get state safely for binding/reading
     func sneakPeekState(for screenUUID: String?) -> SneakPeekState {
         guard let uuid = screenUUID else { return SneakPeekState() }
