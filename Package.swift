@@ -15,14 +15,14 @@ let package = Package(
             name: "boringNotch",
             path: "boringNotch/components/LiveActivities",
             exclude: ["BoringBattery.swift", "LiveActivityModifier.swift", "MarqueeTextView.swift"],
-            sources: ["Core/LiveActivityModel.swift", "Core/LiveActivityScheduler.swift", "Core/LiveActivitySelectionPolicy.swift", "Core/LiveActivityService.swift", "Core/NotchWorkspaceLayout.swift"]
+            sources: ["Core/LiveActivityModel.swift", "Core/LiveActivityScheduler.swift", "Core/LiveActivitySelectionPolicy.swift", "Core/LiveActivityService.swift", "Core/NotchWorkspaceLayout.swift", "LiveActivityCenter.swift", "NotchActivityHost.swift", "NotchActivityLayoutMetrics.swift", "LockedLiveActivityView.swift"]
         ),
         .testTarget(
             name: "ActivityHostTests",
             dependencies: ["boringNotch"],
             path: "boringNotchTests",
             exclude: ["BundleIDResolverTests.swift", "CalendarBoundaryTests.swift", "CameraLifecycleTests.swift", "MeetingLinkDetectorTests.swift", "NotchUIEventTests.swift", "NotificationPanelDetectionTests.swift", "NowPlayingAvailabilityTests.swift", "OTPDetectorTests.swift", "PearWebSocketRequestTests.swift", "PreferenceCompatibilityTests.swift"],
-            sources: ["LiveActivityServiceTests.swift", "NotchWorkspaceLayoutTests.swift"]
+            sources: ["LiveActivityServiceTests.swift", "NotchActivityLayoutTests.swift", "LiveActivityCenterTests.swift", "LockedLiveActivityViewTests.swift", "NotchWorkspaceLayoutTests.swift"]
         )
     ]
 )
