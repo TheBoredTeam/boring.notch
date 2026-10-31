@@ -192,6 +192,19 @@ class CalendarManager: ObservableObject {
         )
         self.events = eventsResult
     }
+
+    /// Today's events (00:00 → 24:00) for the selected calendars.
+    /// Used by the calendar live activity, which needs its own window
+    /// independent of the calendar UI's current week.
+    func todaysEvents() async -> [EventModel] {
+        let start = Calendar.current.startOfDay(for: Date())
+        let end = Calendar.current.date(byAdding: .day, value: 1, to: start)!
+        return await calendarService.events(
+            from: start,
+            to: end,
+            calendars: selectedCalendars.map { $0.id }
+        )
+    }
     
     func setReminderCompleted(reminderID: String, completed: Bool) async {
         await calendarService.setReminderCompleted(reminderID: reminderID, completed: completed)
