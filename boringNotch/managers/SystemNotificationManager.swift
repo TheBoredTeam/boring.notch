@@ -27,7 +27,9 @@ final class SystemNotificationManager: ObservableObject {
     private let displayDuration: TimeInterval = 8
     private var dismissTask: Task<Void, Never>?
     private var notificationObserver: NSObjectProtocol?
+    private var helperLostObserver: NSObjectProtocol?
     private var isUserPresent = false
+    private var isWatching = false
 
     private init() {
         notificationObserver = NotificationCenter.default.addObserver(
@@ -36,25 +38,45 @@ final class SystemNotificationManager: ObservableObject {
             guard let payload = note.userInfo as? [String: String] else { return }
             Task { @MainActor in self?.add(payload) }
         }
+        helperLostObserver = NotificationCenter.default.addObserver(
+            forName: .xpcHelperConnectionLost, object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in await self?.restartAfterHelperLoss() }
+        }
     }
 
     deinit {
         if let notificationObserver {
             NotificationCenter.default.removeObserver(notificationObserver)
         }
+        if let helperLostObserver {
+            NotificationCenter.default.removeObserver(helperLostObserver)
+        }
     }
 
     func start() async {
         guard await XPCHelperClient.shared.isAccessibilityAuthorized() else { return }
+        isWatching = true
         updateFilter()
         _ = await XPCHelperClient.shared.startNotificationWatching()
     }
 
     func stop() {
+        isWatching = false
         XPCHelperClient.shared.stopNotificationWatching()
         queuedNotifications.removeAll()
         isUserPresent = false
         dismissActive()
+    }
+
+    /// The banner watcher lives in the helper and died with it. Start it
+    /// again; the short pause keeps a helper that keeps crashing from being
+    /// relaunched in a tight loop.
+    private func restartAfterHelperLoss() async {
+        guard isWatching else { return }
+        try? await Task.sleep(for: .seconds(1))
+        guard isWatching else { return }
+        await start()
     }
 
     func holdActive() {
