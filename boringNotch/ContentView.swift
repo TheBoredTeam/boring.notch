@@ -219,7 +219,11 @@ struct ContentView: View {
 
             if isTargeted {
                 if vm.notchState == .closed {
-                    coordinator.currentView = .shelf
+                    // Only jump to the shelf if it is actually a visible tab, otherwise a drag
+                    // would select a tab that isn't in the tab bar.
+                    if Defaults[.boringShelf] {
+                        coordinator.currentView = .shelf
+                    }
                     doOpen()
                 }
                 return
@@ -349,6 +353,8 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
+                    case .clipboard:
+                        ClipboardView()
                     }
                 }
                 .transition(
