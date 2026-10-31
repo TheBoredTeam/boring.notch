@@ -7,14 +7,14 @@ import XCTest
 final class NowPlayingFavoriteTests: XCTestCase {
     func testAdapterBooleanPayloadsAndMissingCapabilityDecode() throws {
         let decoder = JSONDecoder()
-        let liked = try decoder.decode(NowPlayingUpdate.self, from: Data(#"{"diff":false,"payload":{"supportsIsLiked":true,"isLiked":true}}"#.utf8))
-        XCTAssertEqual(liked.payload.supportsIsLiked, true)
-        XCTAssertEqual(liked.payload.isLiked, true)
-        let unliked = try decoder.decode(NowPlayingUpdate.self, from: Data(#"{"diff":true,"payload":{"isLiked":false}}"#.utf8))
-        XCTAssertNil(unliked.payload.supportsIsLiked)
-        XCTAssertEqual(unliked.payload.isLiked, false)
-        let unsupported = try decoder.decode(NowPlayingUpdate.self, from: Data(#"{"diff":false,"payload":{}}"#.utf8))
-        XCTAssertNil(unsupported.payload.supportsIsLiked)
+        let liked = try decoder.decode(NowPlayingUpdate.self, from: Data(#"{"diff":false,"payload":{"likeCommandEnabled":true,"likeCommandActive":true}}"#.utf8))
+        XCTAssertEqual(liked.payload.likeCommandEnabled, true)
+        XCTAssertEqual(liked.payload.likeCommandActive, true)
+        let unliked = try decoder.decode(NowPlayingUpdate.self, from: Data(#"{"diff":true,"payload":{"likeCommandActive":false}}"#.utf8))
+        XCTAssertNil(unliked.payload.likeCommandEnabled)
+        XCTAssertEqual(unliked.payload.likeCommandActive, false)
+        let unsupported = try decoder.decode(NowPlayingUpdate.self, from: Data(#"{"diff":false,"payload":{"supportsIsLiked":true,"isLiked":true}}"#.utf8))
+        XCTAssertNil(unsupported.payload.likeCommandEnabled)
     }
 
     func testPlaybackOnlyDiffPreservesTheConfirmedLike() {

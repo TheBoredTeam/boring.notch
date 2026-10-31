@@ -314,8 +314,8 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
         if newPlaybackState.bundleIdentifier != MediaAppBundleID.appleMusic {
             let snapshot = NowPlayingFavoriteSnapshot.merging(
                 bundleIdentifier: resolvedBundleIdentifier,
-                enabled: payload.supportsIsLiked,
-                active: payload.isLiked,
+                enabled: payload.likeCommandEnabled,
+                active: payload.likeCommandActive,
                 previous: nativeFavoriteSnapshot,
                 preserving: diff && sameItem
             )

@@ -248,6 +248,6 @@ struct NowPlayingPayload: Codable, Sendable {
     let parentApplicationBundleIdentifier: String?
     let bundleIdentifier: String?
     let volume: Double?
-    let supportsIsLiked: Bool?
-    let isLiked: Bool?
+    let likeCommandEnabled: Bool?
+    let likeCommandActive: Bool?
 }
