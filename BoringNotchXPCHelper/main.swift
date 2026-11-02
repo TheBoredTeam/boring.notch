@@ -7,6 +7,11 @@
 
 import Foundation
 
+if CommandLine.arguments.contains("--boring-notch-ai-hook") {
+    AIActivityHookClient.run()
+    exit(0)
+}
+
 class ServiceDelegate: NSObject, NSXPCListenerDelegate {
     
     /// This method is where the NSXPCListener configures, accepts, and resumes a new incoming NSXPCConnection.

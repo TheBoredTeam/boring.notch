@@ -11,6 +11,22 @@ import IOKit
 import CoreGraphics
 
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
+
+    func aiActivitySnapshot(observeDesktop: Bool, frontmostBundleID: String?, with reply: @escaping (Data?) -> Void) {
+        AIActivityService.shared.snapshot(observeDesktop: observeDesktop, frontmostBundleID: frontmostBundleID, reply: reply)
+    }
+
+    func stopAIActivityMonitoring() { AIActivityService.shared.stop() }
+
+    func aiActivityHookStatus(with reply: @escaping (Data?) -> Void) {
+        AIActivityService.shared.hookStatus(reply: reply)
+    }
+
+    func dismissAIActivity(_ id: String) { AIActivityService.shared.dismiss(id) }
+
+    func configureAIActivityHooks(_ provider: String, remove: Bool, with reply: @escaping (String) -> Void) {
+        AIActivityService.shared.configure(provider: provider, remove: remove, reply: reply)
+    }
     
     @objc func isAccessibilityAuthorized(with reply: @escaping (Bool) -> Void) {
         reply(AXIsProcessTrusted())

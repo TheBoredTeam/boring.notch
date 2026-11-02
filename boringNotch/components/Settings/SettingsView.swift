@@ -36,6 +36,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Media") {
                     Label("Media", systemImage: "play.laptopcomputer")
                 }
+                NavigationLink(value: "AI Activities") {
+                    Label("AI Activities", systemImage: "circle.grid.3x1.fill")
+                }
                 NavigationLink(value: "Calendar") {
                     Label("Calendar", systemImage: "calendar")
                 }
@@ -77,6 +80,8 @@ struct SettingsView: View {
                     Appearance()
                 case "Media":
                     Media()
+                case "AI Activities":
+                    AIActivitiesSettings()
                 case "Calendar":
                     CalendarSettings()
                 case "HUD":

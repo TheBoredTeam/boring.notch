@@ -9,6 +9,11 @@ import Foundation
 
 /// The protocol that this service will vend as its API. This protocol will also need to be visible to the process hosting the service.
 @objc protocol BoringNotchXPCHelperProtocol {
+    func aiActivitySnapshot(observeDesktop: Bool, frontmostBundleID: String?, with reply: @escaping (Data?) -> Void)
+    func aiActivityHookStatus(with reply: @escaping (Data?) -> Void)
+    func stopAIActivityMonitoring()
+    func dismissAIActivity(_ id: String)
+    func configureAIActivityHooks(_ provider: String, remove: Bool, with reply: @escaping (String) -> Void)
     func isAccessibilityAuthorized(with reply: @escaping (Bool) -> Void)
     func requestAccessibilityAuthorization()
     func ensureAccessibilityAuthorization(_ promptIfNeeded: Bool, with reply: @escaping (Bool) -> Void)

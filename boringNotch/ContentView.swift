@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject private var aiActivities = AIActivityManager.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -65,6 +66,8 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
+        } else if showsAIActivity {
+            chinWidth += AIActivityLayout.additionalWidth(height: vm.effectiveClosedNotchHeight)
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -78,6 +81,16 @@ struct ContentView: View {
         }
 
         return chinWidth
+    }
+
+    // This same decision drives both the content and its width. Battery and HUD
+    // keep their existing transient priority; AI state resumes immediately after.
+    private var showsAIActivity: Bool {
+        aiActivities.isEnabled && aiActivities.selectedSession != nil && vm.notchState == .closed
+            && !vm.hideOnClosed && !coordinator.helloAnimationRunning
+            && (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
+            && !(coordinator.sneakPeek.show && Defaults[.inlineHUD]
+                 && coordinator.sneakPeek.type != .music && coordinator.sneakPeek.type != .battery)
     }
 
     var body: some View {
@@ -287,6 +300,10 @@ struct ContentView: View {
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
+                      } else if showsAIActivity, !aiActivities.notchGroups.isEmpty {
+                          AIActivityLiveActivity(groups: aiActivities.notchGroups, notchWidth: vm.closedNotchSize.width,
+                                                 height: vm.effectiveClosedNotchHeight)
+                              .transition(.opacity)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
@@ -349,6 +366,8 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
+                    case .ai:
+                        AIActivityDetailView()
                     }
                 }
                 .transition(
@@ -503,6 +522,7 @@ struct ContentView: View {
     }
 
     private func doOpen() {
+        if showsAIActivity { coordinator.currentView = .ai }
         withAnimation(animationSpring) {
             vm.open()
         }

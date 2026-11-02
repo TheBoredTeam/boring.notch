@@ -70,6 +70,41 @@ final class XPCHelperClient: NSObject {
     }
 
     // MARK: - Monitoring
+    func aiActivitySnapshot(observeDesktop: Bool, frontmostBundleID: String?) async throws -> AIActivitySnapshot {
+        let service = await MainActor.run { ensureRemoteService() }
+        let data: Data? = try await service.withContinuation { service, continuation in
+            service.aiActivitySnapshot(observeDesktop: observeDesktop, frontmostBundleID: frontmostBundleID) { continuation.resume(returning: $0) }
+        }
+        guard let data else { throw CocoaError(.coderReadCorrupt) }
+        return try JSONDecoder().decode(AIActivitySnapshot.self, from: data)
+    }
+
+    func stopAIActivityMonitoring() async {
+        guard let service = await MainActor.run(body: { getRemoteService() }) else { return }
+        try? await service.withService { $0.stopAIActivityMonitoring() }
+    }
+
+    func aiActivityHookStatus() async throws -> [String: AIHookConnection] {
+        let service = await MainActor.run { ensureRemoteService() }
+        let data: Data? = try await service.withContinuation { service, continuation in
+            service.aiActivityHookStatus { continuation.resume(returning: $0) }
+        }
+        guard let data else { throw CocoaError(.coderReadCorrupt) }
+        return try JSONDecoder().decode([String: AIHookConnection].self, from: data)
+    }
+
+    func dismissAIActivity(_ id: String) async {
+        let service = await MainActor.run { ensureRemoteService() }
+        try? await service.withService { $0.dismissAIActivity(id) }
+    }
+
+    func configureAIActivityHooks(_ provider: AIProvider, remove: Bool) async throws -> String {
+        let service = await MainActor.run { ensureRemoteService() }
+        return try await service.withContinuation { service, continuation in
+            service.configureAIActivityHooks(provider.rawValue, remove: remove) { continuation.resume(returning: $0) }
+        }
+    }
+
     nonisolated func startMonitoringAccessibilityAuthorization(every interval: TimeInterval = 3.0) {
         // Ensure only one monitor exists
         stopMonitoringAccessibilityAuthorization()
