@@ -535,6 +535,10 @@ final class MusicManager: ObservableObject {
         let timeChanged = state.currentTime != self.elapsedTime
         let durationChanged = state.duration != self.songDuration
         let playbackRateChanged = state.playbackRate != self.playbackRate
+        let trackChanged = state.title != self.songTitle
+            || state.artist != self.artistName
+            || state.album != self.album
+            || state.bundleIdentifier != self.bundleIdentifier
         let shuffleChanged = state.isShuffled != self.isShuffled
         let repeatModeChanged = state.repeatMode != self.repeatMode
         let volumeChanged = state.volume != self.volume
@@ -591,10 +595,10 @@ final class MusicManager: ObservableObject {
 
         // The slider extrapolates from (elapsedTime, timestampDate); only
         // republish when an extrapolation input actually changed — otherwise
-        // every no-op stream event invalidates the whole view tree. A pause/
-        // resume must rebase it too, or the estimate overshoots by the pause
-        // duration.
-        if timeChanged || playbackRateChanged || playingStateChanged {
+        // every no-op stream event invalidates the whole view tree. Playback
+        // and track changes must rebase the timestamp, or the estimate can
+        // include time from before a pause or the previous track.
+        if timeChanged || playbackRateChanged || playingStateChanged || trackChanged {
             self.timestampDate = state.lastUpdated
         }
     }
