@@ -105,6 +105,8 @@ struct AIActivityEvent: Codable, Sendable {
     var kind: AIActivityEventKind
     var timestamp = Date().timeIntervalSince1970
     var requestID: String?
+    /// A permission request this result also settles; permission requests have no tool ID.
+    var alsoResolves: String?
     var agentID: String?
     var project: String?
     var hostSessionID: String?
@@ -122,6 +124,7 @@ struct AIActivityEvent: Codable, Sendable {
             && !sessionID.isEmpty && sessionID.utf8.count <= 256
             && (runID?.utf8.count ?? 0) <= 256
             && (requestID?.utf8.count ?? 0) <= 256
+            && (alsoResolves?.utf8.count ?? 0) <= 256
             && (agentID?.utf8.count ?? 0) <= 256
             && (reason?.utf8.count ?? 0) <= 512
             && (project?.utf8.count ?? 0) <= 256
@@ -302,6 +305,7 @@ struct AIActivityStore {
         case .resolved:
             // Never clear another outstanding question on an unrelated tool's result.
             if let requestID = event.requestID { session.pendingRequests.removeValue(forKey: requestID) }
+            if let permission = event.alsoResolves { session.pendingRequests.removeValue(forKey: permission) }
             // Between tools the model is reasoning about the result.
             session.action = .thinking
             session.actionDetail = nil
@@ -327,6 +331,9 @@ struct AIActivityStore {
             }
         case .stopped:
             session.rootResponseStopped = true
+            // A finished response cannot still be waiting on a permission dialog: a manual denial
+            // sends no hook of its own. Questions such as async ones can legitimately outlive it.
+            session.pendingRequests = session.pendingRequests.filter { !$0.key.hasPrefix("permission:") }
             if !session.pendingRequests.isEmpty {
                 session.status = .needsAttention
                 session.reason = session.pendingRequests.values.sorted().first ?? "Waiting for your response"

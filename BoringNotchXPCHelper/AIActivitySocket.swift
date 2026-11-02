@@ -217,9 +217,9 @@ enum AIActivityHookClient {
             if isQuestion { reason = "Waiting for your answer" }
             action = classify(tool: json["tool_name"] as? String ?? "", input: json["tool_input"] as? [String: Any] ?? [:])
         case "PermissionRequest": kind = .attention; reason = "Waiting for permission in the app"
-        case "PostToolUse":
+        case "PostToolUse", "PostToolUseFailure", "PermissionDenied":
             // An asynchronous question returning only means it was presented, not answered.
-            if isAsyncQuestion { return nil }
+            if name == "PostToolUse" && isAsyncQuestion { return nil }
             kind = .resolved
         case "Stop": kind = .stopped
         case "StopFailure": kind = .failed; reason = "The response failed; review it in the app"
@@ -238,6 +238,13 @@ enum AIActivityHookClient {
         var event = AIActivityEvent(provider: provider, sessionID: sessionID,
                                     runID: json["turn_id"] as? String, kind: kind)
         event.requestID = toolID
+        // Claude Code's PermissionRequest carries no tool_use_id, so key it by tool. The tool's
+        // result, failure or auto-mode denial then clears it along with its own request.
+        let permissionID = tool.isEmpty ? nil : "permission:\(tool)"
+        if name == "PermissionRequest" && json["tool_use_id"] == nil && json["item_id"] == nil {
+            event.requestID = permissionID
+        }
+        if kind == .resolved && name != "ElicitationResult" { event.alsoResolves = permissionID }
         if name == "Elicitation" || name == "ElicitationResult" {
             event.requestID = "elicitation:" + (json["elicitation_id"] as? String ?? json["mcp_server_name"] as? String ?? "default")
         }

@@ -26,6 +26,12 @@ enum AIActivityHookInstaller {
         return quoted + " " + marker + " --provider " + provider.rawValue
     }
 
+    /// Hooks without which a light can get stuck. Older installs lacking one show Reconnect.
+    static func requiredEvents(for provider: AIProvider) -> [String] {
+        let core = ["UserPromptSubmit", "PreToolUse", "PostToolUse", "PermissionRequest", "Stop"]
+        return provider == .claudeCode ? core + ["PostToolUseFailure"] : core
+    }
+
     static func isConnected(_ provider: AIProvider, executableURL: URL? = Bundle.main.executableURL,
                             home: URL = userHome) -> Bool {
         connection(provider, executableURL: executableURL, home: home).state == .connected
@@ -51,7 +57,7 @@ enum AIActivityHookInstaller {
         }
         let expected = executableURL.map { command(for: provider, executableURL: $0) }
         let complete = config["disableAllHooks"] as? Bool != true && expected != nil
-            && ["UserPromptSubmit", "PreToolUse", "PostToolUse", "PermissionRequest", "Stop"].allSatisfy {
+            && requiredEvents(for: provider).allSatisfy {
                 commands($0).contains(expected!)
             }
         return AIHookConnection(state: complete ? .connected : .needsReconnect, executablePath: path)
@@ -93,7 +99,9 @@ enum AIActivityHookInstaller {
             let hookCommand = command(for: provider, executableURL: executableURL)
             var events = ["SessionStart", "UserPromptSubmit", "PreToolUse", "PostToolUse", "PermissionRequest",
                           "SubagentStart", "SubagentStop", "Stop", "SessionEnd"]
-            events += provider == .claudeCode ? ["Elicitation", "ElicitationResult", "StopFailure"] : ["Interrupt"]
+            events += provider == .claudeCode
+                ? ["Elicitation", "ElicitationResult", "StopFailure", "PostToolUseFailure", "PermissionDenied"]
+                : ["Interrupt"]
             for event in events {
                 var groups = hooks[event] as? [[String: Any]] ?? []
                 // Omit matcher: the provider chooses which events support it.

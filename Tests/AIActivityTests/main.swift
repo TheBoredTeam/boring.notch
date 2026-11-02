@@ -153,6 +153,34 @@ apply(event(.resolved, at: 606, request: "approval"), to: &banner)
 apply(event(.resolved, at: 607, request: "question"), to: &banner)
 expect(!state(banner).showsAttentionBanner(at: Date(timeIntervalSince1970: base + 607)), "answering retracts the banner")
 
+// Real Claude Code hook sequences: PermissionRequest has no tool_use_id, a failed tool fires
+// PostToolUseFailure, and a manual denial fires nothing afterwards.
+func hook(_ name: String, _ tool: String? = nil, id: String? = nil, at offset: Double) -> AIActivityEvent {
+    var json: [String: Any] = ["hook_event_name": name, "session_id": "desktop-session"]
+    if let tool { json["tool_name"] = tool; json["tool_input"] = [String: Any]() }
+    if let id { json["tool_use_id"] = id }
+    var result = AIActivityHookClient.normalize(json, provider: .claudeCode, environment: [:])!
+    result.timestamp = base + offset
+    return result
+}
+var answered = AIActivityStore()
+apply(event(.started, at: 0), to: &answered)
+apply(hook("PreToolUse", "AskUserQuestion", id: "toolu_q", at: 1), to: &answered)
+apply(hook("PermissionRequest", "AskUserQuestion", at: 2), to: &answered)
+expect(state(answered).status == .needsAttention, "a question waits for you")
+apply(hook("PostToolUse", "AskUserQuestion", id: "toolu_q", at: 3), to: &answered)
+expect(state(answered).status == .working && state(answered).pendingRequests.isEmpty,
+       "answering a question clears its permission request too")
+apply(hook("PreToolUse", "Bash", id: "toolu_b", at: 4), to: &answered)
+apply(hook("PermissionRequest", "Bash", at: 5), to: &answered)
+apply(hook("PostToolUseFailure", "Bash", id: "toolu_b", at: 6), to: &answered)
+expect(state(answered).status == .working, "an approved command that fails still clears the request")
+apply(hook("PreToolUse", "Bash", id: "toolu_c", at: 7), to: &answered)
+apply(hook("PermissionRequest", "Bash", at: 8), to: &answered)
+apply(hook("Stop", at: 9), to: &answered)
+answered.advance(to: Date(timeIntervalSince1970: base + 12))
+expect(state(answered).status == .completed, "a manually denied permission does not stick once the response ends")
+
 // Simultaneous providers: one companion each, most urgent first, sessions counted per provider.
 let groupNow = Date(timeIntervalSince1970: base + 100)
 func session(_ provider: AIProvider, _ id: String, _ status: AIActivityStatus, updated: Double) -> AIActivitySession {
@@ -269,6 +297,16 @@ let otherCopy = temporary.appendingPathComponent("Other Copy/helper")
 expect(AIActivityHookInstaller.connection(.claudeCode, executableURL: otherCopy, home: temporary).state == .needsReconnect,
        "hooks that run another copy of the helper are not reported as connected")
 let installed = try Data(contentsOf: configURL)
+var withoutFailureHook = try JSONSerialization.jsonObject(with: installed) as! [String: Any]
+var trimmedHooks = withoutFailureHook["hooks"] as! [String: Any]
+trimmedHooks.removeValue(forKey: "PostToolUseFailure")
+withoutFailureHook["hooks"] = trimmedHooks
+let olderHome = temporary.appendingPathComponent("older-install")
+let olderConfig = AIActivityHookInstaller.configurationURL(for: .claudeCode, home: olderHome)!
+try FileManager.default.createDirectory(at: olderConfig.deletingLastPathComponent(), withIntermediateDirectories: true)
+try JSONSerialization.data(withJSONObject: withoutFailureHook).write(to: olderConfig)
+expect(AIActivityHookInstaller.connection(.claudeCode, executableURL: fakeExecutable, home: olderHome).state == .needsReconnect,
+       "an install missing the failure hook asks to reconnect")
 expect(!String(decoding: installed, as: UTF8.self).contains("\\/"), "rewriting settings does not escape every slash")
 _ = try AIActivityHookInstaller.update(.claudeCode, remove: false, executableURL: fakeExecutable, home: temporary)
 expect(try Data(contentsOf: configURL) == installed, "repeated installation is idempotent")
