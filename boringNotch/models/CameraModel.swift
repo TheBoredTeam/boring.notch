@@ -115,7 +115,9 @@ final class CameraModel {
                     || state == .permissionDenied {
                     state = .stopped
                 }
-                engine.refresh()
+                // The engine already publishes devices after authorization.
+                // Refreshing here feeds its authorization response back into
+                // another refresh, continuously rediscovering idle cameras.
                 if shouldStart {
                     startSession()
                 }

@@ -51,6 +51,24 @@ final class CameraLifecycleTests: XCTestCase {
         CameraDevice(id: "external", name: "External Camera", isExternal: true)
     ]
 
+    func testAuthorizedRefreshDoesNotScheduleAnotherRefresh() {
+        let engine = CameraEngineStub()
+        let camera = CameraModel(engine: engine, authorizationStatus: .authorized)
+        XCTAssertEqual(engine.refreshCount, 1)
+
+        // A real refresh reports authorization followed by devices. Handling
+        // that response must not start a new discovery/authorization cycle.
+        for _ in 0..<10 {
+            engine.send(.authorization(.authorized))
+            engine.send(.devices(cameras))
+        }
+
+        XCTAssertEqual(engine.refreshCount, 1)
+        XCTAssertEqual(camera.availableCameras, cameras)
+        XCTAssertEqual(camera.state, .stopped)
+        XCTAssertTrue(engine.startRequests.isEmpty)
+    }
+
     func testCameraRequestsPermissionWhenStartingWithoutAuthorization() {
         let engine = CameraEngineStub()
         let camera = CameraModel(engine: engine, authorizationStatus: .notDetermined)
@@ -74,6 +92,7 @@ final class CameraLifecycleTests: XCTestCase {
         XCTAssertEqual(camera.authorizationStatus, .authorized)
         XCTAssertEqual(camera.state, .starting)
         XCTAssertEqual(engine.startRequests, ["built-in"])
+        XCTAssertEqual(engine.refreshCount, 1)
 
         let session = AVCaptureSession()
         let layer = AVCaptureVideoPreviewLayer(session: session)

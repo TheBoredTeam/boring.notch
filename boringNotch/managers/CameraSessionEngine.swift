@@ -59,7 +59,8 @@ final class AVCaptureSessionEngine: NSObject, CameraSessionEngine {
 
     private let sessionQueue = DispatchQueue(
         label: "BoringNotch.CameraSessionEngine",
-        qos: .userInitiated
+        qos: .userInitiated,
+        autoreleaseFrequency: .workItem
     )
     private let notificationCenter: NotificationCenter
     private let state = CameraEngineState()

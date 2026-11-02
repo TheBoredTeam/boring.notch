@@ -693,13 +693,15 @@ private enum SystemMetricSampler {
     }
 
     private static func cpuTicks() -> (user: UInt32, system: UInt32, idle: UInt32, nice: UInt32) {
+        let host = mach_host_self()
+        defer { mach_port_deallocate(mach_task_self_, host) }
         var info = host_cpu_load_info()
         var count = mach_msg_type_number_t(
             MemoryLayout<host_cpu_load_info_data_t>.size / MemoryLayout<integer_t>.size
         )
         let result = withUnsafeMutablePointer(to: &info) { pointer in
             pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { rebound in
-                host_statistics(mach_host_self(), HOST_CPU_LOAD_INFO, rebound, &count)
+                host_statistics(host, HOST_CPU_LOAD_INFO, rebound, &count)
             }
         }
         guard result == KERN_SUCCESS else { return (0, 0, 0, 0) }
@@ -712,6 +714,8 @@ private enum SystemMetricSampler {
     }
 
     private static func memoryUsage() -> (used: UInt64, total: UInt64) {
+        let host = mach_host_self()
+        defer { mach_port_deallocate(mach_task_self_, host) }
         let total = ProcessInfo.processInfo.physicalMemory
         var info = vm_statistics64()
         var count = mach_msg_type_number_t(
@@ -719,13 +723,13 @@ private enum SystemMetricSampler {
         )
         let result = withUnsafeMutablePointer(to: &info) { pointer in
             pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { rebound in
-                host_statistics64(mach_host_self(), HOST_VM_INFO64, rebound, &count)
+                host_statistics64(host, HOST_VM_INFO64, rebound, &count)
             }
         }
         guard result == KERN_SUCCESS else { return (0, total) }
 
         var hostPageSize: vm_size_t = 0
-        guard host_page_size(mach_host_self(), &hostPageSize) == KERN_SUCCESS else {
+        guard host_page_size(host, &hostPageSize) == KERN_SUCCESS else {
             return (0, total)
         }
         let pageSize = UInt64(hostPageSize)
