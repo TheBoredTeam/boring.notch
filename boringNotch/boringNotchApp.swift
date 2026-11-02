@@ -281,6 +281,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Xcode launches the whole app to host SwiftUI previews and relaunches it after every
+        // edit. That host must not open a second notch or take the AI event socket from the
+        // installed app.
+        if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" { return }
+
         AIActivityManager.shared.start()
 
         NotificationCenter.default.addObserver(
