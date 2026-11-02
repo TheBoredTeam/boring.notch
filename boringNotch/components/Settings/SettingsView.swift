@@ -870,7 +870,9 @@ struct About: View {
                     Text("Version info")
                 }
 
-                UpdaterSettingsView(updater: updaterController.updater)
+                if softwareUpdatesEnabled {
+                    UpdaterSettingsView(updater: updaterController.updater)
+                }
 
                 HStack(spacing: 30) {
                     Spacer(minLength: 0)
@@ -908,7 +910,9 @@ struct About: View {
             //                openWindow(id: "onboarding")
             //            }
             //            .controlSize(.extraLarge)
-            CheckForUpdatesView(updater: updaterController.updater)
+            if softwareUpdatesEnabled {
+                CheckForUpdatesView(updater: updaterController.updater)
+            }
         }
         .navigationTitle("About")
     }

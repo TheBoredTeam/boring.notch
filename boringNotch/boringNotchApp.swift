@@ -22,7 +22,7 @@ struct DynamicNotchApp: App {
 
     init() {
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+            startingUpdater: softwareUpdatesEnabled, updaterDelegate: nil, userDriverDelegate: nil)
 
         // Initialize the settings window controller with the updater controller
         SettingsWindowController.shared.setUpdaterController(updaterController)
@@ -36,7 +36,9 @@ struct DynamicNotchApp: App {
                 }
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
-            CheckForUpdatesView(updater: updaterController.updater)
+            if softwareUpdatesEnabled {
+                CheckForUpdatesView(updater: updaterController.updater)
+            }
             Divider()
             Button("Restart Boring Notch") {
                 ApplicationRelauncher.restart()

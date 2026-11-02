@@ -8,6 +8,10 @@
 import SwiftUI
 import Sparkle
 
+/// This personal fork takes no updates. Upstream's feed is signed with the same key, so an
+/// "update" would silently replace the fork with the official release.
+let softwareUpdatesEnabled = false
+
 final class CheckForUpdatesViewModel: ObservableObject {
     @Published var canCheckForUpdates = false
 
