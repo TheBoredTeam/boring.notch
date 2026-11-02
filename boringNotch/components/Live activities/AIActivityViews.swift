@@ -48,6 +48,8 @@ struct AIMascotView: View {
     var action: AIActivityAction? = nil
     var size: CGFloat = 24
     var animates = true
+    /// Desk props (keyboard, book, terminal…) are too fine to read at icon sizes.
+    var showsProps = true
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ObservedObject private var manager = AIActivityManager.shared
     @State private var frame = 0
@@ -60,7 +62,7 @@ struct AIMascotView: View {
             let t = Double(frame) / 12
             let moving = frame > 0
             // Static rows still show the prop for the current action; only the motion needs frames.
-            let pose = status == .working ? action ?? .editing : nil
+            let pose = status == .working && showsProps ? action ?? .editing : nil
             let working = pose != nil && moving
             let bounce = working ? sin(t * .pi * 2 / 0.8) * 0.65
                 : status == .completed && t < 0.7 ? -sin(t / 0.7 * .pi) * 2 : 0
@@ -262,21 +264,33 @@ struct AIMascotView: View {
 struct AIActivityLiveActivity: View {
     /// One companion per provider, most urgent first; the lamps describe the first.
     let groups: [AIActivityGroup]
+    var banner: AIActivitySession? = nil
     let notchWidth: CGFloat
     let height: CGFloat
 
     private var lead: AIActivitySession { groups[0].lead }
     private var mascotSize: CGFloat { max(12, min(26, height - 6)) }
 
+    private var totalWidth: CGFloat { notchWidth + 2 * AIActivityLayout.wingWidth(height: height) }
+
     var body: some View {
-        HStack(spacing: 0) {
-            companions
-                .frame(width: AIActivityLayout.wingWidth(height: height))
-            Color.clear.frame(width: notchWidth)
-            TrafficLightView(status: lead.status, diameter: min(8, max(5, height / 4)))
-                .frame(width: AIActivityLayout.wingWidth(height: height))
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                companions
+                    .frame(width: AIActivityLayout.wingWidth(height: height))
+                Color.clear.frame(width: notchWidth)
+                TrafficLightView(status: lead.status, diameter: min(8, max(5, height / 4)))
+                    .frame(width: AIActivityLayout.wingWidth(height: height))
+            }
+            .frame(height: height)
+            if let banner {
+                // The notch grows downward like a sneak peek, so a question cannot go unnoticed.
+                AIAttentionBanner(session: banner)
+                    .frame(width: totalWidth - 2 * cornerRadiusInsets.closed.bottom)
+                    .padding(.bottom, 8)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
         }
-        .frame(height: height)
         .animation(.smooth, value: groups.map(\.id))
         .help(groups.map(describe).joined(separator: "\n"))
         .accessibilityElement(children: .ignore)
@@ -318,6 +332,54 @@ struct AIActivityLiveActivity: View {
     }
 }
 
+/// The AI tab's icon is the front companion itself: in color while something is live, gray otherwise.
+struct AITabIcon: View {
+    let selected: Bool
+    @ObservedObject private var manager = AIActivityManager.shared
+
+    var body: some View {
+        let lead = manager.selectedSession
+        let live = (lead?.status.priority ?? 0) >= 2
+        AIMascotView(provider: lead?.provider ?? .claudeCode, status: lead?.status ?? .idle,
+                     size: 18, animates: false, showsProps: false)
+            // Desaturated, the body's brightness already matches the gray symbols beside it.
+            .saturation(selected || live ? 1 : 0)
+    }
+}
+
+struct AIAttentionBanner: View {
+    let session: AIActivitySession
+    private let yellow = Color(red: 1, green: 0.741, blue: 0.18)
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.bubble.fill")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(yellow)
+                .symbolEffect(.pulse, options: .repeating)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("\(session.provider.name) needs you")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white)
+                // Keep the project when it fits; the reason matters more.
+                ViewThatFits(in: .horizontal) {
+                    if !session.project.isEmpty { Text("\(session.reason) · \(session.project)") }
+                    Text(session.reason)
+                }
+                .font(.system(size: 11))
+                .foregroundStyle(.white.opacity(0.65))
+            }
+            .lineLimit(1)
+            .truncationMode(.tail)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(RoundedRectangle(cornerRadius: 10).fill(yellow.opacity(0.12)))
+        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(yellow.opacity(0.3), lineWidth: 0.5))
+    }
+}
+
 struct AIActivityDetailView: View {
     @ObservedObject private var manager = AIActivityManager.shared
 
@@ -341,44 +403,59 @@ struct AIActivityDetailView: View {
                         }
                     }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 24)
                 } else {
-                    ForEach(manager.sessions) { session in
-                        HStack(spacing: 10) {
-                            // List rows are static; only the selected notch companion animates.
-                            AIMascotView(provider: session.provider, status: session.status, action: session.action,
-                                         size: 28, animates: false)
-                            Button { if session.source != .preview { manager.open(session) } } label: {
-                                VStack(alignment: .leading, spacing: 3) {
-                                    HStack(spacing: 6) {
-                                        Text(session.provider.name).fontWeight(.medium)
-                                        if !session.project.isEmpty { Text("· \(session.project)").foregroundStyle(.secondary) }
-                                    }.lineLimit(1)
-                                    if let caption = session.caption, let action = session.action {
-                                        Label(caption, systemImage: action.symbol)
-                                            .font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
-                                    } else {
-                                        Text(session.reason).font(.caption).foregroundStyle(.secondary).lineLimit(2)
-                                    }
-                                }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                            .help(session.source == .preview ? "Preview only" : "Open \(session.provider.name)")
-                            VStack(alignment: .trailing, spacing: 5) {
-                                TrafficLightView(status: session.status)
-                                Text(session.status.label).font(.caption2).foregroundStyle(.secondary)
-                            }
-                            if session.status.priority < 2 || session.source == .preview {
-                                Button { manager.dismiss(session) } label: { Image(systemName: "xmark") }
-                                    .buttonStyle(.plain).foregroundStyle(.secondary)
-                                    .help("Dismiss finished activity").accessibilityLabel("Dismiss finished activity")
-                            }
-                        }
-                        .padding(.horizontal, 8).padding(.vertical, 5)
-                    }
+                    ForEach(manager.sessions) { AIActivityRow(session: $0) }
                 }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .foregroundStyle(.white)
+    }
+}
+
+/// Live sessions are what you opened the notch for: large animated cards. Finished and idle
+/// rows stay compact and static.
+struct AIActivityRow: View {
+    let session: AIActivitySession
+    @ObservedObject private var manager = AIActivityManager.shared
+
+    var body: some View {
+        let live = session.status.priority >= 2
+        HStack(spacing: live ? 14 : 10) {
+            AIMascotView(provider: session.provider, status: session.status, action: session.action,
+                         size: live ? 46 : 28, animates: live)
+            Button { if session.source != .preview { manager.open(session) } } label: {
+                VStack(alignment: .leading, spacing: live ? 4 : 3) {
+                    HStack(spacing: 6) {
+                        Text(session.provider.name).font(.system(size: live ? 15 : 13, weight: live ? .semibold : .medium))
+                        if !session.project.isEmpty {
+                            Text("· \(session.project)").font(.system(size: live ? 15 : 13)).foregroundStyle(.secondary)
+                        }
+                    }.lineLimit(1)
+                    Group {
+                        if let caption = session.caption, let action = session.action {
+                            Label(caption, systemImage: action.symbol).lineLimit(1).truncationMode(.middle)
+                        } else {
+                            Text(session.reason).lineLimit(2)
+                        }
+                    }
+                    .font(.system(size: live ? 13 : 11))
+                    .foregroundStyle(session.status == .needsAttention ? Color(red: 1, green: 0.741, blue: 0.18) : .secondary)
+                }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help(session.source == .preview ? "Preview only" : "Open \(session.provider.name)")
+            VStack(alignment: .trailing, spacing: 5) {
+                TrafficLightView(status: session.status, diameter: live ? 11 : 8)
+                Text(session.status.label).font(.system(size: live ? 11 : 10)).foregroundStyle(.secondary)
+            }
+            if session.status.priority < 2 || session.source == .preview {
+                Button { manager.dismiss(session) } label: { Image(systemName: "xmark") }
+                    .buttonStyle(.plain).foregroundStyle(.secondary)
+                    .help("Dismiss finished activity").accessibilityLabel("Dismiss finished activity")
+            }
+        }
+        .padding(.horizontal, live ? 12 : 8).padding(.vertical, live ? 9 : 5)
+        .background(RoundedRectangle(cornerRadius: 14).fill(.white.opacity(live ? 0.07 : 0)))
     }
 }
 

@@ -17,6 +17,8 @@ final class AIActivityManager: ObservableObject {
     @Published private(set) var snapshot = AIActivitySnapshot()
     /// Companions shown in the closed notch, one per provider, most urgent first.
     @Published private(set) var notchGroups: [AIActivityGroup] = []
+    /// The waiting session whose question drops down under the closed notch.
+    @Published private(set) var attentionBanner: AIActivitySession?
     @Published private(set) var previewSession: AIActivitySession?
     @Published private(set) var previewCompanion: AIActivitySession?
     @Published private(set) var allowsAnimation = true
@@ -72,7 +74,7 @@ final class AIActivityManager: ObservableObject {
     func stop() {
         pollingTask?.cancel()
         pollingTask = nil
-        withAnimation(.smooth) { notchGroups = [] }
+        withAnimation(.smooth) { notchGroups = []; attentionBanner = nil }
         previewSession = nil
         previewCompanion = nil
         previewDeadline = nil
@@ -187,9 +189,13 @@ final class AIActivityManager: ObservableObject {
         // A preview always shows, whatever its state; it replaces live companions while it lasts.
         let next = previewSession.map { preview in [AIActivityGroup(lead: preview)] + (previewCompanion.map { [AIActivityGroup(lead: $0)] } ?? []) }
             ?? AIActivitySession.grouped(snapshot.sessions, at: Date())
-        guard next != notchGroups else { return }
+        let banner = next.first.map(\.lead).flatMap { $0.showsAttentionBanner(at: Date()) ? $0 : nil }
+        guard next != notchGroups || banner != attentionBanner else { return }
         // Like the music activity, animate so the notch resizes instead of snapping shut.
-        withAnimation(.smooth) { notchGroups = next }
+        withAnimation(.smooth) {
+            notchGroups = next
+            attentionBanner = banner
+        }
     }
 
     private func installVisibilityObservers() {

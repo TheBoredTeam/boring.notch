@@ -301,7 +301,8 @@ struct ContentView: View {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
                       } else if showsAIActivity, !aiActivities.notchGroups.isEmpty {
-                          AIActivityLiveActivity(groups: aiActivities.notchGroups, notchWidth: vm.closedNotchSize.width,
+                          AIActivityLiveActivity(groups: aiActivities.notchGroups, banner: aiActivities.attentionBanner,
+                                                 notchWidth: vm.closedNotchSize.width,
                                                  height: vm.effectiveClosedNotchHeight)
                               .transition(.opacity)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {

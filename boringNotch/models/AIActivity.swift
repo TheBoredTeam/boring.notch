@@ -174,6 +174,11 @@ struct AIActivitySession: Codable, Identifiable, Equatable, Sendable {
         }
     }
 
+    /// Yellow grows the closed notch downward until you go to the app that is waiting.
+    func showsAttentionBanner(at now: Date) -> Bool {
+        status == .needsAttention && (acknowledgedAt.map { now.timeIntervalSince($0) < Self.acknowledgementDelay } ?? true)
+    }
+
     static func preferred(_ sessions: [Self], at now: Date) -> Self? {
         grouped(sessions, at: now).first?.lead
     }
@@ -249,7 +254,6 @@ struct AIActivityStore {
         session.project = event.project ?? session.project
         session.hostSessionID = event.hostSessionID ?? session.hostSessionID
         session.hostBundleID = event.hostBundleID ?? session.hostBundleID
-        session.acknowledgedAt = nil
         session.isDesktop = event.isDesktop
 
         switch event.kind {
@@ -261,6 +265,7 @@ struct AIActivityStore {
             session.activeAgents = []
             session.completionCandidateAt = nil
             session.completedAt = nil
+            session.acknowledgedAt = nil
             session.rootResponseStopped = false
         case .started:
             // A queued/steered prompt can belong to the same running turn.
@@ -273,6 +278,7 @@ struct AIActivityStore {
             session.reason = session.pendingRequests.values.sorted().first ?? "Working on this turn"
             session.completionCandidateAt = nil
             session.completedAt = nil
+            session.acknowledgedAt = nil
             session.rootResponseStopped = false
             session.action = .thinking
             session.actionDetail = nil
@@ -287,6 +293,8 @@ struct AIActivityStore {
         case .attention, .failed:
             let reason = event.reason ?? (event.kind == .failed ? "The turn needs your attention" : "Waiting for your response")
             session.pendingRequests[event.requestID ?? "turn"] = reason
+            // A new question drops the banner again, even after you looked at an earlier one.
+            session.acknowledgedAt = nil
             session.status = .needsAttention
             session.reason = reason
             session.completionCandidateAt = nil
@@ -335,6 +343,7 @@ struct AIActivityStore {
             session.status = .completed
             session.reason = "This turn finished; review the result in the app"
             session.completedAt = now
+            session.acknowledgedAt = nil
             session.completionCandidateAt = nil
         case .interrupted, .sessionEnded:
             session.status = event.kind == .interrupted ? .interrupted : .unknown
@@ -385,11 +394,12 @@ struct AIActivityStore {
         }
     }
 
-    /// Being in the host app after a response finished means you have seen it.
+    /// Being in the host app after a response finished, or while it waits for you, means you have seen it.
     mutating func observeFrontmost(_ bundleID: String?, at now: Date) {
         guard let bundleID else { return }
         for key in Array(sessions.keys) {
-            guard var session = sessions[key], session.status == .completed, session.acknowledgedAt == nil,
+            guard var session = sessions[key], session.status == .completed || session.status == .needsAttention,
+                  session.acknowledgedAt == nil,
                   session.returnBundleID == bundleID else { continue }
             session.acknowledgedAt = now
             sessions[key] = session

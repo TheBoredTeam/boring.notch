@@ -136,6 +136,23 @@ apply(event(.resolved, at: 4, request: "approval"), to: &actions)
 apply(event(.stopped, at: 5), to: &actions)
 expect(state(actions).action == nil, "a stopped response has no action")
 
+// Yellow drops a banner under the notch until you go to the waiting app; a new question drops it again.
+var banner = AIActivityStore()
+apply(event(.started, at: 0), to: &banner)
+apply(event(.attention, at: 1, request: "approval"), to: &banner)
+expect(state(banner).showsAttentionBanner(at: Date(timeIntervalSince1970: base + 600)), "an unanswered question keeps the banner down")
+banner.observeFrontmost(AIProvider.claudeCode.bundleIdentifier, at: Date(timeIntervalSince1970: base + 600))
+expect(state(banner).showsAttentionBanner(at: Date(timeIntervalSince1970: base + 602)), "the banner lingers briefly after you switch")
+expect(!state(banner).showsAttentionBanner(at: Date(timeIntervalSince1970: base + 603)), "the banner retracts once you are in the app")
+expect(state(banner).status == .needsAttention, "seeing a question does not answer it")
+apply(event(.activity, at: 604), to: &banner)
+expect(!state(banner).showsAttentionBanner(at: Date(timeIntervalSince1970: base + 604)), "unrelated activity does not drop the banner again")
+apply(event(.attention, at: 605, request: "question"), to: &banner)
+expect(state(banner).showsAttentionBanner(at: Date(timeIntervalSince1970: base + 605)), "a new question drops the banner again")
+apply(event(.resolved, at: 606, request: "approval"), to: &banner)
+apply(event(.resolved, at: 607, request: "question"), to: &banner)
+expect(!state(banner).showsAttentionBanner(at: Date(timeIntervalSince1970: base + 607)), "answering retracts the banner")
+
 // Simultaneous providers: one companion each, most urgent first, sessions counted per provider.
 let groupNow = Date(timeIntervalSince1970: base + 100)
 func session(_ provider: AIProvider, _ id: String, _ status: AIActivityStatus, updated: Double) -> AIActivitySession {

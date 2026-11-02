@@ -18,7 +18,8 @@ The connector adds only its own hook commands, keeps one rolling private backup 
 
 ## Read and preview states
 
-- Hover or click an AI activity to open the **AI tab**. It lists observed sessions and their reasons; click a live row to return to its app.
+- When the front companion turns yellow, the closed notch grows a row downward saying who needs you and why. It stays until the request is answered, or for about three seconds after you switch to the app that is waiting. A new question drops it again; activity on an already-seen question does not.
+- Hover or click an AI activity to open the **AI tab**. Working and waiting sessions show as large cards with an animated companion and caption; finished and idle rows stay compact. Click a live row to return to its app.
 - While red, the companion acts out the current tool: a book for reading, a magnifying glass for searching, a keyboard for editing, a terminal for commands and tests, a globe for the web, a small helper for delegated agents, and thought dots between tools. The AI tab shows the same thing as a caption such as “Editing ContentView.swift”. Yellow raises a “!”; green throws a little confetti. **Try the lights** can preview each action.
 - Claude Code GUI session links use the host session ID when available. Otherwise the corresponding app is opened.
 - Multiple sessions stay separate. An outstanding yellow state takes priority over red, and red takes priority over a completed response. A child agent ending never completes its parent.

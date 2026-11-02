@@ -11,11 +11,14 @@ struct TabButton: View {
     let label: String
     let icon: String
     let selected: Bool
+    var custom: AnyView? = nil
     let onClick: () -> Void
     
     var body: some View {
         Button(action: onClick) {
-            Image(systemName: icon)
+            Group {
+                if let custom { custom } else { Image(systemName: icon) }
+            }
                 .padding(.horizontal, 15)
                 .contentShape(Capsule())
         }
