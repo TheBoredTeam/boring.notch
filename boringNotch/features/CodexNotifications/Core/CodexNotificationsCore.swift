@@ -25,6 +25,7 @@ public enum CodexNotificationTiming {
     public static let transitionAnimationResponse: TimeInterval = 0.42
     public static let passiveDwellDuration: TimeInterval = 3
     public static let codexHoverExpansionDelay: TimeInterval = 0.6
+    public static let responseInactivityCollapseDelay: TimeInterval = 2
 
     public static func transitionDuration(
         animationSpeedMultiplier: Double,

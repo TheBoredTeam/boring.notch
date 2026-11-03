@@ -35,6 +35,7 @@ struct ContentView: View {
     @State private var presentedCodexDetail: CodexJobNotification?
     @State private var detailCollapseTask: Task<Void, Never>?
     @State private var responseKeyboardFocused = false
+    @State private var responseInactivity = CodexResponseInactivity()
 
     @State private var haptics: Bool = false
 
@@ -354,6 +355,9 @@ struct ContentView: View {
                     gestureProgress: gestureProgress,
                     detailNotification: presentedCodexDetail,
                     responseKeyboardFocused: $responseKeyboardFocused,
+                    onResponseInteraction: {
+                        if !isHovering && isPresentingResponse { scheduleAutomaticClose() }
+                    },
                     onDismissDetail: collapseCodexDetail
                 )
             }
@@ -400,12 +404,17 @@ struct ContentView: View {
             didOpen = vm.open(height: presentedCodexDetail?.responsePreview != nil
                 ? maximumResponseNotchHeight : openNotchSize.height)
         }
+        responseInactivity.reset()
+        if isPresentingResponse && !isHovering { scheduleAutomaticClose() }
         return didOpen
     }
 
     private func collapseCodexDetail() {
         guard isPresentingCodexDetail else { return }
 
+        hoverTask?.cancel()
+        hoverTask = nil
+        responseInactivity.reset()
         detailCollapseTask?.cancel()
         withAnimation(StandardAnimations.close) {
             isPresentingCodexDetail = false
@@ -444,6 +453,7 @@ struct ContentView: View {
         hoverTask?.cancel()
         
         if hovering {
+            responseInactivity.reset()
             withAnimation(animationSpring) {
                 isHovering = true
             }
@@ -482,20 +492,39 @@ struct ContentView: View {
         }
     }
 
+    private var isPresentingResponse: Bool {
+        isPresentingCodexDetail && presentedCodexDetail?.responsePreview != nil
+    }
+
     private var canAutomaticallyClose: Bool {
         vm.notchState == .open
             && !isHovering
             && !vm.isBatteryPopoverActive
-            && !responseKeyboardFocused
+            && (!responseKeyboardFocused || isPresentingResponse)
             && codexNotifications.submittingNotificationIDs.isEmpty
             && !SharingStateManager.shared.preventNotchClose
     }
 
     private func scheduleAutomaticClose(clearingHover: Bool = false) {
         hoverTask?.cancel()
+        let responseToken = isPresentingResponse
+            ? presentedCodexDetail.map(CodexNotificationPresentationToken.init) : nil
+        var delay: TimeInterval = 0.1
+        if responseToken != nil {
+            if clearingHover { isHovering = false }
+            responseInactivity.update(isHovered: isHovering)
+            guard let deadline = responseInactivity.collapseDeadline else { return }
+            delay = max(0, deadline.timeIntervalSinceNow)
+        }
         hoverTask = Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(100))
+            try? await Task.sleep(for: .seconds(delay))
             guard !Task.isCancelled else { return }
+
+            if let responseToken {
+                guard isPresentingResponse,
+                      presentedCodexDetail.map(CodexNotificationPresentationToken.init) == responseToken,
+                      responseInactivity.shouldCollapse() else { return }
+            }
 
             if clearingHover {
                 withAnimation(animationSpring) {

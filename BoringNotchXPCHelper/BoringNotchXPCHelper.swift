@@ -65,6 +65,23 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         reply(AXIsProcessTrusted())
     }
 
+    @objc func sendCodexReply(
+        sessionID: String, turnID: String?, message: String,
+        with reply: @escaping (String) -> Void
+    ) {
+        Task { @MainActor in
+            guard let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.openai.codex") else {
+                reply(CodexReplyOutcome.unavailable.rawValue)
+                return
+            }
+            let executable = appURL.appendingPathComponent("Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex")
+            let outcome = await CodexReplyTransport(executableURL: executable).send(
+                sessionID: sessionID, turnID: turnID, text: message
+            )
+            reply(outcome.rawValue)
+        }
+    }
+
     @objc func requestAccessibilityAuthorization() {
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
         AXIsProcessTrustedWithOptions(options)

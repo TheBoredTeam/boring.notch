@@ -12,6 +12,7 @@ struct OpenNotchContentView: View {
     let gestureProgress: CGFloat
     let detailNotification: CodexJobNotification?
     @Binding var responseKeyboardFocused: Bool
+    let onResponseInteraction: () -> Void
     let onDismissDetail: () -> Void
 
     private var responseMaximumHeight: CGFloat {
@@ -38,6 +39,7 @@ struct OpenNotchContentView: View {
                         }
                     },
                     onKeyboardFocusChange: { responseKeyboardFocused = $0 },
+                    onInteraction: onResponseInteraction,
                     onDismiss: onDismissDetail
                 )
                 .id(CodexNotificationPresentationToken(notification))

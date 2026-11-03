@@ -10,12 +10,14 @@ public struct CodexResponseCard: View {
     private let maximumHeight: CGFloat
     private let onHeightChange: (CGFloat) -> Void
     private let onOpenCodex: () -> Void
+    private let composer: AnyView?
     @State private var contentHeight: CGFloat = 20
+    @State private var composerHeight: CGFloat = 0
 
     public init(
         source: String, isTruncated: Bool, projectName: String, chatTitle: String, launchError: String?,
         maximumHeight: CGFloat, onHeightChange: @escaping (CGFloat) -> Void,
-        onOpenCodex: @escaping () -> Void
+        onOpenCodex: @escaping () -> Void, composer: AnyView?
     ) {
         self.source = source
         self.isTruncated = isTruncated
@@ -25,11 +27,13 @@ public struct CodexResponseCard: View {
         self.maximumHeight = maximumHeight
         self.onHeightChange = onHeightChange
         self.onOpenCodex = onOpenCodex
+        self.composer = composer
     }
 
     private var viewportHeight: CGFloat {
         // Header (20), footer (24), two gaps (12), bottom inset (10).
         let chromeHeight: CGFloat = 66 + (launchError == nil ? 0 : 34)
+            + (composer == nil ? 0 : composerHeight + 6)
         return max(20, min(contentHeight, maximumHeight - chromeHeight))
     }
 
@@ -43,6 +47,7 @@ public struct CodexResponseCard: View {
                 Spacer()
                 Text(projectName)
                     .lineLimit(1)
+
             }
             .font(.system(size: 12, weight: .medium))
             .foregroundStyle(.secondary)
@@ -64,6 +69,8 @@ public struct CodexResponseCard: View {
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
                     contentHeight = ceil(height)
                 }
+                // macOS overlay scrollers must have their own empty gutter.
+                .padding(.trailing, 16)
             }
             .scrollIndicators(.visible)
             .defaultScrollAnchor(.top)
@@ -78,6 +85,14 @@ public struct CodexResponseCard: View {
                     .lineLimit(2)
                     .frame(height: 28, alignment: .topLeading)
                     .accessibilityAddTraits(.updatesFrequently)
+            }
+
+            if let composer {
+                composer
+                    .padding(.top, 8)
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
+                        composerHeight = ceil(height)
+                    }
             }
 
             HStack {

@@ -89,4 +89,56 @@ final class CodexResponseMathTests: XCTestCase {
         let renderer = ImageRenderer(content: CodexMathImage.inlineImage(equation))
         XCTAssertGreaterThan(renderer.cgImage?.width ?? 0, 10)
     }
+
+    @MainActor
+    func testGaussianNotationWithBoldGreekAndNamedOperators() throws {
+        for latex in [
+            #"\mathcal N\!\left(\mathbf y;\mu_i,\mathrm{diag}(\mathbf v_i^2)\right)"#,
+            #"\boldsymbol\alpha_i"#,
+            #"\operatorname{diag}(\mathbf v_i^2)"#,
+            #"r_i(\mathbf y)=\mathcal N\!\left(\mathbf y;\boldsymbol\alpha_i,\operatorname{diag}(\mathbf v_i^2)\right)."#
+        ] {
+            XCTAssertNotNil(CodexMathImage.render(.init(latex: latex, isDisplay: true)), latex)
+        }
+        let equation = CodexMathEquation(latex: #"r_i(\mathbf y)=\mathcal N\!\left(\mathbf y;\boldsymbol\alpha_i,\operatorname{diag}(\mathbf v_i^2)\right)."#, isDisplay: true)
+        let image = try XCTUnwrap(CodexMathImage.render(equation))
+        let pixels = try XCTUnwrap(ImageRenderer(content: image.padding(16).background(.black)).cgImage)
+        try XCTUnwrap(NSBitmapImageRep(cgImage: pixels).representation(using: .png, properties: [:]))
+            .write(to: URL(fileURLWithPath: "/tmp/boring-notch-gaussian-math.png"))
+    }
+
+    @MainActor
+    func testNamedOperatorsAndBoldSymbolsKeepNativeParsingAndErrors() {
+        for latex in [#"\operatorname{Cov}(X,Y)"#, #"\operatorname*{arg\,max}_{x}f(x)"#, #"\frac{\boldsymbol{\alpha}}{\operatorname{Var}(X)}"#] {
+            XCTAssertNotNil(CodexMathImage.render(.init(latex: latex, isDisplay: false)), latex)
+        }
+        for latex in [#"\operatorname{}"#, #"\operatorname{diag"#, #"\boldsymbol{"#, #"\color{invalid}{x}"#] {
+            XCTAssertNil(CodexMathImage.render(.init(latex: latex, isDisplay: true)), latex)
+        }
+    }
+
+    @MainActor
+    func testBoxedLossWithWideHatUsesTypesetGlyphsAndAFrame() throws {
+        let inner = #"\widehat{\text{Loss}}(\mathbf{x})=-\log p_\theta(\mathbf{x}\mid\mathbf{z})+D_{\mathrm{KL}}\left[q_\phi(\mathbf{z}\mid\mathbf{x})\Vert p(\mathbf{z})\right]"#
+        let plain = try XCTUnwrap(CodexMathImage.render(.init(latex: inner, isDisplay: true)))
+        let boxed = try XCTUnwrap(CodexMathImage.render(.init(latex: "\\boxed{\n" + inner + "\n}", isDisplay: true)))
+        let plainPixels = try XCTUnwrap(ImageRenderer(content: plain).cgImage)
+        let boxedPixels = try XCTUnwrap(ImageRenderer(content: boxed).cgImage)
+        XCTAssertGreaterThan(boxedPixels.width, plainPixels.width + 8)
+        XCTAssertGreaterThan(boxedPixels.height, plainPixels.height + 8)
+        let image = NSBitmapImageRep(cgImage: boxedPixels)
+        try XCTUnwrap(image.representation(using: .png, properties: [:]))
+            .write(to: URL(fileURLWithPath: "/tmp/boring-notch-boxed-math.png"))
+    }
+
+    @MainActor
+    func testBoxedEquationsHandleWhitespaceNestedGroupsAndEscapedBraces() throws {
+        for latex in [#"\boxed {\frac{x_1}{y^2}}"#, #"\boxed{\left\{x\right\}}"#] {
+            XCTAssertNotNil(CodexMathImage.render(.init(latex: latex, isDisplay: true)), latex)
+        }
+        XCTAssertNotNil(CodexMathImage.render(.init(latex: #"\boxed{x^2}"#, isDisplay: false)))
+        for latex in [#"\boxed{\frac{x}{y}"#, #"\boxed{x} + \unknowncommand{y}"#] {
+            XCTAssertNil(CodexMathImage.render(.init(latex: latex, isDisplay: true)))
+        }
+    }
 }

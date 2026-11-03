@@ -6,6 +6,7 @@ struct CodexResponseDetailView: View {
     let maximumHeight: CGFloat
     let onHeightChange: (CGFloat) -> Void
     let onKeyboardFocusChange: (Bool) -> Void
+    let onInteraction: () -> Void
     let onDismiss: () -> Void
 
     @ObservedObject private var manager = CodexNotificationManager.shared
@@ -17,14 +18,15 @@ struct CodexResponseDetailView: View {
                 projectName: notification.projectName, chatTitle: notification.chatTitle,
                 launchError: manager.compactLaunchError(for: notification),
                 maximumHeight: maximumHeight, onHeightChange: onHeightChange,
-                onOpenCodex: { manager.selectCompactActivity(for: notification) }
+                onOpenCodex: { manager.selectCompactActivity(for: notification) },
+                composer: AnyView(replyComposer)
             )
             .background(CodexResponseKeyboardWindow())
             .onKeyPress { _ in
                 onKeyboardFocusChange(true)
+                onInteraction()
                 return .ignored
             }
-            .simultaneousGesture(TapGesture().onEnded { onKeyboardFocusChange(false) })
             .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) { note in
                 if (note.object as? BoringNotchSkyLightWindow)?.allowsResponseKeyboardFocus == true {
                     onKeyboardFocusChange(false)
@@ -32,6 +34,51 @@ struct CodexResponseDetailView: View {
             }
             .onDisappear { onKeyboardFocusChange(false) }
             .onExitCommand(perform: onDismiss)
+        }
+    }
+
+    private var replyComposer: some View {
+        let draft = manager.replyState.drafts[notification.sessionID]
+        let delivery = draft?.delivery ?? .editing
+        let editable = delivery.allowsEditing
+        let sending: Bool = { if case .sending = delivery { return true }; return false }()
+        let acknowledgement: String? = switch delivery {
+        case .queued: "Reply received by Codex."
+        case .queuedNeedsOpen: "Reply received by Codex. Open in Codex if the chat does not respond."
+        default: nil
+        }
+        return VStack(alignment: .leading, spacing: 5) {
+            CodexReplyComposer(
+                text: Binding(
+                    get: { manager.replyState.drafts[notification.sessionID]?.text ?? "" },
+                    set: { manager.editReply($0, for: notification) }
+                ),
+                chatTitle: notification.chatTitle, canSend: draft?.canSend == true,
+                isEditable: editable, isSending: sending, acknowledgement: acknowledgement,
+                onSend: { manager.sendReply(for: notification) },
+                onDismiss: onDismiss, onFocusChange: onKeyboardFocusChange,
+                onInteraction: onInteraction
+            )
+            if let message = manager.replyMessage(for: notification) {
+                HStack(spacing: 8) {
+                    Text(message)
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundStyle(delivery == .failed || delivery == .uncertain ? .red : .secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.updatesFrequently)
+                    Spacer(minLength: 0)
+                    if delivery == .failed {
+                        Button("Retry") { manager.sendReply(for: notification) }
+                            .buttonStyle(.plain)
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                    if delivery == .uncertain {
+                        Button("Discard draft") { manager.discardReply(for: notification) }
+                            .buttonStyle(.plain)
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                }
+            }
         }
     }
 }

@@ -7,8 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+        090BAB68BFD6470FB2B439CE /* CodexReplyOutcome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24CA6D48217F46E0BD69DF6C /* CodexReplyOutcome.swift */; };
+        F4BE60CF45EF4901982C227B /* CodexReplyOutcome.swift in Helper Sources */ = {isa = PBXBuildFile; fileRef = 24CA6D48217F46E0BD69DF6C /* CodexReplyOutcome.swift */; };
+        D7C60A5EFA334CBBA9C78057 /* CodexReplyTransport.swift in Helper Sources */ = {isa = PBXBuildFile; fileRef = A02D25DAEE024DD2808562BD /* CodexReplyTransport.swift */; };
+        ABFFB42F248E42B5B6CB35B7 /* CodexReplyComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7756F003430415FB23E499F /* CodexReplyComposer.swift */; };
+        0EDDE5392279445CA1231DC1 /* CodexReplyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBFC1F249CF741BFB3DE4E14 /* CodexReplyState.swift */; };
         D20000082F00000100000008 /* cmark-gfm in Frameworks */ = {isa = PBXBuildFile; productRef = D20000092F00000100000009 /* cmark-gfm */; };
-        D20000052F00000100000005 /* iosMath in Frameworks */ = {isa = PBXBuildFile; productRef = D20000062F00000100000006 /* iosMath */; };
+        D20000052F00000100000005 /* SwiftMath in Frameworks */ = {isa = PBXBuildFile; productRef = D20000062F00000100000006 /* SwiftMath */; };
         D20000032F00000100000003 /* CodexMathImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000042F00000100000004 /* CodexMathImage.swift */; };
         D20000012F00000100000001 /* CodexMathDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000022F00000100000002 /* CodexMathDocument.swift */; };
         D10000082F00000100000008 /* CodexResponseCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000092F00000100000009 /* CodexResponseCard.swift */; };
@@ -218,6 +223,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+        24CA6D48217F46E0BD69DF6C /* CodexReplyOutcome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/CodexReplyOutcome.swift; sourceTree = "<group>"; };
+        B7756F003430415FB23E499F /* CodexReplyComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/Rendering/CodexReplyComposer.swift; sourceTree = "<group>"; };
+        A02D25DAEE024DD2808562BD /* CodexReplyTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/CodexReplyTransport.swift; sourceTree = "<group>"; };
+        FBFC1F249CF741BFB3DE4E14 /* CodexReplyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/Core/CodexReplyState.swift; sourceTree = "<group>"; };
         D20000042F00000100000004 /* CodexMathImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/Rendering/CodexMathImage.swift; sourceTree = "<group>"; };
         D20000022F00000100000002 /* CodexMathDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/Rendering/CodexMathDocument.swift; sourceTree = "<group>"; };
         D10000092F00000100000009 /* CodexResponseCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/Rendering/CodexResponseCard.swift; sourceTree = "<group>"; };
@@ -411,7 +420,7 @@
 			files = (
                 D10000052F00000100000005 /* MarkdownUI in Frameworks */,
                 D20000082F00000100000008 /* cmark-gfm in Frameworks */,
-                D20000052F00000100000005 /* iosMath in Frameworks */,
+                D20000052F00000100000005 /* SwiftMath in Frameworks */,
 				111BEA5F2ED07A340079DD4E /* MacroVisionKit in Frameworks */,
 				9A987A102C73CA8D005CA465 /* Collections in Frameworks */,
 				1194E8852EA57D23009C82D6 /* SkyLightWindow in Frameworks */,
@@ -708,6 +717,10 @@
 				D00001042F00000100000004 /* CodexNotificationExtension.swift */,
                 D10000022F00000100000002 /* CodexResponseMarkdown.swift */,
                 D10000092F00000100000009 /* CodexResponseCard.swift */,
+                B7756F003430415FB23E499F /* CodexReplyComposer.swift */,
+                A02D25DAEE024DD2808562BD /* CodexReplyTransport.swift */,
+                24CA6D48217F46E0BD69DF6C /* CodexReplyOutcome.swift */,
+                FBFC1F249CF741BFB3DE4E14 /* CodexReplyState.swift */,
                 D20000042F00000100000004 /* CodexMathImage.swift */,
                 D20000022F00000100000002 /* CodexMathDocument.swift */,
                 D10000042F00000100000004 /* CodexResponseDetailView.swift */,
@@ -953,7 +966,7 @@
 				14D032192C68F32E0096E6A1 /* LaunchAtLogin */,
                 D10000062F00000100000006 /* MarkdownUI */,
                 D20000092F00000100000009 /* cmark-gfm */,
-                D20000062F00000100000006 /* iosMath */,
+                D20000062F00000100000006 /* SwiftMath */,
 				14D0321C2C68F3350096E6A1 /* Sparkle */,
 				B18654382C6F4990000B926A /* KeyboardShortcuts */,
 				9A987A0F2C73CA8D005CA465 /* Collections */,
@@ -1000,7 +1013,7 @@
 			mainGroup = 14CEF4092C5CAED200855D72;
 			packageReferences = (
                 D20000102F00000100000010 /* XCRemoteSwiftPackageReference "cmark-gfm" */,
-                D20000072F00000100000007 /* XCRemoteSwiftPackageReference "iosMath" */,
+                D20000072F00000100000007 /* XCRemoteSwiftPackageReference "SwiftMath" */,
                 D10000072F00000100000007 /* XCRemoteSwiftPackageReference "MarkdownUI" */,
 				14D032182C68F32E0096E6A1 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
 				14D0321B2C68F3350096E6A1 /* XCRemoteSwiftPackageReference "Sparkle" */,
@@ -1052,6 +1065,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+                F4BE60CF45EF4901982C227B /* CodexReplyOutcome.swift in Helper Sources */,
+                D7C60A5EFA334CBBA9C78057 /* CodexReplyTransport.swift in Helper Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1066,6 +1081,9 @@
 				D00000042F00000100000004 /* CodexNotificationExtension.swift in Sources */,
                 D10000012F00000100000001 /* CodexResponseMarkdown.swift in Sources */,
                 D10000082F00000100000008 /* CodexResponseCard.swift in Sources */,
+                090BAB68BFD6470FB2B439CE /* CodexReplyOutcome.swift in Sources */,
+                ABFFB42F248E42B5B6CB35B7 /* CodexReplyComposer.swift in Sources */,
+                0EDDE5392279445CA1231DC1 /* CodexReplyState.swift in Sources */,
                 D20000032F00000100000003 /* CodexMathImage.swift in Sources */,
                 D20000012F00000100000001 /* CodexMathDocument.swift in Sources */,
                 D10000032F00000100000003 /* CodexResponseDetailView.swift in Sources */,
@@ -1567,10 +1585,10 @@
             repositoryURL = "https://github.com/swiftlang/swift-cmark";
             requirement = {kind = exactVersion; version = 0.9.0; };
         };
-        D20000072F00000100000007 /* XCRemoteSwiftPackageReference "iosMath" */ = {
+        D20000072F00000100000007 /* XCRemoteSwiftPackageReference "SwiftMath" */ = {
             isa = XCRemoteSwiftPackageReference;
-            repositoryURL = "https://github.com/kostub/iosMath";
-            requirement = {kind = exactVersion; version = 2.5.0; };
+            repositoryURL = "https://github.com/mgriebling/SwiftMath";
+            requirement = {kind = revision; revision = 0b0222e102ba415b352cd29f334075622bd4e6aa; };
         };
         D10000072F00000100000007 /* XCRemoteSwiftPackageReference "MarkdownUI" */ = {
             isa = XCRemoteSwiftPackageReference;
@@ -1674,10 +1692,10 @@
             package = D20000102F00000100000010 /* XCRemoteSwiftPackageReference "cmark-gfm" */;
             productName = "cmark-gfm";
         };
-        D20000062F00000100000006 /* iosMath */ = {
+        D20000062F00000100000006 /* SwiftMath */ = {
             isa = XCSwiftPackageProductDependency;
-            package = D20000072F00000100000007 /* XCRemoteSwiftPackageReference "iosMath" */;
-            productName = "iosMath";
+            package = D20000072F00000100000007 /* XCRemoteSwiftPackageReference "SwiftMath" */;
+            productName = "SwiftMath";
         };
         D10000062F00000100000006 /* MarkdownUI */ = {
             isa = XCSwiftPackageProductDependency;

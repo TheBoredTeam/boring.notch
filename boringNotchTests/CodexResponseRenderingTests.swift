@@ -175,7 +175,7 @@ private struct HostedResponseCard: View {
                 model.reportedHeights.append(height)
                 model.height = min(250, height + 34 + 12)
             },
-            onOpenCodex: {}
+            onOpenCodex: {}, composer: nil
         )
         .padding(.top, 34)
         .frame(height: max(0, model.height - 12), alignment: .topLeading)

@@ -1,5 +1,5 @@
 {
-  "originHash" : "2665509d468218b83060f02b993cfd016e5322360ac6a5642fea92e08e303079",
+  "originHash" : "d008d3114fd394f06b1c1377ce2ba02f2be2bbb0120078e86e7654707477217f",
   "pins" : [
     {
       "identity" : "asyncxpcconnection",
@@ -17,15 +17,6 @@
       "state" : {
         "revision" : "00a7465a0668a87fa159e779b9d80f1f9652357e",
         "version" : "9.0.9"
-      }
-    },
-    {
-      "identity" : "iosmath",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kostub/iosMath",
-      "state" : {
-        "revision" : "838cddc01fdd67efd530f8bb67959ad2715f9b06",
-        "version" : "2.5.0"
       }
     },
     {
@@ -134,6 +125,14 @@
       "state" : {
         "revision" : "79e4b74a295b6eb74a8b585e3a39d29e70c1dbd1",
         "version" : "603.0.2"
+      }
+    },
+    {
+      "identity" : "swiftmath",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mgriebling/SwiftMath",
+      "state" : {
+        "revision" : "0b0222e102ba415b352cd29f334075622bd4e6aa"
       }
     },
     {

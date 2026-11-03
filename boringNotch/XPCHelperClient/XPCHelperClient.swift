@@ -407,6 +407,23 @@ final class XPCHelperClient: NSObject {
     // MARK: - Codex Notifications
 
     @MainActor
+    func sendCodexReply(sessionID: String, turnID: String?, message: String) async -> CodexReplyOutcome {
+        do {
+            let service = ensureRemoteService()
+            let result: String = try await service.withContinuation { service, continuation in
+                service.sendCodexReply(sessionID: sessionID, turnID: turnID, message: message) { outcome in
+                    continuation.resume(returning: outcome)
+                }
+            }
+            return CodexReplyOutcome(rawValue: result) ?? .uncertain
+        } catch {
+            // A lost helper connection does not prove that the queue write failed.
+            // Never reconnect and repeat a message-submission operation automatically.
+            return .uncertain
+        }
+    }
+
+    @MainActor
     func isAuthenticCodexNotificationPayload(
         _ payload: String,
         signature: String
