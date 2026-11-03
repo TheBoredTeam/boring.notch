@@ -7,13 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+        D30000012F00000100000001 /* SwiftDraw in Frameworks */ = {isa = PBXBuildFile; productRef = D30000022F00000100000002 /* SwiftDraw */; };
         090BAB68BFD6470FB2B439CE /* CodexReplyOutcome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24CA6D48217F46E0BD69DF6C /* CodexReplyOutcome.swift */; };
         F4BE60CF45EF4901982C227B /* CodexReplyOutcome.swift in Helper Sources */ = {isa = PBXBuildFile; fileRef = 24CA6D48217F46E0BD69DF6C /* CodexReplyOutcome.swift */; };
         D7C60A5EFA334CBBA9C78057 /* CodexReplyTransport.swift in Helper Sources */ = {isa = PBXBuildFile; fileRef = A02D25DAEE024DD2808562BD /* CodexReplyTransport.swift */; };
         ABFFB42F248E42B5B6CB35B7 /* CodexReplyComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7756F003430415FB23E499F /* CodexReplyComposer.swift */; };
         0EDDE5392279445CA1231DC1 /* CodexReplyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBFC1F249CF741BFB3DE4E14 /* CodexReplyState.swift */; };
         D20000082F00000100000008 /* cmark-gfm in Frameworks */ = {isa = PBXBuildFile; productRef = D20000092F00000100000009 /* cmark-gfm */; };
-        D20000052F00000100000005 /* SwiftMath in Frameworks */ = {isa = PBXBuildFile; productRef = D20000062F00000100000006 /* SwiftMath */; };
+        D20000052F00000100000005 /* MathJaxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D20000062F00000100000006 /* MathJaxSwift */; };
         D20000032F00000100000003 /* CodexMathImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000042F00000100000004 /* CodexMathImage.swift */; };
         D20000012F00000100000001 /* CodexMathDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000022F00000100000002 /* CodexMathDocument.swift */; };
         D10000082F00000100000008 /* CodexResponseCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000092F00000100000009 /* CodexResponseCard.swift */; };
@@ -420,7 +421,8 @@
 			files = (
                 D10000052F00000100000005 /* MarkdownUI in Frameworks */,
                 D20000082F00000100000008 /* cmark-gfm in Frameworks */,
-                D20000052F00000100000005 /* SwiftMath in Frameworks */,
+                D20000052F00000100000005 /* MathJaxSwift in Frameworks */,
+                D30000012F00000100000001 /* SwiftDraw in Frameworks */,
 				111BEA5F2ED07A340079DD4E /* MacroVisionKit in Frameworks */,
 				9A987A102C73CA8D005CA465 /* Collections in Frameworks */,
 				1194E8852EA57D23009C82D6 /* SkyLightWindow in Frameworks */,
@@ -966,7 +968,8 @@
 				14D032192C68F32E0096E6A1 /* LaunchAtLogin */,
                 D10000062F00000100000006 /* MarkdownUI */,
                 D20000092F00000100000009 /* cmark-gfm */,
-                D20000062F00000100000006 /* SwiftMath */,
+                D20000062F00000100000006 /* MathJaxSwift */,
+                D30000022F00000100000002 /* SwiftDraw */,
 				14D0321C2C68F3350096E6A1 /* Sparkle */,
 				B18654382C6F4990000B926A /* KeyboardShortcuts */,
 				9A987A0F2C73CA8D005CA465 /* Collections */,
@@ -1013,7 +1016,8 @@
 			mainGroup = 14CEF4092C5CAED200855D72;
 			packageReferences = (
                 D20000102F00000100000010 /* XCRemoteSwiftPackageReference "cmark-gfm" */,
-                D20000072F00000100000007 /* XCRemoteSwiftPackageReference "SwiftMath" */,
+                D20000072F00000100000007 /* XCRemoteSwiftPackageReference "MathJaxSwift" */,
+                D30000032F00000100000003 /* XCRemoteSwiftPackageReference "SwiftDraw" */,
                 D10000072F00000100000007 /* XCRemoteSwiftPackageReference "MarkdownUI" */,
 				14D032182C68F32E0096E6A1 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
 				14D0321B2C68F3350096E6A1 /* XCRemoteSwiftPackageReference "Sparkle" */,
@@ -1580,15 +1584,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+        D30000032F00000100000003 /* XCRemoteSwiftPackageReference "SwiftDraw" */ = {
+            isa = XCRemoteSwiftPackageReference;
+            repositoryURL = "https://github.com/swhitty/SwiftDraw";
+            requirement = {kind = exactVersion; version = 0.29.0; };
+        };
         D20000102F00000100000010 /* XCRemoteSwiftPackageReference "cmark-gfm" */ = {
             isa = XCRemoteSwiftPackageReference;
             repositoryURL = "https://github.com/swiftlang/swift-cmark";
             requirement = {kind = exactVersion; version = 0.9.0; };
         };
-        D20000072F00000100000007 /* XCRemoteSwiftPackageReference "SwiftMath" */ = {
+        D20000072F00000100000007 /* XCRemoteSwiftPackageReference "MathJaxSwift" */ = {
             isa = XCRemoteSwiftPackageReference;
-            repositoryURL = "https://github.com/mgriebling/SwiftMath";
-            requirement = {kind = revision; revision = 0b0222e102ba415b352cd29f334075622bd4e6aa; };
+            repositoryURL = "https://github.com/colinc86/MathJaxSwift";
+            requirement = {kind = exactVersion; version = 3.5.0; };
         };
         D10000072F00000100000007 /* XCRemoteSwiftPackageReference "MarkdownUI" */ = {
             isa = XCRemoteSwiftPackageReference;
@@ -1687,15 +1696,20 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+        D30000022F00000100000002 /* SwiftDraw */ = {
+            isa = XCSwiftPackageProductDependency;
+            package = D30000032F00000100000003 /* XCRemoteSwiftPackageReference "SwiftDraw" */;
+            productName = "SwiftDraw";
+        };
         D20000092F00000100000009 /* cmark-gfm */ = {
             isa = XCSwiftPackageProductDependency;
             package = D20000102F00000100000010 /* XCRemoteSwiftPackageReference "cmark-gfm" */;
             productName = "cmark-gfm";
         };
-        D20000062F00000100000006 /* SwiftMath */ = {
+        D20000062F00000100000006 /* MathJaxSwift */ = {
             isa = XCSwiftPackageProductDependency;
-            package = D20000072F00000100000007 /* XCRemoteSwiftPackageReference "SwiftMath" */;
-            productName = "SwiftMath";
+            package = D20000072F00000100000007 /* XCRemoteSwiftPackageReference "MathJaxSwift" */;
+            productName = "MathJaxSwift";
         };
         D10000062F00000100000006 /* MarkdownUI */ = {
             isa = XCSwiftPackageProductDependency;

@@ -14,7 +14,8 @@ let package = Package(
             exact: "2.4.1"
         ),
         .package(url: "https://github.com/swiftlang/swift-cmark", exact: "0.9.0"),
-        .package(url: "https://github.com/mgriebling/SwiftMath", revision: "0b0222e102ba415b352cd29f334075622bd4e6aa")
+        .package(url: "https://github.com/colinc86/MathJaxSwift", exact: "3.5.0"),
+        .package(url: "https://github.com/swhitty/SwiftDraw", exact: "0.29.0")
     ],
     targets: [
         .target(
@@ -45,7 +46,8 @@ let package = Package(
             dependencies: [
                 .product(name: "MarkdownUI", package: "swift-markdown-ui"),
                 .product(name: "cmark-gfm", package: "swift-cmark"),
-                .product(name: "SwiftMath", package: "SwiftMath"),
+                .product(name: "MathJaxSwift", package: "MathJaxSwift"),
+                .product(name: "SwiftDraw", package: "SwiftDraw"),
             ],
             path: "boringNotch/features/CodexNotifications/Rendering"
         ),

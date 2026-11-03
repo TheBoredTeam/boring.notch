@@ -31,8 +31,8 @@ public struct CodexResponseCard: View {
     }
 
     private var viewportHeight: CGFloat {
-        // Header (20), footer (24), two gaps (12), bottom inset (10).
-        let chromeHeight: CGFloat = 66 + (launchError == nil ? 0 : 34)
+        // Header (20), footer (24), two gaps (12), and bottom inset.
+        let chromeHeight: CGFloat = (composer == nil ? 66 : 60) + (launchError == nil ? 0 : 34)
             + (composer == nil ? 0 : composerHeight + 6)
         return max(20, min(contentHeight, maximumHeight - chromeHeight))
     }
@@ -89,7 +89,7 @@ public struct CodexResponseCard: View {
 
             if let composer {
                 composer
-                    .padding(.top, 8)
+                    .padding(.top, 14)
                     .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
                         composerHeight = ceil(height)
                     }
@@ -113,7 +113,7 @@ public struct CodexResponseCard: View {
             .frame(height: 24)
         }
         .padding(.horizontal, 16)
-        .padding(.bottom, 10)
+        .padding(.bottom, composer == nil ? 10 : 4)
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
             guard height > 0 else { return }
             onHeightChange(height)

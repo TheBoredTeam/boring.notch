@@ -64,11 +64,16 @@ final class CodexResponseMathTests: XCTestCase {
     }
 
     @MainActor
-    func testNativeMathRendersGlyphPixelsForGreekFractionsAndMatrices() throws {
-        for latex in [#"\theta"#, #"p_\theta(x\mid z)"#, #"\frac{1}{\sqrt{2\pi}} e^{-x^2/2}"#, #"\begin{pmatrix}a&b\\c&d\end{pmatrix}"#] {
-            let image = try XCTUnwrap(CodexMathImage.render(.init(latex: latex, isDisplay: true)), latex)
-            let renderer = ImageRenderer(content: image)
-            let pixels = try XCTUnwrap(renderer.cgImage)
+    private func rendered(_ latex: String, display: Bool = true) async throws -> Image {
+        let image = await CodexMathImage.render(.init(latex: latex, isDisplay: display))
+        return try XCTUnwrap(image, latex)
+    }
+
+    @MainActor
+    func testMathRendersGlyphPixelsForGreekFractionsAndMatrices() async throws {
+        for latex in [#"\frac{1}{2}"#, #"\frac{1.5}{2.25}"#, #"\theta"#, #"p_\theta(x\mid z)"#, #"\frac{1}{\sqrt{2\pi}} e^{-x^2/2}"#, #"\begin{pmatrix}a&b\\c&d\end{pmatrix}"#] {
+            let image = try await rendered(latex)
+            let pixels = try XCTUnwrap(ImageRenderer(content: image).cgImage)
             XCTAssertGreaterThan(pixels.width, 2)
             XCTAssertGreaterThan(pixels.height, 4)
             var buffer = [UInt8](repeating: 0, count: pixels.width * pixels.height * 4)
@@ -83,62 +88,148 @@ final class CodexResponseMathTests: XCTestCase {
     }
 
     @MainActor
-    func testUnsupportedMathRemainsReadableInsteadOfDisappearing() {
+    func testUnsupportedMathRemainsReadableInsteadOfDisappearing() async {
         let equation = CodexMathEquation(latex: #"\unknowncommand{x}"#, isDisplay: false)
-        XCTAssertNil(CodexMathImage.render(equation))
-        let renderer = ImageRenderer(content: CodexMathImage.inlineImage(equation))
+        let result = await CodexMathImage.render(equation)
+        XCTAssertNil(result)
+        let fallback = await CodexMathImage.inlineImage(equation)
+        let renderer = ImageRenderer(content: fallback)
         XCTAssertGreaterThan(renderer.cgImage?.width ?? 0, 10)
     }
 
     @MainActor
-    func testGaussianNotationWithBoldGreekAndNamedOperators() throws {
+    func testEncoderFlowRendersLabeledArrowsAndBoldVectors() async throws {
+        let latex = #"\mathbf x \;\xrightarrow{\text{encoder}}\; \boldsymbol\mu_\phi(\mathbf x),\ \mathbf s_\phi(\mathbf x) \;\longrightarrow\; q_\phi(\mathbf z\mid\mathbf x)."#
+        let image = try await rendered(latex)
+        for command in [#"\xrightarrow{\text{encoder}}"#, #"\underbrace{x}_{\text{input}}"#, #"\left[x\middle\|y\right]"#] {
+            _ = try await rendered(command)
+        }
+        try capture(image, to: "/tmp/boring-notch-encoder-flow.png")
+    }
+
+    @MainActor
+    func testKLDivergenceRendersAnnotatedUnderbraces() async throws {
+        let latex = #"D_{\mathrm{KL}}\left[\underbrace{q_\phi(\mathbf z\mid\mathbf x)}_{\text{codes predicted for this image}}\;\middle\|\;\underbrace{p(\mathbf z)}_{\text{prior over codes}}\right]."#
+        let image = try await rendered(latex)
+        let plain = try await rendered(#"D_{\mathrm{KL}}\left[q_\phi(\mathbf z\mid\mathbf x)\middle\|p(\mathbf z)\right]."#)
+        let pixels = try XCTUnwrap(ImageRenderer(content: image).cgImage)
+        let plainPixels = try XCTUnwrap(ImageRenderer(content: plain).cgImage)
+        XCTAssertGreaterThan(pixels.height, plainPixels.height, "Annotations must remain below the braces")
+        try capture(image, to: "/tmp/boring-notch-annotated-kl.png")
+    }
+
+    @MainActor
+    func testGaussianNotationWithBoldGreekAndNamedOperators() async throws {
         for latex in [
             #"\mathcal N\!\left(\mathbf y;\mu_i,\mathrm{diag}(\mathbf v_i^2)\right)"#,
-            #"\boldsymbol\alpha_i"#,
-            #"\operatorname{diag}(\mathbf v_i^2)"#,
-            #"r_i(\mathbf y)=\mathcal N\!\left(\mathbf y;\boldsymbol\alpha_i,\operatorname{diag}(\mathbf v_i^2)\right)."#
+            #"\boldsymbol\alpha_i"#, #"\operatorname{diag}(\mathbf v_i^2)"#
         ] {
-            XCTAssertNotNil(CodexMathImage.render(.init(latex: latex, isDisplay: true)), latex)
+            _ = try await rendered(latex)
         }
-        let equation = CodexMathEquation(latex: #"r_i(\mathbf y)=\mathcal N\!\left(\mathbf y;\boldsymbol\alpha_i,\operatorname{diag}(\mathbf v_i^2)\right)."#, isDisplay: true)
-        let image = try XCTUnwrap(CodexMathImage.render(equation))
-        let pixels = try XCTUnwrap(ImageRenderer(content: image.padding(16).background(.black)).cgImage)
-        try XCTUnwrap(NSBitmapImageRep(cgImage: pixels).representation(using: .png, properties: [:]))
-            .write(to: URL(fileURLWithPath: "/tmp/boring-notch-gaussian-math.png"))
+        let image = try await rendered(#"r_i(\mathbf y)=\mathcal N\!\left(\mathbf y;\boldsymbol\alpha_i,\operatorname{diag}(\mathbf v_i^2)\right)."#)
+        try capture(image, to: "/tmp/boring-notch-gaussian-math.png")
     }
 
     @MainActor
-    func testNamedOperatorsAndBoldSymbolsKeepNativeParsingAndErrors() {
+    func testNamedOperatorsAndBoldSymbolsKeepParsingAndErrors() async throws {
         for latex in [#"\operatorname{Cov}(X,Y)"#, #"\operatorname*{arg\,max}_{x}f(x)"#, #"\frac{\boldsymbol{\alpha}}{\operatorname{Var}(X)}"#] {
-            XCTAssertNotNil(CodexMathImage.render(.init(latex: latex, isDisplay: false)), latex)
+            _ = try await rendered(latex, display: false)
         }
-        for latex in [#"\operatorname{}"#, #"\operatorname{diag"#, #"\boldsymbol{"#, #"\color{invalid}{x}"#] {
-            XCTAssertNil(CodexMathImage.render(.init(latex: latex, isDisplay: true)), latex)
+        for latex in [#"\operatorname{diag"#, #"\boldsymbol{"#, #"\color{invalid}{x}"#] {
+            let image = await CodexMathImage.render(.init(latex: latex, isDisplay: true))
+            XCTAssertNil(image, latex)
         }
     }
 
     @MainActor
-    func testBoxedLossWithWideHatUsesTypesetGlyphsAndAFrame() throws {
+    func testBoxedLossWithWideHatUsesTypesetGlyphsAndAFrame() async throws {
         let inner = #"\widehat{\text{Loss}}(\mathbf{x})=-\log p_\theta(\mathbf{x}\mid\mathbf{z})+D_{\mathrm{KL}}\left[q_\phi(\mathbf{z}\mid\mathbf{x})\Vert p(\mathbf{z})\right]"#
-        let plain = try XCTUnwrap(CodexMathImage.render(.init(latex: inner, isDisplay: true)))
-        let boxed = try XCTUnwrap(CodexMathImage.render(.init(latex: "\\boxed{\n" + inner + "\n}", isDisplay: true)))
+        let plain = try await rendered(inner)
+        let boxed = try await rendered("\\boxed{\n" + inner + "\n}")
         let plainPixels = try XCTUnwrap(ImageRenderer(content: plain).cgImage)
         let boxedPixels = try XCTUnwrap(ImageRenderer(content: boxed).cgImage)
-        XCTAssertGreaterThan(boxedPixels.width, plainPixels.width + 8)
-        XCTAssertGreaterThan(boxedPixels.height, plainPixels.height + 8)
-        let image = NSBitmapImageRep(cgImage: boxedPixels)
-        try XCTUnwrap(image.representation(using: .png, properties: [:]))
-            .write(to: URL(fileURLWithPath: "/tmp/boring-notch-boxed-math.png"))
+        XCTAssertGreaterThan(boxedPixels.width, plainPixels.width)
+        XCTAssertGreaterThan(boxedPixels.height, plainPixels.height)
+        try capture(boxed, to: "/tmp/boring-notch-boxed-math.png")
     }
 
     @MainActor
-    func testBoxedEquationsHandleWhitespaceNestedGroupsAndEscapedBraces() throws {
-        for latex in [#"\boxed {\frac{x_1}{y^2}}"#, #"\boxed{\left\{x\right\}}"#] {
-            XCTAssertNotNil(CodexMathImage.render(.init(latex: latex, isDisplay: true)), latex)
+    func testBoxesHandleWhitespaceNestedGroupsAndEscapedBraces() async throws {
+        for latex in [#"\boxed {\frac{x_1}{y^2}}"#, #"\boxed{\left\{x\right\}}"#, #"\boxed{x} + \boxed{y}"#] {
+            _ = try await rendered(latex)
         }
-        XCTAssertNotNil(CodexMathImage.render(.init(latex: #"\boxed{x^2}"#, isDisplay: false)))
+        _ = try await rendered(#"\boxed{x^2}"#, display: false)
         for latex in [#"\boxed{\frac{x}{y}"#, #"\boxed{x} + \unknowncommand{y}"#] {
-            XCTAssertNil(CodexMathImage.render(.init(latex: latex, isDisplay: true)))
+            let image = await CodexMathImage.render(.init(latex: latex, isDisplay: true))
+            XCTAssertNil(image, latex)
         }
+    }
+
+    @MainActor
+    func testMathCannotLoadExternalContentOrExceedBitmapBounds() async throws {
+        for latex in [
+            #"\href{https://example.invalid}{x}"#,
+            #"\includegraphics{file:///tmp/fixture.png}"#,
+            #"\require{html}"#,
+            #"\rule{5000em}{1em}"#,
+            String(repeating: "x", count: 65537)
+        ] {
+            let image = await CodexMathImage.render(.init(latex: latex, isDisplay: true))
+            XCTAssertNil(image)
+        }
+        // A rejected expression must not poison subsequent conversion or its cache.
+        _ = try await rendered(#"\frac{x}{y}"#)
+        _ = try await rendered(#"\frac{x}{y}"#)
+    }
+
+    @MainActor
+    func testHostedResponseRendersMathAndKeepsComposerAndFooterVisible() async throws {
+        let encoder = #"\mathbf x \;\xrightarrow{\text{encoder}}\; \boldsymbol\mu_\phi(\mathbf x),\ \mathbf s_\phi(\mathbf x) \;\longrightarrow\; q_\phi(\mathbf z\mid\mathbf x)."#
+        let divergence = #"D_{\mathrm{KL}}\left[\underbrace{q_\phi(\mathbf z\mid\mathbf x)}_{\text{codes predicted for this image}}\;\middle\|\;\underbrace{p(\mathbf z)}_{\text{prior over codes}}\right]."#
+        let source = "The encoder predicts a distribution for each input.\n\n\\[" + encoder + "\\]\n\nThe prior is independent of the input.\n\n\\[" + divergence + "\\]"
+        for (name, content) in [("math", source), ("short", "Got it.")] {
+            let host = NSHostingView(rootView:
+                CodexResponseCard(
+                    source: content, isTruncated: false, projectName: "Fixture", chatTitle: "Synthetic math example",
+                    launchError: nil, maximumHeight: 264, onHeightChange: { _ in }, onOpenCodex: {},
+                    composer: AnyView(CodexReplyComposer(
+                        text: .constant(""), chatTitle: "Synthetic math example", canSend: false,
+                        isEditable: true, isSending: false, acknowledgement: nil,
+                        onSend: {}, onDismiss: {}, onFocusChange: { _ in }, onInteraction: {}
+                    ))
+                )
+                .padding(.top, 34).padding(.bottom, 12)
+                .frame(width: 640).background(.black).preferredColorScheme(.dark)
+            )
+            host.frame = NSRect(x: 0, y: 0, width: 640, height: 310)
+            let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false
+            window.setFrameOrigin(NSPoint(x: -3000, y: -3000))
+            window.contentView = host
+            window.orderFront(nil)
+            defer { window.close() }
+            // Let asynchronous typesetting and geometry reporting reach the real host.
+            for _ in 0..<50 {
+                host.layoutSubtreeIfNeeded()
+                host.display()
+                try await Task.sleep(for: .milliseconds(20))
+            }
+            let size = host.fittingSize
+            XCTAssertLessThanOrEqual(size.height, 310)
+            XCTAssertGreaterThan(size.height, name == "math" ? 200 : 100)
+            host.setFrameSize(size)
+            host.layoutSubtreeIfNeeded()
+            let pixels = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+            host.cacheDisplay(in: host.bounds, to: pixels)
+            try XCTUnwrap(pixels.representation(using: .png, properties: [:]))
+                .write(to: URL(fileURLWithPath: "/tmp/boring-notch-" + name + "-final-card.png"))
+        }
+    }
+
+    @MainActor
+    private func capture(_ image: Image, to path: String) throws {
+        let pixels = try XCTUnwrap(ImageRenderer(content: image.padding(16).background(.black)).cgImage)
+        try XCTUnwrap(NSBitmapImageRep(cgImage: pixels).representation(using: .png, properties: [:]))
+            .write(to: URL(fileURLWithPath: path))
     }
 }

@@ -71,6 +71,6 @@ struct CodexResponseInlineImageProvider: InlineImageProvider {
             // One omitted image must not cancel the renderer's entire inline image group.
             return Image(systemName: "photo")
         }
-        return await MainActor.run { CodexMathImage.inlineImage(equation) }
+        return await CodexMathImage.inlineImage(equation)
     }
 }
