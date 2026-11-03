@@ -104,8 +104,8 @@ public enum CodexClosedActivityTapRouting: Equatable, Sendable {
     case expandNotch
     case openCodex
 
-    public init(status: CodexJobStatus) {
-        if status == .permissionRequired {
+    public init(status: CodexJobStatus, hasResponsePreview: Bool = false) {
+        if status == .permissionRequired || (status == .responseReady && hasResponsePreview) {
             self = .expandNotch
         } else {
             self = .openCodex
@@ -120,11 +120,15 @@ public struct CodexClosedActivityAccessibility: Equatable, Sendable {
     public init(
         status: CodexJobStatus,
         projectName: String,
+        hasResponsePreview: Bool = false,
         launchError: String? = nil
     ) {
         if status == .permissionRequired {
             value = "Permission required."
             hint = "Activate to review this permission in Boring Notch."
+        } else if status == .responseReady && hasResponsePreview {
+            value = launchError ?? "\(status.title). \(projectName)"
+            hint = "Activate to read this response in Boring Notch."
         } else if let launchError {
             value = launchError
             hint = "Activate to retry opening this task in Codex."
@@ -275,6 +279,35 @@ public struct CodexNotificationPresentationSurfaces: Equatable, Sendable {
     }
 }
 
+/// Expanded detail ownership is per display and tied to an exact notice version.
+public struct CodexNotificationDetailPresentation: Equatable, Sendable {
+    public private(set) var token: CodexNotificationPresentationToken?
+    public private(set) var surfaceIDs: Set<String> = []
+
+    public init() {}
+
+    public mutating func present(_ token: CodexNotificationPresentationToken, surfaceID: String) {
+        if self.token != token { surfaceIDs.removeAll() }
+        self.token = token
+        surfaceIDs.insert(surfaceID)
+    }
+
+    /// Returns true only when this notice's final detail surface has closed.
+    @discardableResult
+    public mutating func dismiss(_ token: CodexNotificationPresentationToken, surfaceID: String) -> Bool {
+        guard self.token == token, surfaceIDs.remove(surfaceID) != nil else { return false }
+        guard surfaceIDs.isEmpty else { return false }
+        self.token = nil
+        return true
+    }
+
+    public mutating func retainOnly(_ token: CodexNotificationPresentationToken?) {
+        if self.token != token { self = Self() }
+    }
+
+    public mutating func reset() { self = Self() }
+}
+
 public struct CodexPermissionCallback: Equatable, Sendable {
     public let port: Int
     public let token: String
@@ -363,6 +396,19 @@ public enum CodexJobStatus: Equatable, Sendable {
     public var nextAction: String { "Open Codex" }
 }
 
+public struct CodexResponsePreview: Equatable, Sendable {
+    public static let maximumCodePoints = 16_000
+
+    public let source: String
+    public let isTruncated: Bool
+
+    public init(source: String, isTruncated: Bool = false) {
+        let scalars = source.unicodeScalars
+        self.source = String(String.UnicodeScalarView(scalars.prefix(Self.maximumCodePoints)))
+        self.isTruncated = isTruncated || scalars.count > Self.maximumCodePoints
+    }
+}
+
 public struct CodexJobNotification: Equatable, Identifiable, Sendable {
     public let id: String
     public let sessionID: String
@@ -373,6 +419,7 @@ public struct CodexJobNotification: Equatable, Identifiable, Sendable {
     public let userPrompt: String
     public let projectName: String
     public let resultSummary: String
+    public let responsePreview: CodexResponsePreview?
     public let status: CodexJobStatus
     public let permissionCallback: CodexPermissionCallback?
     public let permissionDetails: CodexPermissionDetails?
@@ -385,6 +432,7 @@ public struct CodexJobNotification: Equatable, Identifiable, Sendable {
         requestID: String?,
         jobTitle: String,
         resultSummary: String,
+        responsePreview: CodexResponsePreview? = nil,
         chatTitle: String? = nil,
         userPrompt: String? = nil,
         projectName: String = "Codex",
@@ -402,6 +450,7 @@ public struct CodexJobNotification: Equatable, Identifiable, Sendable {
         self.userPrompt = userPrompt ?? jobTitle
         self.projectName = projectName
         self.resultSummary = resultSummary
+        self.responsePreview = responsePreview
         self.status = status
         self.permissionCallback = permissionCallback
         self.permissionDetails = permissionDetails
@@ -433,6 +482,7 @@ public enum CodexHookEvent: Equatable, Sendable {
         turnID: String?,
         cwd: String?,
         result: String?,
+        responseTruncated: Bool = false,
         chatTitle: String? = nil,
         projectName: String? = nil
     )
@@ -524,7 +574,8 @@ public enum CodexHookEventParser {
                 sessionID: sessionID,
                 turnID: turnID,
                 cwd: cwd,
-                result: nonemptyString(object["last_assistant_message"]),
+                result: object["last_assistant_message"] as? String,
+                responseTruncated: object["response_truncated"] as? Bool ?? false,
                 chatTitle: chatTitle,
                 projectName: projectName
             )
@@ -734,6 +785,7 @@ public struct CodexNotificationState: Equatable, Sendable {
             let turnID,
             let cwd,
             let result,
+            let responseTruncated,
             let chatTitle,
             let projectName
         ):
@@ -757,6 +809,9 @@ public struct CodexNotificationState: Equatable, Sendable {
                 cwd: cwd,
                 result: hasResponse ? (message ?? "") : "Response details unavailable. Open Codex to review.",
                 status: status,
+                responsePreview: hasResponse ? result.map {
+                    CodexResponsePreview(source: $0, isTruncated: responseTruncated)
+                } : nil,
                 chatTitle: chatTitle,
                 projectName: projectName,
                 date: date
@@ -833,6 +888,7 @@ public struct CodexNotificationState: Equatable, Sendable {
         cwd: String?,
         result: String,
         status: CodexJobStatus,
+        responsePreview: CodexResponsePreview? = nil,
         permissionCallback: CodexPermissionCallback? = nil,
         permissionDetails: CodexPermissionDetails? = nil,
         chatTitle: String? = nil,
@@ -869,6 +925,7 @@ public struct CodexNotificationState: Equatable, Sendable {
             requestID: requestID,
             jobTitle: title,
             resultSummary: CodexText.short(result, limit: 180),
+            responsePreview: responsePreview,
             chatTitle: resolvedChatTitle,
             userPrompt: userPrompt,
             projectName: resolvedProjectName,

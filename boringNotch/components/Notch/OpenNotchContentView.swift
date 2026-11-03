@@ -10,7 +10,14 @@ struct OpenNotchContentView: View {
     let horizontalMediaGestureFeedback: CGFloat
     @Binding var isHoveringMusicArea: Bool
     let gestureProgress: CGFloat
-    let permissionNotification: CodexJobNotification?
+    let detailNotification: CodexJobNotification?
+    @Binding var responseKeyboardFocused: Bool
+    let onDismissDetail: () -> Void
+
+    private var responseMaximumHeight: CGFloat {
+        let screen = vm.screenUUID.flatMap { NSScreen.screen(withUUID: $0) } ?? NSScreen.main
+        return min(maximumResponseNotchHeight, max(120, (screen?.frame.height ?? 800) - 40))
+    }
 
     private var permissionTopInset: CGFloat {
         let screen = vm.screenUUID.flatMap { NSScreen.screen(withUUID: $0) } ?? NSScreen.main
@@ -19,7 +26,23 @@ struct OpenNotchContentView: View {
 
     var body: some View {
         VStack {
-            if let permissionNotification {
+            if let notification = detailNotification, notification.responsePreview != nil {
+                CodexResponseDetailView(
+                    notification: notification,
+                    maximumHeight: responseMaximumHeight - permissionTopInset - 12,
+                    onHeightChange: { height in
+                        let totalHeight = min(responseMaximumHeight, height + permissionTopInset + 12)
+                        guard abs(vm.notchSize.height - totalHeight) > 0.5 else { return }
+                        withAnimation(StandardAnimations.open) {
+                            vm.resizeOpenNotch(height: totalHeight)
+                        }
+                    },
+                    onKeyboardFocusChange: { responseKeyboardFocused = $0 },
+                    onDismiss: onDismissDetail
+                )
+                .id(CodexNotificationPresentationToken(notification))
+                .padding(.top, permissionTopInset)
+            } else if let permissionNotification = detailNotification {
                 CodexPermissionApprovalView(
                     notification: permissionNotification
                 )
@@ -43,11 +66,12 @@ struct OpenNotchContentView: View {
             }
         }
         .frame(
-            maxWidth: permissionNotification == nil ? nil : .infinity,
+            maxWidth: detailNotification == nil ? nil : .infinity,
             alignment: .topLeading
         )
         .frame(
-            height: permissionNotification == nil ? nil : Self.permissionViewportHeight,
+            height: detailNotification == nil ? nil : (detailNotification?.responsePreview == nil
+                ? Self.permissionViewportHeight : max(0, vm.notchSize.height - 12)),
             alignment: .topLeading
         )
         .transition(contentTransition)
@@ -64,7 +88,7 @@ struct OpenNotchContentView: View {
     }
 
     private var contentTransition: AnyTransition {
-        if permissionNotification != nil {
+        if detailNotification != nil {
             return .opacity
                 .combined(with: .scale(scale: 0.9, anchor: .top))
         }

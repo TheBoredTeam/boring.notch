@@ -19,6 +19,7 @@ import hmac
 import io
 import json
 import os
+import subprocess
 from pathlib import Path
 import tempfile
 import textwrap
@@ -333,6 +334,133 @@ class CodexNotificationHookTests(unittest.TestCase):
         self.assertEqual(post({"token": "test-token", "decision": "allow"}), 204)
         self.assertEqual(server.decision, "allow")
         self.assertEqual(post({"token": "test-token", "decision": "deny"}), 409)
+
+class CodexResponseDeliveryTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        # Compile the real Swift parser once; only synthetic URLs enter this process.
+        cls.temporary = tempfile.TemporaryDirectory()
+        directory = Path(cls.temporary.name)
+        driver = directory / "main.swift"
+        driver.write_text(r'''
+import Foundation
+import CryptoKit
+let input = FileHandle.standardInput.readDataToEndOfFile()
+let components = URLComponents(string: String(decoding: input, as: UTF8.self))!
+let encoded = components.queryItems!.first { $0.name == "payload" }!.value!
+let signature = components.queryItems!.first { $0.name == "signature" }!.value!
+let key = SymmetricKey(data: Data((0..<32).map(UInt8.init)))
+let expected = Data(HMAC<SHA256>.authenticationCode(for: Data(encoded.utf8), using: key))
+    .base64EncodedString().replacingOccurrences(of: "+", with: "-")
+    .replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "=", with: "")
+guard signature == expected else { exit(2) }
+var base64 = encoded.replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
+base64 += String(repeating: "=", count: (4 - base64.count % 4) % 4)
+var state = CodexNotificationState()
+state.reduce(try CodexHookEventParser.parse(Data(base64Encoded: base64)!))
+let notice = state.visibleNotification()!
+let preview = notice.responsePreview
+let result: [String: Any] = [
+    "digest": SHA256.hash(data: Data((preview?.source ?? "").utf8)).map { String(format: "%02x", $0) }.joined(),
+    "code_points": preview?.source.unicodeScalars.count ?? 0,
+    "truncated": preview?.isTruncated ?? false,
+    "status": notice.status.title,
+    "session": notice.sessionID,
+]
+FileHandle.standardOutput.write(try JSONSerialization.data(withJSONObject: result))
+''', encoding="utf-8")
+        cls.driver = directory / "response-delivery"
+        compiled = subprocess.run([
+            "swiftc", "-module-cache-path", "/tmp/boring-notch-clang-module-cache",
+            str(REPOSITORY_ROOT / "boringNotch/features/CodexNotifications/Core/CodexNotificationsCore.swift"),
+            str(driver), "-o", str(cls.driver),
+        ], capture_output=True, text=True)
+        if compiled.returncode:
+            raise RuntimeError("Synthetic Swift response-delivery driver failed to compile: " + compiled.stderr)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.temporary.cleanup()
+
+    def deliver(self, source: str, **fields: object) -> tuple[dict, dict, str]:
+        namespace = embedded_hook_namespace()
+        calls = []
+        namespace["read_hook_secret"] = lambda _: bytes(range(32))
+        original_run = namespace["subprocess"].run
+        namespace["subprocess"].run = lambda args, **_: calls.append(args) or types.SimpleNamespace(returncode=0)
+        payload = {
+            "hook_event_name": "Stop", "session_id": "synthetic-chat", "turn_id": "synthetic-turn",
+            "last_assistant_message": source, **fields,
+        }
+        try:
+            self.assertTrue(namespace["open_notch"](payload))
+        finally:
+            namespace["subprocess"].run = original_run
+        self.assertEqual(len(calls), 1)
+        url = calls[0][-1]
+        self.assertLessEqual(len(url.encode("utf-8")), namespace["MAX_EVENT_URL_BYTES"])
+        encoded = parse_qs(urlparse(url).query)["payload"][0]
+        serialized = base64.urlsafe_b64decode(encoded + "=" * (-len(encoded) % 4))
+        self.assertLessEqual(len(serialized), namespace["MAX_PAYLOAD_BYTES"])
+        # Exercise a real process argument of the same size as /usr/bin/open's URL.
+        subprocess.run(["/usr/bin/true", url], check=True, capture_output=True)
+        parsed = subprocess.run([str(self.driver)], input=url, capture_output=True, text=True, check=True)
+        return json.loads(serialized), json.loads(parsed.stdout), url
+
+    def test_source_cap_survives_python_url_and_swift_without_unicode_or_markdown_loss(self) -> None:
+        for source in [
+            "# Heading\n\n| A | B |\n| --- | --- |\n| 你好 | café |\n\n```swift\nlet x = 1\n```\n",
+            "a" * 15_999, "a" * 16_000, "a" * 16_001,
+            "🙂" * 16_001, "e\u0301" * 8_001, '\\"\n\x00' * 4_001,
+        ]:
+            with self.subTest(code_points=len(source)):
+                sent, parsed, _ = self.deliver(source)
+                expected = source[:16_000]
+                self.assertEqual(sent["last_assistant_message"], expected)
+                self.assertEqual(parsed["digest"], hashlib.sha256(expected.encode("utf-8")).hexdigest())
+                self.assertEqual(parsed["code_points"], len(expected))
+                self.assertEqual(parsed["truncated"], len(source) > 16_000)
+                self.assertEqual(parsed["session"], "synthetic-chat")
+
+    def test_delivery_budget_shortens_response_instead_of_dropping_notification(self) -> None:
+        source = "🙂" * 16_000
+        sent, parsed, _ = self.deliver(source, tool_input={"command": "x" * 90_000})
+        retained = sent["last_assistant_message"]
+        self.assertGreater(len(retained), 0)
+        self.assertLess(len(retained), 16_000)
+        self.assertEqual(retained, source[:len(retained)])
+        self.assertTrue(parsed["truncated"])
+        self.assertEqual(parsed["status"], "Response ready")
+        self.assertEqual(parsed["digest"], hashlib.sha256(retained.encode("utf-8")).hexdigest())
+
+    def test_entrypoint_no_longer_clips_the_response_to_four_thousand(self) -> None:
+        namespace = embedded_hook_namespace()
+        source = {"hook_event_name": "Stop", "session_id": "synthetic", "last_assistant_message": "x" * 5_000}
+        sent = []
+        namespace["sys"] = types.SimpleNamespace(stdin=io.StringIO(json.dumps(source)))
+        namespace["thread_metadata"] = lambda _: {}
+        namespace["open_notch"] = lambda payload: sent.append(payload.copy()) or True
+        entrypoint = ast.parse(embedded_hook_source()).body[-1]
+        with contextlib.redirect_stdout(io.StringIO()):
+            exec(compile(ast.Module(body=[entrypoint], type_ignores=[]), "hook", "exec"), namespace)
+        self.assertEqual(sent[0]["last_assistant_message"], source["last_assistant_message"])
+
+    def test_response_url_budget_does_not_change_large_permission_delivery(self) -> None:
+        namespace = embedded_hook_namespace()
+        calls = []
+        namespace["read_hook_secret"] = lambda _: bytes(range(32))
+        original_run = namespace["subprocess"].run
+        namespace["subprocess"].run = lambda args, **_: calls.append(args) or types.SimpleNamespace(returncode=0)
+        try:
+            self.assertTrue(namespace["open_notch"]({
+                "hook_event_name": "PermissionRequest", "session_id": "synthetic",
+                "tool_input": {"command": "x" * 96_000, "description": "x" * 16_000},
+            }))
+        finally:
+            namespace["subprocess"].run = original_run
+        self.assertEqual(len(calls), 1)
+        self.assertGreater(len(calls[0][-1]), namespace["MAX_EVENT_URL_BYTES"])
+
 
 if __name__ == "__main__":
     unittest.main()

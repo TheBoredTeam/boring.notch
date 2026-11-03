@@ -33,6 +33,7 @@ extension SkyLightOperator {
 
 class BoringNotchSkyLightWindow: NSPanel {
     private var isSkyLightEnabled: Bool = false
+    var allowsResponseKeyboardFocus = false
     
     override init(
         contentRect: NSRect,
@@ -146,6 +147,6 @@ class BoringNotchSkyLightWindow: NSPanel {
         }
     }
     
-    override var canBecomeKey: Bool { false }
+    override var canBecomeKey: Bool { allowsResponseKeyboardFocus }
     override var canBecomeMain: Bool { false }
 }

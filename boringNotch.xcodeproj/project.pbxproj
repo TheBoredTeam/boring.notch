@@ -7,6 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+        D20000082F00000100000008 /* cmark-gfm in Frameworks */ = {isa = PBXBuildFile; productRef = D20000092F00000100000009 /* cmark-gfm */; };
+        D20000052F00000100000005 /* iosMath in Frameworks */ = {isa = PBXBuildFile; productRef = D20000062F00000100000006 /* iosMath */; };
+        D20000032F00000100000003 /* CodexMathImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000042F00000100000004 /* CodexMathImage.swift */; };
+        D20000012F00000100000001 /* CodexMathDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000022F00000100000002 /* CodexMathDocument.swift */; };
+        D10000082F00000100000008 /* CodexResponseCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000092F00000100000009 /* CodexResponseCard.swift */; };
+        D10000012F00000100000001 /* CodexResponseMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000022F00000100000002 /* CodexResponseMarkdown.swift */; };
+        D10000032F00000100000003 /* CodexResponseDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000042F00000100000004 /* CodexResponseDetailView.swift */; };
+        D10000052F00000100000005 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = D10000062F00000100000006 /* MarkdownUI */; };
 		D00000012F00000100000001 /* NotchExtensionRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00001012F00000100000001 /* NotchExtensionRegistry.swift */; };
 		D00000022F00000100000002 /* CodexNotificationsCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00001022F00000100000002 /* CodexNotificationsCore.swift */; };
 		D00000032F00000100000003 /* CodexNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00001032F00000100000003 /* CodexNotificationManager.swift */; };
@@ -210,6 +218,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+        D20000042F00000100000004 /* CodexMathImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/Rendering/CodexMathImage.swift; sourceTree = "<group>"; };
+        D20000022F00000100000002 /* CodexMathDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/Rendering/CodexMathDocument.swift; sourceTree = "<group>"; };
+        D10000092F00000100000009 /* CodexResponseCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/Rendering/CodexResponseCard.swift; sourceTree = "<group>"; };
+        D10000022F00000100000002 /* CodexResponseMarkdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/Rendering/CodexResponseMarkdown.swift; sourceTree = "<group>"; };
+        D10000042F00000100000004 /* CodexResponseDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/CodexResponseDetailView.swift; sourceTree = "<group>"; };
 		D00001012F00000100000001 /* NotchExtensionRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extensions/NotchExtensionRegistry.swift; sourceTree = "<group>"; };
 		D00001022F00000100000002 /* CodexNotificationsCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/Core/CodexNotificationsCore.swift; sourceTree = "<group>"; };
 		D00001032F00000100000003 /* CodexNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/CodexNotificationManager.swift; sourceTree = "<group>"; };
@@ -396,6 +409,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+                D10000052F00000100000005 /* MarkdownUI in Frameworks */,
+                D20000082F00000100000008 /* cmark-gfm in Frameworks */,
+                D20000052F00000100000005 /* iosMath in Frameworks */,
 				111BEA5F2ED07A340079DD4E /* MacroVisionKit in Frameworks */,
 				9A987A102C73CA8D005CA465 /* Collections in Frameworks */,
 				1194E8852EA57D23009C82D6 /* SkyLightWindow in Frameworks */,
@@ -690,6 +706,11 @@
 				D00001032F00000100000003 /* CodexNotificationManager.swift */,
 				D00001062F00000100000006 /* CodexPermissionRelay.swift */,
 				D00001042F00000100000004 /* CodexNotificationExtension.swift */,
+                D10000022F00000100000002 /* CodexResponseMarkdown.swift */,
+                D10000092F00000100000009 /* CodexResponseCard.swift */,
+                D20000042F00000100000004 /* CodexMathImage.swift */,
+                D20000022F00000100000002 /* CodexMathDocument.swift */,
+                D10000042F00000100000004 /* CodexResponseDetailView.swift */,
 				D00001052F00000100000005 /* CodexNotificationSettingsView.swift */,
 				11F748672EC9AC9600F841DB /* XPCHelperClient */,
 				116398942DF5D6B40052E6AF /* Providers */,
@@ -930,6 +951,9 @@
 			name = boringNotch;
 			packageProductDependencies = (
 				14D032192C68F32E0096E6A1 /* LaunchAtLogin */,
+                D10000062F00000100000006 /* MarkdownUI */,
+                D20000092F00000100000009 /* cmark-gfm */,
+                D20000062F00000100000006 /* iosMath */,
 				14D0321C2C68F3350096E6A1 /* Sparkle */,
 				B18654382C6F4990000B926A /* KeyboardShortcuts */,
 				9A987A0F2C73CA8D005CA465 /* Collections */,
@@ -975,6 +999,9 @@
 			);
 			mainGroup = 14CEF4092C5CAED200855D72;
 			packageReferences = (
+                D20000102F00000100000010 /* XCRemoteSwiftPackageReference "cmark-gfm" */,
+                D20000072F00000100000007 /* XCRemoteSwiftPackageReference "iosMath" */,
+                D10000072F00000100000007 /* XCRemoteSwiftPackageReference "MarkdownUI" */,
 				14D032182C68F32E0096E6A1 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
 				14D0321B2C68F3350096E6A1 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				B18654372C6F4990000B926A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
@@ -1037,6 +1064,11 @@
 				D00000032F00000100000003 /* CodexNotificationManager.swift in Sources */,
 				D00000062F00000100000006 /* CodexPermissionRelay.swift in Sources */,
 				D00000042F00000100000004 /* CodexNotificationExtension.swift in Sources */,
+                D10000012F00000100000001 /* CodexResponseMarkdown.swift in Sources */,
+                D10000082F00000100000008 /* CodexResponseCard.swift in Sources */,
+                D20000032F00000100000003 /* CodexMathImage.swift in Sources */,
+                D20000012F00000100000001 /* CodexMathDocument.swift in Sources */,
+                D10000032F00000100000003 /* CodexResponseDetailView.swift in Sources */,
 				D00000052F00000100000005 /* CodexNotificationSettingsView.swift in Sources */,
 				C70000012F00000100000001 /* ClosedNotchRenderSnapshot.swift in Sources */,
 				C50000012F00000100000001 /* ClosedNotchRenderer.swift in Sources */,
@@ -1530,6 +1562,21 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+        D20000102F00000100000010 /* XCRemoteSwiftPackageReference "cmark-gfm" */ = {
+            isa = XCRemoteSwiftPackageReference;
+            repositoryURL = "https://github.com/swiftlang/swift-cmark";
+            requirement = {kind = exactVersion; version = 0.9.0; };
+        };
+        D20000072F00000100000007 /* XCRemoteSwiftPackageReference "iosMath" */ = {
+            isa = XCRemoteSwiftPackageReference;
+            repositoryURL = "https://github.com/kostub/iosMath";
+            requirement = {kind = exactVersion; version = 2.5.0; };
+        };
+        D10000072F00000100000007 /* XCRemoteSwiftPackageReference "MarkdownUI" */ = {
+            isa = XCRemoteSwiftPackageReference;
+            repositoryURL = "https://github.com/gonzalezreal/swift-markdown-ui";
+            requirement = {kind = exactVersion; version = 2.4.1; };
+        };
 		111BE95B2ECD71E10079DD4E /* XCRemoteSwiftPackageReference "AsyncXPCConnection" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ChimeHQ/AsyncXPCConnection";
@@ -1622,6 +1669,21 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+        D20000092F00000100000009 /* cmark-gfm */ = {
+            isa = XCSwiftPackageProductDependency;
+            package = D20000102F00000100000010 /* XCRemoteSwiftPackageReference "cmark-gfm" */;
+            productName = "cmark-gfm";
+        };
+        D20000062F00000100000006 /* iosMath */ = {
+            isa = XCSwiftPackageProductDependency;
+            package = D20000072F00000100000007 /* XCRemoteSwiftPackageReference "iosMath" */;
+            productName = "iosMath";
+        };
+        D10000062F00000100000006 /* MarkdownUI */ = {
+            isa = XCSwiftPackageProductDependency;
+            package = D10000072F00000100000007 /* XCRemoteSwiftPackageReference "MarkdownUI" */;
+            productName = MarkdownUI;
+        };
 		111BE95C2ECD71E10079DD4E /* AsyncXPCConnection */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 111BE95B2ECD71E10079DD4E /* XCRemoteSwiftPackageReference "AsyncXPCConnection" */;

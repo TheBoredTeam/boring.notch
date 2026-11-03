@@ -31,9 +31,10 @@ struct ContentView: View {
     @State private var horizontalMediaGestureTriggered = false
     @State private var horizontalMediaGestureFeedback: CGFloat = .zero
     @State private var isHoveringMusicArea = false
-    @State private var isPresentingCodexPermission = false
-    @State private var presentedCodexPermission: CodexJobNotification?
-    @State private var permissionCollapseTask: Task<Void, Never>?
+    @State private var isPresentingCodexDetail = false
+    @State private var presentedCodexDetail: CodexJobNotification?
+    @State private var detailCollapseTask: Task<Void, Never>?
+    @State private var responseKeyboardFocused = false
 
     @State private var haptics: Bool = false
 
@@ -203,18 +204,32 @@ struct ContentView: View {
                         }
                     }
                     .onChange(of: vm.notchState) { _, newState in
+                        if newState == .closed && isPresentingCodexDetail {
+                            collapseCodexDetail()
+                        }
                         if newState == .closed && isHovering {
                             withAnimation {
                                 isHovering = false
                             }
                         }
                     }
-                    .onChange(of: codexNotifications.expandedPermissionNotificationID) { _, notificationID in
-                        guard isPresentingCodexPermission, notificationID == nil else { return }
-                        collapseCodexPermission()
+                    .onChange(of: codexNotifications.expandedNotificationToken) { _, token in
+                        if token == nil, isPresentingCodexDetail {
+                            collapseCodexDetail()
+                        }
+                    }
+                    .onChange(of: codexNotifications.expandedDetailSurfaceIDs) { _, surfaces in
+                        if surfaces.contains(vm.screenUUID ?? "primary"), vm.notchState == .closed {
+                            doOpen()
+                        }
                     }
                     .onChange(of: vm.isBatteryPopoverActive) {
                         if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
+                            scheduleAutomaticClose()
+                        }
+                    }
+                    .onChange(of: responseKeyboardFocused) { _, focused in
+                        if !focused && !isHovering && vm.notchState == .open {
                             scheduleAutomaticClose()
                         }
                     }
@@ -300,7 +315,7 @@ struct ContentView: View {
 
         VStack(
             alignment: .leading,
-            spacing: presentedCodexPermission == nil ? nil : 0
+            spacing: presentedCodexDetail == nil ? nil : 0
         ) {
             VStack(alignment: .leading) {
                 if coordinator.helloAnimationRunning {
@@ -319,7 +334,7 @@ struct ContentView: View {
                         albumArtNamespace: albumArtNamespace,
                         onActivitySelect: handleClosedActivitySelection
                     )
-                } else if !isPresentingCodexPermission {
+                } else if !isPresentingCodexDetail {
                     BoringHeader()
                         .frame(height: max(24, displayClosedNotchHeight))
                         .opacity(
@@ -337,7 +352,9 @@ struct ContentView: View {
                     horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
                     isHoveringMusicArea: $isHoveringMusicArea,
                     gestureProgress: gestureProgress,
-                    permissionNotification: presentedCodexPermission
+                    detailNotification: presentedCodexDetail,
+                    responseKeyboardFocused: $responseKeyboardFocused,
+                    onDismissDetail: collapseCodexDetail
                 )
             }
         }
@@ -368,26 +385,30 @@ struct ContentView: View {
     @discardableResult
     private func doOpen() -> Bool {
         var didOpen = false
-        permissionCollapseTask?.cancel()
-        permissionCollapseTask = nil
+        detailCollapseTask?.cancel()
+        detailCollapseTask = nil
         withAnimation(animationSpring) {
             if let notification = codexNotifications.visibleNotification,
-               notification.status == .permissionRequired {
-                codexNotifications.presentPermissionDetail(for: notification)
-                presentedCodexPermission = notification
-                isPresentingCodexPermission = true
+               notification.status == .permissionRequired || notification.responsePreview != nil {
+                codexNotifications.presentDetail(for: notification, surfaceID: vm.screenUUID ?? "primary")
+                presentedCodexDetail = notification
+                isPresentingCodexDetail = true
+            } else {
+                presentedCodexDetail = nil
+                isPresentingCodexDetail = false
             }
-            didOpen = vm.open()
+            didOpen = vm.open(height: presentedCodexDetail?.responsePreview != nil
+                ? maximumResponseNotchHeight : openNotchSize.height)
         }
         return didOpen
     }
 
-    private func collapseCodexPermission() {
-        guard isPresentingCodexPermission else { return }
+    private func collapseCodexDetail() {
+        guard isPresentingCodexDetail else { return }
 
-        permissionCollapseTask?.cancel()
+        detailCollapseTask?.cancel()
         withAnimation(StandardAnimations.close) {
-            isPresentingCodexPermission = false
+            isPresentingCodexDetail = false
             vm.close()
         }
 
@@ -395,12 +416,15 @@ struct ContentView: View {
             animationSpeedMultiplier: Defaults[.animationSpeedMultiplier],
             animationsEnabled: Defaults[.enableOpeningAnimation]
         )
-        permissionCollapseTask = Task { @MainActor in
+        let closingToken = presentedCodexDetail.map(CodexNotificationPresentationToken.init)
+        detailCollapseTask = Task { @MainActor in
             try? await Task.sleep(for: .seconds(transitionDuration))
             guard !Task.isCancelled else { return }
-            presentedCodexPermission = nil
-            codexNotifications.dismissPermissionDetail()
-            permissionCollapseTask = nil
+            presentedCodexDetail = nil
+            if let closingToken {
+                codexNotifications.dismissDetail(for: closingToken, surfaceID: vm.screenUUID ?? "primary")
+            }
+            detailCollapseTask = nil
         }
     }
 
@@ -462,6 +486,7 @@ struct ContentView: View {
         vm.notchState == .open
             && !isHovering
             && !vm.isBatteryPopoverActive
+            && !responseKeyboardFocused
             && codexNotifications.submittingNotificationIDs.isEmpty
             && !SharingStateManager.shared.preventNotchClose
     }
@@ -479,8 +504,8 @@ struct ContentView: View {
             }
 
             if canAutomaticallyClose {
-                if isPresentingCodexPermission {
-                    collapseCodexPermission()
+                if isPresentingCodexDetail {
+                    collapseCodexDetail()
                 } else {
                     vm.close()
                 }
@@ -491,7 +516,7 @@ struct ContentView: View {
     // MARK: - Gesture Handling
 
     private func handleDownGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard !isPresentingCodexPermission, vm.notchState == .closed else { return }
+        guard !isPresentingCodexDetail, vm.notchState == .closed else { return }
 
         if phase == .ended {
             withAnimation(animationSpring) { gestureProgress = .zero }
@@ -514,7 +539,7 @@ struct ContentView: View {
     }
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard !isPresentingCodexPermission,
+        guard !isPresentingCodexDetail,
               vm.notchState == .open,
               !vm.isHoveringCalendar else { return }
 
@@ -561,7 +586,7 @@ struct ContentView: View {
         feedback: CGFloat,
         action: () -> Void
     ) {
-        guard !isPresentingCodexPermission, isHorizontalMediaGestureContext else {
+        guard !isPresentingCodexDetail, isHorizontalMediaGestureContext else {
             resetHorizontalMediaGesture()
             return
         }

@@ -21,7 +21,9 @@ enum CodexNotificationExtension {
             let notchWidth = context.closedNotchWidth + 10
             let promptWidth: CGFloat = 236
             let isPermissionRequest = notification.status == .permissionRequired
-            let tapRouting = CodexClosedActivityTapRouting(status: notification.status)
+            let tapRouting = CodexClosedActivityTapRouting(
+                status: notification.status, hasResponsePreview: notification.responsePreview != nil
+            )
             let metrics = ClosedNotchLayoutMetrics(
                 exclusionWidth: notchWidth,
                 leadingWidth: 0,
@@ -41,7 +43,7 @@ enum CodexNotificationExtension {
                     presentationSurfaceID: context.surfaceID,
                     metrics: metrics
                 )),
-                opensNotchOnHover: isPermissionRequest,
+                opensNotchOnHover: isPermissionRequest || notification.responsePreview != nil,
                 opensNotchOnTap: tapRouting == .expandNotch,
                 onSelect: tapRouting == .openCodex ? {
                     CodexNotificationManager.shared.selectCompactActivity(
@@ -139,6 +141,7 @@ private struct CodexClosedNotchPrompt: View {
         CodexClosedActivityAccessibility(
             status: notification.status,
             projectName: notification.projectName,
+            hasResponsePreview: notification.responsePreview != nil,
             launchError: launchError
         )
     }
@@ -150,6 +153,13 @@ private struct CodexClosedNotchPrompt: View {
             .accessibilityLabel(notification.jobTitle)
             .accessibilityValue(accessibility.value)
             .accessibilityHint(accessibility.hint)
+            .accessibilityAction {
+                if isPermissionRequest || notification.responsePreview != nil {
+                    manager.presentDetail(for: notification, surfaceID: presentationSurfaceID)
+                } else {
+                    manager.selectCompactActivity(for: notification)
+                }
+            }
             .onAppear {
                 CodexNotificationManager.shared.beginPassivePresentation(
                     for: notification,

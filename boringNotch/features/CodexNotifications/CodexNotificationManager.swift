@@ -1,4 +1,5 @@
 import AppKit
+import CryptoKit
 import Defaults
 import Foundation
 import OSLog
@@ -20,7 +21,10 @@ final class CodexNotificationManager: ObservableObject {
     @Published private(set) var presentedNotification: CodexJobNotification?
     @Published private(set) var lastError: String?
     @Published private(set) var submittingNotificationIDs: Set<String> = []
-    @Published private(set) var expandedPermissionNotificationID: String?
+    @Published private var detailPresentation = CodexNotificationDetailPresentation()
+
+    var expandedNotificationToken: CodexNotificationPresentationToken? { detailPresentation.token }
+    var expandedDetailSurfaceIDs: Set<String> { detailPresentation.surfaceIDs }
 
     private var presentationTransitionTask: Task<Void, Never>?
     private var passivePresentationTask: Task<Void, Never>?
@@ -45,11 +49,10 @@ final class CodexNotificationManager: ObservableObject {
         presentedNotification.map(CodexNotificationPresentationToken.init)
     }
 
-    var expandedPermissionNotification: CodexJobNotification? {
-        guard let expandedPermissionNotificationID else { return nil }
+    var expandedNotification: CodexJobNotification? {
+        guard let expandedNotificationToken else { return nil }
         return state.notifications.first(where: {
-            $0.id == expandedPermissionNotificationID
-                && $0.status == .permissionRequired
+            expandedNotificationToken.matches($0)
         })
     }
 
@@ -73,6 +76,7 @@ final class CodexNotificationManager: ObservableObject {
         eventIngestionTask?.cancel()
         eventIngestionTask = nil
         presentedNotification = nil
+        detailPresentation.reset()
     }
 
     @discardableResult
@@ -111,7 +115,9 @@ final class CodexNotificationManager: ObservableObject {
             Self.logger.error("Rejected a Codex notification with invalid payload encoding")
             return
         }
-        guard replayGuard.accept(encodedPayload) else {
+        // Retain only a digest for replay suppression, never the response body.
+        let payloadDigest = SHA256.hash(data: Data(encodedPayload.utf8)).description
+        guard replayGuard.accept(payloadDigest) else {
             Self.logger.error("Rejected a replayed Codex notification")
             return
         }
@@ -142,7 +148,7 @@ final class CodexNotificationManager: ObservableObject {
             updatedState.reduce(event)
             state = updatedState
             lastError = nil
-            clearExpandedPermissionIfNeeded()
+            clearExpandedDetailIfNeeded()
             schedulePermissionExpiration()
             synchronizePresentedNotification()
             Self.logger.notice("Accepted a Codex notification for presentation")
@@ -157,20 +163,27 @@ final class CodexNotificationManager: ObservableObject {
         dismiss(notification: visibleNotification)
     }
 
-    func presentPermissionDetail(for notification: CodexJobNotification) {
-        guard notification.status == .permissionRequired,
-              state.notifications.contains(where: {
-                  $0.id == notification.id
-                      && $0.status == .permissionRequired
-              }) else {
+    func presentDetail(for notification: CodexJobNotification, surfaceID: String) {
+        let token = CodexNotificationPresentationToken(notification)
+        guard notification.status == .permissionRequired || notification.responsePreview != nil,
+              presentedNotificationToken == token,
+              state.notifications.contains(where: token.matches) else {
             return
         }
         lastError = nil
-        expandedPermissionNotificationID = notification.id
+        detailPresentation.present(token, surfaceID: surfaceID)
+        passivePresentationTask?.cancel()
+        passivePresentationTask = nil
     }
 
-    func dismissPermissionDetail() {
-        expandedPermissionNotificationID = nil
+    func dismissDetail(for token: CodexNotificationPresentationToken, surfaceID: String) {
+        guard detailPresentation.dismiss(token, surfaceID: surfaceID) else { return }
+        if let token = passivePresentationToken {
+            if passivePresentationPolicy.compactLaunchError(for: token) != nil {
+                passivePresentationPolicy.discardCompactLaunch(for: token)
+            }
+            schedulePassiveDismissal(for: token, after: CodexNotificationTiming.passiveDwellDuration)
+        }
     }
 
     @discardableResult
@@ -224,7 +237,7 @@ final class CodexNotificationManager: ObservableObject {
         updatedState.dismiss(notification.id)
         state = updatedState
         lastError = nil
-        clearExpandedPermissionIfNeeded()
+        clearExpandedDetailIfNeeded()
         schedulePermissionExpiration()
         synchronizePresentedNotification()
         return true
@@ -266,7 +279,8 @@ final class CodexNotificationManager: ObservableObject {
         passivePresentationTask = nil
 
         Task { [weak self] in
-            guard let self else { return }
+            guard let self, self.presentedNotificationToken == token,
+                  self.state.notifications.contains(where: token.matches) else { return }
             let didOpen = await self.openCodex(for: notification)
             guard self.passivePresentationPolicy.preventsAutomaticDismissal(
                 of: token
@@ -401,9 +415,8 @@ final class CodexNotificationManager: ObservableObject {
         for token: CodexNotificationPresentationToken,
         after delay: TimeInterval
     ) {
-        guard !passivePresentationPolicy.preventsAutomaticDismissal(
-            of: token
-        ) else {
+        guard expandedNotificationToken != token,
+              !passivePresentationPolicy.preventsAutomaticDismissal(of: token) else {
             passivePresentationTask?.cancel()
             passivePresentationTask = nil
             return
@@ -484,7 +497,7 @@ final class CodexNotificationManager: ObservableObject {
         var updatedState = state
         updatedState.dismiss(notification.id)
         state = updatedState
-        clearExpandedPermissionIfNeeded()
+        clearExpandedDetailIfNeeded()
         schedulePermissionExpiration()
         synchronizePresentedNotification()
     }
@@ -493,6 +506,7 @@ final class CodexNotificationManager: ObservableObject {
         let nextNotification = state.visibleNotification()
         let nextToken = nextNotification.map(CodexNotificationPresentationToken.init)
         guard nextToken != presentedNotificationToken else { return }
+        detailPresentation.retainOnly(nextToken)
 
         presentationTransitionTask?.cancel()
         passivePresentationTask?.cancel()
@@ -538,12 +552,12 @@ final class CodexNotificationManager: ObservableObject {
         }
     }
 
-    private func clearExpandedPermissionIfNeeded() {
-        guard expandedPermissionNotificationID != nil,
-              expandedPermissionNotification == nil else {
+    private func clearExpandedDetailIfNeeded() {
+        guard expandedNotificationToken != nil,
+              expandedNotification == nil else {
             return
         }
-        expandedPermissionNotificationID = nil
+        detailPresentation.reset()
     }
 
     private func schedulePermissionExpiration() {
@@ -554,7 +568,7 @@ final class CodexNotificationManager: ObservableObject {
         updatedState.removeExpiredPermissionRequests()
         if updatedState != state {
             state = updatedState
-            clearExpandedPermissionIfNeeded()
+            clearExpandedDetailIfNeeded()
             synchronizePresentedNotification()
         }
 
@@ -581,7 +595,7 @@ final class CodexNotificationManager: ObservableObject {
             var updatedState = self.state
             updatedState.removeExpiredPermissionRequests()
             self.state = updatedState
-            self.clearExpandedPermissionIfNeeded()
+            self.clearExpandedDetailIfNeeded()
             self.synchronizePresentedNotification()
             self.schedulePermissionExpiration()
         }

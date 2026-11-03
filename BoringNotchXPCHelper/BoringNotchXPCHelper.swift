@@ -394,6 +394,9 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
     APP_BUNDLE_PATH = "__BORING_NOTCH_APP_BUNDLE__"
     MAX_PAYLOAD_BYTES = 256 * 1024
+    MAX_RESPONSE_CODE_POINTS = 16_000
+    # Keep the URL below a bounded single-argument delivery budget, including auth.
+    MAX_EVENT_URL_BYTES = 128 * 1024
     MAX_PROMPT_CHARACTERS = 16_000
     MAX_DESCRIPTION_CHARACTERS = 16_000
     MAX_COMMAND_CHARACTERS = 96_000
@@ -560,17 +563,36 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
             "timestamp": time.time(),
             "nonce": secrets.token_hex(16),
         }
-        serialized = json.dumps(
-            payload,
-            separators=(",", ":"),
-            ensure_ascii=False,
-        ).encode("utf-8")
-        if len(serialized) > MAX_PAYLOAD_BYTES:
-            return False
+        response = payload.get("last_assistant_message")
+        if payload.get("hook_event_name") == "Stop" and isinstance(response, str):
+            payload["last_assistant_message"] = response[:MAX_RESPONSE_CODE_POINTS]
+            payload["response_truncated"] = len(response) > MAX_RESPONSE_CODE_POINTS
 
-        encoded = base64.urlsafe_b64encode(
-            serialized
-        ).decode("ascii").rstrip("=")
+        def encode():
+            serialized = json.dumps(
+                payload, separators=(",", ":"), ensure_ascii=False,
+            ).encode("utf-8")
+            encoded = base64.urlsafe_b64encode(serialized).decode("ascii").rstrip("=")
+            url_bytes = len("boringnotch://codex-event?payload=&signature=") + len(encoded) + 43
+            response_url_fits = payload.get("hook_event_name") != "Stop" or url_bytes <= MAX_EVENT_URL_BYTES
+            return encoded, len(serialized) <= MAX_PAYLOAD_BYTES and response_url_fits
+
+        encoded, fits = encode()
+        if not fits and payload.get("hook_event_name") == "Stop" and isinstance(response, str):
+            retained = payload["last_assistant_message"]
+            payload["response_truncated"] = True
+            low, high = 0, len(retained)
+            while low < high:
+                middle = (low + high + 1) // 2
+                payload["last_assistant_message"] = retained[:middle]
+                if encode()[1]:
+                    low = middle
+                else:
+                    high = middle - 1
+            payload["last_assistant_message"] = retained[:low]
+            encoded, fits = encode()
+        if not fits:
+            return False
         secret_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             "boring-notch-notify.secret",
@@ -708,9 +730,11 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     try:
         source = json.load(sys.stdin)
         payload = {}
-        for key in ("hook_event_name", "session_id", "turn_id", "cwd", "tool_name", "last_assistant_message"):
+        for key in ("hook_event_name", "session_id", "turn_id", "cwd", "tool_name"):
             if key in source:
                 payload[key] = short(source[key])
+        if source.get("hook_event_name") == "Stop" and isinstance(source.get("last_assistant_message"), str):
+            payload["last_assistant_message"] = source["last_assistant_message"]
         if "prompt" in source:
             payload["prompt"] = short(source["prompt"], MAX_PROMPT_CHARACTERS)
         payload.update(thread_metadata(source.get("session_id")))

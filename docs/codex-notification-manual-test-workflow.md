@@ -41,7 +41,31 @@ Notifications describe observable events. Stop with response text displays neutr
 | Continue | Continue after a response and wait for another response | Prior passive notice clears; new response appears |
 | Concurrent chats | Run two conversations, then interrupt one | Correct chat opens; other chat's permission/response is preserved |
 
-Passive notices last about three seconds after entrance, pause on hover, and open the matching Codex chat when activated. Permission notices remain until a decision, expiry, or matching turn termination. Check compact and expanded text, camera clearance, animation, and accessibility labels in the newly built app.
+Passive notices last about three seconds after entrance and pause on hover. Response ready notices with text expand on hover or activation; Open in Codex in the expanded card opens the matching chat. Other passive notices retain their direct-open behavior. Permission notices remain until a decision, expiry, or matching turn termination. Check compact and expanded text, camera clearance, animation, and accessibility labels in the newly built app.
+
+## Response preview cases
+
+Reconnect using the freshly built Debug app, then review/trust the updated hook before counting any live results. The hook now retains up to **16,000 Unicode code points** of the final Stop message. Exactly-at-limit text is complete. If the source or delivery budget requires shortening it, the preview retains the prefix and shows `...` outside the Markdown rendering, including after an incomplete code block or table. Serialized payloads remain bounded to 256 KiB; the complete signed Stop delivery URL is additionally bounded to 128 KiB. Other event types retain their existing transport behavior. Response text remains in memory; replay suppression stores a digest rather than the message-bearing payload.
+
+The response card uses the permission card's width and camera clearance. Short replies fit their rendered content. Longer replies reach a maximum height approximately 60 points taller than the permission card and then scroll vertically. Tables and code can scroll horizontally within the body. Open in Codex stays outside the scrolling region. No image or other remote content loads automatically; ordinary web/email links require explicit activation. MarkdownUI 2.4.1 supplies GFM rendering on macOS 14; its maintenance-mode status is an accepted dependency tradeoff for the smaller static renderer without new executable build macros. iosMath 2.5.0 supplies local native LaTeX typesetting. The footer shows the matching chat title, shortened to one line when necessary, with the full title available on hover. Runtime dependency notices are retained in `THIRD_PARTY_LICENSES`.
+
+| Case | Action | Expected |
+| --- | --- | --- |
+| Short reply | Ask for one short sentence, then hover or activate the notice | Card fits the content without a large blank viewport |
+| Formatting | Ask for headings, emphasis, a Markdown table, a nested list, a web link, Unicode, and fenced Swift | Actual table columns, readable code, and preserved line breaks; links open only when activated |
+| Math | Ask for Greek letters, subscripts and a fraction using `\(...\)` and `\[...\]`, plus dollar delimiters and a literal code example | Inline and display math typeset locally; code and currency stay literal; the card still fits or scrolls |
+| Chat title | Use a long named conversation and hover its response | Matching title appears at bottom left, with Open in Codex kept visible |
+| Long reply | Ask for a long formatted explanation | Card stops growing; body scrolls; Open in Codex remains visible |
+| Beyond the cap | Ask for a reply longer than 16,000 code points | Prefix retained and `...` visible at the end, including when the cutoff is inside a fence/table |
+| Missing text | If a real Stop without text is reproducible | Codex update; no invented preview |
+| Pointer boundary | Move from compact notice into the card, scroll, then leave | Card stays open during reading/scrolling; exit collapses it and restarts the three-second dwell |
+| Keyboard / VoiceOver | Activate the compact notice; navigate response, scrollbar, link and button; press Escape | Preview and matching chat are reachable; keyboard reading holds the card open; Escape collapses |
+| Open failure / retry | Make the official Codex app unavailable in a controlled setup, activate Open, then restore and retry | Error remains in the card for retry; only successful opening dismisses the matching notice; leaving still restores passive dismissal |
+| Replacement | Start a new turn or let another chat/permission become visible during reading or opening | Old preview clears; old callbacks cannot dismiss or open the replacement chat |
+| Two displays | Expand on one display, then interact on another | Hover and collapse ownership stay with the right display; no unsolicited expansion on every display |
+| Geometry | Check a small display, camera clearance, normal notch and permission card | Content and action remain reachable; normal/permission dimensions retain their existing sizes |
+
+Repeat the Allow, Deny, Review in Codex, automatic-review and concurrent-chat cases below. Synthetic URL delivery and native rendering measurements do not substitute for these real cases.
 
 Missing-message, conflicting undocumented status fields, long-response clipping, duplicate events, delayed Stop after Interrupt, and permission ordering are deterministic automated cases. They must not fabricate failure/success or resurface a dismissed interruption. Repeat delivery suppression retains the latest 100 correlated turn outcomes in memory; it is not durable history across restarts.
 
@@ -78,6 +102,49 @@ Do not present zero false alerts on this selected regression set as a measured p
 ## Acceptance record
 
 Record the build path, Codex version, hook trust/update completion, and result of each real conversation case. Automated tests alone do not verify installed hook delivery or UI behavior.
+
+### Response preview implementation — 2026-11-03
+
+- Worktree: `/private/tmp/boring-notch-response-preview`, branch `codex/response-preview`, based on `4bff8b5`.
+- Debug bundle: `/tmp/boring-notch-codex-refinement/Build/Products/Debug/boringNotch.app`.
+- Automated validation: 114 Swift tests, including response retention/correlation, display ownership, native Markdown sizing, table structure, incomplete syntax, link schemes and disabled images. All 11 embedded-hook tests passed, covering the actual Python → signed URL → Swift path, exact and exceeded caps, combining/multibyte text, JSON escaping, response delivery budgets and unchanged large-permission delivery. The label evaluator, Debug build and `git diff --check` passed.
+- A synthetic short response and an exactly-at-cap 16,000-emoji response both reached the Debug process through native authenticated URL delivery. This was a transport smoke check before the last permission-budget correction, not a real-conversation or final live acceptance result.
+- The user confirmed updating and trusting the initial response-preview hook. The last review then restricted the new URL budget to Stop events so permission transport remains unchanged. **Connect or update Codex and review/trust that final hook again before later live tests.** No trust fingerprints were edited automatically.
+- The personal `/Applications/boringNotch.app` process remained running; an initial normal stop request did not terminate it. Only the stale Debug process was subsequently force-stopped for its rebuild. The installed app was not replaced.
+- **Live acceptance pending:** the user elected to test later. Short/long real replies, formatted tables/code, pointer transitions, successful/failed opening and retry, new-turn/replacement behavior, concurrent chats/displays, VoiceOver, and the permission matrix are not recorded as passed. Installed Codex version is not independently recorded for these cases yet.
+- Review corrections: replay suppression now retains a digest instead of a message-bearing payload; detail ownership is scoped to the exact notification and display so stale collapse callbacks cannot close another card; response URL sizing does not alter permission event delivery. Regression coverage accompanies these changes.
+- At this checkpoint the feature was held for final live checks. The later user-requested local integration is recorded below; unchecked cases remain open.
+
+### Response preview layout regression — 2026-11-03
+
+- User screenshots demonstrated two failures: the expanded card could clip into its header, or leave a large blank area while showing only one reply line. These reports supersede any inference that renderer-only sizing tests established working card layout.
+- Reproduction used the actual response view with synthetic text inside a 640 × 270 native hosting window, a 34-point camera inset, the app's horizontal padding, and the same parent-height feedback. Repeated rendering passes left the preference callbacks at their defaults: card height **0**, reply viewport **20**. Adding the camera/bottom clearance to the zero value collapsed the parent to **46** points. Retaining the maximum parent height instead reproduced the large blank card with one visible line.
+- Cause: background preference-based measurements were not delivering the rendered dimensions through this constrained hierarchy. Both the viewport and its parent relied on those values. The previous native tests measured only standalone Markdown fitting size and missed this feedback path.
+- Correction: replace the two preference measurements with direct `onGeometryChange` observations; discard nonpositive card dimensions and anchor the reply at the top. The complete card is now in `CodexResponseRendering`, while app notification routing and keyboard/window coordination remain in the app wrapper. Obsolete preference keys were removed.
+- Verification: the complete production card now settles at **132** points for the synthetic short reply and **250** points for the long reply. The long body's native viewport is **138** points with a **1,445**-point document; tests verify actual scrolling, a top initial position, and space outside the scroller for the header/action. The full suite passed **116 Swift tests** and the fresh Debug build passed. These are native synthetic regression results, not completion of the real-conversation matrix.
+- The rebuilt Debug copy was launched; the personal app was left running. This correction changes no hook code. The installed hook still differs from the final repository template from the earlier transport correction, so the outstanding connect/update/trust step still applies before final hook acceptance.
+
+### LaTeX and chat-title refinement — 2026-11-03
+
+- The user confirmed normal expansion, then reported literal LaTeX in the response body and requested the conversation title in the footer. This confirms the basic expansion correction; it does not complete the remaining acceptance matrix.
+- Cause: GFM does not include LaTeX typesetting, and CommonMark escape processing consumes the backslashes on `\(` / `\[` delimiters before rendering.
+- Correction: preserve paired parenthesis/bracket and dollar math before Markdown parsing, protect code/link/image/HTML regions using the existing cmark AST, and typeset expressions using the official pinned iosMath 2.5.0 library. Math becomes locally generated glyph images with stable digest identifiers, never remote image URLs or executable TeX. Unsupported expressions remain readable; bitmap allocation is bounded. External images remain omitted and cannot cancel sibling inline math rendering.
+- The footer now uses the notification's `chatTitle`; long titles stay on one line with a full-title tooltip while Open in Codex keeps its width.
+- Synthetic native verification includes actual nontransparent glyph pixels for Greek letters, conditional probability subscripts, fractions and matrices; code/currency protection; unsupported math; stable private identifiers; and the existing complete-card sizing/scrolling tests. The mixed native fixture was visually checked with inline theta, a display probability/fraction expression and the conversation-title footer. Runtime dependency and bundled font notices are retained in `THIRD_PARTY_LICENSES`. All 122 Swift tests, the fresh Debug build and `git diff --check` passed; the Debug copy was relaunched without stopping the personal app. Real conversation math and title checks remain pending.
+
+### Approved response styling — 2026-11-03
+
+- The user approved the native **Seamless** preview: 11-point body text, softer white lettering and no gray reply panel. Inline math uses 11 points and display math 13, matching the preview. Header, footer, chat title, actions and height/scroll behavior retain their existing styling and layout.
+- Cause of the previous mismatch: the Markdown theme's own text style restored 16-point text and a gray background after the surrounding text environment was set. The approved implementation overrides the theme's text style directly and removes the ineffective environment override.
+- Verification: all **123 Swift tests** passed, including a native test comparing the effective font with 11-point system text and checking that empty reply pixels are transparent so the black notch shows through. The fresh Debug build and whitespace checks passed. This styling change does not modify hooks. Remaining real-conversation acceptance is still tracked above.
+
+### User-requested local integration — 2026-11-03
+
+- After confirming normal expansion and approving the Seamless styling, the user explicitly requested merging the current implementation into `feature/codex-notification`.
+- Both worktrees were inspected. The destination was clean and both branches started at `4bff8b5`, allowing a fast-forward integration without overwriting unrelated work.
+- Validation available for this integration: 123 Swift tests, 11 embedded-hook/delivery tests, the notification-label evaluator, a fresh Debug build, native synthetic rendering checks and whitespace checks passed.
+- The merge is authorized with the remaining live acceptance cases still open. In particular, do not interpret this integration as confirmation of final-hook trust, the full permission matrix, concurrent chats/displays, VoiceOver or every opening/retry case. Those checks retain their recorded pending status.
+- Scope is local integration only. No remote push, personal-use synchronization, installed-app replacement or runtime restart is requested as part of this merge.
 
 ### Automated refinement results — 2026-09-30
 
