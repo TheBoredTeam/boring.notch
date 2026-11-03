@@ -130,6 +130,8 @@ extension MediaControllerType {
             return "Connects directly to the Apple Music app."
         case .youtubeMusic:
             return "Requires a third-party client with API plugin enabled."
+        case .soundCloud:
+            return "Controls soundcloud.com in Safari, Chrome, Arc, Brave or Edge. Enable \"Allow JavaScript from Apple Events\" in your browser."
         }
     }
 }
