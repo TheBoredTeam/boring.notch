@@ -33,6 +33,8 @@ final class NotchWindowManager {
     private var previousScreens: [NSScreen]?
 
     init(camera: CameraModel) {
+        // Migrate saved heights before the initial view model reads notch sizing.
+        LegacyNonNotchHeightMigration.applyIfNeeded()
         primaryViewModel = BoringViewModel(camera: camera)
     }
 

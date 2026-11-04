@@ -445,7 +445,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 defer: false
             )
             window.center()
-            window.title = "Onboarding"
+            window.title = String(localized: "Onboarding")
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
             window.level = .floating
