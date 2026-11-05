@@ -21,6 +21,7 @@ struct Config: Equatable {
 /// The default scrolling day "dial": a horizontal strip of days centered on the selection.
 struct WheelPicker: View {
     @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject private var calendarManager = CalendarManager.shared
     @Binding var selectedDate: Date
     @State private var scrollPosition: Int?
     @State private var haptics: Bool = false
@@ -148,10 +149,25 @@ struct WheelPicker: View {
         date: Date, isSelected: Bool, id: Int, onClick: @escaping () -> Void
     ) -> some View {
         let isToday = Calendar.current.isDateInToday(date)
+        let indicatorColors = calendarManager.indicatorEvents[Calendar.current.startOfDay(for: date)] ?? []
         return Button(action: onClick) {
             VStack(spacing: 8) {
                 dayText(date: dateToString(for: date), isToday: isToday, isSelected: isSelected)
-                dateCircle(date: date, isToday: isToday, isSelected: isSelected)
+                VStack(spacing: 4) {
+                    dateCircle(date: date, isToday: isToday, isSelected: isSelected)
+                    HStack(spacing: 2) {
+                        if indicatorColors.isEmpty {
+                            Circle().fill(Color.clear).frame(width: 3, height: 3)
+                        } else {
+                            ForEach(0..<indicatorColors.count, id: \.self) { i in
+                                Circle()
+                                    .fill(indicatorColors[i])
+                                    .frame(width: 3, height: 3)
+                            }
+                        }
+                    }
+                    .frame(height: 3)
+                }
             }
             .padding(.vertical, 4)
             .padding(.horizontal, 4)
