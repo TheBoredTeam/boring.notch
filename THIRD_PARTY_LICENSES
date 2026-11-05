@@ -488,7 +488,7 @@ SOFTWARE.
 
 
 -----------------------------------------------------------------------------
-Codex response preview dependency: swift-cmark 0.9.0 / cmark-gfm (MarkdownUI parser) — https://github.com/swiftlang/swift-cmark
+Codex response preview dependency: swift-cmark 0.9.0 / cmark-gfm and GFM extensions (MarkdownUI parsing and response markup normalization) — https://github.com/swiftlang/swift-cmark
 -----------------------------------------------------------------------------
 
 Copyright (c) 2014, John MacFarlane

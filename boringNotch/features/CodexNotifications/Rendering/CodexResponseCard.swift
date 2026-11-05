@@ -55,7 +55,7 @@ public struct CodexResponseCard: View {
 
             ScrollView(.vertical) {
                 VStack(alignment: .leading, spacing: 8) {
-                    CodexResponseMarkdown(source: source)
+                    CodexResponseMarkdown(source: source, onOpenCodex: onOpenCodex)
                     if isTruncated {
                         // Kept outside Markdown so a cutoff inside a fence cannot hide it.
                         Text("...")

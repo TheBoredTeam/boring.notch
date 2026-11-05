@@ -183,11 +183,57 @@ final class CodexResponseMathTests: XCTestCase {
     }
 
     @MainActor
+    func testMathInEmphasizedListLabelsRemainsVisible() async throws {
+        var referenceInk = 0
+        for wrapper in ["", "**", "*", "***", "~~"] {
+            let source = "- " + wrapper + #"\(\mu_\theta(z_t,t)\)"# + wrapper + ": next mean."
+            let host = NSHostingView(rootView: CodexResponseMarkdown(source: source, onOpenCodex: {})
+                .frame(width: 400, alignment: .leading).padding(8).background(.black).preferredColorScheme(.dark))
+            host.frame = NSRect(x: 0, y: 0, width: 416, height: 80)
+            let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false
+            window.setFrameOrigin(NSPoint(x: -3000, y: -3000))
+            window.contentView = host
+            window.orderFront(nil)
+            defer { window.close() }
+            for _ in 0..<50 {
+                host.layoutSubtreeIfNeeded()
+                host.display()
+                try await Task.sleep(for: .milliseconds(20))
+            }
+            let pixels = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+            host.cacheDisplay(in: host.bounds, to: pixels)
+            var ink = 0
+            for x in 0..<pixels.pixelsWide {
+                for y in 0..<pixels.pixelsHigh {
+                    if (pixels.colorAt(x: x, y: y)?.redComponent ?? 0) > 0.3 {
+                        ink += 1
+                    }
+                }
+            }
+            if wrapper.isEmpty { referenceInk = ink }
+            XCTAssertGreaterThan(referenceInk, 100)
+            XCTAssertEqual(Double(ink), Double(referenceInk), accuracy: Double(referenceInk) * 0.1,
+                           "Styled list math must retain the same glyphs as plain inline math")
+            try XCTUnwrap(pixels.representation(using: .png, properties: [:]))
+                .write(to: URL(fileURLWithPath: "/tmp/boring-notch-inline-\(wrapper == "~~" ? "strike" : String(wrapper.count)).png"))
+        }
+    }
+
+    @MainActor
     func testHostedResponseRendersMathAndKeepsComposerAndFooterVisible() async throws {
         let encoder = #"\mathbf x \;\xrightarrow{\text{encoder}}\; \boldsymbol\mu_\phi(\mathbf x),\ \mathbf s_\phi(\mathbf x) \;\longrightarrow\; q_\phi(\mathbf z\mid\mathbf x)."#
         let divergence = #"D_{\mathrm{KL}}\left[\underbrace{q_\phi(\mathbf z\mid\mathbf x)}_{\text{codes predicted for this image}}\;\middle\|\;\underbrace{p(\mathbf z)}_{\text{prior over codes}}\right]."#
         let source = "The encoder predicts a distribution for each input.\n\n\\[" + encoder + "\\]\n\nThe prior is independent of the input.\n\n\\[" + divergence + "\\]"
-        for (name, content) in [("math", source), ("short", "Got it.")] {
+        let notation = #"""
+        - **\(z_t\)**: the current noisy image.
+        - **\(\mu_\theta(z_t,t)\)**: the next image's mean.
+        - **\(\xi_t \sim \mathcal{N}(0,I)\)**: fresh Gaussian noise.
+        - **\(\sigma_t\)**: controls how much randomness we add.
+
+        The Gaussian forward result is exact. :codex-annotation{index="1"}
+        """#
+        for (name, content) in [("math", source), ("short", "Got it."), ("notation", notation)] {
             let host = NSHostingView(rootView:
                 CodexResponseCard(
                     source: content, isTruncated: false, projectName: "Fixture", chatTitle: "Synthetic math example",
@@ -216,7 +262,7 @@ final class CodexResponseMathTests: XCTestCase {
             }
             let size = host.fittingSize
             XCTAssertLessThanOrEqual(size.height, 310)
-            XCTAssertGreaterThan(size.height, name == "math" ? 200 : 100)
+            XCTAssertGreaterThan(size.height, name == "short" ? 100 : 200)
             host.setFrameSize(size)
             host.layoutSubtreeIfNeeded()
             let pixels = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))

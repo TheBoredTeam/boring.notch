@@ -4,10 +4,12 @@ import MarkdownUI
 
 /// Static response rendering with local formatting and no remote image loading.
 public struct CodexResponseMarkdown: View {
-    private let document: CodexMathDocument
+    let document: CodexResponseDocument
+    private let onOpenCodex: () -> Void
 
-    public init(source: String) {
-        self.document = CodexMathDocument(source: source)
+    public init(source: String, onOpenCodex: @escaping () -> Void) {
+        self.document = CodexResponseDocument(source: source)
+        self.onOpenCodex = onOpenCodex
     }
 
     public var body: some View {
@@ -31,7 +33,7 @@ public struct CodexResponseMarkdown: View {
             .markdownImageProvider(CodexResponseImageProvider(equations: document.equations))
             .markdownInlineImageProvider(CodexResponseInlineImageProvider(equations: document.equations))
             .environment(\.openURL, OpenURLAction { url in
-                Self.allowsLink(url) ? .systemAction : .discarded
+                openLink(url)
             })
             .textSelection(.enabled)
     }
@@ -46,6 +48,14 @@ public struct CodexResponseMarkdown: View {
 
     static func allowsLink(_ url: URL) -> Bool {
         ["https", "http", "mailto"].contains(url.scheme?.lowercased() ?? "")
+    }
+
+    func openLink(_ url: URL) -> OpenURLAction.Result {
+        if document.annotationURLs.contains(url) {
+            onOpenCodex()
+            return .handled
+        }
+        return Self.allowsLink(url) ? .systemAction : .discarded
     }
 }
 

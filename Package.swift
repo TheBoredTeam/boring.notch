@@ -46,6 +46,7 @@ let package = Package(
             dependencies: [
                 .product(name: "MarkdownUI", package: "swift-markdown-ui"),
                 .product(name: "cmark-gfm", package: "swift-cmark"),
+                .product(name: "cmark-gfm-extensions", package: "swift-cmark"),
                 .product(name: "MathJaxSwift", package: "MathJaxSwift"),
                 .product(name: "SwiftDraw", package: "SwiftDraw"),
             ],

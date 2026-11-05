@@ -289,6 +289,9 @@ final class CodexNotificationManager: ObservableObject {
         passivePresentationTask?.cancel()
         passivePresentationTask = nil
 
+        // Opening a response link must leave its preview available. Capture its
+        // origin before awaiting the destination, since the user may fold meanwhile.
+        let wasExpandedResponse = notification.responsePreview != nil && expandedNotificationToken == token
         Task { [weak self] in
             guard let self, self.presentedNotificationToken == token,
                   self.containsPresentation(token) else { return }
@@ -305,12 +308,16 @@ final class CodexNotificationManager: ObservableObject {
             }
 
             if didOpen {
-                self.expireReply(for: token)
                 self.passivePresentationPolicy.recordCompactLaunchSuccess(for: token)
-                var updatedState = self.state
-                updatedState.dismiss(token)
-                self.state = updatedState
-                self.synchronizePresentedNotification()
+                if wasExpandedResponse {
+                    self.schedulePassiveDismissal(for: token, after: CodexNotificationTiming.passiveDwellDuration)
+                } else {
+                    self.expireReply(for: token)
+                    var updatedState = self.state
+                    updatedState.dismiss(token)
+                    self.state = updatedState
+                    self.synchronizePresentedNotification()
+                }
             } else {
                 self.passivePresentationPolicy.recordCompactLaunchFailure(
                     self.lastError ?? "The official Codex app could not be opened.",

@@ -53,6 +53,134 @@ final class CodexResponseRenderingTests: XCTestCase {
         }
     }
 
+    func testCodexAnnotationsBecomeLabeledLinksAndOpenTheMatchingChat() throws {
+        var opened = 0
+        let response = CodexResponseMarkdown(
+            source: #"The result is exact. :codex-annotation{index="1"} Compare :codex-annotation{index="12"}."#,
+            onOpenCodex: { opened += 1 }
+        )
+        let html = MarkdownContent(response.document.markdown).renderHTML()
+        XCTAssertTrue(html.contains(">Annotation 1</a>"))
+        XCTAssertTrue(html.contains(">Annotation 12</a>"))
+        XCTAssertFalse(html.contains(":codex-annotation"))
+        XCTAssertEqual(response.document.annotationURLs.count, 2)
+        _ = response.openLink(try XCTUnwrap(response.document.annotationURLs.first))
+        XCTAssertEqual(opened, 1)
+        for target in ["boringnotch-annotation://index/2", "codex://threads/other", "file:///tmp/fixture"] {
+            _ = response.openLink(URL(string: target)!)
+        }
+        XCTAssertEqual(opened, 1, "Only annotations parsed in this response may invoke its chat action")
+    }
+
+    func testOrdinaryLinksKeepTheirOwnDestinationWithoutOpeningCodex() {
+        var codexOpens = 0
+        let response = CodexResponseMarkdown(source: "A synthetic response.",
+                                             onOpenCodex: { codexOpens += 1 })
+        for target in ["https://example.com", "http://example.com", "mailto:example@example.com"] {
+            _ = response.openLink(URL(string: target)!)
+        }
+        XCTAssertEqual(codexOpens, 0, "Ordinary links retain their own system destination")
+        for target in ["file:///tmp/fixture", "javascript:alert(1)", "boringnotch-annotation://index/1"] {
+            _ = response.openLink(URL(string: target)!)
+        }
+        XCTAssertEqual(codexOpens, 0)
+    }
+
+    func testAnnotationExamplesAndMalformedDirectivesRemainLiteral() {
+        let source = #"""
+        `:codex-annotation{index="1"}`
+
+        ```text
+        :codex-annotation{index="2"}
+        ```
+
+        [:codex-annotation{index="3"}](https://example.invalid)
+
+        <div>:codex-annotation{index="4"}</div>
+
+        :codex-annotation{index="0"}
+        :codex-annotation{index="-1"}
+        :codex-annotation{index="abc"}
+        :codex-annotation{index="5"
+        """#
+        let document = CodexResponseDocument(source: source)
+        XCTAssertTrue(document.annotationURLs.isEmpty)
+        XCTAssertEqual(document.markdown, source)
+    }
+
+    func testResponseAdaptationPreservesSurroundingFormattingAndTables() {
+        let document = CodexResponseDocument(source: #"""
+        - **Mean \(\mu_\theta(z_t,t)\):** next mean. :codex-annotation{index="1"}
+        - *Scale \(\sigma_t\) controls noise.*
+        - ***\(z_t\)***: noisy image.
+        - ~~\(x_t\)~~: old symbol.
+
+        | Symbol | Meaning |
+        | --- | --- |
+        | **\(z_t\)** | Current image |
+
+        - [x] Keep this task checked.
+
+        ```latex
+        \(literal\)
+        ```
+        """#)
+        let html = MarkdownContent(document.markdown).renderHTML()
+        XCTAssertTrue(html.contains("<table>"))
+        XCTAssertTrue(html.contains("<strong>Mean"))
+        XCTAssertTrue(html.contains("<em>Scale"))
+        XCTAssertTrue(html.contains("checked=\"\""))
+        XCTAssertTrue(html.contains(#"\(literal\)"#))
+        XCTAssertFalse(html.contains("<strong><img"))
+        XCTAssertFalse(html.contains("<em><img"), document.markdown)
+        XCTAssertFalse(html.contains("<del><img"))
+        XCTAssertEqual(document.equations.count, 4)
+        XCTAssertEqual(html.components(separatedBy: "<img").count - 1, 5)
+    }
+
+    func testAdjacentStyledEquationsDoNotLeaveEmptyEmphasisMarkers() {
+        for source in [#"**\(x\) \(y\)**"#, #"***\(x\) and \(y\)***"#, #"*before **\(x\)** after*"#] {
+            let document = CodexResponseDocument(source: source)
+            let html = MarkdownContent(document.markdown).renderHTML()
+            XCTAssertEqual(html.components(separatedBy: "<img").count - 1, document.equations.count)
+            XCTAssertFalse(html.contains("**"), document.markdown)
+            XCTAssertFalse(html.contains("<strong><img"), document.markdown)
+            XCTAssertFalse(html.contains("<em><img"), document.markdown)
+        }
+    }
+
+    @MainActor
+    func testOutsideClickFoldsImmediatelyWhileInsideClicksAndPointerMotionDoNot() throws {
+        let window = NSWindow(contentRect: NSRect(x: -3000, y: -3000, width: 640, height: 400),
+                              styleMask: [.borderless], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        let anchor = CodexResponseOutsideClick.Anchor(frame: NSRect(x: 100, y: 100, width: 400, height: 240))
+        let content = NSView(frame: NSRect(x: 0, y: 0, width: 640, height: 400))
+        content.addSubview(anchor)
+        window.contentView = content
+        window.orderFront(nil)
+        defer { anchor.stopMonitoring(); window.close() }
+        var folds = 0
+        anchor.onOutsideClick = { folds += 1 }
+        func event(_ type: NSEvent.EventType, at point: NSPoint, windowNumber: Int) throws -> NSEvent {
+            try XCTUnwrap(NSEvent.mouseEvent(with: type, location: point, modifierFlags: [], timestamp: 0,
+                                            windowNumber: windowNumber, context: nil, eventNumber: 1, clickCount: 1, pressure: 1))
+        }
+        for type in [NSEvent.EventType.leftMouseDown, .rightMouseDown, .otherMouseDown] {
+            anchor.handle(try event(type, at: NSPoint(x: 200, y: 200), windowNumber: window.windowNumber))
+            XCTAssertEqual(folds, 0, "Clicking inside must preserve links, selection and reply editing")
+        }
+        anchor.handle(try event(.mouseMoved, at: NSPoint(x: 0, y: 0), windowNumber: window.windowNumber))
+        XCTAssertEqual(folds, 0, "Pointer exit must retain its existing inactivity rule")
+        anchor.handle(try event(.leftMouseDown, at: NSPoint(x: 20, y: 20), windowNumber: window.windowNumber))
+        XCTAssertEqual(folds, 1, "Transparent space outside the card must fold without waiting for a timer")
+        anchor.handle(try event(.rightMouseDown, at: NSPoint(x: 0, y: 0), windowNumber: 0))
+        XCTAssertEqual(folds, 2, "Clicks in other apps use screen coordinates")
+        anchor.removeFromSuperview()
+        anchor.handle(try event(.leftMouseDown, at: NSPoint(x: 0, y: 0), windowNumber: 0))
+        XCTAssertEqual(folds, 2, "A detached response must stop observing outside clicks")
+    }
+
     func testInlineImagesNeverLoadRemoteOrLocalContent() async {
         let provider = CodexResponseInlineImageProvider(equations: [:])
         for target in ["https://example.invalid/image.png", "file:///tmp/image.png", "data:image/png;base64,AA==", "boringnotch-math://equation/untrusted"] {
@@ -66,9 +194,9 @@ final class CodexResponseRenderingTests: XCTestCase {
 
     @MainActor
     func testNativeRenderingMeasuresShortRepliesWithoutBlankSpaceAndBoundsWideTables() {
-        let short = NSHostingView(rootView: CodexResponseMarkdown(source: "Updated the **Save preferences** label.").frame(width: 578))
-        let long = NSHostingView(rootView: CodexResponseMarkdown(source: String(repeating: "A longer paragraph with useful context.\n\n", count: 40)).frame(width: 578))
-        let table = NSHostingView(rootView: CodexResponseMarkdown(source: "| Very wide column name | Another very wide column | Third column |\n| --- | --- | --- |\n| A | B | C |").frame(width: 300))
+        let short = NSHostingView(rootView: CodexResponseMarkdown(source: "Updated the **Save preferences** label.", onOpenCodex: {}).frame(width: 578))
+        let long = NSHostingView(rootView: CodexResponseMarkdown(source: String(repeating: "A longer paragraph with useful context.\n\n", count: 40), onOpenCodex: {}).frame(width: 578))
+        let table = NSHostingView(rootView: CodexResponseMarkdown(source: "| Very wide column name | Another very wide column | Third column |\n| --- | --- | --- |\n| A | B | C |", onOpenCodex: {}).frame(width: 300))
         XCTAssertGreaterThan(short.fittingSize.height, 0)
         XCTAssertLessThan(short.fittingSize.height, 80)
         XCTAssertGreaterThan(long.fittingSize.height, 140)
@@ -79,7 +207,7 @@ final class CodexResponseRenderingTests: XCTestCase {
     @MainActor
     func testEffectiveResponseTypographyAndSurfaceMatchTheApprovedRefinement() throws {
         let source = "Small response text."
-        let response = CodexResponseMarkdown(source: source)
+        let response = CodexResponseMarkdown(source: source, onOpenCodex: {})
             .frame(width: 240, alignment: .leading)
             .preferredColorScheme(.dark)
         let host = NSHostingView(rootView: response)

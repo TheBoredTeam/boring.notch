@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+        D40000052F00000100000005 /* CodexResponseOutsideClick.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40000062F00000100000006 /* CodexResponseOutsideClick.swift */; };
+        D40000012F00000100000001 /* CodexResponseDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40000022F00000100000002 /* CodexResponseDocument.swift */; };
+        D40000032F00000100000003 /* cmark-gfm-extensions in Frameworks */ = {isa = PBXBuildFile; productRef = D40000042F00000100000004 /* cmark-gfm-extensions */; };
         D30000012F00000100000001 /* SwiftDraw in Frameworks */ = {isa = PBXBuildFile; productRef = D30000022F00000100000002 /* SwiftDraw */; };
         090BAB68BFD6470FB2B439CE /* CodexReplyOutcome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24CA6D48217F46E0BD69DF6C /* CodexReplyOutcome.swift */; };
         F4BE60CF45EF4901982C227B /* CodexReplyOutcome.swift in Helper Sources */ = {isa = PBXBuildFile; fileRef = 24CA6D48217F46E0BD69DF6C /* CodexReplyOutcome.swift */; };
@@ -224,6 +227,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+        D40000062F00000100000006 /* CodexResponseOutsideClick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/Rendering/CodexResponseOutsideClick.swift; sourceTree = "<group>"; };
+        D40000022F00000100000002 /* CodexResponseDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/Rendering/CodexResponseDocument.swift; sourceTree = "<group>"; };
         24CA6D48217F46E0BD69DF6C /* CodexReplyOutcome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/CodexReplyOutcome.swift; sourceTree = "<group>"; };
         B7756F003430415FB23E499F /* CodexReplyComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/Rendering/CodexReplyComposer.swift; sourceTree = "<group>"; };
         A02D25DAEE024DD2808562BD /* CodexReplyTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = features/CodexNotifications/CodexReplyTransport.swift; sourceTree = "<group>"; };
@@ -421,6 +426,7 @@
 			files = (
                 D10000052F00000100000005 /* MarkdownUI in Frameworks */,
                 D20000082F00000100000008 /* cmark-gfm in Frameworks */,
+                D40000032F00000100000003 /* cmark-gfm-extensions in Frameworks */,
                 D20000052F00000100000005 /* MathJaxSwift in Frameworks */,
                 D30000012F00000100000001 /* SwiftDraw in Frameworks */,
 				111BEA5F2ED07A340079DD4E /* MacroVisionKit in Frameworks */,
@@ -725,6 +731,8 @@
                 FBFC1F249CF741BFB3DE4E14 /* CodexReplyState.swift */,
                 D20000042F00000100000004 /* CodexMathImage.swift */,
                 D20000022F00000100000002 /* CodexMathDocument.swift */,
+                D40000022F00000100000002 /* CodexResponseDocument.swift */,
+                D40000062F00000100000006 /* CodexResponseOutsideClick.swift */,
                 D10000042F00000100000004 /* CodexResponseDetailView.swift */,
 				D00001052F00000100000005 /* CodexNotificationSettingsView.swift */,
 				11F748672EC9AC9600F841DB /* XPCHelperClient */,
@@ -968,6 +976,7 @@
 				14D032192C68F32E0096E6A1 /* LaunchAtLogin */,
                 D10000062F00000100000006 /* MarkdownUI */,
                 D20000092F00000100000009 /* cmark-gfm */,
+                D40000042F00000100000004 /* cmark-gfm-extensions */,
                 D20000062F00000100000006 /* MathJaxSwift */,
                 D30000022F00000100000002 /* SwiftDraw */,
 				14D0321C2C68F3350096E6A1 /* Sparkle */,
@@ -1090,6 +1099,8 @@
                 0EDDE5392279445CA1231DC1 /* CodexReplyState.swift in Sources */,
                 D20000032F00000100000003 /* CodexMathImage.swift in Sources */,
                 D20000012F00000100000001 /* CodexMathDocument.swift in Sources */,
+                D40000012F00000100000001 /* CodexResponseDocument.swift in Sources */,
+                D40000052F00000100000005 /* CodexResponseOutsideClick.swift in Sources */,
                 D10000032F00000100000003 /* CodexResponseDetailView.swift in Sources */,
 				D00000052F00000100000005 /* CodexNotificationSettingsView.swift in Sources */,
 				C70000012F00000100000001 /* ClosedNotchRenderSnapshot.swift in Sources */,
@@ -1696,6 +1707,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+        D40000042F00000100000004 /* cmark-gfm-extensions */ = {
+            isa = XCSwiftPackageProductDependency;
+            package = D20000102F00000100000010 /* XCRemoteSwiftPackageReference "cmark-gfm" */;
+            productName = "cmark-gfm-extensions";
+        };
         D30000022F00000100000002 /* SwiftDraw */ = {
             isa = XCSwiftPackageProductDependency;
             package = D30000032F00000100000003 /* XCRemoteSwiftPackageReference "SwiftDraw" */;
