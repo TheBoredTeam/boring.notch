@@ -13,10 +13,23 @@ struct BoringHeader: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var shelfState = ShelfStateViewModel.shared
+
+    /// The tab bar is pointless with a single tab, so it stays hidden then.
+    /// The shelf still governs its own tab's visibility: an enabled but empty
+    /// shelf keeps the old "only when it has content" behaviour.
+    private var shouldShowTabSelection: Bool {
+        let enabled = NotchViews.enabledViews
+        guard enabled.count > 1 else { return false }
+        if Defaults[.boringShelf] {
+            return !shelfState.isEmpty || coordinator.alwaysShowTabs
+        }
+        return true
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             HStack {
-                if (!shelfState.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
+                if shouldShowTabSelection {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()
@@ -47,7 +60,7 @@ struct BoringHeader: View {
                         )
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
                     } else {
-                        if Defaults[.showMirror] && coordinator.currentView == .home {
+                        if Defaults[.showMirror] && coordinator.currentView == .music {
                             Button(action: {
                                 vm.toggleCameraPreview()
                             }) {

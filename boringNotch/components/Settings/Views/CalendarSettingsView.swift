@@ -12,6 +12,7 @@ import SwiftUI
 struct CalendarSettings: View {
     @ObservedObject private var calendarManager = CalendarManager.shared
     @Default(.showCalendar) var showCalendar: Bool
+    @Default(.showCalendarEvents) var showCalendarEvents: Bool
     @Default(.hideCompletedReminders) var hideCompletedReminders
     @Default(.hideAllDayEvents) var hideAllDayEvents
     @Default(.autoScrollToNextEvent) var autoScrollToNextEvent
@@ -24,6 +25,10 @@ struct CalendarSettings: View {
                 Defaults.Toggle(key: .showCalendar) {
                     Text("Show calendar")
                 }
+                Defaults.Toggle(key: .showCalendarEvents) {
+                    Text("Show events")
+                }
+                .disabled(!showCalendar)
                 Defaults.Toggle(key: .calendarWeekView) {
                     Text("Weekly view")
                 }
