@@ -557,6 +557,13 @@ extension Defaults.Keys {
         default: nil
     )
 
+    // MARK: Last.fm Scrobbling
+    static let lastFmEnabled = Key<Bool>("lastFmEnabled", default: false)
+    static let lastFmAPIKey = Key<String>("lastFmAPIKey", default: "")
+    static let lastFmAPISecret = Key<String>("lastFmAPISecret", default: "")
+    static let lastFmSessionKey = Key<String?>("lastFmSessionKey", default: nil)
+    static let lastFmUsername = Key<String?>("lastFmUsername", default: nil)
+
     // MARK: Advanced Settings
     static let useCustomAccentColor = Key<Bool>("useCustomAccentColor", default: false)
     static let customAccentColorData = Key<Data?>("customAccentColorData", default: nil)
