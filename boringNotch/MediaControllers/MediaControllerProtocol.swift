@@ -29,6 +29,11 @@ protocol MediaControllerProtocol: AnyObject {
 }
 
 @MainActor
+protocol TrackRatingControlling: MediaControllerProtocol {
+    func setRating(_ rating: MusicTrackRating) async throws
+}
+
+@MainActor
 protocol NowPlayingRuntimeControlling: MediaControllerProtocol {
     var runtimeFailures: AsyncStream<Void> { get }
 
