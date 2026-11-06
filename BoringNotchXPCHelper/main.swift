@@ -28,6 +28,10 @@ class ServiceDelegate: NSObject, NSXPCListenerDelegate {
         let exportedObject = BoringNotchXPCHelper(connection: newConnection)
         newConnection.exportedObject = exportedObject
 
+        newConnection.invalidationHandler = {
+            BoringNotchXPCHelper.appConnectionDidInvalidate()
+        }
+
         // Resuming the connection allows the system to deliver more incoming messages.
         newConnection.resume()
 
