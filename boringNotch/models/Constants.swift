@@ -446,6 +446,10 @@ extension Defaults.Keys {
     static let settingsIconInNotch = Key<Bool>("settingsIconInNotch", default: true)
     static let lightingEffect = Key<Bool>("lightingEffect", default: true)
     static let enableShadow = Key<Bool>("enableShadow", default: true)
+    /// Liquid Glass background for the open notch (macOS 26+). The closed notch stays black.
+    static let liquidGlassNotch = Key<Bool>("liquidGlassNotch", default: false)
+    /// Darkening applied over the glass so content stays readable on bright wallpapers.
+    static let liquidGlassTint = Key<Double>("liquidGlassTint", default: 0.35)
     static let cornerRadiusScaling = Key<Bool>("cornerRadiusScaling", default: true)
 
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)
