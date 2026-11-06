@@ -449,6 +449,10 @@ extension Defaults.Keys {
     static let cornerRadiusScaling = Key<Bool>("cornerRadiusScaling", default: true)
 
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)
+    /// Time in the closed notch on displays without a physical notch, while
+    /// nothing else (music, a notification) is showing there.
+    static let showClockWithoutNotch = Key<Bool>("showClockWithoutNotch", default: false)
+    static let clockShowsDate = Key<Bool>("clockShowsDate", default: true)
     static let tileShowLabels = Key<Bool>("tileShowLabels", default: false)
     static let showCalendar = Key<Bool>("showCalendar", default: false)
     static let hideCompletedReminders = Key<Bool>("hideCompletedReminders", default: true)
