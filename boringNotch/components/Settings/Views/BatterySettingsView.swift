@@ -31,6 +31,9 @@ struct BatterySettingsView: View {
                 Defaults.Toggle(key: .showChargingWattage) {
                     Text("Show charging wattage")
                 }
+                Defaults.Toggle(key: .showAirPodsBattery) {
+                    Text("Show AirPods battery in popover")
+                }
             } header: {
                 Text("Battery Information")
             }
