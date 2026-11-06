@@ -17,7 +17,11 @@ struct NotificationSettingsView: View {
     @Default(.notificationLiveActivity) private var notificationLiveActivity
     @Default(.notificationsFromAllApps) private var notificationsFromAllApps
     @Default(.notificationAllowedApps) private var allowedApps
+    @Default(.notificationDisplayDuration) private var displayDuration
     @State private var isAccessibilityAuthorized = true
+
+    /// Seconds; 0 keeps the notification until it is dismissed.
+    private static let displayDurations: [Double] = [2, 3, 5, 8, 10, 15, 30, 0]
 
     private var selectedApps: [NotificationApp] {
         allowedApps
@@ -61,6 +65,31 @@ struct NotificationSettingsView: View {
                     }
                 }
             }
+
+            Section {
+                Defaults.Toggle(key: .notificationAutoExpand) {
+                    Text("Expand notch on new notification")
+                }
+
+                Picker(selection: $displayDuration) {
+                    ForEach(Self.displayDurations, id: \.self) { seconds in
+                        if seconds == 0 {
+                            Text("Until dismissed").tag(seconds)
+                        } else {
+                            Text("\(Int(seconds)) seconds").tag(seconds)
+                        }
+                    }
+                } label: {
+                    Text("Display duration")
+                }
+            } header: {
+                Text("Display")
+            } footer: {
+                Text("Hovering over a notification pauses the countdown.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .disabled(!notificationLiveActivity)
 
             Section {
                 Defaults.Toggle(key: .notificationsFromAllApps) {

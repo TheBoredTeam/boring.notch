@@ -26,6 +26,9 @@ struct ContentView: View {
     @State private var activityIndex: Int = 0
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
+    /// The notch opened by itself for a notification (notificationAutoExpand)
+    /// and should close again when that notification is gone.
+    @State private var isNotificationAutoOpened = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
 
     @State private var gestureProgress: CGFloat = .zero
@@ -338,6 +341,7 @@ struct ContentView: View {
                     // even if the user had swiped away to music.
                     .onChange(of: notificationManager.activeNotification?.id) { _, newID in
                         if newID != nil { activityIndex = 0 }
+                        handleNotificationAutoExpand(newID: newID)
                     }
                     // Activities disappear on their own (a notification
                     // expires, music stops). Keep the selection in range so
@@ -794,6 +798,29 @@ extension ContentView {
             didOpen = vm.open()
         }
         return didOpen
+    }
+
+    /// With notificationAutoExpand on, a new notification opens a closed notch
+    /// so it can be read at a glance. When the notification is gone (expired
+    /// or dismissed) the notch closes again, but only if it opened on its own
+    /// and the pointer is not on it; otherwise the hover handler owns closing.
+    private func handleNotificationAutoExpand(newID: String?) {
+        guard newID != nil else {
+            guard isNotificationAutoOpened else { return }
+            isNotificationAutoOpened = false
+            if vm.notchState == .open, !isHovering, !vm.isPopoverActive {
+                vm.close()
+            }
+            return
+        }
+
+        guard Defaults[.notificationAutoExpand],
+              vm.notchState == .closed,
+              !vm.hideOnClosed,
+              !isHovering else { return }
+
+        notificationManager.beginAutoPresentation()
+        isNotificationAutoOpened = doOpen()
     }
 
     // MARK: - Hover Management
