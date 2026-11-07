@@ -60,6 +60,12 @@
             "state" : "translated",
             "value" : " (varsayılan)"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " (默认)"
+          }
         }
       }
     },
@@ -262,6 +268,12 @@
             "state" : "translated",
             "value" : "%@ yalnızca OSD değiştirmek için macOS'in yerleşik denetim kaynakları kullanılırken gereklidir. BetterDisplay veya Lunar gibi harici kaynaklar bunu gerektirmez. Gerekirse daha sonra ekran göstergesi ayarlarından etkinleştirebilirsiniz."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅在使用 macOS 内置控制源替代 OSD 时才需要启用 %@。如果使用 BetterDisplay 或 Lunar 等外部控制源则无需启用。之后如有需要，也可以在 OSD 设置中再开启。"
+          }
         }
       }
     },
@@ -301,6 +313,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ используется только для улучшения уведомлений о медиа и яркости. Данные не собираются и не передаются."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 仅用于优化媒体和亮度通知，不会收集或共享任何数据。"
           }
         }
       }
@@ -342,6 +360,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ bildirim"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 通知"
           }
         }
       }
@@ -395,6 +419,12 @@
             "state" : "translated",
             "value" : "%@ gerekli"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 为必需项"
+          }
         }
       }
     },
@@ -438,6 +468,12 @@
           }
         },
         "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@x"
+          }
+        },
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@x"
@@ -984,6 +1020,12 @@
             "state" : "translated",
             "value" : "Erişilebilirlik"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "辅助功能"
+          }
         }
       }
     },
@@ -1035,6 +1077,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gerçek Boyut"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实际尺寸"
           }
         }
       }
@@ -1201,6 +1249,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uygulama Ekle..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加应用程序…"
           }
         }
       }
@@ -1373,6 +1427,12 @@
             "state" : "translated",
             "value" : "Favorilere ekle"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加至收藏"
+          }
         }
       }
     },
@@ -1418,6 +1478,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tüm uygulamalar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有应用程序"
           }
         }
       }
@@ -1684,6 +1750,12 @@
             "state" : "translated",
             "value" : "Всегда следить за активными дисплеями"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "始终跟随当前显示器"
+          }
         }
       }
     },
@@ -1729,6 +1801,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Her Zaman Şununla Aç"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "始终使用以下应用打开"
           }
         }
       }
@@ -2088,6 +2166,12 @@
             "state" : "translated",
             "value" : "Uygulama"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用程序"
+          }
         }
       }
     },
@@ -2264,6 +2348,12 @@
             "state" : "translated",
             "value" : "Uygulamalar"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用程序"
+          }
         }
       }
     },
@@ -2285,6 +2375,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Аудио обрабатывается локально для визуализатора и никогда не записывается, не хранится и не публикуется."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频数据仅在本地用于呈现可视化效果，不会被录制、存储或共享"
           }
         }
       }
@@ -2331,6 +2427,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ses çıkışı"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频输出"
           }
         }
       }
@@ -2792,6 +2894,12 @@
             "state" : "translated",
             "value" : "Автоматически переключать дисплей, если предпочитаемый не доступен"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "首选显示器不可用时自动切换显示器"
+          }
         }
       }
     },
@@ -2957,6 +3065,12 @@
             "state" : "translated",
             "value" : "Arka Plan Kaldırılamadı"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "背景移除失败"
+          }
         }
       }
     },
@@ -3090,6 +3204,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "15 saniye geri sar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "后退 15 秒"
           }
         }
       }
@@ -3615,6 +3735,12 @@
             "state" : "translated",
             "value" : "Davranış"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "行为"
+          }
         }
       }
     },
@@ -3674,6 +3800,12 @@
             "state" : "translated",
             "value" : "Beta"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "测试版"
+          }
         }
       }
     },
@@ -3714,6 +3846,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "BetterDisplay yüklenmemiş ya da şu anda çalışmıyor"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BetterDisplay 未安装或未运行"
           }
         }
       }
@@ -3837,6 +3975,12 @@
             "state" : "translated",
             "value" : "Boring Notch может анализировать воспроизведение звука из вашего музыкального приложения, чтобы нарисовать форму звука живого FFT в вырезе, при минимальном влиянии на использование ЦП."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch 可以分析你的音乐应用正在播放的音频，在刘海区域绘制实时 FFT 波形，并且对 CPU 占用仅有极小影响。"
+          }
         }
       }
     },
@@ -3936,6 +4080,12 @@
             "state" : "translated",
             "value" : "Boring Notch может показать все ваши предстоящие события в одном месте. Доступ к календарю необходим для отображения вашего графика."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch 可以在一处集中显示你所有即将到来的事件。要显示你的日程安排，需要访问你的日历。"
+          }
         }
       }
     },
@@ -3957,6 +4107,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boring Notch может отображать ваши запланированные напоминания вместе с событиями календаря. Доступ к Напоминаниям необходим для их отображения."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch 可以在你的日历事件旁显示已安排的提醒事项。要显示你的提醒事项，需要访问“提醒事项”。"
           }
         }
       }
@@ -4005,6 +4161,12 @@
             "state" : "translated",
             "value" : "Boring Notch, Şu An Çalınan içeriği doğrulayamadı. Tekrar deneyin, sorun sürerse uygulamayı kapatıp yeniden açın."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch 无法验证“正在播放”。请重试；如果此问题持续出现，请重新打开应用。"
+          }
         }
       }
     },
@@ -4026,6 +4188,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "В Boring Notch имеется зеркало, которое позволяет быстро проверить ваш внешний вид с помощью вашей камеры прямо в вырезе. Доступ к камере требуется только для отображения этого предварительного просмотра в реальном времени. Вы можете включить или выключить функцию зеркала в любое время в приложении."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch 内置镜子功能，让你可以直接从刘海区域使用摄像头快速查看自己的外观。仅在显示此实时预览时需要摄像头权限。你可以随时在应用中开启或关闭镜子功能。"
           }
         }
       }
@@ -4080,6 +4248,12 @@
             "state" : "translated",
             "value" : "Boring Notch, Şu An Çalınıyor bağlantısını kaybetti. Otomatik olarak yeniden bağlanılıyor..."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch 与“正在播放”的连接已断开，正在自动重新连接……"
+          }
         }
       }
     },
@@ -4101,6 +4275,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Настройки Boring Notch"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch 设置"
           }
         }
       }
@@ -4154,6 +4334,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boring Notch'un Şu An Çalınan bileşenleri şu anda kullanılamıyor. Uygulamayı yeniden açın ya da tekrar yükleyin."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch 的“正在播放”组件不可用。请重新打开或重新安装应用。"
           }
         }
       }
@@ -4921,6 +5107,12 @@
             "state" : "translated",
             "value" : "Kamera"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摄像头"
+          }
         }
       }
     },
@@ -4985,6 +5177,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kamera Erişimi Gerekli"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要摄像头权限"
           }
         }
       }
@@ -5688,6 +5886,12 @@
             "state" : "translated",
             "value" : "Tekrar Kontrol Et"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新检查"
+          }
         }
       }
     },
@@ -5929,6 +6133,12 @@
             "state" : "translated",
             "value" : "Şu An Çalınan içerik erişilebilirliği kontrol ediliyor..."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在检查是否正在播放..."
+          }
         }
       }
     },
@@ -6092,6 +6302,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "\"%@\" belgesini açmak için bir uygulama seçin."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择打开文档的应用程序\"%@\"。"
           }
         }
       }
@@ -6263,6 +6479,12 @@
             "state" : "translated",
             "value" : "Uygulama seç"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择应用"
+          }
         }
       }
     },
@@ -6397,6 +6619,12 @@
             "state" : "translated",
             "value" : "Выберите файлы для отправки через %@"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择要通过 %@ 分享的文件"
+          }
         }
       }
     },
@@ -6449,6 +6677,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Takvimin çentikte nasıl görüntüleneceğini seç."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择日历在刘海区域中的显示方式。"
           }
         }
       }
@@ -7370,6 +7604,12 @@
             "state" : "translated",
             "value" : "Kompakt mod"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "简洁模式"
+          }
         }
       }
     },
@@ -7547,6 +7787,12 @@
             "state" : "translated",
             "value" : "Sıkıştırma:"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "压缩："
+          }
         }
       }
     },
@@ -7600,6 +7846,12 @@
             "state" : "translated",
             "value" : "Doğrudan Apple Music uygulamasına bağlanır."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直接连接到 Apple Music 。"
+          }
         }
       }
     },
@@ -7652,6 +7904,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Doğrudan Spotify uygulamasına bağlanır."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直接连接到 Spotify 。"
           }
         }
       }
@@ -7947,6 +8205,12 @@
             "state" : "translated",
             "value" : "Dönüştür"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "转换"
+          }
         }
       }
     },
@@ -7998,6 +8262,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Resmi Dönüştür"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "转换图像"
           }
         }
       }
@@ -8407,6 +8677,12 @@
             "state" : "translated",
             "value" : "Toplantı Bağlantısını Kopyala"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制会议链接"
+          }
         }
       }
     },
@@ -8578,6 +8854,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Şu An Çalınan içerik doğrulanamadı"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法验证正在播放"
           }
         }
       }
@@ -9217,6 +9499,12 @@
             "state" : "translated",
             "value" : "Özel..."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自定义…"
+          }
         }
       }
     },
@@ -9601,6 +9889,12 @@
             "state" : "translated",
             "value" : "Media tuşuna basarken option tuşuna basınca ne olacağını seç."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "定义按住 Option 键的同时按下媒体键时会发生什么。"
+          }
         }
       }
     },
@@ -9772,6 +10066,12 @@
             "state" : "translated",
             "value" : "Cihaz kontrolü ve Veri erişimi"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设备控制和数据访问权限"
+          }
         }
       }
     },
@@ -9932,6 +10232,12 @@
             "state" : "translated",
             "value" : "Bildirimi kapat"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "忽略通知"
+          }
         }
       }
     },
@@ -9954,6 +10260,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Поведение отображения"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示行为"
           }
         }
       }
@@ -10006,6 +10318,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ekranlar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示"
           }
         }
       }
@@ -10466,6 +10784,12 @@
             "state" : "translated",
             "value" : "örn. 1920"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "例如：1920"
+          }
         }
       }
     },
@@ -10511,6 +10835,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boş yuva"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空位"
           }
         }
       }
@@ -10563,6 +10893,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Etkinleştir %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用 %@"
           }
         }
       }
@@ -10822,6 +11158,12 @@
             "state" : "translated",
             "value" : "Разрешить доступ к Календарю"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用日历访问"
+          }
         }
       }
     },
@@ -10843,6 +11185,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Разрешить доступ к камере"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用摄像头访问"
           }
         }
       }
@@ -11279,6 +11627,12 @@
             "state" : "translated",
             "value" : "Включить звук в реальном времени"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用实时音频"
+          }
         }
       }
     },
@@ -11300,6 +11654,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Разрешить доступ к напоминаниям"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用提醒访问"
           }
         }
       }
@@ -11577,6 +11937,12 @@
             "state" : "translated",
             "value" : "Aktif:"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用："
+          }
         }
       }
     },
@@ -11747,6 +12113,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Olaylar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "事件"
           }
         }
       }
@@ -12143,6 +12515,12 @@
             "state" : "translated",
             "value" : "Favori"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "喜欢"
+          }
         }
       }
     },
@@ -12189,6 +12567,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Özellikler"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "功能"
           }
         }
       }
@@ -12473,6 +12857,12 @@
             "state" : "translated",
             "value" : "Videoyu çevir"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "翻转视频"
+          }
         }
       }
     },
@@ -12525,6 +12915,12 @@
             "state" : "translated",
             "value" : "Biçim:"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "格式："
+          }
         }
       }
     },
@@ -12576,6 +12972,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "15 saniye ileri sar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前进 15 秒"
           }
         }
       }
@@ -12636,6 +13038,12 @@
             "state" : "translated",
             "value" : "Çerçeve şekli"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面形状"
+          }
         }
       }
     },
@@ -12687,6 +13095,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tüm Uygulamalardan"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来自所有应用程序"
           }
         }
       }
@@ -13170,6 +13584,12 @@
             "state" : "translated",
             "value" : "Hareketler"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手势"
+          }
         }
       }
     },
@@ -13547,6 +13967,12 @@
             "state" : "translated",
             "value" : "Dahili klavye parlaklık kontrollerinin yakalanabilmesi için %@ Erişilebilirlik izni verin."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "授予%@权限，以拦截系统自带的键盘亮度控制。"
+          }
         }
       }
     },
@@ -13581,6 +14007,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bildirim afişlerini yansıtmak için %@ izni verin."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "授予 %@ 权限以同步通知。"
           }
         }
       }
@@ -13715,6 +14147,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yardımcı Servis Kullanılamıyor"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "辅助服务不可用"
           }
         }
       }
@@ -14864,6 +15302,12 @@
             "state" : "translated",
             "value" : "Boşta"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空闲状态"
+          }
         }
       }
     },
@@ -15029,6 +15473,12 @@
             "state" : "translated",
             "value" : "Görüntü Dönüştürme Başarısız Oldu"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "图像转换失败"
+          }
         }
       }
     },
@@ -15068,6 +15518,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Görüntü boyutu:"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "图像大小："
           }
         }
       }
@@ -15548,6 +16004,12 @@
             "state" : "translated",
             "value" : "%@ toplantısına katıl"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入 %@ 会议"
+          }
         }
       }
     },
@@ -15587,6 +16049,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bir etkinliğe dokunulduğunda toplantıya katıl"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点击事件时加入会议"
           }
         }
       }
@@ -15724,6 +16192,12 @@
             "state" : "translated",
             "value" : "Тримати новіші речі попереду"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让较新的暂存架项目保持在前面。"
+          }
         }
       }
     },
@@ -15758,6 +16232,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Klavye parlaklığı şu anda yalnızca yerleşik kaynağı destekliyor."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "键盘亮度目前仅支持内置源。"
           }
         }
       }
@@ -15956,6 +16436,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Büyük"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "较大"
           }
         }
       }
@@ -16291,6 +16777,12 @@
             "state" : "translated",
             "value" : "Cihazlar aranıyor…"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索设备…"
+          }
         }
       }
     },
@@ -16549,6 +17041,12 @@
             "state" : "translated",
             "value" : "Низкая мощность: выкл"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "低能耗：关闭"
+          }
         }
       }
     },
@@ -16570,6 +17068,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Низкая мощность: Вкл"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "低能耗：开启"
           }
         }
       }
@@ -16605,6 +17109,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lunar yüklenmemiş ya da ona ulaşılamıyor"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lunar未安装或无法访问"
           }
         }
       }
@@ -19097,6 +19607,12 @@
             "state" : "translated",
             "value" : "Sıradaki"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一个"
+          }
         }
       }
     },
@@ -19131,6 +19647,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gecelik"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每夜构建版"
           }
         }
       }
@@ -19256,6 +19778,12 @@
             "state" : "translated",
             "value" : "Hiçbir uygulama seçilmedi"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未选择任何应用"
+          }
         }
       }
     },
@@ -19290,6 +19818,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kamera Yok"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无摄像头设备"
           }
         }
       }
@@ -19980,6 +20514,12 @@
             "state" : "translated",
             "value" : "Çentik"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notch"
+          }
         }
       }
     },
@@ -20107,6 +20647,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Çentik çerçevesi"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刘海外观样式"
           }
         }
       }
@@ -20378,6 +20924,12 @@
             "state" : "translated",
             "value" : "Bildirimler"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知"
+          }
         }
       }
     },
@@ -20513,6 +21065,12 @@
             "state" : "translated",
             "value" : "Şu An Çalınıyor bileşenleri kullanılamıyor"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在播放组件不可用"
+          }
         }
       }
     },
@@ -20553,6 +21111,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Şu An Çalınıyor bağlantısı koptu"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在播放连接丢失"
           }
         }
       }
@@ -20658,6 +21222,12 @@
             "state" : "translated",
             "value" : "Онбординг"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "初次使用引导"
+          }
         }
       }
     },
@@ -20693,6 +21263,12 @@
             "state" : "translated",
             "value" : "Yalnızca Apple ekranları desteklenir. Birden fazla ekranlı kurulumlarda parlaklık OSD'si, destekleniyorsa etkin ekranda, desteklenmiyorsa desteklenen başka bir ekranda görünür."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅支持 Apple 显示器。在多显示器设置中，如果当前活动显示器受支持，亮度 OSD 会显示在该显示器上；否则会显示在另一个受支持的显示器上。"
+          }
         }
       }
     },
@@ -20727,6 +21303,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yalnızca seçilen uygulamaların bildirimleri yansıtılır. Mac'inizdeki uygulamaları ekleyin. Hazır bir uygulama listesi kullanılmaz."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅镜像选定的应用。请从你的 Mac 中添加应用；不使用预设的应用列表。"
           }
         }
       }
@@ -20881,6 +21463,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sürüm bilgisi otomatik olarak doldurulmuş bir hata raporu açın"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 Bug 报告，并自动填入你的版本信息。"
           }
         }
       }
@@ -21039,6 +21627,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Takvimde Aç"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在日历中打开"
           }
         }
       }
@@ -21418,6 +22012,12 @@
             "state" : "translated",
             "value" : "Ayarları Aç"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开设置"
+          }
         }
       }
     },
@@ -21773,6 +22373,12 @@
             "state" : "translated",
             "value" : "%@’de Aç"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 %@"
+          }
         }
       }
     },
@@ -22096,6 +22702,12 @@
             "state" : "translated",
             "value" : "Çıktı"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输出"
+          }
         }
       }
     },
@@ -22136,6 +22748,12 @@
             "state" : "translated",
             "value" : "Duraklat"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂停"
+          }
         }
       }
     },
@@ -22170,6 +22788,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Duraklatıldı"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂停中"
           }
         }
       }
@@ -22210,6 +22834,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "PDF Oluşturma Hatası"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF 文件创建失败"
           }
         }
       }
@@ -22363,6 +22993,12 @@
             "state" : "translated",
             "value" : "Oynat"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放"
+          }
         }
       }
     },
@@ -22403,6 +23039,12 @@
             "state" : "translated",
             "value" : "Oynat/Duraklat"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放/暂停"
+          }
         }
       }
     },
@@ -22442,6 +23084,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Oynatıcı Görünümü"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放器外观"
           }
         }
       }
@@ -22559,6 +23207,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ayna özelliğini kullanmak için lütfen Sistem Ayarları'ndan kamera erişimine izin verin."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在“系统设置”中允许摄像头访问权限，以使用镜子功能。"
           }
         }
       }
@@ -22877,6 +23531,12 @@
             "state" : "translated",
             "value" : "Meta veriyi koru"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保留元数据"
+          }
         }
       }
     },
@@ -22916,6 +23576,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Önceki"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上一个"
           }
         }
       }
@@ -23701,6 +24367,12 @@
             "state" : "translated",
             "value" : "Önerilen Uygulamalar"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "推荐的应用程序"
+          }
         }
       }
     },
@@ -24463,6 +25135,12 @@
             "state" : "translated",
             "value" : "Favorilerden Kaldır"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从喜欢列表移除"
+          }
         }
       }
     },
@@ -24728,6 +25406,12 @@
             "state" : "translated",
             "value" : "Dosyayı Yeniden Adlandır"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重命名文件"
+          }
         }
       }
     },
@@ -24767,6 +25451,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yineleme"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "循环播放"
           }
         }
       }
@@ -24879,6 +25569,12 @@
             "state" : "translated",
             "value" : "Bir Hata bildir"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "报告 Bug"
+          }
         }
       }
     },
@@ -24913,6 +25609,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ izni gerekir. Yalnızca görünen afişler yansıtılır."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要 %@。仅同步显示当前可见通知。"
           }
         }
       }
@@ -24960,6 +25662,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "API eklentisi aktif bir üçüncü taraf istemci gerektirir."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要已启用 API 插件的第三方客户端。"
           }
         }
       }
@@ -25522,6 +26230,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Выбрать файлы для %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择 %@ 的文件"
           }
         }
       }
@@ -26597,6 +27311,12 @@
             "state" : "translated",
             "value" : "Şarj gücünü göster"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示充电功率"
+          }
         }
       }
     },
@@ -27205,6 +27925,12 @@
             "state" : "translated",
             "value" : "Sıradaki bildirimi göster"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示下一条队列中的通知"
+          }
         }
       }
     },
@@ -27362,6 +28088,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bildirimleri çentik içinde göster"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在刘海区域显示通知"
           }
         }
       }
@@ -28176,6 +28908,12 @@
             "state" : "translated",
             "value" : "Süre yerine kalan zamanı göster"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示剩余时间而非时长"
+          }
         }
       }
     },
@@ -28499,6 +29237,12 @@
             "state" : "translated",
             "value" : "Показывать иконку исходного приложения в обложке альбома"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在专辑封面显示应用程序图标"
+          }
         }
       }
     },
@@ -28545,6 +29289,12 @@
             "state" : "translated",
             "value" : "Yalnızca müzik oynatıcıyı içeren daha küçük, açık bir çentik gösterir — sekme, takvim veya ayna içermez."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示一个更小的展开刘海，仅包含音乐播放器——没有标签页、日历或镜子。"
+          }
         }
       }
     },
@@ -28585,6 +29335,12 @@
             "state" : "translated",
             "value" : "Karıştır"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "随机播放"
+          }
         }
       }
     },
@@ -28624,6 +29380,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boyutlandırma"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尺寸"
           }
         }
       }
@@ -28783,6 +29545,12 @@
             "state" : "translated",
             "value" : "Küçük"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "较小"
+          }
         }
       }
     },
@@ -28893,7 +29661,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sneak Peek 在 Notch 下显示媒体标题和艺术家几秒钟。"
+            "value" : "速览会在刘海下方显示媒体标题和艺术家信息，持续几秒钟。"
           }
         },
         "zh-Hant-HK" : {
@@ -29011,7 +29779,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sneak Peek 样式"
+            "value" : "速览样式"
           }
         },
         "zh-Hant-HK" : {
@@ -29421,6 +30189,12 @@
             "state" : "translated",
             "value" : "Sabit"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正式版"
+          }
         }
       }
     },
@@ -29455,6 +30229,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kararlı ve Beta sürümleri resmi yayınlardan gelir."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稳定版和 Beta 版均来自官方发布版本。"
           }
         }
       }
@@ -29761,6 +30541,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Arka planda çalışan yardımcı süreç kapandı ya da macOS tarafından sonlandırıldı. Sıradaki OSD olayında kendiliğinden yeniden başlayacaktır."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "后台辅助程序已崩溃或被 macOS 关闭。下一次 OSD 事件时自动重启。"
           }
         }
       }
@@ -30871,6 +31657,12 @@
             "state" : "translated",
             "value" : "Отключено"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未连接电源"
+          }
         }
       }
     },
@@ -30905,6 +31697,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Güncelleme kanalı"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新通道"
           }
         }
       }
@@ -31229,6 +32027,12 @@
             "state" : "translated",
             "value" : "Использовать предпочтительный дисплей"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用首选显示器"
+          }
         }
       }
     },
@@ -31452,6 +32256,12 @@
             "state" : "translated",
             "value" : "Yerine %@ kullanılıyor"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 %@"
+          }
         }
       }
     },
@@ -31492,6 +32302,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bunun yerine %@ kullanılıyor. Şu An Çalınıyor tercihiniz korunuyor."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 %@ 。您正在播放的首选项将被保留。"
           }
         }
       }
@@ -31540,6 +32356,12 @@
             "state" : "translated",
             "value" : "Geçici olarak %@ kullanılıyor"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时使用 %@"
+          }
         }
       }
     },
@@ -31586,6 +32408,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Geçici olarak %@ kullanılıyor. Şu An Çalınıyor tercihiniz korunuyor."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时使用 %@ 。您正在播放的首选项将被保留。"
           }
         }
       }
@@ -32477,6 +33305,12 @@
             "state" : "translated",
             "value" : "Тиждень починається з"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每周起始日"
+          }
         }
       }
     },
@@ -32547,6 +33381,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Тижневий вигляд"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "周视图"
           }
         }
       }
@@ -32789,6 +33629,12 @@
             "state" : "translated",
             "value" : "Pencere"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "窗口"
+          }
         }
       }
     },
@@ -32841,6 +33687,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tarayıcılar dahil çoğu medya uygulamasıyla çalışarak neyin çalındığını algılar. Not: Bu özellik gelecekteki bir macOS sürümünde kaldırılabilir."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "适用于大多数媒体应用（包括浏览器），用于检测正在播放的内容。注意：此功能可能会在未来某个 macOS 版本中被移除。"
           }
         }
       }
@@ -33094,6 +33946,12 @@
             "state" : "translated",
             "value" : "Данные вашего календаря используются только для отображения ваших событий и никогда не передаются."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的日历数据仅用于显示你的事件，绝不会被共享。"
+          }
         }
       }
     },
@@ -33115,6 +33973,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ваша камера никогда не используется без вашего согласия, ничего не записывается и не сохраняется."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的摄像头从未在未经您同意的情况下使用，没有记录或存储任何内容。"
           }
         }
       }
@@ -33249,6 +34113,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Данные о напоминаниях используются только для отображения и никогда не передаются."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的提醒事项数据仅用于显示你的提醒事项，绝不会被共享。"
           }
         }
       }
