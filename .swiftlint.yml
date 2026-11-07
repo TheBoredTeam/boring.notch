@@ -1,0 +1,81 @@
+# SwiftLint configuration for boring.notch
+# Run with: swiftlint --config .swiftlint.yml
+
+included:
+  - boringNotch
+  - BoringNotchXPCHelper
+  - Shared
+
+excluded:
+  - boringNotch/Assets.xcassets
+  - mediaremote-adapter
+  - updater
+  - .build
+
+# Crash-vector rules — demoted to warning for audited legacy sites.
+# Do not add new force-unwraps/casts; new code should still avoid them.
+force_unwrapping:
+  severity: warning
+
+force_cast:
+  severity: warning
+
+force_try:
+  severity: warning
+
+opt_in_rules:
+  - empty_count
+  - empty_string
+  - first_where
+  - implicitly_unwrapped_optional
+  - lower_acl_than_parent
+  - modifier_order
+  - redundant_nil_coalescing
+  - unused_enumerated
+  - vertical_whitespace_closing_braces
+  - vertical_whitespace_opening_braces
+
+type_body_length:
+  warning: 400
+  error: 800
+
+file_length:
+  warning: 500
+  error: 1100
+
+function_body_length:
+  warning: 60
+  error: 200
+
+line_length:
+  warning: 160
+  error: 420
+
+cyclomatic_complexity:
+  warning: 15
+  error: 40
+
+large_tuple:
+  warning: 3
+  error: 4
+
+identifier_name:
+  min_length:
+    warning: 2
+    error: 1
+  max_length:
+    warning: 40
+    error: 60
+  excluded:
+    - id
+    - vm
+    - s
+    - NotchLayout
+    - BoringFaceAnimation
+    - MusicLiveActivity
+    - HelpText
+    - NotchBehaviour
+
+type_name:
+  excluded:
+    - F_SLSRemoveWindowsFromSpaces

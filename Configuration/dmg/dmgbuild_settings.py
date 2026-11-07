@@ -11,9 +11,16 @@ VOLUME_NAME = os.environ.get('DMG_VOLUME_NAME', 'Boring Notch')
 BACKGROUND = os.environ.get('DMG_BACKGROUND', '')
 BADGE_ICON = os.environ.get('DMG_BADGE_ICON', '')
 
-# If DMG_BACKGROUND not provided, default to the hiDPI TIFF in .background.
+def default_background():
+    # dmgbuild executes this file without defining __file__. The compiled
+    # function still records the settings filename, including for `-s` paths.
+    settings_file = default_background.__code__.co_filename
+    settings_dir = os.path.dirname(os.path.abspath(settings_file))
+    return os.path.join(settings_dir, '.background', 'background.tiff')
+
+
 if not BACKGROUND:
-    base = os.path.join(os.path.dirname(__file__), '.background', 'background.tiff')
+    BACKGROUND = default_background()
 
 # Basic DMG metadata
 volume_name = VOLUME_NAME
@@ -24,7 +31,7 @@ compression_level = 9
 files = [APP_PATH] if APP_PATH else []
 symlinks = {'Applications': '/Applications'}
 
-# Background image path (dmgbuild will copy this file into the DMG's .background)
+# Background image path (dmgbuild copies it into the DMG as .background.tiff)
 background = BACKGROUND
 
 
