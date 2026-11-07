@@ -50,6 +50,12 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 
 ---
 
+### Lyrics preview
+
+The on-demand Lyrics feature is available in a preview DMG. [Download the Lyrics preview](https://example.com/replace-with-lyrics-preview-dmg) *(temporary link; the hosted download link will be added here).* Follow the manual installation steps below. This preview build is not notarized by Apple.
+
+---
+
 ### Option 1: Download and Install Manually
 
 <a href="https://github.com/TheBoredTeam/boring.notch/releases/latest/download/Boring%20Notch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
