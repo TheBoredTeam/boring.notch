@@ -43,6 +43,12 @@ final class XPCHelperClient: NSObject, ObservableObject {
     @MainActor private var activationObserver: (any NSObjectProtocol)?
     private var lunarListener: BoringNotchXPCHelperLunarListener?
 
+    nonisolated func configureFeatures(bluetooth: Bool, notifications: Bool) async throws -> Data {
+        let service = await MainActor.run { ensureRemoteService() }
+        return try await service.withContinuation { remote, continuation in
+            remote.configureFeatures(bluetooth, notifications: false) { continuation.resume(returning: $0) }
+        }
+    }
     // MARK: - Connection Management (Main Actor Isolated)
 
     private func ensureRemoteService() -> RemoteXPCService<BoringNotchXPCHelperProtocol> {
@@ -377,6 +383,9 @@ final class XPCHelperClient: NSObject, ObservableObject {
 /// notifications; Lunar events are forwarded to whichever listener the OSD code
 /// registered, since both callbacks share one connection.
 final class NotificationXPCDelegate: NSObject, BoringNotchXPCAppDelegate {
+    func featureEvent(_ data: Data) {
+        NotificationCenter.default.post(name: .featureBridgeEvent, object: data)
+    }
     /// Written on the MainActor (connection setup, `startLunarEventStream`),
     /// read on the XPC connection's private delivery queue. The lock
     /// synchronizes cross-thread publication; the listener itself is still
