@@ -189,6 +189,18 @@ final class CalendarManager: ObservableObject {
         await updateEvents()
     }
 
+    /// The next event in the selected calendars that hasn't ended by `date`, looking
+    /// up to `days` ahead. Used by the calendar's "Next event" empty-day option.
+    func nextUpcomingEvent(after date: Date, withinDays days: Int = 60) async -> EventModel? {
+        guard let end = Calendar.current.date(byAdding: .day, value: days, to: date) else { return nil }
+        let upcoming = await calendarService.events(
+            from: date,
+            to: end,
+            calendars: selectedCalendars.map { $0.id }
+        )
+        return NextEventFinder.firstUpcoming(in: upcoming, after: date, hideAllDay: Defaults[.hideAllDayEvents])
+    }
+
     private func updateEvents() async {
         let calendarIDs = selectedCalendars.map { $0.id }
         let eventsResult = await calendarService.events(
