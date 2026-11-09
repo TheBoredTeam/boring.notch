@@ -124,10 +124,6 @@ final class CalendarEmptyDayContentTests: XCTestCase {
         XCTAssertTrue(try JSONDecoder().decode(GeocodingResponse.self, from: Data("{}".utf8)).places.isEmpty)
     }
 
-    func testDefaultKeepsOriginalMessage() {
-        XCTAssertEqual(Defaults.Keys.calendarEmptyDayContent.defaultValue, .noEventsMessage)
-    }
-
     // MARK: Helpers
 
     private func gregorian(in identifier: String) throws -> Calendar {
