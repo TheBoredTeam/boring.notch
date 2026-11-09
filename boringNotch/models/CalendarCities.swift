@@ -2,6 +2,8 @@
 //  CalendarCities.swift
 //  boringNotch
 //
+//  Created by adamly218 on 09/11/2026.
+//
 //  The cities offered in Settings → Calendar for the weather, sunrise & sunset
 //  and world clock options. Shipping a fixed list means no lookup service and
 //  no location permission: each city carries its own coordinates and time zone.

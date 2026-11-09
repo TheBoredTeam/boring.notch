@@ -2,6 +2,8 @@
 //  OpenMeteoService.swift
 //  boringNotch
 //
+//  Created by adamly218 on 09/11/2026.
+//
 //  Weather, sunrise and sunset from Open-Meteo (https://open-meteo.com), which
 //  needs no API key. The city comes from the built-in list in Settings
 //  (CalendarCities.swift), so no location permission is involved. Nothing is requested unless the user picks an

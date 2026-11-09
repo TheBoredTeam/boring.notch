@@ -1,3 +1,10 @@
+//
+//  CalendarEmptyDayContentTests.swift
+//  boringNotchTests
+//
+//  Created by adamly218 on 09/11/2026.
+//
+
 import AppKit
 import Foundation
 import XCTest

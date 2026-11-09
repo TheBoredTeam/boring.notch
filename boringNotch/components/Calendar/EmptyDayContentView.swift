@@ -2,6 +2,8 @@
 //  EmptyDayContentView.swift
 //  boringNotch
 //
+//  Created by adamly218 on 09/11/2026.
+//
 
 import Defaults
 import SwiftUI
