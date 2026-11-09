@@ -125,68 +125,33 @@ struct CalendarSettings: View {
     }
 }
 
-/// Searches Open-Meteo's geocoding for a city and stores the chosen match.
+/// Picks a city from the built-in list, grouped by region.
 private struct CityPicker: View {
     let title: LocalizedStringKey
     @Default private var place: CalendarPlace?
-
-    @State private var query = ""
-    @State private var results: [CalendarPlace] = []
-    @State private var isSearching = false
-    @State private var searchFailed = false
 
     init(title: LocalizedStringKey, key: Defaults.Key<CalendarPlace?>) {
         self.title = title
         self._place = Default(key)
     }
 
-    var body: some View {
-        LabeledContent(title) {
-            Text(place?.displayName ?? String(localized: "Not set"))
-                .foregroundColor(place == nil ? .secondary : .primary)
-        }
-        HStack {
-            TextField("Search for a city", text: $query)
-                .onSubmit(search)
-            if isSearching {
-                ProgressView().controlSize(.small)
-            }
-            Button("Search", action: search)
-                .disabled(query.trimmingCharacters(in: .whitespaces).isEmpty || isSearching)
-        }
-        if searchFailed {
-            Text("Couldn't find that city. Check the spelling or your connection.")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        ForEach(results, id: \.displayName) { result in
-            Button {
-                place = result
-                results = []
-                query = ""
-            } label: {
-                HStack {
-                    Text(result.displayName)
-                    Spacer()
-                    if result == place {
-                        Image(systemName: "checkmark")
-                    }
-                }
-                .contentShape(.rect)
-            }
-            .buttonStyle(.plain)
-        }
+    private var selection: Binding<String?> {
+        Binding(
+            get: { City.allCities.first { $0.matches(place) }?.id },
+            set: { id in place = City.allCities.first { $0.id == id }?.place }
+        )
     }
 
-    private func search() {
-        let text = query
-        isSearching = true
-        searchFailed = false
-        Task { @MainActor in
-            let found = (try? await OpenMeteoService.searchPlaces(text)) ?? []
-            results = found
-            searchFailed = found.isEmpty
-            isSearching = false
+    var body: some View {
+        Picker(title, selection: selection) {
+            Text("Choose a city").tag(String?.none)
+            ForEach(CityRegion.allCases) { region in
+                Section(region.localizedName) {
+                    ForEach(City.cities(in: region)) { city in
+                        Text(verbatim: "\(city.name), \(city.place.detail)").tag(Optional(city.id))
+                    }
+                }
+            }
         }
     }
 }

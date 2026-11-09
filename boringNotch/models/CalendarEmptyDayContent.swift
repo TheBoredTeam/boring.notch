@@ -35,11 +35,10 @@ enum CalendarEmptyDayContent: String, CaseIterable, Identifiable, Defaults.Seria
     }
 }
 
-/// A city picked in Settings, resolved once through geocoding so the notch
-/// never has to look it up again.
+/// A city picked in Settings from the built-in list (see `City`).
 struct CalendarPlace: Codable, Equatable, Sendable, Defaults.Serializable {
     var name: String
-    /// Region and/or country, shown in Settings to tell same-named cities apart.
+    /// Country name, shown in Settings.
     var detail: String
     var latitude: Double
     var longitude: Double

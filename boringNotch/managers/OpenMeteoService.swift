@@ -3,8 +3,8 @@
 //  boringNotch
 //
 //  Weather, sunrise and sunset from Open-Meteo (https://open-meteo.com), which
-//  needs no API key. A city is looked up once in Settings, so no location
-//  permission is involved. Nothing is requested unless the user picks an
+//  needs no API key. The city comes from the built-in list in Settings
+//  (CalendarCities.swift), so no location permission is involved. Nothing is requested unless the user picks an
 //  option that needs it.
 //
 
@@ -224,23 +224,6 @@ final class OpenMeteoService: ObservableObject {
         return try JSONDecoder().decode(OpenMeteoForecast.self, from: data)
     }
 
-    /// City search for Settings. Returns up to five matches.
-    nonisolated static func searchPlaces(_ query: String) async throws -> [CalendarPlace] {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return [] }
-
-        var components = URLComponents(string: "https://geocoding-api.open-meteo.com/v1/search")
-        components?.queryItems = [
-            URLQueryItem(name: "name", value: trimmed),
-            URLQueryItem(name: "count", value: "5"),
-            URLQueryItem(name: "language", value: Locale.current.language.languageCode?.identifier ?? "en"),
-            URLQueryItem(name: "format", value: "json"),
-        ]
-        guard let url = components?.url else { throw URLError(.badURL) }
-        let data = try await get(url)
-        return try JSONDecoder().decode(GeocodingResponse.self, from: data).places
-    }
-
     private nonisolated static func get(_ url: URL) async throws -> Data {
         var request = URLRequest(url: url)
         request.timeoutInterval = 10
@@ -249,36 +232,5 @@ final class OpenMeteoService: ObservableObject {
             throw URLError(.badServerResponse)
         }
         return data
-    }
-}
-
-// MARK: - Geocoding model
-
-struct GeocodingResponse: Decodable, Sendable {
-    struct Result: Decodable, Sendable {
-        let name: String
-        let latitude: Double
-        let longitude: Double
-        let country: String?
-        let admin1: String?
-        let timezone: String?
-    }
-
-    let results: [Result]?
-
-    var places: [CalendarPlace] {
-        (results ?? []).map { result in
-            let detail = [result.admin1, result.country]
-                .compactMap { $0 }
-                .filter { !$0.isEmpty && $0 != result.name }
-                .joined(separator: ", ")
-            return CalendarPlace(
-                name: result.name,
-                detail: detail,
-                latitude: result.latitude,
-                longitude: result.longitude,
-                timeZoneIdentifier: result.timezone ?? ""
-            )
-        }
     }
 }

@@ -1990,6 +1990,9 @@
         }
       }
     },
+    "Americas" : {
+      "comment" : "City list region"
+    },
     "Animation speed" : {
       "localizations" : {
         "de" : {
@@ -2293,6 +2296,9 @@
           }
         }
       }
+    },
+    "Asia" : {
+      "comment" : "City list region"
     },
     "Audio is processed locally for the visualizer and never recorded, stored, or shared." : {
       "localizations" : {
@@ -5959,6 +5965,7 @@
         }
       }
     },
+    "Choose a city" : {},
     "Choose a Music Source" : {
       "localizations" : {
         "cs" : {
@@ -6710,7 +6717,9 @@
         }
       }
     },
-    "City" : {},
+    "City" : {
+      "comment" : "Calendar setting: city for weather, sunrise or world clock"
+    },
     "Clear" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -8613,7 +8622,6 @@
         }
       }
     },
-    "Couldn't find that city. Check the spelling or your connection." : {},
     "Create PDF" : {
       "comment" : "Context menu item: Create PDF",
       "localizations" : {
@@ -11736,6 +11744,9 @@
           }
         }
       }
+    },
+    "Europe" : {
+      "comment" : "City list region"
     },
     "Events" : {
       "comment" : "A section in the calendar settings for toggling events.",
@@ -18427,6 +18438,9 @@
         }
       }
     },
+    "Middle East & Africa" : {
+      "comment" : "City list region"
+    },
     "Mirror" : {
       "comment" : "Camera mirror placeholder title",
       "localizations" : {
@@ -20009,7 +20023,6 @@
         }
       }
     },
-    "Not set" : {},
     "Notch" : {
       "localizations" : {
         "en" : {
@@ -20626,6 +20639,9 @@
           }
         }
       }
+    },
+    "Oceania" : {
+      "comment" : "City list region"
     },
     "OK" : {
       "localizations" : {
@@ -25586,8 +25602,6 @@
         }
       }
     },
-    "Search" : {},
-    "Search for a city" : {},
     "Select Files for %@" : {
       "localizations" : {
         "fr" : {

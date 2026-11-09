@@ -110,18 +110,15 @@ final class CalendarEmptyDayContentTests: XCTestCase {
         XCTAssertNil(forecast.day(for: nov20, localCalendar: local, placeTimeZone: tokyo))
     }
 
-    func testGeocodingResultBecomesPlace() throws {
-        let json = """
-        { "results": [
-          { "name": "Paris", "latitude": 48.85, "longitude": 2.35, "country": "France",
-            "admin1": "Île-de-France", "timezone": "Europe/Paris" }
-        ] }
-        """
-        let places = try JSONDecoder().decode(GeocodingResponse.self, from: Data(json.utf8)).places
-        XCTAssertEqual(places.count, 1)
-        XCTAssertEqual(places.first?.displayName, "Paris, Île-de-France, France")
-        XCTAssertEqual(places.first?.timeZone?.identifier, "Europe/Paris")
-        XCTAssertTrue(try JSONDecoder().decode(GeocodingResponse.self, from: Data("{}".utf8)).places.isEmpty)
+    func testEveryCityHasAValidTimeZoneAndCoordinates() {
+        XCTAssertFalse(City.allCities.isEmpty)
+        XCTAssertEqual(Set(City.allCities.map(\.id)).count, City.allCities.count, "City ids must be unique")
+        for city in City.allCities {
+            XCTAssertNotNil(TimeZone(identifier: city.timeZoneIdentifier), city.name)
+            XCTAssertTrue((-90...90).contains(city.latitude), city.name)
+            XCTAssertTrue((-180...180).contains(city.longitude), city.name)
+            XCTAssertTrue(city.matches(city.place), city.name)
+        }
     }
 
     // MARK: Helpers
