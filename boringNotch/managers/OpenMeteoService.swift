@@ -99,7 +99,7 @@ struct OpenMeteoForecast: Decodable, Equatable, Sendable {
 enum WeatherCondition {
     static func description(for code: Int?) -> String {
         switch code {
-        case 0: String(localized: "Clear")
+        case 0: String(localized: "Clear sky")
         case 1: String(localized: "Mainly clear")
         case 2: String(localized: "Partly cloudy")
         case 3: String(localized: "Overcast")

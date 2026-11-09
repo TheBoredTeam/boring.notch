@@ -63,6 +63,33 @@
         }
       }
     },
+    "\"No events\" message" : {
+      "comment" : "Settings option: keep the original \"No events today\" message"
+    },
+    "%@ ahead" : {
+      "comment" : "World clock: e.g. \"8 h ahead\""
+    },
+    "%@ behind" : {
+      "comment" : "World clock: e.g. \"3 h behind\""
+    },
+    "%@ of daylight left" : {},
+    "%@ of daylight today" : {},
+    "%@ of daylight · %@" : {
+      "comment" : "Sunrise & sunset: day length and city"
+    },
+    "%@ of today done" : {
+      "comment" : "Day progress: e.g. \"58% of today done\""
+    },
+    "%lld days ago" : {},
+    "%lld h" : {
+      "comment" : "Duration in hours, e.g. \"3 h\""
+    },
+    "%lld h %lld min" : {
+      "comment" : "Duration, e.g. \"5 h 30 min\""
+    },
+    "%lld min" : {
+      "comment" : "Duration in minutes"
+    },
     "'Now Playing' was the only option on previous versions and works with all media apps." : {
       "localizations" : {
         "cs" : {
@@ -6683,6 +6710,7 @@
         }
       }
     },
+    "City" : {},
     "Clear" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -6735,6 +6763,9 @@
           }
         }
       }
+    },
+    "Clear sky" : {
+      "comment" : "Weather condition"
     },
     "Clear slot" : {
       "localizations" : {
@@ -8582,6 +8613,7 @@
         }
       }
     },
+    "Couldn't find that city. Check the spelling or your connection." : {},
     "Create PDF" : {
       "comment" : "Context menu item: Create PDF",
       "localizations" : {
@@ -9444,6 +9476,10 @@
         }
       }
     },
+    "Day progress" : {},
+    "Days without events" : {
+      "comment" : "Calendar settings section header"
+    },
     "Default" : {
       "comment" : "Sneak Peek style: Default",
       "localizations" : {
@@ -10304,6 +10340,9 @@
           }
         }
       }
+    },
+    "Drizzle" : {
+      "comment" : "Weather condition"
     },
     "Drop files here" : {
       "localizations" : {
@@ -12476,6 +12515,9 @@
         }
       }
     },
+    "Fog" : {
+      "comment" : "Weather condition"
+    },
     "Format:" : {
       "localizations" : {
         "de" : {
@@ -12638,6 +12680,12 @@
           }
         }
       }
+    },
+    "Freezing drizzle" : {
+      "comment" : "Weather condition"
+    },
+    "Freezing rain" : {
+      "comment" : "Weather condition"
     },
     "From all apps" : {
       "localizations" : {
@@ -13672,6 +13720,15 @@
           }
         }
       }
+    },
+    "H %@" : {
+      "comment" : "Weather: high temperature, e.g. \"H 15°\""
+    },
+    "Heavy rain" : {
+      "comment" : "Weather condition"
+    },
+    "Heavy showers" : {
+      "comment" : "Weather condition"
     },
     "Helper Service Unavailable" : {
       "localizations" : {
@@ -14867,6 +14924,7 @@
         }
       }
     },
+    "If the chosen option has nothing to show, the calendar shows the \"No events\" message." : {},
     "Image Actions" : {
       "comment" : "Context menu item: Image Actions",
       "localizations" : {
@@ -15072,6 +15130,7 @@
         }
       }
     },
+    "In %lld days" : {},
     "In progress" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -15837,6 +15896,9 @@
           }
         }
       }
+    },
+    "L %@" : {
+      "comment" : "Weather: low temperature, e.g. \"L 8°\""
     },
     "Language" : {
       "localizations" : {
@@ -16726,6 +16788,9 @@
           }
         }
       }
+    },
+    "Mainly clear" : {
+      "comment" : "Weather condition"
     },
     "Mark as complete" : {
       "localizations" : {
@@ -19100,6 +19165,7 @@
         }
       }
     },
+    "Next event" : {},
     "Nightly" : {
       "comment" : "Update channel: nightly",
       "localizations" : {
@@ -19943,6 +20009,7 @@
         }
       }
     },
+    "Not set" : {},
     "Notch" : {
       "localizations" : {
         "en" : {
@@ -20380,6 +20447,9 @@
           }
         }
       }
+    },
+    "Now" : {
+      "comment" : "Next event: the event is happening now"
     },
     "Now Playing" : {
       "localizations" : {
@@ -22099,6 +22169,12 @@
         }
       }
     },
+    "Overcast" : {
+      "comment" : "Weather condition"
+    },
+    "Partly cloudy" : {
+      "comment" : "Weather condition"
+    },
     "Pause" : {
       "localizations" : {
         "fr" : {
@@ -23593,6 +23669,9 @@
           }
         }
       }
+    },
+    "Rain" : {
+      "comment" : "Weather condition"
     },
     "Real-time audio waveform" : {
       "localizations" : {
@@ -25428,6 +25507,9 @@
         }
       }
     },
+    "Same time as here" : {
+      "comment" : "World clock: the city has the same time as the local time zone"
+    },
     "Scale corner radius for closed notch" : {
       "localizations" : {
         "de" : {
@@ -25504,6 +25586,8 @@
         }
       }
     },
+    "Search" : {},
+    "Search for a city" : {},
     "Select Files for %@" : {
       "localizations" : {
         "fr" : {
@@ -28502,6 +28586,9 @@
         }
       }
     },
+    "Showers" : {
+      "comment" : "Weather condition"
+    },
     "Shows a smaller opened notch with just the music player — no tabs, calendar or mirror." : {
       "localizations" : {
         "de" : {
@@ -29022,6 +29109,12 @@
         }
       }
     },
+    "Snow" : {
+      "comment" : "Weather condition"
+    },
+    "Snow showers" : {
+      "comment" : "Weather condition"
+    },
     "Software updates" : {
       "localizations" : {
         "cs" : {
@@ -29459,6 +29552,8 @@
         }
       }
     },
+    "Sunrise & sunset" : {},
+    "Sunrise in %@" : {},
     "System" : {
       "localizations" : {
         "de" : {
@@ -29764,6 +29859,12 @@
           }
         }
       }
+    },
+    "Thunderstorm" : {
+      "comment" : "Weather condition"
+    },
+    "Thunderstorm with hail" : {
+      "comment" : "Weather condition"
     },
     "Time to Full Charge: %@" : {
       "localizations" : {
@@ -30155,6 +30256,7 @@
         }
       }
     },
+    "Today" : {},
     "Toggle Notch Open:" : {
       "localizations" : {
         "cs" : {
@@ -30391,6 +30493,7 @@
         }
       }
     },
+    "Tomorrow" : {},
     "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled" : {
       "localizations" : {
         "cs" : {
@@ -32409,6 +32512,11 @@
         }
       }
     },
+    "Weather" : {},
+    "Weather and sunrise times come from Open-Meteo for the city you choose. If they can't be loaded, the calendar shows the \"No events\" message." : {},
+    "Week %lld · Day %lld of %lld" : {
+      "comment" : "Day progress: week number and day of the year"
+    },
     "Week starts on" : {
       "comment" : "Calendar setting: which weekday the week strip starts on",
       "localizations" : {
@@ -32669,6 +32777,9 @@
         }
       }
     },
+    "When there are no events, show" : {
+      "comment" : "Calendar setting picker"
+    },
     "White" : {
       "comment" : "Slider color option: white",
       "localizations" : {
@@ -32845,6 +32956,8 @@
         }
       }
     },
+    "World clock" : {},
+    "Yesterday" : {},
     "You can now enjoy the app. If you want to tweak things further, you can always visit the settings." : {
       "localizations" : {
         "de" : {
@@ -33383,6 +33496,9 @@
           }
         }
       }
+    },
+    "↑ %@   ↓ %@" : {
+      "comment" : "Sunrise and sunset times"
     }
   },
   "version" : "1.1"
