@@ -52,7 +52,7 @@ Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch th
 
 ### Lyrics preview
 
-The on-demand Lyrics feature is available in a preview DMG. [Download the Lyrics preview](https://example.com/replace-with-lyrics-preview-dmg) *(temporary link; the hosted download link will be added here).* Follow the manual installation steps below. This preview build is not notarized by Apple.
+The on-demand Lyrics feature is available by [building from source](#building-from-source) in Xcode. Because you build the app yourself instead of downloading it, macOS won't show the "Apple couldn't verify 'Boring Notch' is free of malware" warning.
 
 ---
 
@@ -148,12 +148,14 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch
 
 - **macOS 15.6 or later**
 - **Xcode 26 or later**
+- **Git**
+- No paid Apple Developer account is needed.
 
 ### Installation
 
-1. **Clone the Repository**:
+1. **Clone the Repository** (the `feature/lyrics-view` branch includes the Lyrics feature):
    ```bash
-   git clone https://github.com/TheBoredTeam/boring.notch.git
+   git clone -b feature/lyrics-view https://github.com/BNSx3801/boring.notch.git
    cd boring.notch
    ```
 
@@ -161,9 +163,22 @@ brew install --cask TheBoredTeam/boring-notch/boring-notch
    ```bash
    open boringNotch.xcodeproj
    ```
+   Wait for Xcode to finish resolving Swift packages (shown in the status bar) before building.
 
-3. **Build and Run**:
+3. **Select the Scheme**:
+    - Choose the `boringNotch` scheme and **My Mac** as the destination in the toolbar.
+
+4. **Build and Run**:
     - Click the "Run" button or press `Cmd + R`. Watch the magic unfold!
+    - Grant the permissions the app asks for on first launch.
+
+> [!NOTE]
+> The project is set to **Sign to Run Locally**, so it builds without an Apple account. If Xcode reports a signing error, open **Signing & Capabilities** for both the `boringNotch` and `BoringNotchXPCHelper` targets and select your personal (free) team, or keep **Sign to Run Locally**.
+
+5. **Install to Applications (optional)**:
+    - To run the app without Xcode open, choose **Product** > **Archive**, then **Distribute App** > **Custom** > **Copy App**, and drag `Boring Notch.app` into your **Applications** folder.
+
+To update later, run `git pull` in the cloned folder and build again.
 
 ## 🤝 Contributing
 
