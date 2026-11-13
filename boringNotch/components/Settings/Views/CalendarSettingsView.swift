@@ -17,6 +17,7 @@ struct CalendarSettings: View {
     @Default(.autoScrollToNextEvent) var autoScrollToNextEvent
     @Default(.calendarWeekView) var calendarWeekView
     @Default(.weekStartDay) var weekStartDay
+    @Default(.calendarEmptyDayContent) var emptyDayContent
 
     var body: some View {
         Form {
@@ -60,6 +61,27 @@ struct CalendarSettings: View {
                 Text("Events")
             }
 
+            Section {
+                Picker("When there are no events, show", selection: $emptyDayContent) {
+                    ForEach(CalendarEmptyDayContent.allCases) { option in
+                        Text(option.localizedName).tag(option)
+                    }
+                }
+                if emptyDayContent.needsForecast {
+                    CityPicker(title: "City", key: .calendarWeatherPlace)
+                } else if emptyDayContent == .worldClock {
+                    CityPicker(title: "City", key: .calendarWorldClockPlace)
+                }
+            } header: {
+                Text("Days without events")
+            } footer: {
+                if emptyDayContent.needsForecast {
+                    Text("Weather and sunrise times come from Open-Meteo for the city you choose. If they can't be loaded, the calendar shows the \"No events\" message.")
+                } else {
+                    Text("If the chosen option has nothing to show, the calendar shows the \"No events\" message.")
+                }
+            }
+
             Section(header: Text("Calendars")) {
                 if calendarManager.calendarAuthorizationStatus != .fullAccess {
                     PermissionDeniedNotice(
@@ -98,6 +120,37 @@ struct CalendarSettings: View {
             Task {
                 await calendarManager.checkCalendarAuthorization()
                 await calendarManager.checkReminderAuthorization()
+            }
+        }
+    }
+}
+
+/// Picks a city from the built-in list, grouped by region.
+private struct CityPicker: View {
+    let title: LocalizedStringKey
+    @Default private var place: CalendarPlace?
+
+    init(title: LocalizedStringKey, key: Defaults.Key<CalendarPlace?>) {
+        self.title = title
+        self._place = Default(key)
+    }
+
+    private var selection: Binding<String?> {
+        Binding(
+            get: { City.allCities.first { $0.matches(place) }?.id },
+            set: { id in place = City.allCities.first { $0.id == id }?.place }
+        )
+    }
+
+    var body: some View {
+        Picker(title, selection: selection) {
+            Text("Choose a city").tag(String?.none)
+            ForEach(CityRegion.allCases) { region in
+                Section(region.localizedName) {
+                    ForEach(City.cities(in: region)) { city in
+                        Text(verbatim: "\(city.name), \(city.place.detail)").tag(Optional(city.id))
+                    }
+                }
             }
         }
     }
