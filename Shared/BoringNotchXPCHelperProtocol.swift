@@ -43,6 +43,7 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
 }
 
 @objc protocol BoringNotchXPCHelperProtocol {
+    func configureFeatures(_ bluetooth: Bool, notifications: Bool, with reply: @escaping (Data) -> Void)
     func isAccessibilityAuthorized(with reply: @escaping (Bool) -> Void)
     func migrateLegacyAppBundle(from sourcePath: String, to destinationPath: String, with reply: @escaping (Bool) -> Void)
     func requestAccessibilityAuthorization()
@@ -63,6 +64,7 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
 }
 
 @objc protocol BoringNotchXPCHelperDelegate {
+    func featureEvent(_ data: Data)
     func notificationDidAppear(_ payload: [String: String])
 }
 

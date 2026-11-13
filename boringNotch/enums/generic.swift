@@ -19,6 +19,8 @@ enum NotchState {
 }
 
 enum NotchViews {
+    case weather
+    case devices
     case home
     case shelf
 }
