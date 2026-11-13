@@ -49,17 +49,6 @@ struct ContentView: View {
                 : cornerRadiusInsets.closed.top
     }
 
-    /// Height of the physical camera notch on the active screen. When the
-    /// notch is open the content must be pushed down by this amount so the
-    /// header and controls are not drawn behind the opaque physical notch.
-    private var openTopInset: CGFloat {
-        guard vm.notchState == .open else { return 0 }
-        if let uuid = vm.screenUUID, let screen = NSScreen.screen(withUUID: uuid) {
-            return screen.safeAreaInsets.top
-        }
-        return NSScreen.main?.safeAreaInsets.top ?? 0
-    }
-
     private var currentNotchShape: NotchShape {
         NotchShape(
             topCornerRadius: topCornerRadius,
@@ -103,7 +92,6 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 let mainLayout = NotchLayout()
                     .frame(alignment: .top)
-                    .offset(y: openTopInset)
                     .padding(
                         .horizontal,
                         vm.notchState == .open

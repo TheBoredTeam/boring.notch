@@ -133,8 +133,7 @@ extension Defaults.Keys {
     static let nonNotchHeight = Key<CGFloat>("nonNotchHeight", default: 32)
     static let notchHeight = Key<CGFloat>("notchHeight", default: 32)
     // Size of the notch when it is expanded (opened).
-    static let openNotchWidth = Key<CGFloat>("openNotchWidth", default: 640)
-    static let openNotchHeight = Key<CGFloat>("openNotchHeight", default: 190)
+    static let openNotchHeight = Key<CGFloat>("openNotchHeight", default: 220)
     //static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
     static let showOnLockScreen = Key<Bool>("showOnLockScreen", default: false)
     static let hideFromScreenRecording = Key<Bool>("hideFromScreenRecording", default: false)

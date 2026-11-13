@@ -1212,7 +1212,6 @@ struct Appearance: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
-    @Default(.openNotchHeight) var openNotchHeight
 
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
@@ -1446,18 +1445,6 @@ struct Appearance: View {
                 }
             }
 
-            Section {
-                HStack {
-                    Text("Open notch height")
-                    Spacer()
-                    Text("\(openNotchHeight, specifier: "%.0f") pt")
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
-                }
-                Slider(value: $openNotchHeight, in: 120...320, step: 5)
-            } header: {
-                Text("Open notch height")
-            }
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Appearance")

@@ -17,7 +17,7 @@ struct MusicPlayerView: View {
     let albumArtNamespace: Namespace.ID
 
     var body: some View {
-        HStack {
+        HStack(alignment: .top) {
             AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace)
                 .frame(
                     width: albumArtSize,
@@ -34,8 +34,8 @@ struct MusicPlayerView: View {
     private var albumArtSize: CGFloat {
         guard vm.notchState == .open else { return MusicPlayerImageSizes.size.opened.width }
         return min(
-            MusicPlayerImageSizes.size.opened.width,
-            max(40, vm.notchSize.height - 130)
+            120,
+            max(70, vm.notchSize.height - 160)
         )
     }
 }
@@ -136,30 +136,19 @@ struct MusicControlsView: View {
     @Default(.musicControlSlotLimit) private var slotLimit
 
     var body: some View {
-        VStack(alignment: .leading) {
-            songInfoAndSlider
-            slotToolbar
+        GeometryReader { geo in
+            VStack(alignment: .leading, spacing: 0) {
+                songInfo(width: geo.size.width)
+                Spacer(minLength: 4)
+                musicSlider
+                Spacer(minLength: 4)
+                slotToolbar
+            }
+            .padding(.top, 10)
+            .padding(.leading, 5)
+            .padding(.bottom, 4)
         }
         .buttonStyle(PlainButtonStyle())
-    }
-
-    private var songInfoAndSlider: some View {
-        GeometryReader { geo in
-            VStack(alignment: .leading, spacing: 4) {
-                songInfo(width: geo.size.width)
-                musicSlider
-            }
-        }
-        // GeometryReader is vertically greedy; constrain it so the
-        // control toolbar below is never pushed out of the notch.
-        .frame(height: songInfoAreaHeight)
-        .padding(.top, 10)
-        .padding(.leading, 5)
-    }
-
-    private var songInfoAreaHeight: CGFloat {
-        let lyrics = Defaults[.enableLyrics]
-        return lyrics ? 92 : 70
     }
 
     private func songInfo(width: CGFloat) -> some View {

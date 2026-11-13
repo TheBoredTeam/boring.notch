@@ -14,12 +14,12 @@ let batterySneakSize: CGSize = .init(width: 160, height: 1)
 
 let shadowPadding: CGFloat = 20
 
-/// Size of the notch when expanded (opened). Reads the persisted values so the
-/// user can resize the opened notch from the Appearance settings.
+/// Size of the notch when expanded (opened). Both dimensions are fixed so the
+/// music player always has a consistent, fully visible layout.
 @MainActor var openNotchSize: CGSize {
     .init(
-        width: Defaults[.openNotchWidth],
-        height: Defaults[.openNotchHeight]
+        width: 400,
+        height: 220
     )
 }
 

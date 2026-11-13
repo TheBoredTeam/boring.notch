@@ -60,7 +60,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var whatsNewWindow: NSWindow?
     var timer: Timer?
     var closeNotchTask: Task<Void, Never>?
-    private var notchSizingCancellables: Set<AnyCancellable> = []
     private var previousScreens: [NSScreen]?
     private var onboardingWindowController: NSWindowController?
     private var screenLockedObserver: Any?
@@ -280,43 +279,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.alphaValue = 1
     }
 
-    /// Resize every notch window to the current opened-notch size and
-    /// re-center it on its screen. Called whenever the open-notch width or
-    /// height changes from the Appearance settings so the change applies
-    /// live without a relaunch.
-    @MainActor
-    private func resizeWindowsForOpenNotch() {
-        let size = windowSize
-        if Defaults[.showOnAllDisplays] {
-            for window in windows.values {
-                guard let notchWindow = window as? BoringNotchSkyLightWindow else { continue }
-                if let screen = notchWindow.screen {
-                    centerNotchWindow(notchWindow, on: screen, size: size)
-                }
-            }
-        } else if let window = window {
-            if let notchWindow = window as? BoringNotchSkyLightWindow {
-                if let screen = notchWindow.screen ?? NSScreen.main {
-                    centerNotchWindow(notchWindow, on: screen, size: size)
-                }
-            }
-        }
-        setupDragDetectors()
-    }
-
-    /// Set the notch window to the given size while keeping it anchored to
-    /// the top-center of the screen. Changing the width expands symmetrically
-    /// around the screen's horizontal center, so the notch never drifts.
-    @MainActor
-    private func centerNotchWindow(_ window: NSWindow, on screen: NSScreen, size: CGSize) {
-        let screenFrame = screen.frame
-        let origin = NSPoint(
-            x: screenFrame.origin.x + (screenFrame.width / 2) - size.width / 2,
-            y: screenFrame.origin.y + screenFrame.height - size.height
-        )
-        window.setFrame(NSRect(origin: origin, size: size), display: true)
-    }
-
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Open the settings window to a specific tab when launched with --tab=<name>
         if let tabArg = CommandLine.arguments.first(where: { $0.hasPrefix("--tab=") }) {
@@ -482,24 +444,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         previousScreens = NSScreen.screens
 
-        // React to open-notch size changes from the Appearance settings.
-        Defaults.publisher(.openNotchWidth)
-            .removeDuplicates()
-            .sink { [weak self] _ in
-                Task { @MainActor in
-                    self?.resizeWindowsForOpenNotch()
-                }
-            }
-            .store(in: &notchSizingCancellables)
-
-        Defaults.publisher(.openNotchHeight)
-            .removeDuplicates()
-            .sink { [weak self] _ in
-                Task { @MainActor in
-                    self?.resizeWindowsForOpenNotch()
-                }
-            }
-            .store(in: &notchSizingCancellables)
     }
 
     func playWelcomeSound() {
