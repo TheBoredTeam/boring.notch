@@ -425,6 +425,22 @@
         }
       }
     },
+    "%.0f pt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%.0f pt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%.0f pt"
+          }
+        }
+      }
+    },
     "%.0f seconds": {
       "localizations": {
         "ar": {
