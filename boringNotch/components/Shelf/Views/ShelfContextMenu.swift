@@ -18,6 +18,7 @@ import ObjectiveC
 
 // MARK: - Localization helpers
 struct Strings {
+    static let paste = String(localized: "Paste", comment: "Context menu item: Paste")
     static let open = String(localized: "Open", comment: "Context menu item: Open")
     static let openWith = String(localized: "Open With", comment: "Context menu item: Open With")
     static let noCompatibleApps = String(localized: "No Compatible Apps Found", comment: "Context menu item: No Compatible Apps Found")
@@ -37,6 +38,7 @@ struct Strings {
 }
 
 enum ContextMenuAction: String {
+    case paste
     case quickLook
     case open
     case share
@@ -81,6 +83,11 @@ static func present(
         if let u = itm.fileURL { return isDirectory(u) ? nil : u }
         if case .link(let url) = itm.kind { return url }
         return nil
+    }
+
+    if ShelfPasteService.canPaste {
+        addMenuItem(title: Strings.paste, contextAction: .paste)
+        menu.addItem(NSMenuItem.separator())
     }
 
     if !selectedOpenableURLs.isEmpty {
@@ -352,6 +359,9 @@ private final class MenuActionTarget: NSObject {
         }
 
         switch action {
+        case .paste?:
+            ShelfPasteService.paste()
+
         case .quickLook?:
             // Handle all selected items for Quick Look, not just the clicked item
             let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)

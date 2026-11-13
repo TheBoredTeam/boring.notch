@@ -21,9 +21,9 @@ final class TemporaryFileStorageService {
     // MARK: - Public Interface
 
     /// Creates a temporary file and tracks it for manual cleanup
-    func createTempFile(for type: TempFileType) async -> URL? {
+    func createTempFile(for type: TempFileType, deduplicationKey: String? = nil) async -> URL? {
         return await withCheckedContinuation { continuation in
-            let result = createTempFile(for: type)
+            let result = createTempFile(for: type, deduplicationKey: deduplicationKey)
             continuation.resume(returning: result)
         }
     }
@@ -56,14 +56,14 @@ final class TemporaryFileStorageService {
 
     // MARK: - Private Implementation
 
-    private func createTempFile(for type: TempFileType) -> URL? {
+    private func createTempFile(for type: TempFileType, deduplicationKey: String?) -> URL? {
         let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
-        let uuid = UUID().uuidString
+        let directoryName = deduplicationKey ?? UUID().uuidString
 
         switch type {
         case .data(let data, let suggestedName):
             let filename = suggestedName ?? ".dat"
-            let dirURL = tempDir.appendingPathComponent(uuid, isDirectory: true)
+            let dirURL = tempDir.appendingPathComponent(directoryName, isDirectory: true)
             let fileURL = dirURL.appendingPathComponent(filename)
 
             do {
@@ -76,8 +76,8 @@ final class TemporaryFileStorageService {
             }
 
         case .text(let string):
-            let filename = "\(uuid).txt"
-            let dirURL = tempDir.appendingPathComponent(uuid, isDirectory: true)
+            let filename = "\(directoryName).txt"
+            let dirURL = tempDir.appendingPathComponent(directoryName, isDirectory: true)
             let fileURL = dirURL.appendingPathComponent(filename)
 
             guard let data = string.data(using: .utf8) else {
@@ -95,8 +95,8 @@ final class TemporaryFileStorageService {
             }
 
         case .url(let url):
-            let filename = "\(url.host ?? uuid).webloc"
-            let dirURL = tempDir.appendingPathComponent(uuid, isDirectory: true)
+            let filename = "\(url.host ?? directoryName).webloc"
+            let dirURL = tempDir.appendingPathComponent(directoryName, isDirectory: true)
             let fileURL = dirURL.appendingPathComponent(filename)
 
             let weblocContent = createWeblocContent(for: url)
