@@ -63,7 +63,7 @@ class CalendarManager: ObservableObject {
         updateSelectedCalendars()
     }
 
-    func checkCalendarAuthorization() async {
+    func checkCalendarAuthorization(promptIfNeeded: Bool = false) async {
         let status = EKEventStore.authorizationStatus(for: .event)
         DispatchQueue.main.async {
             print("📅 Current calendar authorization status: \(status)")
@@ -72,6 +72,7 @@ class CalendarManager: ObservableObject {
 
         switch status {
         case .notDetermined:
+            guard promptIfNeeded else { return }
             guard let granted = try? await calendarService.requestAccess(to: .event) else {
                 self.calendarAuthorizationStatus = .notDetermined
                 return
@@ -100,7 +101,7 @@ class CalendarManager: ObservableObject {
         }
     }
     
-    func checkReminderAuthorization() async {
+    func checkReminderAuthorization(promptIfNeeded: Bool = false) async {
         let status = EKEventStore.authorizationStatus(for: .reminder)
         DispatchQueue.main.async {
             print("📅 Current reminder authorization status: \(status)")
@@ -109,6 +110,7 @@ class CalendarManager: ObservableObject {
 
         switch status {
         case .notDetermined:
+            guard promptIfNeeded else { return }
             guard let granted = try? await calendarService.requestAccess(to: .reminder) else {
                 self.reminderAuthorizationStatus = .notDetermined
                 return

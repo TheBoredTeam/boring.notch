@@ -18,9 +18,25 @@ struct MusicPlayerView: View {
 
     var body: some View {
         HStack {
-            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).padding(.all, 5)
+            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace)
+                .frame(
+                    width: albumArtSize,
+                    height: albumArtSize
+                )
+                .padding(.all, 5)
             MusicControlsView().drawingGroup().compositingGroup()
         }
+    }
+
+    /// Album art stays square and scales with the available open-notch
+    /// height so the whole player (art, info, slider, controls) fits
+    /// without clipping.
+    private var albumArtSize: CGFloat {
+        guard vm.notchState == .open else { return MusicPlayerImageSizes.size.opened.width }
+        return min(
+            MusicPlayerImageSizes.size.opened.width,
+            max(40, vm.notchSize.height - 130)
+        )
     }
 }
 
@@ -134,8 +150,16 @@ struct MusicControlsView: View {
                 musicSlider
             }
         }
+        // GeometryReader is vertically greedy; constrain it so the
+        // control toolbar below is never pushed out of the notch.
+        .frame(height: songInfoAreaHeight)
         .padding(.top, 10)
         .padding(.leading, 5)
+    }
+
+    private var songInfoAreaHeight: CGFloat {
+        let lyrics = Defaults[.enableLyrics]
+        return lyrics ? 92 : 70
     }
 
     private func songInfo(width: CGFloat) -> some View {

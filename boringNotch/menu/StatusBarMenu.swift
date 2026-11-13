@@ -17,7 +17,7 @@ class BoringStatusMenu: NSMenu {
         
         // Set up the menu
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Quit", action: #selector(quitAction), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: NSLocalizedString("Quit", comment: ""), action: #selector(quitAction), keyEquivalent: "q"))
         statusItem.menu = menu
     }
 

@@ -15,7 +15,11 @@ import SwiftUI
 import SwiftUIIntrospect
 
 struct SettingsView: View {
-    @State private var selectedTab = "General"
+    @State private var selectedTab: String = {
+        CommandLine.arguments
+            .first { $0.hasPrefix("--tab=") }
+            .map { String($0.dropFirst("--tab=".count)) } ?? "General"
+    }()
     @State private var accentColorUpdateTrigger = UUID()
 
     let updaterController: SPUStandardUpdaterController?
@@ -147,6 +151,7 @@ struct GeneralSettings: View {
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
+    @Default(.appLanguage) var appLanguage
     
 
     var body: some View {
@@ -159,7 +164,9 @@ struct GeneralSettings: View {
                     Text("Show menu bar icon")
                 }
                 .tint(.effectiveAccent)
-                LaunchAtLogin.Toggle("Launch at login")
+                LaunchAtLogin.Toggle {
+                    Text("Launch at login")
+                }
                 Defaults.Toggle(key: .showOnAllDisplays) {
                     Text("Show on all displays")
                 }
@@ -188,6 +195,18 @@ struct GeneralSettings: View {
                             name: Notification.Name.automaticallySwitchDisplayChanged, object: nil)
                     }
                     .disabled(showOnAllDisplays)
+                Picker("Language", selection: $appLanguage) {
+                    Text(LocalizedStringKey(AppLanguage.system.rawValue)).tag(AppLanguage.system)
+                    Text(LocalizedStringKey(AppLanguage.chinese.rawValue)).tag(AppLanguage.chinese)
+                    Text(LocalizedStringKey(AppLanguage.english.rawValue)).tag(AppLanguage.english)
+                }
+                .onChange(of: appLanguage) { _, newValue in
+                    let applied = UserDefaults.standard.string(forKey: "appliedLanguage")
+                    if newValue.rawValue != applied {
+                        newValue.apply()
+                        ApplicationRelauncher.restart()
+                    }
+                }
             } header: {
                 Text("System features")
             }
@@ -500,6 +519,15 @@ struct HUD: View {
                         HStack(spacing: 12) {
                             Button("Request Accessibility") {
                                 XPCHelperClient.shared.requestAccessibilityAuthorization()
+                                // Also open the correct Accessibility privacy pane so
+                                // the user lands on the right list instead of the
+                                // "Device control & data access" list.
+                                if let url = URL(
+                                    string:
+                                        "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+                                ) {
+                                    NSWorkspace.shared.open(url)
+                                }
                             }
                             .buttonStyle(.borderedProminent)
                         }
@@ -511,7 +539,7 @@ struct HUD: View {
             Section {
                 Picker("Option key behaviour", selection: $optionKeyAction) {
                     ForEach(OptionKeyAction.allCases) { opt in
-                        Text(opt.rawValue).tag(opt)
+                        Text(LocalizedStringKey(opt.rawValue)).tag(opt)
                     }
                 }
                 
@@ -606,7 +634,7 @@ struct Media: View {
             Section {
                 Picker("Music Source", selection: $mediaController) {
                     ForEach(availableMediaControllers) { controller in
-                        Text(controller.rawValue).tag(controller)
+                        Text(LocalizedStringKey(controller.rawValue)).tag(controller)
                     }
                 }
                 .onChange(of: mediaController) { _, _ in
@@ -647,7 +675,7 @@ struct Media: View {
                 Toggle("Show sneak peek on playback changes", isOn: $enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $sneakPeekStyles) {
                     ForEach(SneakPeekStyle.allCases) { style in
-                        Text(style.rawValue).tag(style)
+                        Text(LocalizedStringKey(style.rawValue)).tag(style)
                     }
                 }
                 HStack {
@@ -732,7 +760,17 @@ struct CalendarSettings: View {
                 Text("Always show full event titles")
             }
             Section(header: Text("Calendars")) {
-                if calendarManager.calendarAuthorizationStatus != .fullAccess {
+                if calendarManager.calendarAuthorizationStatus == .notDetermined {
+                    Text("Boring Notch needs calendar access to show your events.")
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                    Button("Allow Calendar Access") {
+                        Task {
+                            await calendarManager.checkCalendarAuthorization(promptIfNeeded: true)
+                        }
+                    }
+                } else if calendarManager.calendarAuthorizationStatus != .fullAccess {
                     Text("Calendar access is denied. Please enable it in System Settings.")
                         .foregroundColor(.red)
                         .multilineTextAlignment(.center)
@@ -768,7 +806,17 @@ struct CalendarSettings: View {
                 }
             }
             Section(header: Text("Reminders")) {
-                if calendarManager.reminderAuthorizationStatus != .fullAccess {
+                if calendarManager.reminderAuthorizationStatus == .notDetermined {
+                    Text("Boring Notch needs reminder access to show your reminders.")
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                    Button("Allow Reminder Access") {
+                        Task {
+                            await calendarManager.checkReminderAuthorization(promptIfNeeded: true)
+                        }
+                    }
+                } else if calendarManager.reminderAuthorizationStatus != .fullAccess {
                     Text("Reminder access is denied. Please enable it in System Settings.")
                         .foregroundColor(.red)
                         .multilineTextAlignment(.center)
@@ -808,8 +856,8 @@ struct CalendarSettings: View {
         .navigationTitle("Calendar")
         .onAppear {
             Task {
-                await calendarManager.checkCalendarAuthorization()
-                await calendarManager.checkReminderAuthorization()
+                await calendarManager.checkCalendarAuthorization(promptIfNeeded: false)
+                await calendarManager.checkReminderAuthorization(promptIfNeeded: false)
             }
         }
     }
@@ -970,7 +1018,7 @@ struct Shelf: View {
                             }
                             .frame(width: 16, height: 16)
                             .foregroundColor(.accentColor)
-                            Text(provider.id)
+                            Text(LocalizedStringKey(provider.id))
                         }
                         .tag(provider.id)
                     }
@@ -991,7 +1039,7 @@ struct Shelf: View {
                         .frame(width: 16, height: 16)
                         .foregroundColor(.accentColor)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Currently selected: \(selectedProvider.id)")
+                            Text("Currently selected: \(String(localized: String.LocalizationValue(selectedProvider.id)))")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             Text("Files dropped on the shelf will be shared via this service")
@@ -1164,6 +1212,7 @@ struct Appearance: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
+    @Default(.openNotchHeight) var openNotchHeight
 
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
@@ -1188,14 +1237,15 @@ struct Appearance: View {
                 Defaults.Toggle(key: .coloredSpectrogram) {
                     Text("Colored spectrogram")
                 }
-                Defaults
-                    .Toggle("Player tinting", key: .playerColorTinting)
+                Defaults.Toggle(key: .playerColorTinting) {
+                    Text("Player tinting")
+                }
                 Defaults.Toggle(key: .lightingEffect) {
                     Text("Enable blur effect behind album art")
                 }
                 Picker("Slider color", selection: $sliderColor) {
                     ForEach(SliderColorEnum.allCases, id: \.self) { option in
-                        Text(option.rawValue)
+                        Text(LocalizedStringKey(option.rawValue))
                     }
                 }
             } header: {
@@ -1394,6 +1444,19 @@ struct Appearance: View {
                 HStack {
                     Text("Additional features")
                 }
+            }
+
+            Section {
+                HStack {
+                    Text("Open notch height")
+                    Spacer()
+                    Text("\(openNotchHeight, specifier: "%.0f") pt")
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+                Slider(value: $openNotchHeight, in: 120...320, step: 5)
+            } header: {
+                Text("Open notch height")
             }
         }
         .accentColor(.effectiveAccent)
@@ -1767,7 +1830,7 @@ func comingSoonTag() -> some View {
         .clipShape(.capsule)
 }
 
-func customBadge(text: String) -> some View {
+func customBadge(text: LocalizedStringKey) -> some View {
     Text(text)
         .foregroundStyle(.secondary)
         .font(.footnote.bold())

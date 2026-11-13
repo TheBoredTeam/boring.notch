@@ -77,17 +77,25 @@ class MusicManager: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Initialize deprecation check asynchronously
+        // Initialize deprecation check asynchronously.
+        // Re-run the adapter test only once; cache the result so we avoid
+        // re-triggering the MediaRemote authorization prompt on every launch.
         Task { @MainActor in
+            if Defaults[.nowPlayingDeprecationChecked] {
+                self.isNowPlayingDeprecated = Defaults[.nowPlayingIsDeprecated]
+                self.setActiveControllerBasedOnPreference()
+                return
+            }
             do {
-                self.isNowPlayingDeprecated = try await self.mediaChecker.checkDeprecationStatus()
-                print("Deprecation check completed: \(self.isNowPlayingDeprecated)")
+                let deprecated = try await self.mediaChecker.checkDeprecationStatus()
+                Defaults[.nowPlayingDeprecationChecked] = true
+                Defaults[.nowPlayingIsDeprecated] = deprecated
+                self.isNowPlayingDeprecated = deprecated
+                print("Deprecation check completed: \(deprecated)")
             } catch {
                 print("Failed to check deprecation status: \(error). Defaulting to false.")
                 self.isNowPlayingDeprecated = false
             }
-            
-            // Initialize the active controller after deprecation check
             self.setActiveControllerBasedOnPreference()
         }
     }

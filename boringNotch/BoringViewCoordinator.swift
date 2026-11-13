@@ -166,9 +166,7 @@ class BoringViewCoordinator: ObservableObject {
 
             if Defaults[.hudReplacement] {
                 let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
-                if !authorized {
-                    Defaults[.hudReplacement] = false
-                } else {
+                if authorized {
                     await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
                 }
             }

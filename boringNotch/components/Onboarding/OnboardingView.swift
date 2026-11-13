@@ -7,21 +7,23 @@
 
 import SwiftUI
 import AVFoundation
+import EventKit
 
-enum OnboardingStep {
-    case welcome
-    case cameraPermission
-    case calendarPermission
-    case remindersPermission
-    case accessibilityPermission
-    case musicPermission
-    case finished
+enum OnboardingStep: Int {
+    case welcome = 0
+    case cameraPermission = 1
+    case calendarPermission = 2
+    case remindersPermission = 3
+    case accessibilityPermission = 4
+    case musicPermission = 5
+    case finished = 6
 }
 
 private let calendarService = CalendarService()
 
 struct OnboardingView: View {
     @State var step: OnboardingStep = .welcome
+    @AppStorage("onboardingStep") private var storedStep: Int = 0
     let onFinish: () -> Void
     let onOpenSettings: () -> Void
 
@@ -140,6 +142,40 @@ struct OnboardingView: View {
             }
         }
         .frame(width: 400, height: 600)
+        .onAppear {
+            if step == .welcome, let saved = OnboardingStep(rawValue: storedStep), saved != .welcome {
+                step = saved
+            }
+            skipStepsWithResolvedPermissions()
+        }
+        .onChange(of: step) {
+            storedStep = $0.rawValue
+        }
+    }
+
+    private func skipStepsWithResolvedPermissions() {
+        if step == .cameraPermission,
+            AVCaptureDevice.authorizationStatus(for: .video) != .notDetermined
+        {
+            step = .calendarPermission
+        }
+        if step == .calendarPermission,
+            EKEventStore.authorizationStatus(for: .event) != .notDetermined
+        {
+            step = .remindersPermission
+        }
+        if step == .remindersPermission,
+            EKEventStore.authorizationStatus(for: .reminder) != .notDetermined
+        {
+            step = .accessibilityPermission
+        }
+        if step == .accessibilityPermission {
+            Task {
+                if await XPCHelperClient.shared.isAccessibilityAuthorized() {
+                    step = .musicPermission
+                }
+            }
+        }
     }
 
     // MARK: - Permission Request Logic

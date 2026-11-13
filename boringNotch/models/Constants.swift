@@ -41,6 +41,47 @@ extension Notification.Name {
     static let mediaControllerChanged = Notification.Name("mediaControllerChanged")
 }
 
+// MARK: Language
+enum AppLanguage: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case system = "System"
+    case chinese = "Chinese"
+    case english = "English"
+
+    var id: String { self.rawValue }
+
+    var locale: Locale {
+        switch self {
+        case .system:
+            return Locale.current
+        case .chinese:
+            return Locale(identifier: "zh-CN")
+        case .english:
+            return Locale(identifier: "en-US")
+        }
+    }
+
+    /// Persist the language used by `Bundle.main`. This must be flushed to
+    /// disk before the app relaunches, otherwise the next process still
+    /// resolves its localization from the previous value.
+    func apply() {
+        let defaults = UserDefaults.standard
+        switch self {
+        case .system:
+            defaults.removeObject(forKey: "AppleLanguages")
+            defaults.removeObject(forKey: "AppleLocale")
+        case .chinese:
+            defaults.set(["zh-Hans"], forKey: "AppleLanguages")
+            defaults.set("zh-Hans", forKey: "AppleLocale")
+        case .english:
+            defaults.set(["en-US"], forKey: "AppleLanguages")
+            defaults.set("en-US", forKey: "AppleLocale")
+        }
+        defaults.set(rawValue, forKey: "appliedLanguage")
+        CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
+        defaults.synchronize()
+    }
+}
+
 // Media controller types for selection in settings
 enum MediaControllerType: String, CaseIterable, Identifiable, Defaults.Serializable {
     case nowPlaying = "Now Playing"
@@ -74,6 +115,7 @@ extension Defaults.Keys {
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
+    static let appLanguage = Key<AppLanguage>("appLanguage", default: .system)
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
@@ -90,6 +132,9 @@ extension Defaults.Keys {
     )
     static let nonNotchHeight = Key<CGFloat>("nonNotchHeight", default: 32)
     static let notchHeight = Key<CGFloat>("notchHeight", default: 32)
+    // Size of the notch when it is expanded (opened).
+    static let openNotchWidth = Key<CGFloat>("openNotchWidth", default: 640)
+    static let openNotchHeight = Key<CGFloat>("openNotchHeight", default: 190)
     //static let openLastTabByDefault = Key<Bool>("openLastTabByDefault", default: false)
     static let showOnLockScreen = Key<Bool>("showOnLockScreen", default: false)
     static let hideFromScreenRecording = Key<Bool>("hideFromScreenRecording", default: false)
@@ -199,4 +244,11 @@ extension Defaults.Keys {
     }
 
     static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)
+
+    // MARK: Media deprecation cache
+    // Cache the result of the MediaRemote deprecation check so we do not
+    // re-run the adapter test (which triggers a MediaRemote authorization
+    // prompt) on every launch.
+    static let nowPlayingDeprecationChecked = Key<Bool>("nowPlayingDeprecationChecked", default: false)
+    static let nowPlayingIsDeprecated = Key<Bool>("nowPlayingIsDeprecated", default: false)
 }

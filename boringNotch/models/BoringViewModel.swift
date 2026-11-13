@@ -149,10 +149,10 @@ class BoringViewModel: NSObject, ObservableObject {
                 NSApp.activate(ignoringOtherApps: true)
 
                 let alert = NSAlert()
-                alert.messageText = "Camera Access Required"
-                alert.informativeText = "Please allow camera access in System Settings."
-                alert.addButton(withTitle: "Open Settings")
-                alert.addButton(withTitle: "Cancel")
+                alert.messageText = String(localized: "Camera Access Required")
+                alert.informativeText = String(localized: "Please allow camera access in System Settings.")
+                alert.addButton(withTitle: String(localized: "Open Settings"))
+                alert.addButton(withTitle: String(localized: "Cancel"))
 
                 if alert.runModal() == .alertFirstButtonReturn {
                     if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {

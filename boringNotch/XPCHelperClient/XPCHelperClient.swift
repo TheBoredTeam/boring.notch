@@ -1,5 +1,6 @@
 import Foundation
 import Cocoa
+import ApplicationServices
 import AsyncXPCConnection
 
 final class XPCHelperClient: NSObject {
@@ -98,52 +99,47 @@ final class XPCHelperClient: NSObject {
     // MARK: - Accessibility
     
     nonisolated func requestAccessibilityAuthorization() {
+        // Run the prompt in this (main) process so the TCC grant the user
+        // toggles for the app actually applies. The XPC helper has its own
+        // bundle ID, which TCC never sees as authorized.
+        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+        let prompted = AXIsProcessTrustedWithOptions(options)
+        // The grant can take a moment to settle; report the result so callers
+        // can refresh their UI without waiting for the next poll cycle.
         Task {
-            let service = await MainActor.run {
-                ensureRemoteService()
+            let granted = await self.isAccessibilityAuthorized()
+            await MainActor.run {
+                self.notifyAuthorizationChange(granted)
             }
-            try? await service.withService { service in
-                service.requestAccessibilityAuthorization()
+            if !prompted {
+                await MainActor.run { self.notifyAuthorizationChange(prompted) }
             }
         }
     }
     
     nonisolated func isAccessibilityAuthorized() async -> Bool {
-        do {
-            let service = await MainActor.run {
-                ensureRemoteService()
-            }
-            let result: Bool = try await service.withContinuation { service, continuation in
-                service.isAccessibilityAuthorized { authorized in
-                    continuation.resume(returning: authorized)
-                }
-            }
-            await MainActor.run {
-                notifyAuthorizationChange(result)
-            }
-            return result
-        } catch {
-            return false
+        let result = AXIsProcessTrusted()
+        await MainActor.run {
+            notifyAuthorizationChange(result)
         }
+        return result
     }
     
     nonisolated func ensureAccessibilityAuthorization(promptIfNeeded: Bool) async -> Bool {
-        do {
-            let service = await MainActor.run {
-                ensureRemoteService()
-            }
-            let result: Bool = try await service.withContinuation { service, continuation in
-                service.ensureAccessibilityAuthorization(promptIfNeeded) { authorized in
-                    continuation.resume(returning: authorized)
-                }
-            }
-            await MainActor.run {
-                notifyAuthorizationChange(result)
-            }
-            return result
-        } catch {
-            return false
+        if AXIsProcessTrusted() {
+            await MainActor.run { notifyAuthorizationChange(true) }
+            return true
         }
+        if promptIfNeeded {
+            requestAccessibilityAuthorization()
+        }
+        // Give the system a moment to persist the grant when a prompt was shown.
+        try? await Task.sleep(nanoseconds: 700_000_000)
+        let result = AXIsProcessTrusted()
+        await MainActor.run {
+            notifyAuthorizationChange(result)
+        }
+        return result
     }
     
     // MARK: - Keyboard Brightness
