@@ -60,6 +60,10 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     func startNotificationWatching(with reply: @escaping (Bool) -> Void)
     func stopNotificationWatching()
     func setNotificationFilter(_ bundleIDs: [String], allApps: Bool)
+    // Browser tabs via Accessibility (performed by the helper)
+    func activateBrowserTab(_ bundleIdentifier: String, matching title: String, raise: Bool, with reply: @escaping (Bool) -> Void)
+    func listAudioTabs(_ bundleIdentifier: String, with reply: @escaping (Data) -> Void)
+    func toggleBrowserTabPlayback(_ bundleIdentifier: String, matching title: String, with reply: @escaping (Int) -> Void)
 }
 
 @objc protocol BoringNotchXPCHelperDelegate {

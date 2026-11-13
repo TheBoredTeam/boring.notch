@@ -8,6 +8,7 @@
 import AppKit
 import ApplicationServices
 import IOKit
+import Compression
 
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     private weak var connection: NSXPCConnection?
@@ -446,6 +447,282 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         CFPreferencesSetValue(key, value, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
         let ok = CFPreferencesSynchronize(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
         reply(ok)
+    }
+
+    // MARK: - Browser tabs
+
+    /// Finds the tab whose title best matches `title` and selects it; `raise` also brings its window to the front.
+    @objc func activateBrowserTab(_ bundleIdentifier: String, matching title: String, raise: Bool, with reply: @escaping (Bool) -> Void) {
+        let needle = title.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !needle.isEmpty, let axApp = browserElement(for: bundleIdentifier) else {
+            reply(false)
+            return
+        }
+
+        var best: (tab: AXUIElement, window: AXUIElement, score: Double)?
+        for (window, tabs) in browserTabs(axApp) {
+            for tab in tabs {
+                let score = matchScore(needle: needle, label: tab.label.lowercased())
+                if score > (best?.score ?? 0) {
+                    best = (tab.element, window, score)
+                }
+            }
+        }
+
+        guard let best, best.score >= 0.6 else {
+            reply(false)
+            return
+        }
+        AXUIElementPerformAction(best.tab, kAXPressAction as CFString)
+        if raise {
+            AXUIElementPerformAction(best.window, kAXRaiseAction as CFString)
+            AXUIElementSetAttributeValue(best.window, kAXMainAttribute as CFString, kCFBooleanTrue)
+        }
+        reply(true)
+    }
+
+    /// The page player's pause button, recognised by its label ("Pause", "Пауза (k)"...), or its play button.
+    /// Pages list many "Play" buttons (thumbnails, tracks), so play only counts with the player's "k" shortcut.
+    private func findPlayerButton(in window: AXUIElement, pause: Bool) -> AXUIElement? {
+        let labels = pause ? ["пауза", "pause", "приостановить"] : ["смотреть", "воспроизвести", "воспроизведение", "play"]
+        var visited = 0
+        func search(_ element: AXUIElement, depth: Int, inPage: Bool) -> AXUIElement? {
+            guard depth < 40, visited < 8000 else { return nil }
+            visited += 1
+            let role = axString(element, kAXRoleAttribute)
+            let page = inPage || role == "AXWebArea"
+            if page, role == kAXButtonRole as String {
+                let label = (axString(element, kAXDescriptionAttribute) ?? axString(element, kAXTitleAttribute) ?? "").lowercased()
+                let isPlayerKey = axString(element, "AXKeyShortcutsValue") == "k" || label.contains("(k)")
+                if labels.contains(where: { label.hasPrefix($0) }), pause || isPlayerKey {
+                    return element
+                }
+            }
+            for child in axElements(element, kAXChildrenAttribute) {
+                if let found = search(child, depth: depth + 1, inPage: page) {
+                    return found
+                }
+            }
+            return nil
+        }
+        return search(window, depth: 0, inPage: false)
+    }
+
+    /// Tabs that play audio or belong to a video/music site, in tab order, as JSON
+    /// `{"sources": [{"title", "host", "icon", "artwork", "playing"}], "openTabs": [title]}`;
+    /// `icon` is the tab's favicon data URL when the browser's session file provides it,
+    /// `artwork` a video thumbnail URL when the page is a YouTube video.
+    @objc func listAudioTabs(_ bundleIdentifier: String, with reply: @escaping (Data) -> Void) {
+        guard let axApp = browserElement(for: bundleIdentifier) else {
+            reply(Data("{}".utf8))
+            return
+        }
+        let allTabs = browserTabs(axApp).flatMap { $0.tabs }
+        let session = bundleIdentifier == "org.mozilla.firefox" ? firefoxSessionTabs() : []
+
+        let sources: [[String: String]] = allTabs.compactMap { tab in
+            let label = tab.label.lowercased()
+            let entry = session.max { matchScore(needle: $0.title.lowercased(), label: label) < matchScore(needle: $1.title.lowercased(), label: label) }
+            let matched = entry.flatMap { matchScore(needle: $0.title.lowercased(), label: label) >= 0.8 ? $0 : nil }
+            let host = matched.flatMap { URL(string: $0.url)?.host } ?? ""
+            // Paused or not yet started players only show up through their site
+            guard tab.hasAudio || isMediaSite(host) else { return nil }
+            return [
+                "title": tab.label,
+                "host": host,
+                "icon": matched?.icon ?? "",
+                "artwork": matched.flatMap { youTubeThumbnail(for: $0.url) } ?? "",
+                "playing": tab.hasAudio ? "1" : "0",
+            ]
+        }
+        let result: [String: Any] = ["sources": sources, "openTabs": allTabs.map(\.label)]
+        reply((try? JSONSerialization.data(withJSONObject: result)) ?? Data("{}".utf8))
+    }
+
+    /// Thumbnail of a YouTube video page (youtube.com/watch?v=ID, /shorts/ID, youtu.be/ID)
+    private func youTubeThumbnail(for url: String) -> String? {
+        guard let components = URLComponents(string: url), let host = components.host else { return nil }
+        var id: String?
+        if host == "youtu.be" {
+            id = components.path.split(separator: "/").first.map(String.init)
+        } else if host == "youtube.com" || host.hasSuffix(".youtube.com") {
+            let parts = components.path.split(separator: "/")
+            if parts.first == "watch" {
+                id = components.queryItems?.first { $0.name == "v" }?.value
+            } else if parts.count >= 2, ["shorts", "live", "embed"].contains(parts[0]) {
+                id = String(parts[1])
+            }
+        }
+        guard let id, id.range(of: "^[A-Za-z0-9_-]{11}$", options: .regularExpression) != nil else { return nil }
+        return "https://i.ytimg.com/vi/\(id)/hqdefault.jpg"
+    }
+
+    private func isMediaSite(_ host: String) -> Bool {
+        let sites = [
+            "youtube.com", "youtu.be", "rutube.ru", "music.yandex.ru", "music.yandex.com", "kinopoisk.ru",
+            "vkvideo.ru", "ivi.ru", "okko.tv", "start.ru", "wink.ru", "premier.one", "twitch.tv", "soundcloud.com",
+            "open.spotify.com", "music.apple.com", "netflix.com", "primevideo.com", "disneyplus.com", "vimeo.com",
+        ]
+        return sites.contains { host == $0 || host.hasSuffix("." + $0) }
+    }
+
+    /// Pause buttons pressed per tab, pressed again to resume (they turn into "Play" once pressed)
+    private var pausedPlayerButtons: [String: AXUIElement] = [:]
+
+    /// Pauses or resumes the player in the matching tab: 1 paused, 0 resumed, -1 no player button found.
+    @objc func toggleBrowserTabPlayback(_ bundleIdentifier: String, matching title: String, with reply: @escaping (Int) -> Void) {
+        activateBrowserTab(bundleIdentifier, matching: title, raise: false) { [self] selected in
+            guard selected, let axApp = browserElement(for: bundleIdentifier) else {
+                reply(-1)
+                return
+            }
+            if let button = pausedPlayerButtons.removeValue(forKey: title),
+               AXUIElementPerformAction(button, kAXPressAction as CFString) == .success {
+                reply(0)
+                return
+            }
+            // The page of a just-selected tab needs a moment to appear in the tree
+            for _ in 0..<6 {
+                for window in axElements(axApp, kAXWindowsAttribute) {
+                    if let button = findPlayerButton(in: window, pause: true) {
+                        AXUIElementPerformAction(button, kAXPressAction as CFString)
+                        pausedPlayerButtons[title] = button
+                        reply(1)
+                        return
+                    }
+                    if let button = findPlayerButton(in: window, pause: false) {
+                        AXUIElementPerformAction(button, kAXPressAction as CFString)
+                        reply(0)
+                        return
+                    }
+                }
+                Thread.sleep(forTimeInterval: 0.2)
+            }
+            reply(-1)
+        }
+    }
+
+    private struct SessionTab {
+        let title: String
+        let url: String
+        let icon: String
+    }
+
+    /// Open tabs from Firefox's session file (mozLz4: magic, 4-byte size, then a raw LZ4 block).
+    private func firefoxSessionTabs() -> [SessionTab] {
+        let profiles = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Application Support/Firefox/Profiles")
+        let files = ((try? FileManager.default.contentsOfDirectory(at: profiles, includingPropertiesForKeys: nil)) ?? [])
+            .map { $0.appendingPathComponent("sessionstore-backups/recovery.jsonlz4") }
+        let newest = files.max {
+            let date: (URL) -> Date = { (try? $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast }
+            return date($0) < date($1)
+        }
+        guard let newest, let data = try? Data(contentsOf: newest), data.count > 12,
+              data.prefix(8) == Data("mozLz40\0".utf8) else { return [] }
+
+        let size = data[8...11].enumerated().reduce(0) { $0 | Int($1.element) << (8 * $1.offset) }
+        var decoded = Data(count: size)
+        let written = decoded.withUnsafeMutableBytes { dst in
+            data.dropFirst(12).withUnsafeBytes { src in
+                compression_decode_buffer(dst.bindMemory(to: UInt8.self).baseAddress!, size,
+                                          src.bindMemory(to: UInt8.self).baseAddress!, data.count - 12,
+                                          nil, COMPRESSION_LZ4_RAW)
+            }
+        }
+        guard written > 0,
+              let json = try? JSONSerialization.jsonObject(with: decoded.prefix(written)) as? [String: Any] else { return [] }
+
+        let windows = json["windows"] as? [[String: Any]] ?? []
+        return windows.flatMap { $0["tabs"] as? [[String: Any]] ?? [] }.compactMap { tab in
+            let entries = tab["entries"] as? [[String: Any]] ?? []
+            let index = (tab["index"] as? Int ?? entries.count) - 1
+            guard entries.indices.contains(index), let title = entries[index]["title"] as? String else { return nil }
+            return SessionTab(title: title, url: entries[index]["url"] as? String ?? "", icon: tab["image"] as? String ?? "")
+        }
+    }
+
+    private struct BrowserTab {
+        let element: AXUIElement
+        let label: String
+        let hasAudio: Bool
+    }
+
+    /// The accessibility element of a running browser, with its full tree switched on.
+    private func browserElement(for bundleIdentifier: String) -> AXUIElement? {
+        guard AXIsProcessTrusted(),
+              let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).first,
+              let appURL = app.bundleURL, let webURL = URL(string: "https://example.com"),
+              NSWorkspace.shared.urlsForApplications(toOpen: webURL).contains(appURL) else {
+            // Only browsers have tabs worth searching
+            return nil
+        }
+
+        let axApp = AXUIElementCreateApplication(app.processIdentifier)
+        AXUIElementSetMessagingTimeout(axApp, 1.0)
+        // Firefox only exposes its tab strip once an assistive client asks for it (as VoiceOver does)
+        AXUIElementSetAttributeValue(axApp, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
+        AXUIElementSetAttributeValue(axApp, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+        return axApp
+    }
+
+    private func browserTabs(_ axApp: AXUIElement) -> [(window: AXUIElement, tabs: [BrowserTab])] {
+        axElements(axApp, kAXWindowsAttribute).map { window in
+            var tabs: [BrowserTab] = []
+            // The tree may still be building right after it was switched on
+            for _ in 0..<8 {
+                collectTabs(in: window, depth: 0, into: &tabs)
+                if !tabs.isEmpty { break }
+                Thread.sleep(forTimeInterval: 0.25)
+            }
+            return (window, tabs)
+        }
+    }
+
+    /// 1 when the label contains the whole title, otherwise the share of the title's words found in the label.
+    private func matchScore(needle: String, label: String) -> Double {
+        if label.contains(needle) { return 1 }
+        let words: (String) -> Set<String> = { text in
+            Set(text.components(separatedBy: CharacterSet.alphanumerics.inverted).filter { $0.count >= 2 })
+        }
+        let needleWords = words(needle)
+        guard !needleWords.isEmpty else { return 0 }
+        return Double(needleWords.intersection(words(label)).count) / Double(needleWords.count)
+    }
+
+    private func axElements(_ element: AXUIElement, _ attribute: String) -> [AXUIElement] {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success else { return [] }
+        return value as? [AXUIElement] ?? []
+    }
+
+    private func axString(_ element: AXUIElement, _ attribute: String) -> String? {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success else { return nil }
+        return value as? String
+    }
+
+    private func collectTabs(in element: AXUIElement, depth: Int, into tabs: inout [BrowserTab]) {
+        guard depth < 12 else { return }
+        let role = axString(element, kAXRoleAttribute)
+        // Page content can be huge and never contains the tab strip
+        if role == "AXWebArea" { return }
+
+        if role == kAXRadioButtonRole as String || axString(element, kAXSubroleAttribute) == "AXTabButton" {
+            let label = axString(element, kAXTitleAttribute) ?? axString(element, kAXDescriptionAttribute) ?? ""
+            if !label.isEmpty {
+                // Firefox adds a sound indicator button ("main-button") to tabs that play audio
+                let hasAudio = axElements(element, kAXChildrenAttribute).contains {
+                    axString($0, "AXDOMIdentifier") == "main-button"
+                }
+                tabs.append(BrowserTab(element: element, label: label, hasAudio: hasAudio))
+            }
+            return
+        }
+
+        for child in axElements(element, kAXChildrenAttribute) {
+            collectTabs(in: child, depth: depth + 1, into: &tabs)
+        }
     }
 
     // MARK: - Private helpers for DisplayServices / IOKit access

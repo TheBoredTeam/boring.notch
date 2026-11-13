@@ -35,6 +35,87 @@ extension View {
     }
 }
 
+extension View {
+    /// Two-finger horizontal trackpad swipe over this view, reported once per gesture as the direction
+    /// the fingers moved. Scroll events only, so clicks on the view keep working.
+    func horizontalSwipe(threshold: CGFloat = 25, action: @escaping (PanDirection) -> Void) -> some View {
+        background(HorizontalSwipeMonitor(threshold: threshold, action: action))
+    }
+}
+
+private struct HorizontalSwipeMonitor: NSViewRepresentable {
+    let threshold: CGFloat
+    let action: (PanDirection) -> Void
+
+    func makeNSView(context: Context) -> NSView {
+        let view = PassthroughView()
+        context.coordinator.install(on: view)
+        return view
+    }
+    func updateNSView(_ nsView: NSView, context: Context) {
+        context.coordinator.action = action
+    }
+
+    /// Lets clicks reach the SwiftUI content; scrolls are read by the event monitor instead
+    private final class PassthroughView: NSView {
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
+    }
+    static func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) { coordinator.remove() }
+
+    func makeCoordinator() -> Coordinator { Coordinator(threshold: threshold, action: action) }
+
+    @MainActor final class Coordinator: NSObject {
+        let threshold: CGFloat
+        var action: (PanDirection) -> Void
+        private var monitor: Any?
+        private var accumulated: CGFloat = 0
+        private var firedThisGesture = false
+        private var lastEvent: Date = .distantPast
+
+        init(threshold: CGFloat, action: @escaping (PanDirection) -> Void) {
+            self.threshold = threshold
+            self.action = action
+        }
+
+        func install(on view: NSView) {
+            remove()
+            monitor = NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { [weak self, weak view] event in
+                guard let self, let view, event.window === view.window,
+                      view.bounds.contains(view.convert(event.locationInWindow, from: nil)) else { return event }
+                self.handle(event)
+                return event
+            }
+        }
+
+        func remove() {
+            if let monitor {
+                NSEvent.removeMonitor(monitor)
+                self.monitor = nil
+            }
+        }
+
+        private func handle(_ event: NSEvent) {
+            // Momentum after the fingers lift belongs to the gesture that already fired
+            guard event.momentumPhase.isEmpty else { return }
+            // A new gesture: trackpads mark it with a phase, mice by a pause between wheel ticks
+            if event.phase == .began || event.phase == .mayBegin || Date().timeIntervalSince(lastEvent) > 0.3 {
+                accumulated = 0
+                firedThisGesture = false
+            }
+            lastEvent = Date()
+            guard !firedThisGesture, abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY) else { return }
+
+            // Deltas follow the content; turn them into finger movement whatever the natural scrolling setting
+            let fingerDelta = event.isDirectionInvertedFromDevice ? event.scrollingDeltaX : -event.scrollingDeltaX
+            accumulated += fingerDelta * (event.hasPreciseScrollingDeltas ? 1 : 8)
+            if abs(accumulated) >= threshold {
+                firedThisGesture = true
+                action(accumulated < 0 ? .left : .right)
+            }
+        }
+    }
+}
+
 private struct ScrollMonitor: NSViewRepresentable {
     let direction: PanDirection
     let threshold: CGFloat
