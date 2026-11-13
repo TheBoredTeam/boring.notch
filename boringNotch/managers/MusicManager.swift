@@ -534,6 +534,10 @@ final class MusicManager: ObservableObject {
             self.fetchLyricsIfAvailable(bundleIdentifier: state.bundleIdentifier, title: state.title, artist: state.artist)
         }
 
+        let favoriteSupported = activeController?.supportsFavorite ?? false
+        if favoriteSupported != canFavoriteTrack {
+            canFavoriteTrack = favoriteSupported
+        }
         let timeChanged = state.currentTime != self.elapsedTime
         let durationChanged = state.duration != self.songDuration
         let playbackRateChanged = state.playbackRate != self.playbackRate
