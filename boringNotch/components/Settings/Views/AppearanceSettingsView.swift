@@ -10,14 +10,23 @@ import SwiftUI
 
 struct AppearanceSettingsView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.enableLiquidGlass) var enableLiquidGlass
+    @Default(.glassRefraction) var glassRefraction
+    @Default(.glassBlur) var glassBlur
+    @Default(.glassDispersion) var glassDispersion
+    @Default(.glassLensHeight) var glassLensHeight
+    @Default(.glassFadeStart) var glassFadeStart
+    @Default(.glassFadeEndOpacity) var glassFadeEndOpacity
     @Default(.useCustomAccentColor) var useCustomAccentColor
     @Default(.customAccentColorData) var customAccentColorData
     @State private var customAccentColor: Color = .accentColor
     @State private var selectedPresetColor: PresetAccentColor?
+    @State private var showGlassTuning = true
 
     var body: some View {
         Form {
             accentColorSection
+            liquidGlassSection
             notchChromeSection
             idleSection
         }
@@ -147,6 +156,117 @@ struct AppearanceSettingsView: View {
             }
         } header: {
             Text("Notch chrome")
+        }
+    }
+
+    private var liquidGlassSection: some View {
+        Section {
+            Defaults.Toggle(key: .enableLiquidGlass) {
+                Text(
+                    "Liquid Glass background",
+                    comment: "Toggle for the Liquid Glass open notch background."
+                )
+            }
+            .disabled(!LiquidGlassAvailability.isSupported)
+
+            if enableLiquidGlass && LiquidGlassAvailability.isSupported {
+                DisclosureGroup(isExpanded: $showGlassTuning) {
+                    VStack(spacing: 12) {
+                        parameterSlider(
+                            "Refraction",
+                            comment: "Liquid Glass parameter controlling how much the background bends.",
+                            value: $glassRefraction,
+                            range: LiquidGlassParameters.refractionRange,
+                            step: 1,
+                            display: "\(Int(glassRefraction))"
+                        )
+                        parameterSlider(
+                            "Blur",
+                            comment: "Liquid Glass parameter controlling how much the background is blurred.",
+                            value: $glassBlur,
+                            range: LiquidGlassParameters.blurRange,
+                            step: 0.5,
+                            display: String(format: "%.1f", glassBlur)
+                        )
+                        parameterSlider(
+                            "Dispersion",
+                            comment: "Liquid Glass parameter controlling the chromatic split along the edge.",
+                            value: $glassDispersion,
+                            range: LiquidGlassParameters.dispersionRange,
+                            step: 1,
+                            display: "\(Int(glassDispersion))"
+                        )
+                        parameterSlider(
+                            "Lens height",
+                            comment: "Liquid Glass parameter controlling how far the refraction reaches inward.",
+                            value: $glassLensHeight,
+                            range: LiquidGlassParameters.lensHeightRange,
+                            step: 1,
+                            display: "\(Int(glassLensHeight)) pt"
+                        )
+                        parameterSlider(
+                            "Fade start",
+                            comment: "Liquid Glass parameter controlling the height where the solid black band starts fading into the glass.",
+                            value: $glassFadeStart,
+                            range: fadeStartRange,
+                            step: 1,
+                            display: "\(Int(glassFadeStart)) pt"
+                        )
+                        parameterSlider(
+                            "Fade end opacity",
+                            comment: "Liquid Glass parameter controlling how dark the surface is where the fade ends, at the bottom edge.",
+                            value: $glassFadeEndOpacity,
+                            range: LiquidGlassParameters.fadeEndOpacityRange,
+                            step: 0.01,
+                            display: "\(Int(glassFadeEndOpacity * 100))%"
+                        )
+                    }
+                    .padding(.vertical, 6)
+                } label: {
+                    Text("Tuning", comment: "Disclosure label for the Liquid Glass parameter sliders.")
+                }
+            }
+        } header: {
+            Text("Liquid Glass")
+        } footer: {
+            Text(
+                LiquidGlassAvailability.isSupported
+                    ? "Liquid Glass refracts the desktop along the open notch's edge. The closed notch stays black to blend with the camera housing."
+                    : "Liquid Glass requires macOS 26 or later.",
+                comment: "Footer explaining the Liquid Glass notch background."
+            )
+            .foregroundStyle(.secondary)
+            .font(.caption)
+        }
+    }
+
+    /// The surface clamps the fade start to the closed notch height, so offering
+    /// anything below it would be a slider the renderer ignores.
+    private var fadeStartRange: ClosedRange<Double> {
+        let closedHeight = Double(
+            getClosedNotchSize(screenUUID: coordinator.selectedScreenUUID).height
+        )
+        return closedHeight...LiquidGlassParameters.fadeStartRange.upperBound
+    }
+
+    private func parameterSlider(
+        _ title: LocalizedStringKey,
+        comment: StaticString,
+        value: Binding<Double>,
+        range: ClosedRange<Double>,
+        step: Double,
+        display: String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Text(title, comment: comment)
+                Spacer()
+                Text(display)
+                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                    .foregroundStyle(.secondary)
+            }
+            Slider(value: value, in: range, step: step)
+                .accessibilityLabel(Text(title, comment: comment))
         }
     }
 
