@@ -17,11 +17,18 @@ struct MusicPlayerView: View {
     let albumArtNamespace: Namespace.ID
     let horizontalMediaGestureFeedback: CGFloat
     @Binding var isHoveringMusicArea: Bool
+    @Binding var isLyricsMode: Bool
 
     var body: some View {
-        HStack {
-            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace).frame(width: 120).padding(.all, 5 * (vm.notchSize.height / 190))
-            MusicControlsView(horizontalMediaGestureFeedback: horizontalMediaGestureFeedback)
+        HStack(spacing: isLyricsMode ? 8 : 0) {
+            AlbumArtView(vm: vm, albumArtNamespace: albumArtNamespace)
+                .frame(width: isLyricsMode ? 78 : 120)
+                .frame(height: isLyricsMode ? 78 : nil)
+                .padding(.all, isLyricsMode ? 3 : 5 * (vm.notchSize.height / 190))
+            MusicControlsView(
+                horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+                isLyricsMode: $isLyricsMode
+            )
                 .compositingGroup()
         }
         .contentShape(Rectangle())
@@ -115,6 +122,7 @@ struct MusicControlsView: View {
     @ObservedObject var musicManager = MusicManager.shared
     @EnvironmentObject var vm: BoringViewModel
     let horizontalMediaGestureFeedback: CGFloat
+    @Binding var isLyricsMode: Bool
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
@@ -127,6 +135,7 @@ struct MusicControlsView: View {
             songInfoAndSlider
             slotToolbar
         }
+        .frame(maxWidth: .infinity)
         .buttonStyle(PlainButtonStyle())
     }
 
@@ -137,63 +146,30 @@ struct MusicControlsView: View {
                 musicSlider
             }
         }
-        .padding(.top, 10)
+        .padding(.top, isLyricsMode ? 6 : 10)
         .padding(.leading, 5)
+        .frame(height: isLyricsMode ? 82 : nil)
     }
 
     private func songInfo(width: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            MarqueeText(musicManager.songTitle, font: .headline, color: .white, frameWidth: width)
+        let titleFont: Font = isLyricsMode
+            ? .system(size: 14, weight: .semibold)
+            : .headline
+        let artistFont: Font = isLyricsMode
+            ? .system(size: 13, weight: .medium)
+            : .headline
+
+        return VStack(alignment: .leading, spacing: 0) {
+            MarqueeText(musicManager.songTitle, font: titleFont, color: .white, frameWidth: width)
             MarqueeText(
                 musicManager.artistName,
-                font: .headline,
+                font: artistFont,
                 color: Defaults[.playerColorTinting]
                     ? Color(nsColor: musicManager.avgColor)
                         .ensureMinimumBrightness(factor: 0.6) : .gray,
                 frameWidth: width
             )
             .fontWeight(.medium)
-            if Defaults[.enableLyrics] {
-                TimelineView(.animation(minimumInterval: 0.25)) { timeline in
-                    let currentElapsed: Double = {
-                        guard musicManager.isPlaying else { return musicManager.elapsedTime }
-                        let delta = timeline.date.timeIntervalSince(musicManager.timestampDate)
-                        let progressed = musicManager.elapsedTime + (delta * musicManager.playbackRate)
-                        return min(max(progressed, 0), musicManager.songDuration)
-                    }()
-                    let lyricDisplay: (line: String, displayDuration: Double?, animationID: Double?) = {
-                        if LyricsService.shared.isFetchingLyrics { return ("Loading lyrics…", nil, nil) }
-                        if !LyricsService.shared.syncedLyrics.isEmpty {
-                            let context = LyricsService.shared.lyricLineContext(at: currentElapsed)
-                            let displayDuration = context.endTime.map { max($0 - currentElapsed, 0) }
-                            return (context.text, displayDuration, context.startTime)
-                        }
-                        let trimmed = musicManager.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
-                        let line = trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
-                        return (line, nil, nil)
-                    }()
-                    let line = lyricDisplay.line
-                    let isPersian = line.unicodeScalars.contains { scalar in
-                        let v = scalar.value
-                        return v >= 0x0600 && v <= 0x06FF
-                    }
-                    let lyricFont: Font = isPersian
-                        ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize)
-                        : .subheadline
-                    TimedLyricText(
-                        line,
-                        font: lyricFont,
-                        nsFont: .subheadline,
-                        color: musicManager.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
-                        displayDuration: lyricDisplay.displayDuration,
-                        animationID: lyricDisplay.animationID,
-                        frameWidth: width
-                    )
-                    .lineLimit(1)
-                    .opacity(musicManager.isPlaying ? 1 : 0)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                }
-            }
         }
     }
 
@@ -222,12 +198,35 @@ struct MusicControlsView: View {
 
     private var slotToolbar: some View {
         let slots = activeSlots
-        return HStack(spacing: 6) {
-            ForEach(Array(slots.enumerated()), id: \.offset) { _, slot in
-                slotView(for: slot)
+        return HStack(spacing: 12) {
+            Spacer(minLength: 0)
+            HStack(spacing: 6) {
+                ForEach(Array(slots.enumerated()), id: \.offset) { _, slot in
+                    slotView(for: slot)
+                }
             }
+            Spacer(minLength: 0)
+            lyricsToggle
         }
-        .frame(maxWidth: .infinity, alignment: .center)
+        .frame(maxWidth: .infinity, alignment: .trailing)
+    }
+
+    private var lyricsToggle: some View {
+        Button {
+            withAnimation(.smooth(duration: 0.3)) {
+                isLyricsMode.toggle()
+            }
+        } label: {
+            Image(systemName: "quote.bubble")
+                .font(.body)
+                .foregroundStyle(isLyricsMode ? Color.accentColor : Color.primary)
+                .frame(width: 30, height: 30)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .help(Text("Lyrics"))
+        .accessibilityLabel(Text("Lyrics"))
+        .accessibilityValue(Text(isLyricsMode ? "Shown" : "Hidden"))
     }
 
     private var activeSlots: [MusicControlButton] {
@@ -556,10 +555,16 @@ struct NotchHomeView: View {
     let albumArtNamespace: Namespace.ID
     let horizontalMediaGestureFeedback: CGFloat
     @Binding var isHoveringMusicArea: Bool
+    @Binding var isLyricsMode: Bool
 
     var body: some View {
         mainContent
             .transition(.opacity)
+            .onChange(of: isLyricsMode) { _, isPresented in
+                if isPresented {
+                    vm.isHoveringCalendar = false
+                }
+            }
     }
 
     private var shouldShowCamera: Bool {
@@ -567,33 +572,219 @@ struct NotchHomeView: View {
     }
 
     private var mainContent: some View {
-        HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
-            MusicPlayerView(
-                albumArtNamespace: albumArtNamespace,
-                horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
-                isHoveringMusicArea: $isHoveringMusicArea
-            )
+        return Group {
+            if isLyricsMode {
+                HStack(alignment: .center, spacing: 12) {
+                    musicPlayer
+                        .frame(width: 352)
 
-            if Defaults[.showCalendar] {
-                CalendarView()
-                    .frame(width: shouldShowCamera ? 170 : 215)
-                    .onHover { isHovering in
-                        vm.isHoveringCalendar = isHovering
+                    LyricsPane()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(.trailing, 12)
+                }
+                .padding(.horizontal, 12)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .transition(.opacity.combined(with: .move(edge: .trailing)))
+            } else {
+                HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
+                    musicPlayer
+
+                    if Defaults[.showCalendar] {
+                        CalendarView()
+                            .frame(width: shouldShowCamera ? 170 : 215)
+                            .onHover { isHovering in
+                                vm.isHoveringCalendar = isHovering
+                            }
+                            .environmentObject(vm)
+                            .transition(.opacity)
                     }
-                    .environmentObject(vm)
-                    .transition(.opacity)
-            }
 
-            if shouldShowCamera {
-                CameraPreviewView(camera: vm.camera)
-                    .scaledToFit()
-                    .opacity(vm.notchState == .closed ? 0 : 1)
-                    .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
-                
+                    if shouldShowCamera {
+                        CameraPreviewView(camera: vm.camera)
+                            .scaledToFit()
+                            .opacity(vm.notchState == .closed ? 0 : 1)
+                            .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
+                    }
+                }
+                .transition(.opacity)
             }
         }
-        .transition(.opacity)
-        .blur(radius: vm.notchState == .closed ? 30 : 0)
+    }
+
+    private var musicPlayer: some View {
+        MusicPlayerView(
+            albumArtNamespace: albumArtNamespace,
+            horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+            isHoveringMusicArea: $isHoveringMusicArea,
+            isLyricsMode: $isLyricsMode
+        )
+    }
+}
+
+private struct LyricsPane: View {
+    @ObservedObject private var musicManager = MusicManager.shared
+    @ObservedObject private var lyricsService = LyricsService.shared
+    @State private var lyricsTask: Task<Void, Never>?
+    @State private var loadedTrackKey: String?
+
+    private var trackKey: String {
+        [musicManager.bundleIdentifier ?? "", musicManager.songTitle, musicManager.artistName]
+            .joined(separator: "\u{1F}")
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Lyrics")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+
+            Group {
+                if loadedTrackKey != trackKey || lyricsService.isFetchingLyrics {
+                    loadingState
+                } else if !lyricsService.syncedLyrics.isEmpty {
+                    syncedLyrics
+                } else if !lyricsService.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    plainLyrics
+                } else {
+                    unavailableState
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .onAppear(perform: loadLyrics)
+        .onChange(of: trackKey) { _, _ in
+            loadLyrics()
+        }
+        .onDisappear {
+            lyricsTask?.cancel()
+        }
+    }
+
+    private var loadingState: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ProgressView()
+                .controlSize(.small)
+            Text("Loading lyrics…")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    }
+
+    private var unavailableState: some View {
+        Label("Lyrics unavailable", systemImage: "text.quote")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    }
+
+    private var plainLyrics: some View {
+        ScrollView(.vertical) {
+            Text(lyricsService.currentLyrics)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(Color.white.opacity(0.88))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .textSelection(.enabled)
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    private var syncedLyrics: some View {
+        MusicPlaybackTimeline(playbackRate: musicManager.playbackRate) { date in
+            let elapsed: Double = {
+                guard musicManager.isPlaying else { return musicManager.elapsedTime }
+                let delta = date.timeIntervalSince(musicManager.timestampDate)
+                return min(max(musicManager.elapsedTime + delta * musicManager.playbackRate, 0), musicManager.songDuration)
+            }()
+
+            SyncedLyricsList(lines: lyricsService.syncedLyrics, elapsed: elapsed)
+        }
+    }
+
+    private func loadLyrics() {
+        lyricsTask?.cancel()
+        loadedTrackKey = nil
+
+        let requestedKey = trackKey
+        let bundleIdentifier = musicManager.bundleIdentifier
+        let title = musicManager.songTitle
+        let artist = musicManager.artistName
+
+        lyricsTask = Task { @MainActor in
+            // Track metadata fields publish separately; coalesce them so a track
+            // change produces one lookup with the settled title and artist.
+            try? await Task.sleep(for: .milliseconds(100))
+            guard !Task.isCancelled, requestedKey == trackKey else { return }
+
+            if title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                lyricsService.clearLyrics()
+                loadedTrackKey = requestedKey
+                return
+            }
+
+            await lyricsService.fetchLyrics(
+                bundleIdentifier: bundleIdentifier,
+                title: title,
+                artist: artist
+            )
+            guard !Task.isCancelled, requestedKey == trackKey else { return }
+            loadedTrackKey = requestedKey
+        }
+    }
+}
+
+private struct SyncedLyricsList: View {
+    let lines: [(time: Double, text: String)]
+    let elapsed: Double
+
+    private var activeIndex: Int? {
+        LyricsService.activeLyricIndex(in: lines, at: elapsed)
+    }
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.vertical) {
+                LazyVStack(alignment: .leading, spacing: 8) {
+                    ForEach(Array(lines.enumerated()), id: \.offset) { index, line in
+                        Text(line.text)
+                            .font(.system(
+                                size: index == activeIndex ? 18 : 14,
+                                weight: index == activeIndex ? .semibold : .medium
+                            ))
+                            .foregroundStyle(
+                                index == activeIndex
+                                    ? Color.white
+                                    : Color.white.opacity(0.42)
+                            )
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .id(index)
+                    }
+                }
+                .padding(.vertical, 36)
+            }
+            .scrollIndicators(.hidden)
+            .onAppear {
+                DispatchQueue.main.async {
+                    scrollToActiveLine(using: proxy, animated: false)
+                }
+            }
+            .onChange(of: activeIndex) { _, _ in
+                scrollToActiveLine(using: proxy, animated: true)
+            }
+        }
+    }
+
+    private func scrollToActiveLine(using proxy: ScrollViewProxy, animated: Bool) {
+        guard let activeIndex else { return }
+        let scroll = { proxy.scrollTo(activeIndex, anchor: .center) }
+        if animated {
+            withAnimation(.easeInOut(duration: 0.3), scroll)
+        } else {
+            scroll()
+        }
     }
 }
 
