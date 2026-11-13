@@ -103,7 +103,18 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
     @objc func isScreenBrightnessAvailable(with reply: @escaping (Bool) -> Void) {
         var b: Float = 0
-        reply(displayServicesGetBrightness(displayID: CGMainDisplayID(), out: &b) || ioServiceFor(displayID: CGMainDisplayID()) != nil)
+        if displayServicesGetBrightness(displayID: CGMainDisplayID(), out: &b) {
+            reply(true)
+            return
+        }
+        // ioServiceFor returns a retained service: release it, don't leak one
+        // handle per availability probe.
+        if let io = ioServiceFor(displayID: CGMainDisplayID()) {
+            IOObjectRelease(io)
+            reply(true)
+            return
+        }
+        reply(false)
     }
 
     @objc func currentScreenBrightness(with reply: @escaping (NSNumber?) -> Void) {
@@ -141,7 +152,10 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
     // MARK: - Private helpers for DisplayServices / IOKit access
     private func displayServicesGetBrightness(displayID: CGDirectDisplayID, out: inout Float) -> Bool {
-        guard let sym = dlsym(DisplayServicesHandle.handle, "DisplayServicesGetBrightness") else { return false }
+        // Don't pass a nil handle to dlsym: it would fall back to a global
+        // symbol search and could resolve an unrelated symbol.
+        guard let handle = DisplayServicesHandle.handle,
+              let sym = dlsym(handle, "DisplayServicesGetBrightness") else { return false }
         typealias Fn = @convention(c) (CGDirectDisplayID, UnsafeMutablePointer<Float>) -> Int32
         let fn = unsafeBitCast(sym, to: Fn.self)
         var tmp: Float = 0
@@ -151,7 +165,8 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     }
 
     private func displayServicesSetBrightness(displayID: CGDirectDisplayID, value: Float) -> Bool {
-        guard let sym = dlsym(DisplayServicesHandle.handle, "DisplayServicesSetBrightness") else { return false }
+        guard let handle = DisplayServicesHandle.handle,
+              let sym = dlsym(handle, "DisplayServicesSetBrightness") else { return false }
         typealias Fn = @convention(c) (CGDirectDisplayID, Float) -> Int32
         let fn = unsafeBitCast(sym, to: Fn.self)
         return fn(displayID, value) == 0
@@ -163,7 +178,13 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         defer { IOObjectRelease(iterator) }
 
         while case let service = IOIteratorNext(iterator), service != 0 {
-            let info = IODisplayCreateInfoDictionary(service, 0).takeRetainedValue() as NSDictionary
+            // IODisplayCreateInfoDictionary can return NULL; don't force
+            // unwrap it (takeRetainedValue would trap).
+            guard let unmanagedInfo = IODisplayCreateInfoDictionary(service, 0) else {
+                IOObjectRelease(service)
+                continue
+            }
+            let info = unmanagedInfo.takeRetainedValue() as NSDictionary
             if let vendorID = info[kDisplayVendorID] as? UInt32,
                let productID = info[kDisplayProductID] as? UInt32,
                vendorID == CGDisplayVendorNumber(displayID),
