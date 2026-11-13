@@ -20,24 +20,42 @@ struct EmptyDayView: View {
     @ObservedObject private var weather = OpenMeteoService.shared
     @ObservedObject private var calendarManager = CalendarManager.shared
     @State private var nextEvent: EventModel?
+    @State private var swipe = EmptyDaySwipe()
 
     var body: some View {
-        TimelineView(.everyMinute) { context in
-            if let info = info(now: context.date) {
-                EmptyDayInfoView(info: info, footer: footer)
-            } else {
-                EmptyEventsView(selectedDate: selectedDate)
+        VStack(spacing: 4) {
+            TimelineView(.everyMinute) { context in
+                if let info = info(now: context.date) {
+                    EmptyDayInfoView(info: info)
+                } else {
+                    EmptyEventsView(selectedDate: selectedDate)
+                }
+            }
+            .id(content)
+            .transition(.opacity)
+
+            if content != .noEventsMessage {
+                EmptyDayPageDots(selection: $content)
             }
         }
+        .contentShape(Rectangle())
+        .onContinuousHover { phase in
+            if case .active = phase { swipe.isHovering = true } else { swipe.isHovering = false }
+        }
+        .onAppear {
+            swipe.start { step in
+                let pages = CalendarEmptyDayContent.pages
+                let current = Defaults[.calendarEmptyDayContent]
+                guard let index = pages.firstIndex(of: current) else { return }
+                let next = index + step
+                if pages.indices.contains(next) { Defaults[.calendarEmptyDayContent] = pages[next] }
+            }
+        }
+        .onDisappear { swipe.stop() }
+        .animation(.easeInOut(duration: 0.2), value: content)
         .task(id: TaskKey(content: content, date: selectedDate, place: weatherPlace, events: calendarManager.events.count)) {
             await refresh()
         }
-    }
-
-    private var footer: String {
-        Calendar.current.isDateInToday(selectedDate)
-            ? String(localized: "No events today")
-            : String(localized: "No events")
     }
 
     private struct TaskKey: Equatable {
@@ -217,6 +235,88 @@ struct EmptyDayView: View {
     }
 }
 
+/// Turns a horizontal two-finger swipe over the empty-day area into one step
+/// left or right. One step per gesture; momentum after lifting is ignored.
+private final class EmptyDaySwipe {
+    var isHovering = false
+    private var monitor: Any?
+    private var accumulated: CGFloat = 0
+    private var firedThisGesture = false
+    private let threshold: CGFloat = 25
+
+    func start(onStep: @escaping (Int) -> Void) {
+        guard monitor == nil else { return }
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
+            guard let self, self.isHovering else { return event }
+            // Ignore inertia so one flick moves exactly one page.
+            if event.momentumPhase != [] { return event }
+            if event.phase.contains(.began) {
+                self.accumulated = 0
+                self.firedThisGesture = false
+            }
+            if event.phase.contains(.ended) || event.phase.contains(.cancelled) {
+                self.accumulated = 0
+                self.firedThisGesture = false
+                return event
+            }
+            // Only act on mostly-horizontal movement; vertical scroll stays with the date picker.
+            guard abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY) else { return event }
+            guard !self.firedThisGesture else { return event }
+
+            // Fingers moving left → next page, whatever the "natural scrolling" setting.
+            let dx = event.isDirectionInvertedFromDevice ? event.scrollingDeltaX : -event.scrollingDeltaX
+            self.accumulated += event.hasPreciseScrollingDeltas ? dx : dx * 10
+            if abs(self.accumulated) >= self.threshold {
+                onStep(self.accumulated < 0 ? 1 : -1)
+                self.firedThisGesture = event.hasPreciseScrollingDeltas
+                self.accumulated = 0
+            }
+            return event
+        }
+    }
+
+    func stop() {
+        if let monitor { NSEvent.removeMonitor(monitor) }
+        monitor = nil
+        isHovering = false
+    }
+
+    deinit { stop() }
+}
+
+/// A row of small dots, one per option. Clicking a dot switches to that option and
+/// saves it, the same as picking it in Settings → Calendar.
+private struct EmptyDayPageDots: View {
+    @Binding var selection: CalendarEmptyDayContent
+    @State private var hovered: CalendarEmptyDayContent?
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(CalendarEmptyDayContent.pages) { option in
+                Button {
+                    selection = option
+                } label: {
+                    Circle()
+                        .fill(color(for: option))
+                        .frame(width: 5, height: 5)
+                        .frame(width: 12, height: 10)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .onHover { hovered = $0 ? option : (hovered == option ? nil : hovered) }
+                .help(option.localizedName)
+                .accessibilityLabel(option.localizedName)
+                .accessibilityAddTraits(option == selection ? .isSelected : [])
+            }
+        }
+    }
+
+    private func color(for option: CalendarEmptyDayContent) -> Color {
+        if option == selection { return .white }
+        return Color(white: hovered == option ? 0.6 : 0.35)
+    }
+}
+
 /// The text an empty-day option wants to show.
 struct EmptyDayInfo: Equatable {
     let symbol: String
@@ -226,11 +326,9 @@ struct EmptyDayInfo: Equatable {
     var progress: Double?
 }
 
-/// Same footprint as `EmptyEventsView`: a headline with its icon, one detail line,
-/// and a small "No events" line so that information isn't lost.
+/// Same footprint as `EmptyEventsView`: a headline with its icon and one detail line.
 private struct EmptyDayInfoView: View {
     let info: EmptyDayInfo
-    let footer: String
 
     var body: some View {
         VStack(spacing: 4) {
@@ -257,9 +355,6 @@ private struct EmptyDayInfoView: View {
                 .font(.caption)
                 .foregroundColor(Color(white: 0.65))
                 .lineLimit(1)
-            Text(footer)
-                .font(.caption2)
-                .foregroundColor(Color(white: 0.45))
         }
         .padding(.horizontal, 6)
         .accessibilityElement(children: .combine)
@@ -268,8 +363,7 @@ private struct EmptyDayInfoView: View {
 
 #Preview {
     EmptyDayInfoView(
-        info: EmptyDayInfo(symbol: "cloud.sun.fill", title: "12° Partly cloudy", detail: "H 15°  L 8° · London"),
-        footer: "No events today"
+        info: EmptyDayInfo(symbol: "cloud.sun.fill", title: "12° Partly cloudy", detail: "H 15°  L 8° · London")
     )
     .frame(width: 215, height: 80)
     .background(.black)

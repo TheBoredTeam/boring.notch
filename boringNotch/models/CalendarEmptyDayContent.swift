@@ -31,6 +31,12 @@ enum CalendarEmptyDayContent: String, CaseIterable, Identifiable, Defaults.Seria
         }
     }
 
+    /// The options the page dots and trackpad swipe step through. The plain
+    /// "No events" message is left out: it's what shows when nothing is picked.
+    static var pages: [CalendarEmptyDayContent] {
+        allCases.filter { $0 != .noEventsMessage }
+    }
+
     /// Options that read the forecast for `calendarWeatherPlace`.
     var needsForecast: Bool {
         self == .weather || self == .sunriseSunset
