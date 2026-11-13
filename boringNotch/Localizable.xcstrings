@@ -20062,6 +20062,28 @@
         }
       }
     },
+    "Show battery percentage inside battery": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show battery percentage inside battery"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电量数字显示在电池内部"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电量数字显示在电池内部"
+          }
+        }
+      }
+    },
     "Show calendar": {
       "localizations": {
         "ar": {
@@ -26881,6 +26903,72 @@
           "stringUnit": {
             "state": "translated",
             "value": "刘海"
+          }
+        }
+      }
+    },
+    "Loading lyrics…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading lyrics…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载歌词…"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在載入歌詞…"
+          }
+        }
+      }
+    },
+    "No lyrics found": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No lyrics found"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到歌词"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到歌詞"
+          }
+        }
+      }
+    },
+    "Beta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beta"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "测试版"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "測試版"
           }
         }
       }

@@ -139,9 +139,16 @@ struct MusicControlsView: View {
         GeometryReader { geo in
             VStack(alignment: .leading, spacing: 0) {
                 songInfo(width: geo.size.width)
-                Spacer(minLength: 4)
+                Spacer()
+                    .frame(height: 4)
                 musicSlider
-                Spacer(minLength: 4)
+                if Defaults[.enableLyrics] {
+                    Spacer(minLength: 2)
+                    lyricsLine
+                    Spacer(minLength: 2)
+                } else {
+                    Spacer(minLength: 4)
+                }
                 slotToolbar
             }
             .padding(.top, 10)
@@ -166,39 +173,39 @@ struct MusicControlsView: View {
                 frameWidth: width
             )
             .fontWeight(.medium)
-            if Defaults[.enableLyrics] {
-                TimelineView(.animation(minimumInterval: 0.25)) { timeline in
-                    let currentElapsed: Double = {
-                        guard musicManager.isPlaying else { return musicManager.elapsedTime }
-                        let delta = timeline.date.timeIntervalSince(musicManager.timestampDate)
-                        let progressed = musicManager.elapsedTime + (delta * musicManager.playbackRate)
-                        return min(max(progressed, 0), musicManager.songDuration)
-                    }()
-                    let line: String = {
-                        if musicManager.isFetchingLyrics { return "Loading lyrics…" }
-                        if !musicManager.syncedLyrics.isEmpty {
-                            return musicManager.lyricLine(at: currentElapsed)
-                        }
-                        let trimmed = musicManager.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
-                        return trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
-                    }()
-                    let isPersian = line.unicodeScalars.contains { scalar in
-                        let v = scalar.value
-                        return v >= 0x0600 && v <= 0x06FF
-                    }
-                    MarqueeText(
-                        .constant(line),
-                        font: .subheadline,
-                        nsFont: .subheadline,
-                        textColor: musicManager.isFetchingLyrics ? .gray.opacity(0.7) : .gray,
-                        frameWidth: width
-                    )
-                    .font(isPersian ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize) : .subheadline)
-                    .lineLimit(1)
-                    .opacity(musicManager.isPlaying ? 1 : 0)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+        }
+    }
+
+    private var lyricsLine: some View {
+        TimelineView(.animation(minimumInterval: 0.25)) { timeline in
+            let currentElapsed: Double = {
+                guard musicManager.isPlaying else { return musicManager.elapsedTime }
+                let delta = timeline.date.timeIntervalSince(musicManager.timestampDate)
+                let progressed = musicManager.elapsedTime + (delta * musicManager.playbackRate)
+                return min(max(progressed, 0), musicManager.songDuration)
+            }()
+            let line: String = {
+                if musicManager.isFetchingLyrics { return "Loading lyrics…" }
+                if !musicManager.syncedLyrics.isEmpty {
+                    return musicManager.lyricLine(at: currentElapsed)
                 }
+                let trimmed = musicManager.currentLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
+                return trimmed.isEmpty ? "No lyrics found" : trimmed.replacingOccurrences(of: "\n", with: " ")
+            }()
+            let isPersian = line.unicodeScalars.contains { scalar in
+                let v = scalar.value
+                return v >= 0x0600 && v <= 0x06FF
             }
+            Text(LocalizedStringKey(line))
+                .font(isPersian ? .custom("Vazirmatn-Regular", size: NSFont.preferredFont(forTextStyle: .subheadline).pointSize) : .subheadline)
+                .foregroundColor(musicManager.isFetchingLyrics ? .gray.opacity(0.7) : .gray)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .truncationMode(.tail)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .offset(x: -toolbarCenterOffset)
+                .opacity(musicManager.isPlaying ? 1 : 0)
+                .transition(.opacity)
         }
     }
 
@@ -232,6 +239,17 @@ struct MusicControlsView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
+        .offset(x: -toolbarCenterOffset)
+    }
+
+    /// The toolbar lives in the column to the right of the album art, so
+    /// centering it there would push it visually to the right of the notch.
+    /// Shift it left by half the album-art column to center it across the
+    /// whole player.
+    private var toolbarCenterOffset: CGFloat {
+        guard vm.notchState == .open else { return 0 }
+        let art = min(120, max(70, vm.notchSize.height - 160))
+        return (art + 10) / 2 + 6
     }
 
     private var activeSlots: [MusicControlButton] {

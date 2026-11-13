@@ -381,11 +381,11 @@ struct Charge: View {
                 Text("General")
             }
             Section {
-                Defaults.Toggle(key: .showBatteryPercentage) {
-                    Text("Show battery percentage")
-                }
                 Defaults.Toggle(key: .showPowerStatusIcons) {
                     Text("Show power status icons")
+                }
+                Defaults.Toggle(key: .batteryPercentageInside) {
+                    Text("Show battery percentage inside battery")
                 }
             } header: {
                 Text("Battery Information")

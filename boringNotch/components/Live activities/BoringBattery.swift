@@ -10,6 +10,7 @@ struct BatteryView: View {
     var isInLowPowerMode: Bool
     var batteryWidth: CGFloat = 26
     var isForNotification: Bool
+    var percentage: Int? = nil
 
     var icon: String = "battery.0"
 
@@ -58,6 +59,17 @@ struct BatteryView: View {
                     height: (batteryWidth - 2.75) - 18
                 )
                 .padding(.leading, 2)
+
+            if let percentage {
+                Text("\(percentage)")
+                    .font(.system(size: batteryWidth * 0.28, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.9), radius: 0.6)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .frame(width: batteryWidth)
+                    .allowsHitTesting(false)
+            }
 
             if iconStatus != "" && (isForNotification || Defaults[.showPowerStatusIcons]) {
                 ZStack {
@@ -183,6 +195,7 @@ struct BoringBatteryView: View {
     @State private var isHoveringButton: Bool = false
     @State private var isHoveringPopover: Bool = false
     @State private var hideTask: Task<Void, Never>? = nil
+    @Default(.batteryPercentageInside) private var batteryPercentageInside
 
     @EnvironmentObject var vm: BoringViewModel
 
@@ -192,11 +205,12 @@ struct BoringBatteryView: View {
                 showPopupMenu.toggle()
             }
         }) {
-            HStack {
-                if Defaults[.showBatteryPercentage] {
-                    Text("\(Int32(levelBattery))%")
-                        .font(.callout)
+            HStack(spacing: 5) {
+                if !batteryPercentageInside {
+                    Text("\(Int32(levelBattery))")
+                        .font(.callout.monospacedDigit())
                         .foregroundStyle(.white)
+                        .fixedSize()
                 }
                 BatteryView(
                     levelBattery: levelBattery,
@@ -204,7 +218,8 @@ struct BoringBatteryView: View {
                     isCharging: isCharging,
                     isInLowPowerMode: isInLowPowerMode,
                     batteryWidth: batteryWidth,
-                    isForNotification: isForNotification
+                    isForNotification: isForNotification,
+                    percentage: batteryPercentageInside ? Int(levelBattery) : nil
                 )
             }
         }
