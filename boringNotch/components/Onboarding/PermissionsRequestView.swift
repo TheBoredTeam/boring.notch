@@ -7,11 +7,11 @@
 
 import SwiftUI
 
-struct PermissionRequestView: View {
+struct PermissionsRequestView: View {
     let icon: Image
-    let title: String
-    let description: String
-    let privacyNote: String?
+    let title: LocalizedStringKey
+    let description: LocalizedStringKey
+    let privacyNote: LocalizedStringKey?
     let onAllow: () -> Void
     let onSkip: () -> Void
 
