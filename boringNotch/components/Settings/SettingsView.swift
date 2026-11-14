@@ -11,6 +11,7 @@ import SwiftUIIntrospect
 
 private enum SettingsTab: String, CaseIterable, Identifiable {
     case general
+    case codex
     case notch
     case appearance
     case media
@@ -33,6 +34,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     var title: LocalizedStringKey {
         switch self {
         case .general: "General"
+        case .codex: "Codex"
         case .notch: "Notch"
         case .appearance: "Appearance"
         case .media: "Media"
@@ -50,6 +52,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     var icon: Icon {
         switch self {
         case .general: .system("gear")
+        case .codex: .system("terminal.fill")
         case .notch: .custom("notch")
         case .appearance: .system("paintbrush")
         case .media: .system("play.rectangle")
@@ -93,6 +96,8 @@ struct SettingsView: View {
                 switch selectedTab {
                 case .general:
                     GeneralSettings()
+                case .codex:
+                    CodexActivitySettingsView()
                 case .notch:
                     NotchSettingsView()
                 case .appearance:
