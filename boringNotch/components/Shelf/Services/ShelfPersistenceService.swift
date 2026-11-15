@@ -10,6 +10,11 @@ import Foundation
 // Access model types
 @_exported import struct Foundation.URL
 
+struct ShelfLoadResult {
+    let items: [ShelfItem]
+    let isComplete: Bool
+}
+
 final class ShelfPersistenceService {
     static let shared = ShelfPersistenceService()
 
@@ -28,12 +33,19 @@ final class ShelfPersistenceService {
         encoder.dateEncodingStrategy = .iso8601
     }
 
-    func load() -> [ShelfItem] {
-        guard let data = try? Data(contentsOf: fileURL) else { return [] }
+    func load() -> ShelfLoadResult {
+        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+            return ShelfLoadResult(items: [], isComplete: false)
+        }
+
+        guard let data = try? Data(contentsOf: fileURL) else {
+            Log.shelf.error("❌ Failed to read shelf persistence file")
+            return ShelfLoadResult(items: [], isComplete: false)
+        }
 
         // Try to decode as array first (normal case)
         if let items = try? decoder.decode([ShelfItem].self, from: data) {
-            return items
+            return ShelfLoadResult(items: items, isComplete: true)
         }
 
         // If array decoding fails, try to decode individual items
@@ -41,7 +53,7 @@ final class ShelfPersistenceService {
             // Parse as JSON array to get individual item data
             guard let jsonArray = try JSONSerialization.jsonObject(with: data) as? [Any] else {
                 Log.shelf.error("⚠️ Shelf persistence file is not a valid JSON array")
-                return []
+                return ShelfLoadResult(items: [], isComplete: false)
             }
 
             var validItems: [ShelfItem] = []
@@ -61,11 +73,10 @@ final class ShelfPersistenceService {
             if failedCount > 0 {
                 Log.shelf.error("📦 Successfully loaded \(validItems.count) shelf items, discarded \(failedCount) corrupted items")
             }
-
-            return validItems
+            return ShelfLoadResult(items: validItems, isComplete: failedCount == 0)
         } catch {
             Log.shelf.error("❌ Failed to parse shelf persistence file: \(error.localizedDescription)")
-            return []
+            return ShelfLoadResult(items: [], isComplete: false)
         }
     }
 

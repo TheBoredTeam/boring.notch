@@ -148,7 +148,7 @@ struct ShelfItem: Identifiable, Codable, Equatable {
               let url = Bookmark(data: bookmarkData).resolvedURL else { return }
 
         // Handle temporary files
-        if isTemporary {
+        if isTemporary || TemporaryFileStorageService.shared.isTemporaryDropURL(url) {
             TemporaryFileStorageService.shared.removeTemporaryFileIfNeeded(at: url)
             return
         }
