@@ -124,6 +124,13 @@ Feature requests are welcome! Please:
 - Explain why this feature would be valuable to users
 - Be open to discussion and alternative approaches
 
+## License
+
+Boring Notch is licensed under the GNU General Public License, version 3, with the
+[Boring Notch Extension Exception](LICENSE-EXCEPTION.md). By submitting a contribution,
+you agree that it is licensed under the GNU General Public License, version 3, together
+with the Boring Notch Extension Exception.
+
 ## Getting Help
 
 If you need help or have questions:
