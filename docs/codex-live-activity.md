@@ -6,9 +6,11 @@ This optional integration is a read-only conversation status panel with shortcut
 
 Open Settings → Codex and choose the actual `~/.codex` directory in the macOS system picker. A security-scoped, read-only bookmark persists access across launches. Disable the integration or choose **Forget folder access** to release that access. The default directory is derived from the login user's home, rather than the app sandbox's container home.
 
-The folder grant covers the chosen directory, which can contain sensitive configuration. The implementation only opens the activity SQLite indexes read-only and enumerates rollout filenames. It does not query credential files or transcript bodies. Its own task-name cache lives in the app container's Application Support/CodexNotch directory and must not be included in screenshots or distributions.
+The folder grant covers the chosen directory, which can contain sensitive configuration. The activity scanner opens SQLite indexes read-only and enumerates rollout filenames. To show usage, the quota scanner reads portions of recent session JSONL files and parses token-count rate-limit events. Those files can contain conversation text; the scanner extracts only usage metadata and does not retain or display message text. It does not access credential files. Its own task-name cache lives in the app container's Application Support/CodexNotch directory and must not be included in screenshots or distributions.
 
 ## Display and semantics
+
+The closed activity places the conversation at left and the latest locally recorded 5-hour remaining percentage and reset time at right. The expanded panel includes the weekly window and the record's update time. Usage refreshes from local records every 30 seconds; this is not a live account query and may be stale. Expired windows are shown as unavailable until a newer record is available.
 
 On each opening, playing media selects Music & Calendar; otherwise a healthy Codex connection with running conversations selects Codex. Idle, disconnected, empty, and failed connections use normal Home. Shelf selection remains explicit. The header's terminal/music button switches panels manually for the current opening. Repeated clicks while open preserve that choice; losing Codex availability returns to Home and its normal height.
 
