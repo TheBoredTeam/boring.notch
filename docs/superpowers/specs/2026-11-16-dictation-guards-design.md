@@ -21,10 +21,10 @@ séparément). Anti-but : jeter une vraie dictée (voix faible, phrase qui cite 
 
 ## Conception
 
-1. **Anti-récitation** : un segment brut (avant correction) où au moins 2 termes du vocabulaire couvrent au moins la
+1. **Anti-récitation** : un segment brut (avant correction) où au moins 3 occurrences de termes du vocabulaire couvrent au moins la
    moitié des mots est vidé. Rattrape la reconnaissance qui invente sur un blanc.
 2. **Refus des ajouts du modèle** : la correction est rejetée (on garde le segment d'origine) si
-   - un terme du vocabulaire apparaît dans la sortie sans être dans l'entrée, ou
+   - au moins 2 occurrences de termes du vocabulaire apparaissent dans la sortie sans être dans l'entrée (un seul nom corrigé est accepté), ou
    - moins de 75 % des mots de la sortie existaient dans l'entrée (même mesure que `retained`, dans l'autre sens).
    Pas appliqué aux commandes sur la sélection (une traduction change tous les mots).
 3. **Consigne reformulée** : « Si l'un de ces mots apparaît mal écrit, écris-le ainsi : … N'ajoute jamais ces mots

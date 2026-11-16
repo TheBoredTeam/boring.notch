@@ -298,8 +298,11 @@ final class Dictation: ObservableObject {
         guard generation == g else { return }
         // Délai dépassé ou erreur : on colle ce qui a été entendu (règles seulement, sans modèle) plutôt que rien.
         let locale = Defaults[.dictationLocale]
-        let rest = TextCleanup.spoken(TextCleanup.removeFillers(unfinalized), locale: locale)
-        var pieces = parts ?? [TextCleanup.spoken(TextCleanup.removeFillers((raws + [unfinalized]).joined(separator: " ")), locale: locale)]
+        // Le reste volatil et le texte de secours passent aussi par l'anti-récitation : c'est là que la reconnaissance invente sur un blanc.
+        let vocab = TextCleanup.vocabulary()
+        let rest = TextCleanup.spoken(TextCleanup.removeFillers(DictationGuards.dropRecitation(unfinalized, vocabulary: vocab)), locale: locale)
+        var pieces = parts ?? [TextCleanup.spoken(TextCleanup.removeFillers(
+            DictationGuards.dropRecitation((raws + [unfinalized]).joined(separator: " "), vocabulary: vocab)), locale: locale)]
         if parts != nil { pieces.append(rest) }
         var text = TextCleanup.finish(pieces)
         // Prise muette : tout texte serait inventé (rien collé, rien dans l'historique, pas de commande).

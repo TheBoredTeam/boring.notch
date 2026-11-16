@@ -14,6 +14,8 @@ check(G.dropRecitation(capture, vocabulary: vocab).trimmingCharacters(in: .white
 let real = "J'ai appelé Qonto puis Hostinger ce matin pour le contrat."
 check(G.dropRecitation(real, vocabulary: vocab) == real, "vraie phrase avec deux clients gardée")
 check(G.dropRecitation("Qonto", vocabulary: vocab) == "Qonto", "un seul terme : gardé")
+check(G.dropRecitation("Qonto et Hostinger.", vocabulary: vocab) == "Qonto et Hostinger.", "segment court qui cite deux clients : gardé")
+check(!G.addsVocabulary("J'ai payé Qonto hier pour le devis.", to: "j'ai payé kanto hier pour le devis", vocabulary: vocab), "nom mal entendu corrigé par le modèle : accepté")
 check(G.dropRecitation(capture, vocabulary: []) == capture, "vocabulaire vide : rien ne change")
 check(G.addsVocabulary(capture, to: said, vocabulary: vocab), "liste ajoutée par le modèle détectée")
 check(!G.addsVocabulary("Paiement Qonto reçu.", to: "paiement qonto reçu", vocabulary: vocab), "terme dit puis capitalisé : pas un ajout")
