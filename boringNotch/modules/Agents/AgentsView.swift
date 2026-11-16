@@ -158,9 +158,9 @@ struct AgentsView: View {
         store.usage.compactMap { k, v in v.current().map { (k, $0) } }.sorted { $0.0 < $1.0 }.map { ($0.0, $0.1) }
     }
 
-    /// Session qui attend une réponse ou l'approbation d'un plan : elle prend tout l'onglet, quelle que soit la sélection.
+    /// Session qui attend une réponse, un plan ou une autorisation : elle prend tout l'onglet, quelle que soit la sélection.
     private var prompting: AgentSession? {
-        store.sessions.first { $0.state == .waiting && ($0.questions?.isEmpty == false || $0.plan != nil) }
+        store.sessions.first { $0.state == .waiting && ($0.questions?.isEmpty == false || $0.plan != nil || $0.ask != nil) }
     }
 
     var body: some View {
@@ -171,6 +171,8 @@ struct AgentsView: View {
                 QuestionCard(session: s, questions: qs).id(s.id + qs.map(\.question).joined())
             } else if let s = prompting, let plan = s.plan {
                 PlanCard(session: s, plan: plan)
+            } else if let s = prompting, let ask = s.ask {
+                PermissionCard(session: s, ask: ask)
             } else {
                 header
                 switch mode {
@@ -374,44 +376,38 @@ private struct ActivityCard: View {
     let session: AgentSession
 
     private var step: AgentStep? { session.steps.last }
-    private var waiting: Bool { session.state == .waiting }
     private var running: Bool { session.isActive && (step.map { !$0.done } ?? false) }
     private var tint: Color { session.tint }
     /// Au repos après une réponse de l'agent : la carte propose de reprendre la main.
-    private var idleReply: Bool { !waiting && !session.isActive && session.lastMessage != nil }
+    private var idleReply: Bool { !session.isActive && session.lastMessage != nil }
     private var diff: LineDiff? {
-        guard !waiting, step?.isEdit == true, let file = step?.file else { return nil }
+        guard step?.isEdit == true, let file = step?.file else { return nil }
         return session.diffs[file]
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 7) {
-                Image(systemName: waiting ? "exclamationmark.shield.fill" : idleReply ? (session.awaitsReply ? "bubble.left.fill" : "checkmark") : (step?.symbol ?? "folder.fill"))
+                Image(systemName: idleReply ? (session.awaitsReply ? "bubble.left.fill" : "checkmark") : (step?.symbol ?? "folder.fill"))
                     .font(.system(size: 11, weight: .semibold)).foregroundStyle(tint)
                     .frame(width: 24, height: 24)
                     .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(tint.opacity(0.16)))
                 VStack(alignment: .leading, spacing: 1) {
                     Text(title).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white).lineLimit(1).truncationMode(.middle)
                     Text(status).font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(waiting || running ? tint : secondary).lineLimit(1)
+                        .foregroundStyle(running ? tint : secondary).lineLimit(1)
                 }
                 Spacer(minLength: 0)
             }
             if let detail {
                 Text(detail).font(.system(size: 10, design: .monospaced)).foregroundStyle(secondary)
-                    .lineLimit(waiting ? 1 : 2).truncationMode(.middle)
+                    .lineLimit(2).truncationMode(.middle)
                     .help(detail)
             }
             Spacer(minLength: 0)
             if idleReply {
                 pillButton(session.awaitsReply ? "Répondre" : "Ouvrir", tint: session.awaitsReply ? .effectiveAccent : nil) {
                     AgentStore.shared.openTerminal(session)
-                }
-            } else if waiting {
-                HStack(spacing: 8) {
-                    decisionButton("Refuser", tint: nil) { AgentStore.shared.decide(session.id, allow: false) }
-                    decisionButton("Autoriser", tint: .effectiveAccent) { AgentStore.shared.decide(session.id, allow: true) }
                 }
             } else if running || diff != nil {
                 HStack(spacing: 8) {
@@ -429,22 +425,13 @@ private struct ActivityCard: View {
         .agentSurface()
     }
 
-    private func decisionButton(_ label: String, tint: Color?, _ action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(label).frame(maxWidth: .infinity)
-        }
-        .buttonStyle(AgentActionStyle(tint: tint))
-    }
-
     private var title: String {
-        if waiting { return "Validation requise" }
         if idleReply { return session.awaitsReply ? "Votre tour" : "Terminé" }
         if let f = step?.file { return (f as NSString).lastPathComponent }
         return step?.kind ?? session.project
     }
 
     private var status: String {
-        if waiting { return "En attente de votre accord" }
         if idleReply { return session.awaitsReply ? "\(session.source.capitalized) attend votre réponse" : "Prêt pour un prompt" }
         guard let step else { return session.stateText }
         if let d = step.duration { return String(format: "Terminé · %.1f s", d) }
@@ -453,7 +440,6 @@ private struct ActivityCard: View {
     }
 
     private var detail: String? {
-        if waiting { return session.pending }
         if idleReply { return nil }
         guard let step, step.file == nil else { return nil }
         return step.label
@@ -557,6 +543,57 @@ private struct QuestionCard: View {
         answers[q.question] = value
         checked = []
         if index + 1 < questions.count { index += 1 } else { AgentStore.shared.answer(session.id, answers) }
+    }
+}
+
+/// Demande d'autorisation : phrase française en grand, détails en dessous, décision en pied, pleine largeur.
+private struct PermissionCard: View {
+    let session: AgentSession
+    let ask: PermissionAsk
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 7) {
+                Image(systemName: "exclamationmark.shield.fill")
+                    .font(.system(size: 11, weight: .semibold)).foregroundStyle(session.tint)
+                    .frame(width: 24, height: 24)
+                    .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(session.tint.opacity(0.16)))
+                Text("Validation requise").font(.system(size: 11, weight: .semibold)).foregroundStyle(session.tint)
+                Text("· \(session.project)").font(.system(size: 11, weight: .medium)).foregroundStyle(secondary).lineLimit(1)
+                Spacer(minLength: 0)
+            }
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(ask.question).font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
+                        .fixedSize(horizontal: false, vertical: true)
+                    ForEach(ask.details, id: \.self) {
+                        Text($0).font(.system(size: 10.5, design: .monospaced)).foregroundStyle(.white.opacity(0.8))
+                            .lineLimit(4).truncationMode(.middle).textSelection(.enabled)
+                    }
+                    Text(ask.tool).font(.system(size: 9, design: .monospaced)).foregroundStyle(secondary.opacity(0.7))
+                        .lineLimit(1).truncationMode(.middle)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(maxHeight: .infinity)
+            if session.canAnswer {
+                HStack(spacing: 8) {
+                    decision("Refuser", tint: nil) { AgentStore.shared.decide(session.id, allow: false) }
+                    decision("Autoriser", tint: .effectiveAccent) { AgentStore.shared.decide(session.id, allow: true) }
+                }
+            } else {
+                // Hook non bloquant : le notch ne peut pas répondre, la validation se fait dans le terminal.
+                pillButton("Ouvrir le terminal", tint: nil) { AgentStore.shared.openTerminal(session) }
+            }
+        }
+        .padding(10)
+        .frame(maxHeight: .infinity, alignment: .topLeading)
+        .agentSurface()
+    }
+
+    private func decision(_ label: String, tint: Color?, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) { Text(label).frame(maxWidth: .infinity, minHeight: 20) }
+            .buttonStyle(AgentActionStyle(tint: tint))
     }
 }
 
