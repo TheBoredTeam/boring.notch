@@ -17,9 +17,13 @@ import SwiftUI
 final class LevelMeter: @unchecked Sendable {
     private let lock = NSLock()
     private var v: Float = 0
+    private var top: Float = 0
     var value: Float { lock.lock(); defer { lock.unlock() }; return v }
-    func push(_ x: Float) { lock.lock(); v = max(x, v * 0.7); lock.unlock() } // attaque immédiate, retombée douce
-    func reset() { lock.lock(); v = 0; lock.unlock() }
+    /// RMS brut le plus fort depuis `reset()` : sert au filtre de silence.
+    var peak: Float { lock.lock(); defer { lock.unlock() }; return top }
+    // attaque immédiate, retombée douce
+    func push(_ x: Float, rms: Float) { lock.lock(); v = max(x, v * 0.7); top = max(top, rms); lock.unlock() }
+    func reset() { lock.lock(); v = 0; top = 0; lock.unlock() }
 }
 
 /// Audio du micro → format de l'analyseur. Tout ce qui arrive avant que l'analyseur soit prêt est gardé puis rejoué
@@ -130,7 +134,8 @@ final class MicCapture: NSObject, AVCaptureAudioDataOutputSampleBufferDelegate, 
               let ch = buf.floatChannelData?[0] else { return }
         var sum: Float = 0
         for i in 0..<n { sum += ch[i] * ch[i] }
-        meter.push(min(1, (sum / Float(n)).squareRoot() * 6)) // RMS, gain visuel
+        let rms = (sum / Float(n)).squareRoot()
+        meter.push(min(1, rms * 6), rms: rms) // gain visuel ×6 pour la bulle, RMS brut pour le filtre de silence
         feed.push(buf)
     }
 }
@@ -293,10 +298,19 @@ final class Dictation: ObservableObject {
         guard generation == g else { return }
         // Délai dépassé ou erreur : on colle ce qui a été entendu (règles seulement, sans modèle) plutôt que rien.
         let locale = Defaults[.dictationLocale]
-        let rest = TextCleanup.spoken(TextCleanup.removeFillers(unfinalized), locale: locale)
-        var pieces = parts ?? [TextCleanup.spoken(TextCleanup.removeFillers((raws + [unfinalized]).joined(separator: " ")), locale: locale)]
+        // Le reste volatil et le texte de secours passent aussi par l'anti-récitation : c'est là que la reconnaissance invente sur un blanc.
+        let vocab = TextCleanup.vocabulary()
+        let rest = TextCleanup.spoken(TextCleanup.removeFillers(DictationGuards.dropRecitation(unfinalized, vocabulary: vocab)), locale: locale)
+        var pieces = parts ?? [TextCleanup.spoken(TextCleanup.removeFillers(
+            DictationGuards.dropRecitation((raws + [unfinalized]).joined(separator: " "), vocabulary: vocab)), locale: locale)]
         if parts != nil { pieces.append(rest) }
         var text = TextCleanup.finish(pieces)
+        // Prise muette : tout texte serait inventé (rien collé, rien dans l'historique, pas de commande).
+        // ponytail: seuil −50 dBFS en dur (Hex) ; réglage si un micro faible est jeté.
+        if meter.peak < DictationGuards.silenceRMS {
+            log.info("prise muette (pic \(Int(20 * log10(max(self.meter.peak, 1e-6)))) dBFS) : rien collé")
+            text = ""
+        }
         let sel = selection; selection = nil
         if let sel, !text.isEmpty {
             log.info("sélection \(sel.count) car., premier mot « \(text.split(separator: " ").first.map(String.init) ?? "", privacy: .public) », commande : \(TextCleanup.isCommand(text))")
