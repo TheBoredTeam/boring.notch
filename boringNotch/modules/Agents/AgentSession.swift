@@ -35,7 +35,8 @@ struct AgentSession: Identifiable, Equatable {
     var cwd: String?
     var title: String?          // premier prompt de la session
     var app: String?            // bundle id du terminal / IDE, pour rouvrir la conversation
-    var pending: String?        // action en attente de validation
+    var ask: PermissionAsk?     // action en attente de validation, déjà mise en français
+    var canAnswer = false       // le hook est bloquant : le notch peut répondre (sinon : au terminal)
     var questions: [AgentQuestion]?   // AskUserQuestion en attente de réponse
     var plan: String?                 // ExitPlanMode : plan (Markdown) en attente d'approbation
     var lastMessage: String?    // fin du dernier message de l'agent (extrait affiché au repos)
@@ -122,6 +123,38 @@ struct AgentEnvelope: Decodable {
         var edits: [Edit]?
         var questions: [AgentQuestion]?   // AskUserQuestion
         var plan: String?                 // ExitPlanMode
+        var scalars: [String: String] = [:]   // tous les paramètres simples (url, query, ids d'un outil MCP…)
+
+        private struct Key: CodingKey {
+            var stringValue: String
+            var intValue: Int? { nil }
+            init?(stringValue: String) { self.stringValue = stringValue }
+            init?(intValue: Int) { nil }
+        }
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: Key.self)
+            func get<T: Decodable>(_ k: Key) -> T? { try? c.decode(T.self, forKey: k) }
+            for k in c.allKeys {
+                switch k.stringValue {
+                case "file_path": file_path = get(k)
+                case "command": command = get(k)
+                case "description": description = get(k)
+                case "pattern": pattern = get(k)
+                case "old_string": old_string = get(k)
+                case "new_string": new_string = get(k)
+                case "content": content = get(k)
+                case "edits": edits = get(k)
+                case "questions": questions = get(k)
+                case "plan": plan = get(k)
+                default: break
+                }
+                if let v: String = get(k) { scalars[k.stringValue] = v }
+                else if let v: Int = get(k) { scalars[k.stringValue] = String(v) }
+                else if let v: Double = get(k) { scalars[k.stringValue] = String(v) }
+                else if let v: Bool = get(k) { scalars[k.stringValue] = v ? "oui" : "non" }
+            }
+        }
     }
     struct Edit: Decodable {
         var old_string: String?

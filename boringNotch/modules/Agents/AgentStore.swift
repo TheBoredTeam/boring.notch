@@ -105,7 +105,7 @@ final class AgentStore: ObservableObject {
               let json = try? JSONSerialization.data(withJSONObject: decision) else { return }
         r(String(decoding: json, as: UTF8.self))
         guard var s = sessions.first(where: { $0.id == sid }) else { return }
-        s.pending = nil; s.questions = nil; s.plan = nil; s.state = .thinking
+        s.ask = nil; s.questions = nil; s.plan = nil; s.state = .thinking
         upsert(s)
     }
 
@@ -128,7 +128,7 @@ final class AgentStore: ObservableObject {
         if env.kind == "statusline" { upsert(s); return }
         if let f = p.tool_input?.file_path { s.file = f }
         let wasWaiting = s.state == .waiting
-        s.pending = nil; s.questions = nil; s.plan = nil
+        s.ask = nil; s.questions = nil; s.plan = nil
         s.awaitsReply = false
         // Une autre activité de la session = la validation a été traitée ailleurs (terminal) : on libère le hook.
         if p.hook_event_name != "PermissionRequest" { responders.removeValue(forKey: sid)?(nil) }
@@ -146,7 +146,8 @@ final class AgentStore: ObservableObject {
         case "PermissionRequest":
             s.state = .waiting
             if let reply { responders.removeValue(forKey: sid)?(nil); responders[sid] = reply }
-            s.pending = Self.label(p.tool_name ?? "…", p.tool_input)
+            s.ask = PermissionAsk(agent: s.source.capitalized, tool: p.tool_name ?? "…", input: p.tool_input)
+            s.canAnswer = reply != nil
             // Sans hook bloquant (reply nil), le notch ne peut pas répondre : simple validation à faire au terminal.
             if reply != nil, p.tool_name == "AskUserQuestion" { s.questions = p.tool_input?.questions }
             if reply != nil, p.tool_name == "ExitPlanMode" { s.plan = p.tool_input?.plan }
