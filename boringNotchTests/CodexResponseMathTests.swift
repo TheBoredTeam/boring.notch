@@ -233,7 +233,18 @@ final class CodexResponseMathTests: XCTestCase {
 
         The Gaussian forward result is exact. :codex-annotation{index="1"}
         """#
-        for (name, content) in [("math", source), ("short", "Got it."), ("notation", notation)] {
+        let radix = #"""
+        The **three** comes from the bound that every key is less than \(n^3\). :codex-annotation{index="1" id="12345678-1234-4234-8234-123456789abc"}
+
+        In base \(B\), three digits represent numbers of the form
+
+        \[a_2 B^2 + a_1 B + a_0, \qquad 0 \le a_i < B.\]
+
+        Their range is exactly
+
+        \[0 \text{ through } B^3 - 1.\]
+        """#
+        for (name, content) in [("math", source), ("short", "Got it."), ("notation", notation), ("annotation-id", radix)] {
             let host = NSHostingView(rootView:
                 CodexResponseCard(
                     source: content, isTruncated: false, projectName: "Fixture", chatTitle: "Synthetic math example",

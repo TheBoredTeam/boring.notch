@@ -86,6 +86,24 @@ final class CodexResponseRenderingTests: XCTestCase {
         XCTAssertEqual(codexOpens, 0)
     }
 
+    func testAnnotationWithIDRendersBesideMathAndOpensTheMatchingChat() throws {
+        var opened = 0
+        let response = CodexResponseMarkdown(
+            source: #"The **three** comes from every key being less than \(n^3\). :codex-annotation{index="1" id="12345678-1234-4234-8234-123456789abc"}"#,
+            onOpenCodex: { opened += 1 }
+        )
+        let html = MarkdownContent(response.document.markdown).renderHTML()
+        XCTAssertTrue(html.contains(">Annotation 1</a>"))
+        XCTAssertFalse(html.contains(":codex-annotation"))
+        XCTAssertFalse(html.contains("12345678-1234-4234-8234-123456789abc"))
+        XCTAssertEqual(response.document.equations.values.map(\.latex), ["n^3"])
+        XCTAssertTrue(html.contains("<strong>three</strong>"))
+        XCTAssertTrue(html.contains("boringnotch-math://equation/"))
+        XCTAssertEqual(response.document.annotationURLs.count, 1)
+        _ = response.openLink(try XCTUnwrap(response.document.annotationURLs.first))
+        XCTAssertEqual(opened, 1)
+    }
+
     func testAnnotationExamplesAndMalformedDirectivesRemainLiteral() {
         let source = #"""
         `:codex-annotation{index="1"}`
@@ -102,6 +120,20 @@ final class CodexResponseRenderingTests: XCTestCase {
         :codex-annotation{index="-1"}
         :codex-annotation{index="abc"}
         :codex-annotation{index="5"
+
+        `:codex-annotation{index="6" id="example-id"}`
+
+        ```text
+        :codex-annotation{index="7" id="example-id"}
+        ```
+
+        [:codex-annotation{index="8" id="example-id"}](https://example.invalid)
+
+        <div>:codex-annotation{index="9" id="example-id"}</div>
+
+        :codex-annotation{index="10" id="unfinished}
+        :codex-annotation{index="11" id="example-id"
+        :codex-annotation{index="12" id="example-id" extra="unknown"}
         """#
         let document = CodexResponseDocument(source: source)
         XCTAssertTrue(document.annotationURLs.isEmpty)

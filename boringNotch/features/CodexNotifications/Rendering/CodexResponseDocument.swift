@@ -37,7 +37,7 @@ struct CodexResponseDocument {
     }
 
     private static let annotation = try! NSRegularExpression(
-        pattern: #":codex-annotation\{index="([1-9][0-9]{0,8})"\}"#
+        pattern: #":codex-annotation\{index="([1-9][0-9]{0,8})"(?:[ \t]+id="[^"\r\n]+")?\}"#
     )
 
     private static func rewrite(
