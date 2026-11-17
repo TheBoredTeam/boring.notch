@@ -12,10 +12,12 @@ import SwiftUI
 struct UpNextPanelView: View {
     @ObservedObject private var music = MusicManager.shared
     @ObservedObject private var sonos = SonosStore.shared
-    @State private var previous: SpotifyWebAPI.QueueTrack?
-    @State private var next: [SpotifyWebAPI.QueueTrack] = []
+    @ObservedObject private var api = SpotifyWebAPI.shared
     @State private var showRooms = false
-    @State private var devices: [SpotifyDevice] = []
+
+    private var previous: SpotifyWebAPI.QueueTrack? { api.snapshot?.previous }
+    private var next: [SpotifyWebAPI.QueueTrack] { api.snapshot?.next ?? [] }
+    private var devices: [SpotifyDevice] { api.snapshot?.devices ?? [] }
 
     private var localName: String { Host.current().localizedName ?? "" }
 
@@ -46,19 +48,9 @@ struct UpNextPanelView: View {
         .animation(.smooth(duration: 0.25), value: showRooms)
         .animation(.smooth(duration: 0.35), value: next)
         .animation(.smooth(duration: 0.35), value: previous)
-        // Recréée à chaque ouverture du notch : la file est relue à l'ouverture et à chaque changement de titre.
-        .task(id: music.songTitle) { await load() }
+        // La file vient du cache de SpotifyWebAPI (déjà là à l'ouverture) ; on la rafraîchit derrière, sans attendre.
+        .onAppear { api.refresh() }
         .onChange(of: sonos.isActive) { _, active in if !active { showRooms = false } }
-    }
-
-    private func load() async {
-        guard music.bundleIdentifier == "com.spotify.client" else { previous = nil; next = []; return }
-        // Laisse à Spotify le temps de faire avancer sa file après un changement de titre.
-        try? await Task.sleep(for: .milliseconds(800))
-        if let d = await SpotifyWebAPI.shared.devices() { devices = d }
-        guard !Task.isCancelled, let r = await SpotifyWebAPI.shared.upNext() else { return }
-        previous = r.previous
-        next = r.next
     }
 
     /// Frise : précédent, repère « en cours » (visualiseur), puis les titres à venir.
@@ -103,9 +95,8 @@ struct UpNextPanelView: View {
                 Button {
                     guard let id = d.id else { return }
                     Task {
-                        _ = await SpotifyWebAPI.shared.transfer(to: id)
-                        try? await Task.sleep(for: .seconds(1))
-                        await load()
+                        _ = await api.transfer(to: id)
+                        api.refresh(settle: .seconds(1))
                     }
                 } label: {
                     Label(SpotifyConnect.sameName(d.name, localName) ? "Ce Mac" : d.name,
