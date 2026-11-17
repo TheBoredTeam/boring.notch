@@ -50,7 +50,7 @@ struct CodexMathDocument {
         pattern: #"(?s)(?<!\\)\\\[(.*?)\\\]|(?<!\\)\\\((.*?)\\\)|(?<!\\)\$\$(.*?)\$\$|(?<![\\$])\$(?![\s$])((?:\\.|[^$\n])*?[^$\s])(?<!\\)\$(?![\d$])"#
     )
 
-    private static func protectedRanges(in source: String) -> [Range<Int>] {
+    static func protectedRanges(in source: String) -> [Range<Int>] {
         let bytes = Array(source.utf8)
         guard let root = source.withCString({ cmark_parse_document($0, bytes.count, CMARK_OPT_DEFAULT) }) else { return [] }
         defer { cmark_node_free(root) }

@@ -140,6 +140,64 @@ final class CodexResponseRenderingTests: XCTestCase {
         XCTAssertEqual(document.markdown, source)
     }
 
+    func testSourceCitationsRenderAsFilenameLinksAndOpenTheMatchingChat() throws {
+        var opened = 0
+        let response = CodexResponseMarkdown(source: #"""
+        These priorities follow the question sheets' **learning objectives**.
+        Sources: :codex-file-citation{path="/tmp/Course Materials/tutorial-07.pdf" purpose="source"} :codex-file-citation{path="/tmp/Course Materials/tutorial-08.pdf" purpose="source"} :codex-file-citation{path="/tmp/Course Materials/tutorial-09.pdf" purpose="source"} :codex-file-citation{path="/tmp/Course Materials/tutorial-10.pdf" purpose="source"}
+        """#, onOpenCodex: { opened += 1 })
+        let html = MarkdownContent(response.document.markdown).renderHTML()
+        for number in ["07", "08", "09", "10"] {
+            XCTAssertTrue(html.contains(">tutorial-\(number).pdf</a>"))
+        }
+        XCTAssertFalse(html.contains(":codex-file-citation"))
+        XCTAssertFalse(html.contains("/tmp/Course Materials"))
+        XCTAssertEqual(response.document.sourceURLs.count, 4)
+        XCTAssertTrue(html.contains("<strong>learning objectives</strong>"))
+        _ = response.openLink(try XCTUnwrap(URL(string: "boringnotch-reference://source/1")))
+        XCTAssertEqual(opened, 1)
+        for target in ["boringnotch-reference://source/5", "file:///tmp/Course%20Materials/tutorial-07.pdf"] {
+            _ = response.openLink(try XCTUnwrap(URL(string: target)))
+        }
+        XCTAssertEqual(opened, 1, "Only parsed references can open the matching chat; local file URLs stay blocked")
+    }
+
+    func testSourceCitationFilenamesKeepMarkdownCharactersUnicodeAndMathLiteral() {
+        let document = CodexResponseDocument(source: #"""
+        Source: :codex-file-citation{path="/tmp/课程/笔记_v1_final [draft] $x$.pdf" purpose="source"}
+
+        Actual math: \(x^2\). :codex-annotation{index="1" id="example-id"}
+        """#)
+        let content = MarkdownContent(document.markdown)
+        XCTAssertTrue(content.renderPlainText().contains("笔记_v1_final [draft] $x$.pdf"))
+        XCTAssertFalse(content.renderHTML().contains(":codex-file-citation"))
+        XCTAssertEqual(document.equations.values.map(\.latex), ["x^2"], "Math inside a source filename must stay literal")
+        XCTAssertTrue(content.renderHTML().contains(">Annotation 1</a>"))
+    }
+
+    func testSourceCitationExamplesAndMalformedDirectivesRemainLiteral() {
+        let source = #"""
+        `:codex-file-citation{path="/tmp/example.pdf" purpose="source"}`
+
+        ```text
+        :codex-file-citation{path="/tmp/example.pdf" purpose="source"}
+        ```
+
+        [:codex-file-citation{path="/tmp/example.pdf" purpose="source"}](https://example.invalid)
+
+        ![:codex-file-citation{path="/tmp/example.pdf" purpose="source"}](https://example.invalid/image.png)
+
+        <div>:codex-file-citation{path="/tmp/example.pdf" purpose="source"}</div>
+
+        :codex-file-citation{path="" purpose="source"}
+        :codex-file-citation{path="/tmp/example.pdf" purpose="unknown"}
+        :codex-file-citation{path="/tmp/example.pdf" purpose="source"
+        :codex-file-citation{path="/tmp/example.pdf" purpose="source" extra="unknown"}
+        """#
+        let document = CodexResponseDocument(source: source)
+        XCTAssertEqual(document.markdown, source)
+    }
+
     func testResponseAdaptationPreservesSurroundingFormattingAndTables() {
         let document = CodexResponseDocument(source: #"""
         - **Mean \(\mu_\theta(z_t,t)\):** next mean. :codex-annotation{index="1"}

@@ -7,9 +7,13 @@ struct CodexResponseDocument {
     let markdown: String
     let equations: [URL: CodexMathEquation]
     private(set) var annotationURLs: Set<URL> = []
+    private(set) var sourceURLs: Set<URL> = []
 
     init(source: String) {
-        let math = CodexMathDocument(source: source)
+        var sources: Set<URL> = []
+        let adapted = Self.renderSourceCitations(in: source, urls: &sources)
+        sourceURLs = sources
+        let math = CodexMathDocument(source: adapted)
         equations = math.equations
         cmark_gfm_core_extensions_ensure_registered()
         let parser = cmark_parser_new(CMARK_OPT_DEFAULT)
@@ -39,6 +43,40 @@ struct CodexResponseDocument {
     private static let annotation = try! NSRegularExpression(
         pattern: #":codex-annotation\{index="([1-9][0-9]{0,8})"(?:[ \t]+id="[^"\r\n]+")?\}"#
     )
+
+    private static let sourceCitation = try! NSRegularExpression(
+        pattern: #":codex-file-citation\{path="([^"\r\n]+)"[ \t]+purpose="source"\}"#
+    )
+
+    private static func renderSourceCitations(in source: String, urls: inout Set<URL>) -> String {
+        // Filenames can contain Markdown and math punctuation. Convert the whole
+        // directive before either parser interprets the filename as body content.
+        let protected = CodexMathDocument.protectedRanges(in: source)
+        let text = source as NSString
+        var result = source
+        let matches = sourceCitation.matches(in: source, range: NSRange(location: 0, length: text.length))
+        for (index, match) in matches.enumerated().reversed() {
+            guard let range = Range(match.range, in: source) else { continue }
+            let bytes = source.utf8.distance(from: source.utf8.startIndex, to: range.lowerBound)..<source.utf8.distance(from: source.utf8.startIndex, to: range.upperBound)
+            guard !protected.contains(where: { $0.overlaps(bytes) }) else { continue }
+            let filename = (text.substring(with: match.range(at: 1)) as NSString).lastPathComponent
+            guard !filename.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { continue }
+            let url = URL(string: "boringnotch-reference://source/\(index + 1)")!
+            let link = cmark_node_new(CMARK_NODE_LINK)!
+            defer { cmark_node_free(link) }
+            cmark_node_set_url(link, url.absoluteString)
+            cmark_node_set_title(link, "View source in Codex")
+            let label = cmark_node_new(CMARK_NODE_TEXT)!
+            cmark_node_set_literal(label, filename)
+            cmark_node_append_child(link, label)
+            guard let rendered = cmark_render_commonmark(link, CMARK_OPT_DEFAULT, 0) else { continue }
+            let markdown = String(cString: rendered).trimmingCharacters(in: .newlines)
+            free(rendered)
+            result = (result as NSString).replacingCharacters(in: match.range, with: markdown)
+            urls.insert(url)
+        }
+        return result
+    }
 
     private static func rewrite(
         _ node: UnsafeMutablePointer<cmark_node>, equations: [URL: CodexMathEquation], annotations: inout Set<URL>

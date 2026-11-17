@@ -51,7 +51,7 @@ public struct CodexResponseMarkdown: View {
     }
 
     func openLink(_ url: URL) -> OpenURLAction.Result {
-        if document.annotationURLs.contains(url) {
+        if document.annotationURLs.contains(url) || document.sourceURLs.contains(url) {
             onOpenCodex()
             return .handled
         }
