@@ -106,7 +106,8 @@ enum AgentTasks {
     static func apply(tool: String, input: AgentEnvelope.ToolInput?, to list: [AgentTask]) -> [AgentTask]? {
         func status(_ s: String?) -> TaskStatus { s.flatMap(TaskStatus.init(rawValue:)) ?? .pending }
         func replaced(_ items: [AgentEnvelope.TaskItem]?) -> [AgentTask] {
-            (items ?? []).enumerated().map { i, t in
+            guard let items else { return list }   // liste absente ou illisible : on ne vide pas
+            return items.enumerated().map { i, t in
                 AgentTask(id: String(i + 1), title: t.content ?? t.subject ?? "", status: status(t.status))
             }
         }
@@ -114,9 +115,10 @@ enum AgentTasks {
         case "TodoWrite": return replaced(input?.todos)
         case "mcp__ccd_turn__update_plan": return replaced(input?.items)
         case "TaskCreate":
-            // ponytail: ids séquentiels supposés, comme Claude Code les attribue ; lire tool_response si ça dérive.
-            let title = input?.subject ?? ""
-            return list + [AgentTask(id: String(list.count + 1), title: title, status: .pending)]
+            // ponytail: id = plus grand id numérique + 1, comme Claude Code les attribue ; faux si la dernière tâche
+            // créée a été supprimée (son id serait réattribué) : lire tool_response si ça dérive.
+            let next = (list.compactMap { Int($0.id) }.max() ?? 0) + 1
+            return list + [AgentTask(id: String(next), title: input?.subject ?? "", status: .pending)]
         case "TaskUpdate":
             guard let id = input?.taskId, let i = list.firstIndex(where: { $0.id == id }) else { return list }
             var out = list

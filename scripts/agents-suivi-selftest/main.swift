@@ -46,8 +46,10 @@ check(t.buckets(4, now: t0 + 20)[3] == nil, "tranche sans activité = nil")
 check(t.phases(now: t0 + 10) == [.read, .edit], "phases")
 t.endedAt = t0 + 10
 check(t.elapsed(now: t0 + 999) == 10, "chrono figé à la fin")
+t.endedAt = nil
 for i in 0..<5000 { t.record(.run, at: t0 + 10 + Double(i)) }
 check(t.ticks.count == 2000 && t.buckets(28, now: t0 + 5010).count == 28, "tour long borné")
+check(t.buckets(28, now: t0 + 5010).last == .run, "tour long : la fin reste visible")
 
 // MARK: Liste de tâches
 
@@ -67,6 +69,11 @@ list = AgentTasks.apply(tool: "TaskUpdate", input: tool(#"{"taskId":1,"status":"
 check(list[0].status == .inProgress, "taskId numérique")
 list = AgentTasks.apply(tool: "TaskUpdate", input: tool(#"{"taskId":"1","status":"deleted"}"#), to: list)!
 check(list.map(\.id) == ["2"], "deleted retire la tâche")
+list = (1...3).map { AgentTask(id: String($0), title: "T", status: .pending) }
+list = AgentTasks.apply(tool: "TaskUpdate", input: tool(#"{"taskId":"2","status":"deleted"}"#), to: list)!
+list = AgentTasks.apply(tool: "TaskCreate", input: tool(#"{"subject":"N"}"#), to: list)!
+check(list.map(\.id) == ["1", "3", "4"], "TaskCreate après suppression : pas de collision")
+check(AgentTasks.apply(tool: "TodoWrite", input: tool("{}"), to: list)! == list, "TodoWrite sans liste : inchangée")
 check(AgentTasks.apply(tool: "Bash", input: nil, to: []) == nil, "outil étranger")
 
 print("OK")
