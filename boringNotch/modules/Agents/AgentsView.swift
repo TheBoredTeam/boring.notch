@@ -147,7 +147,7 @@ struct AgentActionStyle: ButtonStyle {
     }
 }
 
-private struct AgentEmptyState: View {
+struct AgentEmptyState: View {
     let symbol: String
     let message: String
 
@@ -170,7 +170,7 @@ private struct AgentEmptyState: View {
 // MARK: - Onglet
 
 struct AgentsView: View {
-    private enum Mode { case progress, usage }
+    private enum Mode { case progress, usage, stats }
 
     @ObservedObject private var store = AgentStore.shared
     @State private var mode = Mode.progress
@@ -204,6 +204,7 @@ struct AgentsView: View {
                 switch mode {
                 case .progress: progress
                 case .usage: usagePage
+                case .stats: AgentStatsView()
                 }
             }
         }
@@ -228,6 +229,7 @@ struct AgentsView: View {
             HStack(spacing: 3) {
                 modeButton("Progression", icon: "checklist", mode: .progress)
                 modeButton("Forfait", icon: "gauge.with.dots.needle.50percent", mode: .usage)
+                modeButton("Stats", icon: "chart.bar.xaxis", mode: .stats)
             }
         }
         .frame(height: 24)

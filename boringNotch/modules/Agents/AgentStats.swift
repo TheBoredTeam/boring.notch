@@ -153,6 +153,41 @@ struct StatsBook: Codable, Equatable {
     }
 }
 
+extension StatsBook {
+    /// Balaye `root` (récursif, `*.jsonl`) et ingère ce qui a été ajouté depuis les offsets connus, par blocs de
+    /// `block` octets : la première passe couvre des centaines de Mo, on ne charge jamais un fichier entier.
+    /// Un fichier plus petit que son offset (tronqué, réécrit) repart de 0 ; les offsets des fichiers disparus sont
+    /// oubliés ; `prune` est appelé en fin de balayage. Renvoie le nombre de journaux trouvés (0 si `root` n'existe pas).
+    @discardableResult
+    mutating func scan(root: String, calendar: Calendar, today: Date, block: Int = 8 << 20) -> Int {
+        let fm = FileManager.default
+        guard fm.fileExists(atPath: root),
+              let walk = fm.enumerator(at: URL(fileURLWithPath: root), includingPropertiesForKeys: [.fileSizeKey]) else { return 0 }
+        var found: Set<String> = []
+        for case let url as URL in walk where url.pathExtension == "jsonl" {
+            let path = url.path
+            found.insert(path)
+            let size = UInt64((try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0)
+            if size < (offsets[path] ?? 0) { offsets[path] = 0 }
+            let start = offsets[path] ?? 0
+            guard size > start, let h = try? FileHandle(forReadingFrom: url) else { continue }
+            defer { try? h.close() }
+            try? h.seek(toOffset: start)
+            // `rest` : fin de bloc sans "\n" final, reportée sur le bloc suivant (une ligne peut dépasser `block`).
+            var rest = Data()
+            while let d = try? h.read(upToCount: block), !d.isEmpty {
+                rest.append(d)
+                let before = offsets[path] ?? start
+                autoreleasepool { ingest(path: path, chunk: rest, calendar: calendar) }
+                rest = Data(rest.dropFirst(Int((offsets[path] ?? before) - before)))
+            }
+        }
+        offsets = offsets.filter { found.contains($0.key) }
+        prune(today: today, calendar: calendar)
+        return found.count
+    }
+}
+
 struct StatsSummary: Equatable {
     var today: Double
     var trend: Double?                              // today / moyenne des 7 jours précédents - 1 ; nil si cette moyenne vaut 0
