@@ -19,7 +19,7 @@ final class AgentStore: ObservableObject {
     /// ouvertes quand l'app redémarre ; elles se remettent à jour à leur prochain événement.
     private struct Saved: Codable {
         var id, source: String
-        var cwd, title, app, lastMessage: String?
+        var cwd, title, topic, app, lastMessage: String?
         var awaitsReply: Bool?
         var startedAt, updatedAt: Date
     }
@@ -32,13 +32,13 @@ final class AgentStore: ObservableObject {
         let saved = (UserDefaults.standard.data(forKey: Self.key)).flatMap { try? JSONDecoder().decode([Saved].self, from: $0) } ?? []
         sessions = saved.filter { Date().timeIntervalSince($0.updatedAt) < 24 * 3600 && !AgentSession.isNoise($0.title) }.map {
             var s = AgentSession(id: $0.id, source: $0.source, cwd: $0.cwd, startedAt: $0.startedAt, updatedAt: $0.updatedAt)
-            s.title = $0.title; s.app = $0.app; s.state = .done; s.awaitsReply = $0.awaitsReply ?? false; s.lastMessage = $0.lastMessage
+            s.title = $0.title; s.topic = $0.topic; s.app = $0.app; s.state = .done; s.awaitsReply = $0.awaitsReply ?? false; s.lastMessage = $0.lastMessage
             return s
         }
     }
 
     private func save() {
-        let saved = sessions.map { Saved(id: $0.id, source: $0.source, cwd: $0.cwd, title: $0.title, app: $0.app, lastMessage: $0.lastMessage, awaitsReply: $0.awaitsReply,
+        let saved = sessions.map { Saved(id: $0.id, source: $0.source, cwd: $0.cwd, title: $0.title, topic: $0.topic, app: $0.app, lastMessage: $0.lastMessage, awaitsReply: $0.awaitsReply,
                                          startedAt: $0.startedAt, updatedAt: $0.updatedAt) }
         UserDefaults.standard.set(try? JSONEncoder().encode(saved), forKey: Self.key)
     }
@@ -136,6 +136,7 @@ final class AgentStore: ObservableObject {
             ?? AgentSession(id: sid, source: env.source, cwd: p.cwd, state: .done, startedAt: .now, updatedAt: .now)
         s.cwd = p.cwd ?? s.cwd
         s.app = env.app.flatMap { $0.isEmpty ? nil : $0 } ?? s.app
+        if let t = env.topic, !t.isEmpty { s.topic = t }
         if env.kind == "statusline" { upsert(s); return }
         if let f = p.tool_input?.file_path { s.file = f }
         let wasWaiting = s.state == .waiting
@@ -149,14 +150,18 @@ final class AgentStore: ObservableObject {
         case "UserPromptSubmit":
             if s.title == nil, let t = p.prompt?.split(whereSeparator: \.isNewline).first { s.title = String(t) }
             s.state = .thinking
+            s.turn = TurnActivity(startedAt: .now)
         case "PreToolUse":
             s.state = .running(tool: p.tool_name ?? "…")
+            s.turn?.record(.of(tool: p.tool_name ?? ""), at: .now)
+            if let l = AgentTasks.apply(tool: p.tool_name ?? "", input: p.tool_input, to: s.tasks) { s.tasks = l }
             startStep(&s, p)
         case "PostToolUse":
             s.state = .thinking
             finishStep(&s, p)
         case "PermissionRequest":
             s.state = .waiting
+            s.turn?.record(.wait, at: .now)
             // Sans hook bloquant (reply nil), le notch ne peut pas répondre : simple validation à faire au terminal.
             let tool = p.tool_name ?? "…"
             var r = PendingRequest(id: UUID().uuidString, sessionID: sid, tool: tool, toolUseID: p.tool_use_id,
@@ -169,6 +174,7 @@ final class AgentStore: ObservableObject {
             if !wasWaiting { NSSound(named: "Glass")?.play() }
         case "Stop":
             s.state = .done
+            s.turn?.endedAt = .now
             s.awaitsReply = Self.asksForReply(p.last_assistant_message)
             s.lastMessage = Self.excerpt(p.last_assistant_message)
             lastFinished = .now
@@ -208,11 +214,14 @@ final class AgentStore: ObservableObject {
         // Lignes modifiées : estimation à partir des chaînes de l'outil (ponytail: pas un vrai diff).
         guard let file, ["Edit", "Write", "MultiEdit"].contains(tool) else { return }
         func lines(_ t: String?) -> Int { t.map { $0.split(separator: "\n", omittingEmptySubsequences: false).count } ?? 0 }
+        var a = 0, r = 0
+        for e in input?.edits ?? [] { a += lines(e.new_string); r += lines(e.old_string) }
+        a += lines(input?.new_string) + lines(input?.content)
+        r += lines(input?.old_string)
         var d = s.diffs[file] ?? LineDiff()
-        for e in input?.edits ?? [] { d.added += lines(e.new_string); d.removed += lines(e.old_string) }
-        d.added += lines(input?.new_string) + lines(input?.content)
-        d.removed += lines(input?.old_string)
+        d.added += a; d.removed += r
         s.diffs[file] = d
+        s.turn?.addDiff(file: file, added: a, removed: r)
     }
 
     private func finishStep(_ s: inout AgentSession, _ p: AgentEnvelope.Payload) {

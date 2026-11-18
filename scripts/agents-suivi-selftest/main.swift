@@ -76,4 +76,12 @@ check(list.map(\.id) == ["1", "3", "4"], "TaskCreate après suppression : pas de
 check(AgentTasks.apply(tool: "TodoWrite", input: tool("{}"), to: list)! == list, "TodoWrite sans liste : inchangée")
 check(AgentTasks.apply(tool: "Bash", input: nil, to: []) == nil, "outil étranger")
 
+// MARK: Nom du projet
+
+check(AgentSession.projectName("/Users/x/Projects/boring.notch/.delta/worktrees/e9kkr72dbhq7/boring.notch") == "boring.notch", "worktree Delta dans le dépôt")
+check(AgentSession.projectName("/Users/x/Library/Application Support/Delta/worktrees/abc/qonto-dash") == "qonto-dash", "worktree Delta global")
+check(AgentSession.projectName("/Users/x/Documents/GitHub/WPDashboard/.claude/worktrees/admin-ui") == "WPDashboard", "worktree Claude")
+check(AgentSession.projectName("/Users/x/Documents/GitHub/WPDashboard/src") == "src", "dossier ordinaire : inchangé")
+check(AgentSession.projectName(nil) == "Sans projet" && AgentSession.projectName("/") == "Sans projet", "sans cwd")
+
 print("OK")

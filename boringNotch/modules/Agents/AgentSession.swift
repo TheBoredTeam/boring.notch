@@ -34,6 +34,7 @@ struct AgentSession: Identifiable, Equatable {
     var source: String          // claude, codex, cursor...
     var cwd: String?
     var title: String?          // premier prompt de la session
+    var topic: String?          // titre du fil Delta (hook), prioritaire sur title
     var app: String?            // bundle id du terminal / IDE, pour rouvrir la conversation
     var lastMessage: String?    // fin du dernier message de l'agent (extrait affiché au repos)
     var awaitsReply = false     // le dernier message de l'agent appelle une réponse de l'utilisateur
@@ -41,12 +42,20 @@ struct AgentSession: Identifiable, Equatable {
     var file: String?
     var steps: [AgentStep] = []
     var diffs: [String: LineDiff] = [:]   // par fichier, cumulé sur la session
+    var turn: TurnActivity?               // tour en cours ou dernier tour
+    var tasks: [AgentTask] = []           // liste de tâches de l'agent
     var startedAt: Date
     var updatedAt: Date
 
-    var project: String {
-        let name = cwd.map { ($0 as NSString).lastPathComponent } ?? ""
-        return name.isEmpty || name == "/" ? "Sans projet" : name
+    var project: String { Self.projectName(cwd) }
+    var subject: String { topic ?? title ?? "Nouvelle session" }
+
+    /// Nom du dépôt : un worktree Claude (`<dépôt>/.claude/worktrees/<nom>`) se rattache à son dépôt.
+    /// Un worktree Delta (`…/worktrees/<id>/<dépôt>`) porte déjà le nom du dépôt en dernier composant.
+    static func projectName(_ cwd: String?) -> String {
+        let parts = (cwd ?? "").split(separator: "/").map(String.init)
+        if let i = parts.firstIndex(of: ".claude"), i > 0, parts.count > i + 1, parts[i + 1] == "worktrees" { return parts[i - 1] }
+        return parts.last ?? "Sans projet"
     }
     /// Sessions techniques (génération de titre de T3 Code…) : jamais utiles à l'utilisateur.
     static func isNoise(_ prompt: String?) -> Bool { prompt?.hasPrefix("Generate a title") == true }
@@ -200,6 +209,7 @@ struct AgentEnvelope: Decodable {
     var source: String
     var kind: String?
     var app: String?
+    var topic: String?       // titre du fil Delta, ajouté par le hook (UserPromptSubmit / Stop)
     var wait: Bool?          // le hook attend une décision (PermissionRequest)
     var payload: Payload
 }
