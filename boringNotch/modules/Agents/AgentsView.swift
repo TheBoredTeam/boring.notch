@@ -532,7 +532,7 @@ private struct QuestionCard: View {
             .font(.system(size: 10, weight: .medium)).foregroundStyle(secondary)
         }
         .frame(maxHeight: .infinity, alignment: .top)
-        .task(id: request.id) { armed = false; try? await Task.sleep(for: armDelay); armed = true }
+        .task(id: "\(request.id)#\(index)") { armed = false; try? await Task.sleep(for: armDelay); armed = true }
     }
 
     private func option(_ o: AgentQuestion.Option) -> some View {

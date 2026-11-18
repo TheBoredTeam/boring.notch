@@ -34,7 +34,8 @@ struct RequestQueue: Equatable {
 
     /// Retire les demandes traitées ailleurs ; renvoie leurs ids (pour libérer les hooks).
     /// PostToolUse : la première demande de la session au même tool_use_id, ou, faute d'id sur la demande, au même outil.
-    /// UserPromptSubmit / Stop / SessionEnd : toutes celles de la session. Tout autre événement ne retire rien.
+    /// UserPromptSubmit / Stop / SessionEnd : toutes celles de la session. PreToolUse : celles de la session sans hook bloquant.
+    /// Tout autre événement ne retire rien.
     mutating func resolve(session: String, event: String, tool: String?, toolUseID: String?) -> [String] {
         switch event {
         case "PostToolUse":
@@ -44,6 +45,9 @@ struct RequestQueue: Equatable {
             return [items.remove(at: i).id]
         case "UserPromptSubmit", "Stop", "SessionEnd":
             return drop { $0.sessionID == session }
+        case "PreToolUse":
+            // Hook non bloquant (canAnswer == false) : la validation se fait au terminal, l'outil suivant prouve qu'elle est passée.
+            return drop { $0.sessionID == session && !$0.canAnswer }
         default:
             return []
         }

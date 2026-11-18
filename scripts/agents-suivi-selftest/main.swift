@@ -24,5 +24,9 @@ check(q.resolve(session: "S1", event: "Stop", tool: nil, toolUseID: nil) == ["a"
 check(q.remove(id: "b")?.id == "b" && q.current == nil, "réponse depuis le notch")
 q.add(req("e", "S4", "Bash", nil, 0))
 check(q.expire(now: Date(timeIntervalSince1970: 601), after: 600) == ["e"], "délai du hook dépassé")
+q.add(PendingRequest(id: "f", sessionID: "S5", tool: "Bash", toolUseID: nil, canAnswer: false, at: Date(timeIntervalSince1970: 0)))
+q.add(req("g", "S5", "Edit"))
+check(q.resolve(session: "S5", event: "PreToolUse", tool: "Read", toolUseID: nil) == ["f"], "PreToolUse libère seulement la demande non bloquante")
+check(q.items.map(\.id) == ["g"], "la demande bloquante reste")
 
 print("OK")
