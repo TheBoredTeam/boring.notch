@@ -8,7 +8,7 @@ import Foundation
 enum AgentState: Equatable {
     case thinking
     case running(tool: String)
-    case waiting          // en attente d'une approbation
+    case waiting          // en attente d'une approbation (une demande de la file lui appartient)
     case done
 }
 
@@ -35,10 +35,6 @@ struct AgentSession: Identifiable, Equatable {
     var cwd: String?
     var title: String?          // premier prompt de la session
     var app: String?            // bundle id du terminal / IDE, pour rouvrir la conversation
-    var ask: PermissionAsk?     // action en attente de validation, déjà mise en français
-    var canAnswer = false       // le hook est bloquant : le notch peut répondre (sinon : au terminal)
-    var questions: [AgentQuestion]?   // AskUserQuestion en attente de réponse
-    var plan: String?                 // ExitPlanMode : plan (Markdown) en attente d'approbation
     var lastMessage: String?    // fin du dernier message de l'agent (extrait affiché au repos)
     var awaitsReply = false     // le dernier message de l'agent appelle une réponse de l'utilisateur
     var state: AgentState = .thinking

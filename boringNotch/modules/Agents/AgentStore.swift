@@ -86,32 +86,43 @@ final class AgentStore: ObservableObject {
         NSWorkspace.shared.openApplication(at: url, configuration: cfg)
     }
 
-    /// Réponses en attente d'une décision, par session (hook PermissionRequest bloquant).
+    /// File des validations en attente (hook PermissionRequest bloquant), une entrée par demande.
+    @Published private(set) var queue = RequestQueue()
+    /// Réponses des hooks, indexées par PendingRequest.id.
     private var responders: [String: (String?) -> Void] = [:]
 
     /// Autoriser / refuser (ou approuver le plan) depuis le notch : renvoie la décision au hook,
     /// qui l'emballe pour l'agent (scripts/agent-permission.sh).
-    func decide(_ sid: String, allow: Bool) {
-        respond(sid, allow ? ["behavior": "allow"] : ["behavior": "deny", "message": "Refusé depuis Boring Notch"])
+    func decide(_ requestID: String, allow: Bool) {
+        respond(requestID, allow ? ["behavior": "allow"] : ["behavior": "deny", "message": "Refusé depuis Boring Notch"])
     }
 
     /// Réponses à AskUserQuestion : texte de la question -> libellé(s) choisi(s), séparés par des virgules.
-    func answer(_ sid: String, _ answers: [String: String]) {
-        respond(sid, ["behavior": "allow", "answers": answers])
+    func answer(_ requestID: String, _ answers: [String: String]) {
+        respond(requestID, ["behavior": "allow", "answers": answers])
     }
 
-    private func respond(_ sid: String, _ decision: [String: Any]) {
-        guard let r = responders.removeValue(forKey: sid),
-              let json = try? JSONSerialization.data(withJSONObject: decision) else { return }
-        r(String(decoding: json, as: UTF8.self))
-        guard var s = sessions.first(where: { $0.id == sid }) else { return }
-        s.ask = nil; s.questions = nil; s.plan = nil; s.state = .thinking
-        upsert(s)
+    private func respond(_ requestID: String, _ decision: [String: Any]) {
+        guard queue.remove(id: requestID) != nil else { return }
+        if let r = responders.removeValue(forKey: requestID), let json = try? JSONSerialization.data(withJSONObject: decision) {
+            r(String(decoding: json, as: UTF8.self))
+        }
+        syncWaiting()
+    }
+
+    /// Libère les hooks des demandes retirées de la file (traitées ailleurs ou périmées).
+    private func release(_ ids: [String]) { ids.forEach { responders.removeValue(forKey: $0)?(nil) } }
+
+    /// Une session reste .waiting tant qu'une de ses demandes est dans la file ; sinon elle reprend.
+    private func syncWaiting() {
+        for i in sessions.indices where sessions[i].state == .waiting && !queue.pending(in: sessions[i].id) { sessions[i].state = .thinking }
     }
 
     func apply(_ env: AgentEnvelope, reply: ((String?) -> Void)? = nil) {
         let p = env.payload
         if let l = p.rate_limits { applyUsage(l, source: env.source) }
+        release(queue.expire(now: .now, after: 600))   // le hook a rendu la main à l'agent au bout de 600 s
+        syncWaiting()
         guard let sid = p.session_id, !noiseIDs.contains(sid) else { return }
         if AgentSession.isNoise(p.prompt) {
             noiseIDs.insert(sid)
@@ -128,10 +139,11 @@ final class AgentStore: ObservableObject {
         if env.kind == "statusline" { upsert(s); return }
         if let f = p.tool_input?.file_path { s.file = f }
         let wasWaiting = s.state == .waiting
-        s.ask = nil; s.questions = nil; s.plan = nil
         s.awaitsReply = false
-        // Une autre activité de la session = la validation a été traitée ailleurs (terminal) : on libère le hook.
-        if p.hook_event_name != "PermissionRequest" { responders.removeValue(forKey: sid)?(nil) }
+        // Une demande traitée ailleurs (terminal) se reconnaît à ce qui suit : on la retire et on libère son hook.
+        if p.hook_event_name != "PermissionRequest" {
+            release(queue.resolve(session: sid, event: p.hook_event_name ?? "", tool: p.tool_name, toolUseID: p.tool_use_id))
+        }
 
         switch p.hook_event_name {
         case "UserPromptSubmit":
@@ -145,12 +157,15 @@ final class AgentStore: ObservableObject {
             finishStep(&s, p)
         case "PermissionRequest":
             s.state = .waiting
-            if let reply { responders.removeValue(forKey: sid)?(nil); responders[sid] = reply }
-            s.ask = PermissionAsk(agent: s.source.capitalized, tool: p.tool_name ?? "…", input: p.tool_input)
-            s.canAnswer = reply != nil
             // Sans hook bloquant (reply nil), le notch ne peut pas répondre : simple validation à faire au terminal.
-            if reply != nil, p.tool_name == "AskUserQuestion" { s.questions = p.tool_input?.questions }
-            if reply != nil, p.tool_name == "ExitPlanMode" { s.plan = p.tool_input?.plan }
+            let tool = p.tool_name ?? "…"
+            var r = PendingRequest(id: UUID().uuidString, sessionID: sid, tool: tool, toolUseID: p.tool_use_id,
+                                   ask: PermissionAsk(agent: s.source.capitalized, tool: tool, input: p.tool_input),
+                                   canAnswer: reply != nil, at: .now)
+            if reply != nil, tool == "AskUserQuestion" { r.questions = p.tool_input?.questions }
+            if reply != nil, tool == "ExitPlanMode" { r.plan = p.tool_input?.plan }
+            if let reply { responders[r.id] = reply }
+            queue.add(r)
             if !wasWaiting { NSSound(named: "Glass")?.play() }
         case "Stop":
             s.state = .done
@@ -164,6 +179,7 @@ final class AgentStore: ObservableObject {
             return
         default: break
         }
+        if queue.pending(in: sid) { s.state = .waiting }   // une autre demande de la session attend encore
         s.updatedAt = .now
         // Pre/PostToolUse arrivent par centaines et ne changent rien de ce qui est sauvegardé : pas d'écriture disque.
         upsert(s, persist: !["PreToolUse", "PostToolUse"].contains(p.hook_event_name))
