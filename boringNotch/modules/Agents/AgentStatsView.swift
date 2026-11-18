@@ -46,7 +46,7 @@ import SwiftUI
     // ponytail: le livre est réécrit en entier quand il change ; à passer en incrémental s'il dépasse quelques Mo.
     nonisolated private static func work(_ known: StatsBook?) -> (book: StatsBook, summary: StatsSummary, files: Int) {
         let calendar = Calendar.current, now = Date()
-        let disk = try? Data(contentsOf: file)
+        let disk = known == nil ? try? Data(contentsOf: file) : nil   // le disque ne se lit qu'au premier chargement
         var book = known ?? disk.flatMap { try? JSONDecoder().decode(StatsBook.self, from: $0) } ?? StatsBook()
         let before = book
         let files = book.scan(root: root, calendar: calendar, today: now)

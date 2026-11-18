@@ -121,13 +121,14 @@ final class AgentStore: ObservableObject {
     func apply(_ env: AgentEnvelope, reply: ((String?) -> Void)? = nil) {
         let p = env.payload
         if let l = p.rate_limits { applyUsage(l, source: env.source) }
-        release(queue.expire(now: .now, after: 600))   // le hook a rendu la main à l'agent au bout de 600 s
+        release(queue.expire(now: .now, after: 585))   // le hook rend la main à l'agent à 590 s (scripts/agent-permission.sh) : on s'y prend avant
         syncWaiting()
-        guard let sid = p.session_id, !noiseIDs.contains(sid) else { return }
+        guard let sid = p.session_id, !noiseIDs.contains(sid) else { reply?(nil); return }   // libère le hook bloquant
         if AgentSession.isNoise(p.prompt) {
             noiseIDs.insert(sid)
             sessions.removeAll { $0.id == sid }
             save()
+            reply?(nil)
             return
         }
 
@@ -139,11 +140,11 @@ final class AgentStore: ObservableObject {
         if let t = env.topic, !t.isEmpty { s.topic = t }
         if env.kind == "statusline" { upsert(s); return }
         if let f = p.tool_input?.file_path { s.file = f }
-        let wasWaiting = s.state == .waiting
         s.awaitsReply = false
         // Une demande traitée ailleurs (terminal) se reconnaît à ce qui suit : on la retire et on libère son hook.
         if p.hook_event_name != "PermissionRequest" {
-            release(queue.resolve(session: sid, event: p.hook_event_name ?? "", tool: p.tool_name, toolUseID: p.tool_use_id))
+            release(queue.resolve(session: sid, event: p.hook_event_name ?? "", tool: p.tool_name, toolUseID: p.tool_use_id,
+                                       fingerprint: p.tool_input?.fingerprint))
         }
 
         switch p.hook_event_name {
@@ -151,12 +152,13 @@ final class AgentStore: ObservableObject {
             if s.title == nil, let t = p.prompt?.split(whereSeparator: \.isNewline).first { s.title = String(t) }
             s.state = .thinking
             s.turn = TurnActivity(startedAt: .now)
+            if s.tasks.allSatisfy({ $0.status == .completed }) { s.tasks = [] }   // la liste d'un tour fini ne survit pas au suivant
         case "PreToolUse":
             s.state = .running(tool: p.tool_name ?? "…")
             s.turn?.record(.of(tool: p.tool_name ?? ""), at: .now)
             if let l = AgentTasks.apply(tool: p.tool_name ?? "", input: p.tool_input, to: s.tasks) { s.tasks = l }
             startStep(&s, p)
-        case "PostToolUse":
+        case "PostToolUse", "PostToolUseFailure":
             s.state = .thinking
             finishStep(&s, p)
         case "PermissionRequest":
@@ -165,13 +167,13 @@ final class AgentStore: ObservableObject {
             // Sans hook bloquant (reply nil), le notch ne peut pas répondre : simple validation à faire au terminal.
             let tool = p.tool_name ?? "…"
             var r = PendingRequest(id: UUID().uuidString, sessionID: sid, tool: tool, toolUseID: p.tool_use_id,
-                                   ask: PermissionAsk(agent: s.source.capitalized, tool: tool, input: p.tool_input),
+                                   fingerprint: p.tool_input?.fingerprint, ask: PermissionAsk(agent: s.source.capitalized, tool: tool, input: p.tool_input),
                                    canAnswer: reply != nil, at: .now)
             if reply != nil, tool == "AskUserQuestion" { r.questions = p.tool_input?.questions }
             if reply != nil, tool == "ExitPlanMode" { r.plan = p.tool_input?.plan }
             if let reply { responders[r.id] = reply }
             queue.add(r)
-            if !wasWaiting { NSSound(named: "Glass")?.play() }
+            NSSound(named: "Glass")?.play()   // à chaque nouvelle demande, même si la session attendait déjà
         case "Stop":
             s.state = .done
             s.turn?.endedAt = .now
@@ -188,7 +190,7 @@ final class AgentStore: ObservableObject {
         if queue.pending(in: sid) { s.state = .waiting }   // une autre demande de la session attend encore
         s.updatedAt = .now
         // Pre/PostToolUse arrivent par centaines et ne changent rien de ce qui est sauvegardé : pas d'écriture disque.
-        upsert(s, persist: !["PreToolUse", "PostToolUse"].contains(p.hook_event_name))
+        upsert(s, persist: !["PreToolUse", "PostToolUse", "PostToolUseFailure"].contains(p.hook_event_name))
     }
 
     /// Met la session en tête de liste (ou la crée) sans toucher à son état.

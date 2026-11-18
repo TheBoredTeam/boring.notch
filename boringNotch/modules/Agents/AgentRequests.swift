@@ -15,6 +15,7 @@ struct PendingRequest: Identifiable, Equatable {
     let sessionID: String
     let tool: String
     let toolUseID: String?    // si le payload PermissionRequest en a un
+    var fingerprint: String?  // commande / fichier / description : départage deux demandes du même outil sans tool_use_id
     var ask: PermissionAsk?   // action en attente de validation, déjà mise en français
     var questions: [AgentQuestion]?   // AskUserQuestion en attente de réponse
     var plan: String?                 // ExitPlanMode : plan (Markdown) en attente d'approbation
@@ -33,14 +34,16 @@ struct RequestQueue: Equatable {
     }
 
     /// Retire les demandes traitées ailleurs ; renvoie leurs ids (pour libérer les hooks).
-    /// PostToolUse : la première demande de la session au même tool_use_id, ou, faute d'id sur la demande, au même outil.
+    /// PostToolUse / PostToolUseFailure : la première demande de la session au même tool_use_id, ou, faute d'id sur la demande,
+    /// au même outil et à la même empreinte (une demande sans empreinte : l'outil seul).
     /// UserPromptSubmit / Stop / SessionEnd : toutes celles de la session. PreToolUse : celles de la session sans hook bloquant.
     /// Tout autre événement ne retire rien.
-    mutating func resolve(session: String, event: String, tool: String?, toolUseID: String?) -> [String] {
+    mutating func resolve(session: String, event: String, tool: String?, toolUseID: String?, fingerprint: String? = nil) -> [String] {
         switch event {
-        case "PostToolUse":
+        case "PostToolUse", "PostToolUseFailure":
             guard let i = items.firstIndex(where: {
-                $0.sessionID == session && ($0.toolUseID != nil ? $0.toolUseID == toolUseID : $0.tool == tool)
+                $0.sessionID == session && ($0.toolUseID != nil ? $0.toolUseID == toolUseID
+                    : $0.tool == tool && ($0.fingerprint == nil || $0.fingerprint == fingerprint))
             }) else { return [] }
             return [items.remove(at: i).id]
         case "UserPromptSubmit", "Stop", "SessionEnd":

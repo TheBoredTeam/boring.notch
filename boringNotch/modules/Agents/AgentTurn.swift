@@ -86,7 +86,12 @@ struct TurnActivity: Equatable {
             last[i][tick.kind] = rank
         }
         return (0..<n).map { i in
-            counts[i].max { a, b in
+            if counts[i].isEmpty {
+                // Une attente n'écrit qu'un tick : les tranches vides jusqu'au tick suivant (ou à la fin) en font partie.
+                let from = startedAt + Double(i) * d
+                return d > 0 && ticks.last(where: { $0.at >= startedAt && $0.at <= from })?.kind == .wait ? .wait : nil
+            }
+            return counts[i].max { a, b in
                 a.value != b.value ? a.value < b.value : last[i][a.key]! < last[i][b.key]!
             }?.key
         }

@@ -133,6 +133,8 @@ struct AgentEnvelope: Decodable {
         var subject: String?              // TaskCreate
         var taskId: String?               // TaskUpdate
         var status: String?               // TaskUpdate
+        /// Empreinte de l'appel : PermissionRequest et PostToolUse portent le même tool_input.
+        var fingerprint: String? { command ?? file_path ?? description }
         var scalars: [String: String] = [:]   // tous les paramètres simples (url, query, ids d'un outil MCP…)
 
         private struct Key: CodingKey {

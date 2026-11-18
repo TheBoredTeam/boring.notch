@@ -7,6 +7,10 @@ func check(_ cond: Bool, _ msg: String) { if !cond { print("FAIL: \(msg)"); exit
 
 // MARK: File des demandes
 
+func tool(_ json: String) -> AgentEnvelope.ToolInput {
+    try! JSONDecoder().decode(AgentEnvelope.ToolInput.self, from: Data(json.utf8))
+}
+
 func req(_ id: String, _ s: String, _ tool: String, _ tu: String? = nil, _ at: Double = 0) -> PendingRequest {
     PendingRequest(id: id, sessionID: s, tool: tool, toolUseID: tu, canAnswer: true, at: Date(timeIntervalSince1970: at))
 }
@@ -29,6 +33,18 @@ q.add(req("g", "S5", "Edit"))
 check(q.resolve(session: "S5", event: "PreToolUse", tool: "Read", toolUseID: nil) == ["f"], "PreToolUse libère seulement la demande non bloquante")
 check(q.items.map(\.id) == ["g"], "la demande bloquante reste")
 
+// Deux Bash en parallèle sans tool_use_id : seule la commande validée ailleurs est libérée.
+var q2 = RequestQueue()
+func bash(_ id: String, _ cmd: String) -> PendingRequest {
+    PendingRequest(id: id, sessionID: "S6", tool: "Bash", toolUseID: nil, fingerprint: cmd, canAnswer: true, at: Date(timeIntervalSince1970: 0))
+}
+q2.add(bash("x", "rm -rf build")); q2.add(bash("y", "ls"))
+check(q2.resolve(session: "S6", event: "PostToolUse", tool: "Bash", toolUseID: nil, fingerprint: "ls") == ["y"], "empreinte : seule la commande jouée est libérée")
+check(q2.items.map(\.id) == ["x"], "empreinte : la demande sœur reste")
+check(q2.resolve(session: "S6", event: "PostToolUse", tool: "Bash", toolUseID: nil, fingerprint: "pwd").isEmpty, "empreinte inconnue : rien")
+check(q2.resolve(session: "S6", event: "PostToolUseFailure", tool: "Bash", toolUseID: nil, fingerprint: "rm -rf build") == ["x"], "PostToolUseFailure libère comme PostToolUse")
+check(tool(#"{"command":"ls","file_path":"/a"}"#).fingerprint == "ls" && tool(#"{"file_path":"/a"}"#).fingerprint == "/a" && tool("{}").fingerprint == nil, "empreinte du tool_input")
+
 // MARK: Tour en cours
 
 check(ActivityKind.of(tool: "Read") == .read && ActivityKind.of(tool: "Grep") == .read && ActivityKind.of(tool: "Glob") == .read, "lecture")
@@ -42,6 +58,15 @@ for i in 5..<10 { t.record(.edit, at: t0 + Double(i)) }
 t.addDiff(file: "/a", added: 3, removed: 1); t.addDiff(file: "/a", added: 2, removed: 0); t.addDiff(file: "/b", added: 1, removed: 1)
 check(t.files.count == 2 && t.added == 6 && t.removed == 2, "totaux du tour")
 check(t.buckets(2, now: t0 + 10) == [.read, .edit], "tranches dominantes")
+var w = TurnActivity(startedAt: t0)
+w.record(.wait, at: t0); w.record(.read, at: t0 + 10)
+check(w.buckets(5, now: t0 + 10) == [.wait, .wait, .wait, .wait, .read], "attente : les tranches vides jusqu'au tick suivant")
+var w2 = TurnActivity(startedAt: t0)
+w2.record(.wait, at: t0)
+check(w2.buckets(4, now: t0 + 8) == [.wait, .wait, .wait, .wait], "attente en cours : jusqu'à maintenant")
+var w3 = TurnActivity(startedAt: t0)
+w3.record(.read, at: t0)
+check(w3.buckets(4, now: t0 + 8) == [.read, nil, nil, nil], "hors attente : tranches vides inchangées")
 check(t.buckets(4, now: t0 + 20)[3] == nil, "tranche sans activité = nil")
 check(t.phases(now: t0 + 10) == [.read, .edit], "phases")
 t.endedAt = t0 + 10
@@ -53,9 +78,6 @@ check(t.buckets(28, now: t0 + 5010).last == .run, "tour long : la fin reste visi
 
 // MARK: Liste de tâches
 
-func tool(_ json: String) -> AgentEnvelope.ToolInput {
-    try! JSONDecoder().decode(AgentEnvelope.ToolInput.self, from: Data(json.utf8))
-}
 let plan = #"[{"content":"A","status":"completed"},{"content":"B","status":"in_progress"},{"content":"C","status":"pending"}]"#
 var list = AgentTasks.apply(tool: "TodoWrite", input: tool(#"{"todos":\#(plan)}"#), to: [])!
 check(list.map(\.status) == [.completed, .inProgress, .pending] && list[1].title == "B", "TodoWrite")
