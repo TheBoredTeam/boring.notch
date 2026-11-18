@@ -1,5 +1,5 @@
 // Auto-test de la validité des limites d'usage.
-// swiftc boringNotch/modules/Agents/AgentSession.swift scripts/usage-selftest/main.swift -o "$TMPDIR/usage-selftest" && "$TMPDIR/usage-selftest"
+// swiftc boringNotch/modules/Agents/AgentSession.swift boringNotch/modules/Agents/PermissionAsk.swift boringNotch/modules/Agents/AgentTurn.swift scripts/usage-selftest/main.swift -o "$TMPDIR/usage-selftest" && "$TMPDIR/usage-selftest"
 
 import Foundation
 
