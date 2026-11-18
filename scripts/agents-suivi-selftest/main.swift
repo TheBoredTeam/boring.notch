@@ -1,5 +1,5 @@
 // Auto-test du suivi des agents (file de demandes, tours, statistiques).
-// swiftc boringNotch/modules/Agents/AgentSession.swift boringNotch/modules/Agents/PermissionAsk.swift boringNotch/modules/Agents/AgentRequests.swift boringNotch/modules/Agents/AgentTurn.swift scripts/agents-suivi-selftest/main.swift -o "$TMPDIR/agents-suivi-selftest" && "$TMPDIR/agents-suivi-selftest"
+// swiftc boringNotch/modules/Agents/AgentSession.swift boringNotch/modules/Agents/PermissionAsk.swift boringNotch/modules/Agents/AgentRequests.swift boringNotch/modules/Agents/AgentTurn.swift boringNotch/modules/Agents/AgentStats.swift scripts/agents-suivi-selftest/main.swift -o "$TMPDIR/agents-suivi-selftest" && "$TMPDIR/agents-suivi-selftest"
 
 import Foundation
 
@@ -87,5 +87,64 @@ check(AgentSession.projectName("/Users/x/Library/Application Support/Delta/workt
 check(AgentSession.projectName("/Users/x/Documents/GitHub/WPDashboard/.claude/worktrees/admin-ui") == "WPDashboard", "worktree Claude")
 check(AgentSession.projectName("/Users/x/Documents/GitHub/WPDashboard/src") == "src", "dossier ordinaire : inchangé")
 check(AgentSession.projectName(nil) == "Sans projet" && AgentSession.projectName("/") == "Sans projet", "sans cwd")
+
+// MARK: Statistiques
+
+var cal = Calendar(identifier: .gregorian)
+cal.timeZone = TimeZone(identifier: "Europe/Paris")!
+func line(_ id: String, model: String = "claude-opus-5-5", ts: String = "2026-11-18T10:00:00.000Z", type: String = "assistant", extra: String = "") -> String {
+    "{\"type\":\"\(type)\",\"timestamp\":\"\(ts)\",\"cwd\":\"/p/boring.notch/.delta/worktrees/x/boring.notch\",\"message\":{\"id\":\"\(id)\",\"model\":\"\(model)\",\"usage\":{\"input_tokens\":1000,\"output_tokens\":500,\"cache_creation_input_tokens\":2000,\"cache_read_input_tokens\":10000\(extra)}}}"
+}
+let m1 = line("m1")
+let p1 = StatsLine.parse(Data(m1.utf8), calendar: cal)
+check(p1?.project == "boring.notch" && p1?.model == "claude-opus-5-5" && p1?.day == "2026-11-18", "parse : projet, modèle, jour")
+check(p1?.usage == TokenUsage(input: 1000, output: 500, cacheWrite: 2000, cacheRead: 10000), "parse : usage")
+check(StatsLine.parse(Data(line("u", type: "user").utf8), calendar: cal) == nil, "parse : ligne user ignorée")
+check(StatsLine.parse(Data(line("s", model: "<synthetic>").utf8), calendar: cal) == nil, "parse : <synthetic> ignoré")
+check(StatsLine.parse(Data("not json".utf8), calendar: cal) == nil, "parse : pas du JSON")
+check(StatsLine.parse(Data(line("n", ts: "2026-11-18T23:30:00.000Z").utf8), calendar: cal)?.day == "2026-11-19", "parse : jour local (Paris)")
+check(StatsLine.parse(Data(line("h", extra: ",\"cache_creation\":{\"ephemeral_1h_input_tokens\":500,\"ephemeral_5m_input_tokens\":1500}").utf8), calendar: cal)?.usage.cacheWrite1h == 500, "parse : cache 1 h")
+
+let v1 = Pricing.value(model: "claude-opus-5-5", p1!.usage)
+let v2 = Pricing.value(model: "claude-opus-5-5", TokenUsage(input: 1000, output: 500, cacheWrite: 2000, cacheRead: 10000))
+var book = StatsBook()
+let m2 = line("m2", model: "claude-sonnet-5-5")
+book.ingest(path: "/a.jsonl", chunk: Data((m1 + "\n" + m1 + "\n" + m2 + "\n").utf8), calendar: cal)
+let want = v1 + Pricing.value(model: "claude-sonnet-5-5", p1!.usage)
+check(v1 == v2 && abs(book.days["2026-11-18"]!.value - want) < 1e-12, "ingest : m1 dédoublonné")
+check(book.days["2026-11-18"]!.byProject["boring.notch"] != nil && book.days["2026-11-18"]!.byModel.count == 2, "ingest : ventilation modèle/projet")
+book.ingest(path: "/a.jsonl", chunk: Data((m1 + "\n").utf8), calendar: cal)
+check(abs(book.days["2026-11-18"]!.value - want) < 1e-12, "ingest : dédoublonnage entre deux lectures")
+
+var b2 = StatsBook()
+let first = line("a1") + "\n" + line("a2")
+b2.ingest(path: "/b.jsonl", chunk: Data(first.utf8), calendar: cal)
+check(b2.offsets["/b.jsonl"] == UInt64(line("a1").utf8.count + 1), "ingest : offset après le dernier \\n")
+check(abs(b2.days["2026-11-18"]!.value - v1) < 1e-12, "ingest : ligne incomplète non comptée")
+b2.ingest(path: "/b.jsonl", chunk: Data((line("a2") + "\n").utf8), calendar: cal)
+check(abs(b2.days["2026-11-18"]!.value - 2 * v1) < 1e-12, "ingest : le reste complète la ligne")
+check(b2.offsets["/b.jsonl"] == UInt64(first.utf8.count + 1), "ingest : offset final")
+
+for m in ["claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5", "claude-fable-5-2"] {
+    check(Pricing.value(model: m, TokenUsage(input: 1000, output: 1000, cacheWrite: 0, cacheRead: 0)) > 0, "tarif \(m)")
+}
+check(Pricing.value(model: "inconnu", TokenUsage(input: 1000, output: 500, cacheWrite: 2000, cacheRead: 10000)) == 0, "modèle inconnu = 0")
+// Opus 5.5 : 4 $ entrée / 20 $ sortie par million ; cache 5 min ×1,25, cache 1 h ×2, lecture ×0,1.
+check(abs(Pricing.value(model: "claude-opus-5-5", TokenUsage(input: 1000, output: 500, cacheWrite: 2000, cacheRead: 10000)) - (4000.0 + 10000 + 10000 + 4000) / 1e6) < 1e-12, "formule Opus")
+check(abs(Pricing.value(model: "claude-opus-5-5", TokenUsage(input: 1000, output: 500, cacheWrite: 2000, cacheRead: 10000, cacheWrite1h: 500)) - (4000.0 + 10000 + 7500 + 4000 + 4000) / 1e6) < 1e-12, "formule avec cache 1 h")
+
+let today = cal.date(from: DateComponents(year: 2026, month: 11, day: 19, hour: 12))!
+var fab = StatsBook()
+for i in 1...7 {
+    let d = cal.date(byAdding: .day, value: -i, to: today)!
+    fab.days[statsDayKey(d, calendar: cal)] = DayStats(value: 10, byModel: ["claude-opus-5-5": 8, "claude-sonnet-5-5": 2], byProject: ["a": 5, "b": 3, "c": 1, "d": 1])
+}
+fab.days["2026-11-19"] = DayStats(value: 12, byModel: ["claude-opus-5-5": 12], byProject: ["a": 12])
+let sum = StatsSummary.make(fab, today: today, calendar: cal)
+check(sum.today == 12 && abs(sum.trend! - 0.2) < 1e-9, "résumé : aujourd'hui et tendance")
+check(sum.grid.count == 84 && sum.grid.last == 12 && sum.grid.first == 0, "résumé : grille de 84 jours")
+check(abs(sum.models.map(\.share).reduce(0, +) - 1) < 1e-9 && sum.models.first?.name == "claude-opus-5-5", "résumé : parts des modèles")
+check(sum.projects.count == 3 && sum.projects.first?.name == "a", "résumé : 3 premiers projets")
+check(StatsSummary.make(StatsBook(), today: today, calendar: cal).trend == nil, "résumé : tendance nil sans historique")
 
 print("OK")
