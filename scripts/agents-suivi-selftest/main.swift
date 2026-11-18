@@ -92,8 +92,9 @@ check(AgentSession.projectName(nil) == "Sans projet" && AgentSession.projectName
 
 var cal = Calendar(identifier: .gregorian)
 cal.timeZone = TimeZone(identifier: "Europe/Paris")!
-func line(_ id: String, model: String = "claude-opus-5-5", ts: String = "2026-11-18T10:00:00.000Z", type: String = "assistant", extra: String = "") -> String {
-    "{\"type\":\"\(type)\",\"timestamp\":\"\(ts)\",\"cwd\":\"/p/boring.notch/.delta/worktrees/x/boring.notch\",\"message\":{\"id\":\"\(id)\",\"model\":\"\(model)\",\"usage\":{\"input_tokens\":1000,\"output_tokens\":500,\"cache_creation_input_tokens\":2000,\"cache_read_input_tokens\":10000\(extra)}}}"
+func line(_ id: String, model: String = "claude-opus-5-5", ts: String = "2026-11-18T10:00:00.000Z", type: String = "assistant",
+          cwd: String = "/p/boring.notch/.delta/worktrees/x/boring.notch", extra: String = "") -> String {
+    "{\"type\":\"\(type)\",\"timestamp\":\"\(ts)\",\"cwd\":\"\(cwd)\",\"message\":{\"id\":\"\(id)\",\"model\":\"\(model)\",\"usage\":{\"input_tokens\":1000,\"output_tokens\":500,\"cache_creation_input_tokens\":2000,\"cache_read_input_tokens\":10000\(extra)}}}"
 }
 let m1 = line("m1")
 let p1 = StatsLine.parse(Data(m1.utf8), calendar: cal)
@@ -103,18 +104,25 @@ check(StatsLine.parse(Data(line("u", type: "user").utf8), calendar: cal) == nil,
 check(StatsLine.parse(Data(line("s", model: "<synthetic>").utf8), calendar: cal) == nil, "parse : <synthetic> ignoré")
 check(StatsLine.parse(Data("not json".utf8), calendar: cal) == nil, "parse : pas du JSON")
 check(StatsLine.parse(Data(line("n", ts: "2026-11-18T23:30:00.000Z").utf8), calendar: cal)?.day == "2026-11-19", "parse : jour local (Paris)")
+check(StatsLine.parse(Data(line("n2", ts: "2026-11-18T23:30:00Z").utf8), calendar: cal)?.day == "2026-11-19", "parse : horodatage sans fraction")
 check(StatsLine.parse(Data(line("h", extra: ",\"cache_creation\":{\"ephemeral_1h_input_tokens\":500,\"ephemeral_5m_input_tokens\":1500}").utf8), calendar: cal)?.usage.cacheWrite1h == 500, "parse : cache 1 h")
 
 let v1 = Pricing.value(model: "claude-opus-5-5", p1!.usage)
-let v2 = Pricing.value(model: "claude-opus-5-5", TokenUsage(input: 1000, output: 500, cacheWrite: 2000, cacheRead: 10000))
 var book = StatsBook()
 let m2 = line("m2", model: "claude-sonnet-5-5")
 book.ingest(path: "/a.jsonl", chunk: Data((m1 + "\n" + m1 + "\n" + m2 + "\n").utf8), calendar: cal)
 let want = v1 + Pricing.value(model: "claude-sonnet-5-5", p1!.usage)
-check(v1 == v2 && abs(book.days["2026-11-18"]!.value - want) < 1e-12, "ingest : m1 dédoublonné")
+check(abs(book.days["2026-11-18"]!.value - want) < 1e-12, "ingest : m1 dédoublonné")
 check(book.days["2026-11-18"]!.byProject["boring.notch"] != nil && book.days["2026-11-18"]!.byModel.count == 2, "ingest : ventilation modèle/projet")
 book.ingest(path: "/a.jsonl", chunk: Data((m1 + "\n").utf8), calendar: cal)
 check(abs(book.days["2026-11-18"]!.value - want) < 1e-12, "ingest : dédoublonnage entre deux lectures")
+book.ingest(path: "/autre-session.jsonl", chunk: Data((m1 + "\n").utf8), calendar: cal)
+check(abs(book.days["2026-11-18"]!.value - want) < 1e-12, "ingest : même id dans un autre fichier compté une seule fois")
+var pruned = book
+pruned.prune(today: cal.date(from: DateComponents(year: 2026, month: 11, day: 19, hour: 12))!, calendar: cal)
+check(pruned.seen.keys.sorted() == ["m1", "m2"], "prune : ids récents conservés")
+pruned.prune(today: cal.date(from: DateComponents(year: 2027, month: 3, day: 1, hour: 12))!, calendar: cal)
+check(pruned.seen.isEmpty && pruned.days == book.days, "prune : ids de plus de 84 jours oubliés, jours intacts")
 
 var b2 = StatsBook()
 let first = line("a1") + "\n" + line("a2")
@@ -125,25 +133,45 @@ b2.ingest(path: "/b.jsonl", chunk: Data((line("a2") + "\n").utf8), calendar: cal
 check(abs(b2.days["2026-11-18"]!.value - 2 * v1) < 1e-12, "ingest : le reste complète la ligne")
 check(b2.offsets["/b.jsonl"] == UInt64(first.utf8.count + 1), "ingest : offset final")
 
+// Multi-octets : l'offset compte des octets UTF-8, pas des caractères.
+var b3 = StatsBook()
+let accent = line("e1", cwd: "/p/café-🚀/zé") + "\n" + line("e2", cwd: "/p/café-🚀/zé") + "\n"
+let partial = line("e3", cwd: "/p/café-🚀/zé")
+b3.ingest(path: "/c.jsonl", chunk: Data((accent + partial).utf8), calendar: cal)
+check(b3.offsets["/c.jsonl"] == UInt64(accent.utf8.count) && accent.utf8.count > accent.count, "ingest : offset en octets UTF-8")
+check(b3.days["2026-11-18"]!.byProject["zé"] != nil && b3.seen.count == 2, "ingest : cwd accentué lu, ligne incomplète exclue")
+
 for m in ["claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5", "claude-fable-5-2"] {
     check(Pricing.value(model: m, TokenUsage(input: 1000, output: 1000, cacheWrite: 0, cacheRead: 0)) > 0, "tarif \(m)")
 }
-check(Pricing.value(model: "inconnu", TokenUsage(input: 1000, output: 500, cacheWrite: 2000, cacheRead: 10000)) == 0, "modèle inconnu = 0")
-// Opus 5.5 : 4 $ entrée / 20 $ sortie par million ; cache 5 min ×1,25, cache 1 h ×2, lecture ×0,1.
-check(abs(Pricing.value(model: "claude-opus-5-5", TokenUsage(input: 1000, output: 500, cacheWrite: 2000, cacheRead: 10000)) - (4000.0 + 10000 + 10000 + 4000) / 1e6) < 1e-12, "formule Opus")
-check(abs(Pricing.value(model: "claude-opus-5-5", TokenUsage(input: 1000, output: 500, cacheWrite: 2000, cacheRead: 10000, cacheWrite1h: 500)) - (4000.0 + 10000 + 7500 + 4000 + 4000) / 1e6) < 1e-12, "formule avec cache 1 h")
+let u = TokenUsage(input: 1000, output: 500, cacheWrite: 2000, cacheRead: 10000)
+check(Pricing.value(model: "inconnu", u) == 0, "modèle inconnu = 0")
+func near(_ model: String, _ usage: TokenUsage, _ micro: Double) -> Bool { abs(Pricing.value(model: model, usage) - micro / 1e6) < 1e-12 }
+// Opus 5.5 : 4 $ / 20 $ par million ; cache 5 min ×1,25, 1 h ×2, lecture ×0,05.
+check(near("claude-opus-5-5", u, 4000 + 10000 + 10000 + 2000), "formule Opus 5.5")
+check(near("claude-opus-5-5", TokenUsage(input: 1000, output: 500, cacheWrite: 2000, cacheRead: 10000, cacheWrite1h: 500), 4000 + 10000 + 7500 + 4000 + 2000), "formule avec cache 1 h")
+check(near("claude-opus-4-8", u, 5000 + 12500 + 12500 + 5000), "Opus 4.8 : 5 $ / 25 $, lecture ×0,1")
+check(near("claude-sonnet-5-5", u, 2000 + 5000 + 5000 + 1000), "Sonnet 5.5 : lecture ×0,05")
+check(near("claude-sonnet-4-6", u, 3000 + 7500 + 7500 + 3000), "Sonnet 4.6 : 3 $ / 15 $")
+check(near("claude-haiku-5-5", u, 100 + 250 + 250 + 100), "Haiku 5.5 : 0,10 $ / 0,50 $, lecture ×0,1")
+check(near("claude-haiku-4-5-20251001", u, 1000 + 2500 + 2500 + 1000), "Haiku 4.5 : 1 $ / 5 $")
+check(near("claude-fable-5-2", u, 8000 + 20000 + 20000 + 2000), "Fable 5.2 : 8 $ / 40 $, lecture ×0,025")
+check(near("claude-fable-5-1", u, 10000 + 25000 + 25000 + 2500), "Fable 5.1 : 10 $ / 50 $, lecture ×0,025")
+check(Pricing.familyName("claude-opus-4-8") == "Opus" && Pricing.familyName("claude-haiku-4-5-20251001") == "Haiku" && Pricing.familyName("inconnu") == "inconnu", "nom de famille")
 
 let today = cal.date(from: DateComponents(year: 2026, month: 11, day: 19, hour: 12))!
 var fab = StatsBook()
 for i in 1...7 {
     let d = cal.date(byAdding: .day, value: -i, to: today)!
-    fab.days[statsDayKey(d, calendar: cal)] = DayStats(value: 10, byModel: ["claude-opus-5-5": 8, "claude-sonnet-5-5": 2], byProject: ["a": 5, "b": 3, "c": 1, "d": 1])
+    // la veille : une autre génération d'Opus, repliée dans la même famille
+    fab.days[statsDayKey(d, calendar: cal)] = DayStats(value: 10, byModel: [i == 1 ? "claude-opus-4-8" : "claude-opus-5-5": 8, "claude-sonnet-5-5": 2], byProject: ["a": 5, "b": 3, "c": 1, "d": 1])
 }
 fab.days["2026-11-19"] = DayStats(value: 12, byModel: ["claude-opus-5-5": 12], byProject: ["a": 12])
 let sum = StatsSummary.make(fab, today: today, calendar: cal)
 check(sum.today == 12 && abs(sum.trend! - 0.2) < 1e-9, "résumé : aujourd'hui et tendance")
 check(sum.grid.count == 84 && sum.grid.last == 12 && sum.grid.first == 0, "résumé : grille de 84 jours")
-check(abs(sum.models.map(\.share).reduce(0, +) - 1) < 1e-9 && sum.models.first?.name == "claude-opus-5-5", "résumé : parts des modèles")
+check(sum.grid[76...82].allSatisfy { $0 == 10 } && sum.grid[75] == 0 && sum.grid[83] == 12, "résumé : grille, valeurs intermédiaires")
+check(sum.models.map(\.name) == ["Opus", "Sonnet"] && abs(sum.models[0].share - 60.0 / 72) < 1e-9 && abs(sum.models.map(\.share).reduce(0, +) - 1) < 1e-9, "résumé : parts par famille")
 check(sum.projects.count == 3 && sum.projects.first?.name == "a", "résumé : 3 premiers projets")
 check(StatsSummary.make(StatsBook(), today: today, calendar: cal).trend == nil, "résumé : tendance nil sans historique")
 
