@@ -76,6 +76,10 @@ check(list.map(\.id) == ["1", "3", "4"], "TaskCreate après suppression : pas de
 check(AgentTasks.apply(tool: "TodoWrite", input: tool("{}"), to: list)! == list, "TodoWrite sans liste : inchangée")
 check(AgentTasks.apply(tool: "Bash", input: nil, to: []) == nil, "outil étranger")
 
+// MARK: Chrono
+
+check([0, 45.9, 60, 720, 3599, 3900, 7200, -5].map(TurnActivity.clock) == ["0 s", "45 s", "1 min", "12 min", "59 min", "1 h 05", "2 h 00", "0 s"], "chrono lisible")
+
 // MARK: Nom du projet
 
 check(AgentSession.projectName("/Users/x/Projects/boring.notch/.delta/worktrees/e9kkr72dbhq7/boring.notch") == "boring.notch", "worktree Delta dans le dépôt")

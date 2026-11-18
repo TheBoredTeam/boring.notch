@@ -64,6 +64,14 @@ struct TurnActivity: Equatable {
 
     func elapsed(now: Date) -> TimeInterval { (endedAt ?? now).timeIntervalSince(startedAt) }
 
+    /// Durée lisible d'un coup d'œil : « 45 s », « 12 min », « 1 h 05 ».
+    static func clock(_ t: TimeInterval) -> String {
+        let s = max(0, Int(t))
+        if s < 60 { return "\(s) s" }
+        if s < 3600 { return "\(s / 60) min" }
+        return "\(s / 3600) h \(String(format: "%02d", s / 60 % 60))"
+    }
+
     /// n tranches égales de startedAt à endedAt ?? now ; genre le plus fréquent de la tranche
     /// (égalité : le plus récent), nil si aucune activité.
     func buckets(_ n: Int, now: Date) -> [ActivityKind?] {
