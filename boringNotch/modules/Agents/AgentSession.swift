@@ -119,6 +119,11 @@ struct AgentEnvelope: Decodable {
         var edits: [Edit]?
         var questions: [AgentQuestion]?   // AskUserQuestion
         var plan: String?                 // ExitPlanMode
+        var todos: [TaskItem]?            // TodoWrite
+        var items: [TaskItem]?            // mcp__ccd_turn__update_plan
+        var subject: String?              // TaskCreate
+        var taskId: String?               // TaskUpdate
+        var status: String?               // TaskUpdate
         var scalars: [String: String] = [:]   // tous les paramètres simples (url, query, ids d'un outil MCP…)
 
         private struct Key: CodingKey {
@@ -143,6 +148,13 @@ struct AgentEnvelope: Decodable {
                 case "edits": edits = get(k)
                 case "questions": questions = get(k)
                 case "plan": plan = get(k)
+                case "todos": todos = get(k)
+                case "items": items = get(k)
+                case "subject": subject = get(k)
+                case "status": status = get(k)
+                case "taskId":   // chaîne ou nombre selon l'outil
+                    let s: String? = get(k), n: Int? = get(k)
+                    taskId = s ?? n.map(String.init)
                 default: break
                 }
                 if let v: String = get(k) { scalars[k.stringValue] = v }
@@ -151,6 +163,12 @@ struct AgentEnvelope: Decodable {
                 else if let v: Bool = get(k) { scalars[k.stringValue] = v ? "oui" : "non" }
             }
         }
+    }
+    /// Une tâche d'une liste (TodoWrite : content ; update_plan / TaskCreate : subject).
+    struct TaskItem: Decodable {
+        var content: String?
+        var subject: String?
+        var status: String?
     }
     struct Edit: Decodable {
         var old_string: String?
