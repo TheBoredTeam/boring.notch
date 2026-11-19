@@ -396,7 +396,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in
                 guard let vm = self?.vm else { return }
                 let coordinator = BoringViewCoordinator.shared
-                if vm.notchState == .open, coordinator.currentView == .module("clipboard") { vm.close(); return }
+                if vm.notchState == .open, coordinator.currentView == .module("clipboard") { NoteEditor.active?.end(); vm.close(); return }
                 coordinator.currentView = .module("clipboard")
                 vm.open()
             }
@@ -441,6 +441,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     self.closeNotchTask = task
                 case .open:
                     await MainActor.run {
+                        NoteEditor.active?.end()   // sinon la saisie en cours bloque la fermeture
                         viewModel.close()
                     }
                 }

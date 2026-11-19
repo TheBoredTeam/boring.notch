@@ -31,22 +31,30 @@ final class NotesStore: ObservableObject {
     private static let url = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         .appendingPathComponent("notes.json")
 
-    /// Fichier absent : livre neuf. Fichier illisible : renommé en notes.json.bak (jamais écrasé), livre neuf.
-    func load() {
-        guard !loaded else { return }
-        loaded = true
+    private init() {
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { _ in
             MainActor.assumeIsolated { NotesStore.shared.saveNow() }
         }
+    }
+
+    /// Fichier absent : livre neuf. Fichier illisible : renommé en notes.json.bak (jamais écrasé), livre neuf.
+    /// Si le renommage échoue, `loaded` reste faux : aucune écriture, le fichier illisible reste intact.
+    func load() {
+        guard !loaded else { return }
         let fm = FileManager.default
-        guard fm.fileExists(atPath: Self.url.path) else { return }
-        if let data = try? Data(contentsOf: Self.url), let book = NotesBook.decode(data) {
-            self.book = book
-            return
+        if fm.fileExists(atPath: Self.url.path) {
+            if let data = try? Data(contentsOf: Self.url), let book = NotesBook.decode(data) {
+                self.book = book
+            } else {
+                let bak = Self.url.appendingPathExtension("bak")
+                try? fm.removeItem(at: bak)
+                do { try fm.moveItem(at: Self.url, to: bak) } catch {
+                    NSLog("Notes : notes.json illisible et impossible à mettre de côté, sauvegarde désactivée : \(error)")
+                    return
+                }
+            }
         }
-        let bak = Self.url.appendingPathExtension("bak")
-        try? fm.removeItem(at: bak)
-        do { try fm.moveItem(at: Self.url, to: bak) } catch { NSLog("Notes : impossible de mettre de côté notes.json : \(error)") }
+        loaded = true
     }
 
     func edit(_ id: UUID, text: String) {
@@ -254,10 +262,13 @@ final class NoteEditor: NSObject, NSTextViewDelegate {
     private weak var window: BoringNotchSkyLightWindow?
     private var resignObserver: NSObjectProtocol?
     private var monitors: [Any] = []
+    /// Édition en cours : les fermetures demandées par l'utilisateur la terminent avant de fermer l'encoche.
+    static weak var active: NoteEditor?
 
     func begin() {
         guard !editing, let tv = textView, let w = tv.window as? BoringNotchSkyLightWindow else { return }
         editing = true
+        Self.active = self
         window = w
         w.allowsKey = true
         w.makeKey()
@@ -286,6 +297,7 @@ final class NoteEditor: NSObject, NSTextViewDelegate {
     func end() {
         guard editing else { return }
         editing = false
+        if Self.active === self { Self.active = nil }
         if let o = resignObserver { NotificationCenter.default.removeObserver(o) }
         resignObserver = nil
         monitors.forEach(NSEvent.removeMonitor)
