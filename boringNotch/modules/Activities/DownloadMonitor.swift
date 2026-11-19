@@ -17,6 +17,8 @@ final class DownloadMonitor: ObservableObject {
     static let tempExtensions = ["download", "crdownload", "part"]
 
     @Published private(set) var progress: [String: Double?] = [:]   // nom temporaire → fraction (nil = inconnue)
+    /// Taille et débit des fichiers .part / .crdownload (publié à part : `progress` ne change pas quand seule la taille grossit).
+    @Published private(set) var rates: [String: DownloadRate] = [:]
     @Published private(set) var finished: URL?
     private var finishedAt = Date.distantPast
     private var dir: URL?
@@ -38,12 +40,25 @@ final class DownloadMonitor: ObservableObject {
 
     /// Le dossier n'est notifié que quand une entrée apparaît/disparaît : pendant un téléchargement, on interroge chaque seconde.
     private func scan() {
-        guard let dir, Defaults[.activityDownloads] else { progress = [:]; return }
+        guard let dir, Defaults[.activityDownloads] else { progress = [:]; rates = [:]; return }
         let names = (try? FileManager.default.contentsOfDirectory(atPath: dir.path)) ?? []
         var now: [String: Double?] = [:]
+        var newRates: [String: DownloadRate] = [:]
+        let stamp = Date()
         for n in names where Self.tempExtensions.contains((n as NSString).pathExtension) && !n.hasPrefix(".") {
-            now[n] = Self.fraction(dir.appendingPathComponent(n))
+            let url = dir.appendingPathComponent(n)
+            let fraction = Self.fraction(url)
+            now[n] = fraction
+            // ponytail: seuls .part/.crdownload sont des fichiers ; le paquet .download de Safari est un dossier (garde son pourcentage).
+            if fraction == nil, ["part", "crdownload"].contains(url.pathExtension),
+               let size = (try? FileManager.default.attributesOfItem(atPath: url.path))?[.size] as? NSNumber {
+                var r = rates[n] ?? DownloadRate()
+                r.sample(bytes: size.int64Value, at: stamp)
+                newRates[n] = r
+            }
         }
+        // Assigné à chaque passage (1 s) : la pastille se redessine à mesure que la taille grossit.
+        rates = newRates
         // Terminé : l'entrée temporaire a disparu et le fichier final existe.
         for gone in progress.keys where now[gone] == nil {
             let final = dir.appendingPathComponent((gone as NSString).deletingPathExtension)
@@ -77,6 +92,13 @@ final class DownloadMonitor: ObservableObject {
         return min(done / total, 1)
     }
 
+    /// Plusieurs téléchargements : nombre + débit total (somme des débits connus) ; sans débit, le nombre seul.
+    private static func multiLabel(count: Int, rates: [String: DownloadRate]) -> String {
+        let speeds = rates.values.compactMap(\.perSecond)
+        guard !speeds.isEmpty else { return "\(count)" }
+        return "\(count) · " + DownloadRate.rateText(speeds.reduce(0, +))
+    }
+
     func activity(height: CGFloat) -> Activity? {
         if !progress.isEmpty {
             let known = progress.values.compactMap { $0 }
@@ -85,8 +107,9 @@ final class DownloadMonitor: ObservableObject {
             return Activity(id: "download", priority: 60, view: AnyView(
                 ActivityPill(height: height, help: help) {
                     DownloadRing(fraction: fraction)
-                    if progress.count > 1 { Text("\(progress.count)") }
+                    if progress.count > 1 { Text(Self.multiLabel(count: progress.count, rates: rates)).lineLimit(1).frame(maxWidth: 120) }
                     else if let fraction { Text("\(Int(fraction * 100)) %") }
+                    else if let rate = rates.values.first { Text(rate.label(now: Date())).lineLimit(1).frame(maxWidth: 120) }
                 }
             ))
         }
