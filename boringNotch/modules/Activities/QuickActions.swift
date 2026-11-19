@@ -72,18 +72,21 @@ final class QuickActions: ObservableObject {
                 refresh()
             } catch {
                 let number = (error as NSError).userInfo[NSAppleScript.errorNumber] as? Int
-                fail(number == Self.finderDenied
-                     ? "Autorisation refusée : Réglages Système → Confidentialité → Automatisation"
-                     : "Impossible de vider la corbeille")
+                // Message long à lire (infobulle, délai de survol) : affiché 6 s au lieu de 2 s.
+                if number == Self.finderDenied {
+                    fail("Autorisation refusée : Réglages Système → Confidentialité → Automatisation", for: 6)
+                } else {
+                    fail("Impossible de vider la corbeille")
+                }
             }
         }
     }
 
-    private func fail(_ message: String) {
+    private func fail(_ message: String, for seconds: Double = 2) {
         failure = message
         failureTask?.cancel()
         failureTask = Task {
-            try? await Task.sleep(for: .seconds(2))
+            try? await Task.sleep(for: .seconds(seconds))
             if !Task.isCancelled { failure = nil }
         }
     }
