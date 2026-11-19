@@ -38,6 +38,9 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.showNotchVisualizer) var showNotchVisualizer
+    @Default(.realtimeAudioWaveform) var realtimeAudioWaveform
+    @ObservedObject var audioCapture = AudioCaptureManager.shared
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -75,6 +78,16 @@ struct ContentView: View {
             return displayClosedNotchHeight > 0 ? baseClosedTop : 0
         }
         return max(0, baseClosedTop * scaleFactor)
+    }
+
+    /// Bars show only for the small notch, while real-time audio capture is running.
+    private var showBarsVisualizer: Bool {
+        showNotchVisualizer && realtimeAudioWaveform && audioCapture.isCapturing
+            && vm.notchState == .closed && !isHovering && musicManager.isPlaying && !vm.hideOnClosed
+    }
+
+    private var barsHorizontalInset: CGFloat {
+        topCornerRadius + cornerRadiusInsets.closed.bottom * (cornerRadiusScaleFactor ?? 1)
     }
 
     private var currentNotchShape: NotchShape {
@@ -301,6 +314,17 @@ struct ContentView: View {
                             // open/close springs below keep precedence.
                             .animation(.smooth(duration: 0.3), value: closedNotchContent)
                     }
+                    .overlay(alignment: .bottom) {
+                        if showBarsVisualizer {
+                            NotchBarsVisualizer()
+                                // Stay within the flat bottom edge, not the rounded corners.
+                                .padding(.horizontal, barsHorizontalInset)
+                                .offset(y: 15)
+                                .allowsHitTesting(false)
+                                .transition(.opacity)
+                        }
+                    }
+                    .animation(.easeInOut(duration: 0.25), value: showBarsVisualizer)
                     .contentShape(Rectangle())
                     .onHover { hovering in
                         handleHover(hovering)
