@@ -48,6 +48,7 @@ check(NoteMarkdown.spans(md).filter { if case .link = $0.style { return true }; 
 check(styles("va sur https://apple.com/fr maintenant").contains(.link(URL(string: "https://apple.com/fr")!)), "lien nu détecté")
 check(has("- [x] fait", .task(done: true), "[x]") && has("- [x] fait", .done, "fait"), "tâche cochée")
 check(has("- [ ] à faire", .task(done: false), "[ ]") && !styles("- [ ] à faire").contains(.done), "tâche à faire")
+check(has("- [ ] x", .hidden, "- ") && !styles("- [ ] x").contains(.listMarker), "tiret de tâche masqué")
 check(has("  - item", .listMarker, "-") && has("12. item", .listMarker, "12."), "puces")
 check(has("> cité", .quote, "> cité"), "citation")
 check(NoteMarkdown.spans("texte simple").isEmpty, "texte simple sans style")

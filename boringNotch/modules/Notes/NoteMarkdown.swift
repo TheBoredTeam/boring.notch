@@ -14,7 +14,8 @@ enum MarkStyle: Equatable {
     case link(URL)
     case marker             // # ** ` > [ ] : atténués
     case linkTarget         // ](https://…) d'un lien Markdown : atténué et plus petit
-    case listMarker         // - * 1. : en couleur d'accent
+    case listMarker         // - * 1. : en couleur d'accent (puces dessinées en rond par la vue)
+    case hidden             // « - » d'une tâche : replié, la case dessinée le remplace
     case task(done: Bool)   // [ ] / [x] : cliquable
     case done               // texte d'une tâche cochée : barré, atténué
 }
@@ -62,7 +63,11 @@ enum NoteMarkdown {
             if done, m.range(at: 3).location != NSNotFound { out.append(MarkSpan(range: m.range(at: 3), style: .done)) }
         }
         each(list) { m in
-            out.append(MarkSpan(range: m.range(at: 1), style: .listMarker))
+            let isTask = taskLines.contains { NSLocationInRange(m.range.location, $0) }
+            let symbol = m.range(at: 1)
+            // Tâche : le tiret et l'espace qui le suit sont repliés, la case dessinée prend leur place.
+            out.append(isTask ? MarkSpan(range: NSRange(location: symbol.location, length: NSMaxRange(m.range) - symbol.location), style: .hidden)
+                              : MarkSpan(range: symbol, style: .listMarker))
         }
         var codeRanges: [NSRange] = []
         each(code) { m in

@@ -107,8 +107,8 @@ private struct NotesView: View {
                 pills
             }
             NoteTextArea(note: store.book.notes.first { $0.id == store.book.selected } ?? store.book.notes[0])
-                .background(.white.opacity(0.065), in: RoundedRectangle(cornerRadius: 11))
-                .overlay { RoundedRectangle(cornerRadius: 11).strokeBorder(.white.opacity(0.08)) }
+                .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay { RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(.white.opacity(0.07)) }
                 .frame(maxHeight: .infinity)
         }
         .padding(.horizontal, 4)
@@ -270,6 +270,7 @@ private final class NoteTextView: NSTextView {
 
     /// Texte d'aide quand la note est vide.
     override func draw(_ dirtyRect: NSRect) {
+        NoteStyle.drawDecorations(in: self)   // cases, puces, citations, fond du code : sous le texte
         super.draw(dirtyRect)
         guard string.isEmpty else { return }
         let pad = textContainer?.lineFragmentPadding ?? 5
@@ -332,6 +333,7 @@ final class NoteEditor: NSObject, NSTextViewDelegate {
         w.allowsKey = true
         w.makeKey()
         w.makeFirstResponder(tv)
+        restyle()   // marques de la ligne du curseur révélées
         SharingStateManager.shared.beginInteraction()
         // Perte de la clé : clic dans une autre app, autre fenêtre devenue clé…
         resignObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: w, queue: .main) { [weak self] _ in
@@ -369,6 +371,7 @@ final class NoteEditor: NSObject, NSTextViewDelegate {
         }
         window = nil
         SharingStateManager.shared.endInteraction()
+        restyle()   // plus de curseur : toutes les marques atténuées
     }
 
     func textDidChange(_ notification: Notification) {
@@ -394,12 +397,27 @@ final class NoteEditor: NSObject, NSTextViewDelegate {
         return true
     }
 
+    /// Le curseur change de ligne : les marques suivent (après la frappe en cours, pas pendant).
+    func textViewDidChangeSelection(_ notification: Notification) {
+        guard editing, let tv = textView else { return }
+        let line = (tv.string as NSString).lineRange(for: tv.selectedRange())
+        guard line != revealedLine else { return }
+        DispatchQueue.main.async { [weak self] in self?.restyle() }
+    }
+
+    private var revealedLine: NSRange?
+
     /// Mise en forme sur place : le texte ne change pas, seuls ses attributs (taille, gras, couleur, liens).
     func restyle() {
         guard let tv = textView, let ts = tv.textStorage, !tv.hasMarkedText() else { return }   // pas pendant un accent en cours (ê, ï…)
         ts.beginEditing()
         ts.setAttributes(NoteStyle.base, range: NSRange(location: 0, length: ts.length))
-        for span in NoteMarkdown.spans(ts.string) { NoteStyle.apply(span, to: ts) }
+        let caretLine = editing ? (ts.string as NSString).lineRange(for: tv.selectedRange()) : nil
+        revealedLine = caretLine
+        for span in NoteMarkdown.spans(ts.string) {
+            let reveal = caretLine.map { NSIntersectionRange($0, span.range).length > 0 } ?? false
+            NoteStyle.apply(span, to: ts, reveal: reveal)
+        }
         ts.endEditing()
         tv.typingAttributes = NoteStyle.base
         tv.needsDisplay = true   // texte d'aide
