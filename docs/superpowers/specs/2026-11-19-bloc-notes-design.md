@@ -8,7 +8,7 @@ Noter une idée, un numéro, une commande sans changer d'application ni ouvrir u
 « Scratchpad » de Vorssaint (notes en onglets dans le Dynamic Island). Choix de l'utilisateur : écrire **dans
 l'encoche**.
 
-But : ouvrir l'encoche, cliquer, taper, partir — la note est sauvegardée. Non-buts : aperçu Markdown, export,
+But : ouvrir l'encoche, cliquer, taper, partir — la note est sauvegardée. Non-buts : export,
 synchronisation, recherche (plus tard). Anti-buts : l'encoche qui vole le clavier sans clic explicite ; perdre du texte
 (fermeture, redémarrage, plantage) ; l'encoche qui se ferme pendant la frappe.
 
@@ -46,7 +46,7 @@ reste, seule la frappe va au panneau. C'est ce qu'il faut, à vérifier en premi
 - **Sauvegarde** : à chaque modification, écriture différée d'1 s dans `Application Support/notes.json` (conteneur de
   l'app), et immédiate à la fin d'édition et à la fermeture de l'app. Lecture au lancement. Fichier illisible : on le
   renomme `notes.json.bak` et on repart vide (jamais d'écrasement silencieux).
-- **Texte simple** (pas de mise en forme). Taille 12 pt, police système.
+- **Texte brut sur disque, Markdown léger mis en forme sur place** (ajout du 2026-11-19 à la demande de l'utilisateur) : titres `#`, **gras**, *italique*, `code`, citations, puces et cases `- [ ]` cochables d'un clic, liens nus ou `[texte](url)` cliquables ; les marques restent visibles, atténuées ; Entrée continue une liste. Corps 12 pt, police système.
 
 ## Laissé au constructeur
 

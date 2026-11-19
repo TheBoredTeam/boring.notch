@@ -7,10 +7,14 @@ struct Note: Codable, Identifiable, Equatable {
     var text: String
     var updatedAt: Date
 
-    /// Première ligne non vide, espaces retirés ; "Nouvelle note" si rien.
+    /// Première ligne non vide, sans espaces ni marques Markdown (# > - [ ] ** `) ; "Nouvelle note" si rien.
     var title: String {
         let line = text.components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .map {
+                $0.replacingOccurrences(of: #"^\s*(#{1,3}|>|[-*+](\s+\[[ xX]\])?|\d+\.)\s+"#, with: "", options: .regularExpression)
+                    .replacingOccurrences(of: #"\*\*|`"#, with: "", options: .regularExpression)
+                    .trimmingCharacters(in: .whitespaces)
+            }
             .first { !$0.isEmpty }
         return line ?? "Nouvelle note"
     }

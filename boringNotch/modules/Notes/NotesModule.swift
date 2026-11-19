@@ -189,11 +189,18 @@ private struct NoteTextArea: NSViewRepresentable {
         tv.allowsUndo = true
         tv.isAutomaticQuoteSubstitutionEnabled = false
         tv.isAutomaticDashSubstitutionEnabled = false
+        tv.isAutomaticLinkDetectionEnabled = false   // les liens viennent de NoteMarkdown (texte brut)
         tv.drawsBackground = false
-        tv.font = .systemFont(ofSize: 12)
-        tv.textColor = .white
-        tv.insertionPointColor = .white
-        tv.textContainerInset = NSSize(width: 6, height: 8)
+        tv.font = NoteStyle.body
+        tv.textColor = NoteStyle.text
+        tv.insertionPointColor = .effectiveAccent
+        tv.typingAttributes = NoteStyle.base
+        tv.linkTextAttributes = [
+            .foregroundColor: NSColor.effectiveAccent,
+            .underlineStyle: NSUnderlineStyle.single.rawValue,
+            .cursor: NSCursor.pointingHand,
+        ]
+        tv.textContainerInset = NSSize(width: 8, height: 9)
         context.coordinator.textView = tv
         return scroll
     }
@@ -208,6 +215,7 @@ private struct NoteTextArea: NSViewRepresentable {
         if tv.string != note.text {
             tv.string = note.text
             editor.undo.removeAllActions()   // l'historique ne correspond plus au texte affiché
+            editor.restyle()
         }
     }
 
@@ -241,7 +249,33 @@ private final class NoteTextView: NSTextView {
 
     override func mouseDown(with event: NSEvent) {
         editor?.begin()
+        // Clic sur une case « [ ] » : on la coche (ou décoche) au lieu de placer le curseur.
+        let point = convert(event.locationInWindow, from: nil)
+        if let (range, replacement) = NoteMarkdown.taskToggle(in: string, at: characterIndexForInsertion(at: point)),
+           boxRect(range).contains(point),
+           shouldChangeText(in: range, replacementString: replacement) {
+            textStorage?.replaceCharacters(in: range, with: replacement)
+            didChangeText()
+            return
+        }
         super.mouseDown(with: event)
+    }
+
+    /// Rectangle affiché de la case (un peu élargi pour viser facilement).
+    private func boxRect(_ range: NSRange) -> NSRect {
+        guard let lm = layoutManager, let tc = textContainer else { return .zero }
+        let rect = lm.boundingRect(forGlyphRange: lm.glyphRange(forCharacterRange: range, actualCharacterRange: nil), in: tc)
+        return rect.offsetBy(dx: textContainerOrigin.x, dy: textContainerOrigin.y).insetBy(dx: -3, dy: -2)
+    }
+
+    /// Texte d'aide quand la note est vide.
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        guard string.isEmpty else { return }
+        let pad = textContainer?.lineFragmentPadding ?? 5
+        NSAttributedString(string: "Écrivez ici… # titre, **gras**, - [ ] tâche, liens", attributes: [
+            .font: NoteStyle.body, .foregroundColor: NoteStyle.faint,
+        ]).draw(at: NSPoint(x: textContainerInset.width + pad, y: textContainerInset.height))
     }
 
     override func keyDown(with event: NSEvent) {
@@ -260,9 +294,10 @@ private final class NoteTextView: NSTextView {
     }
 
     /// Toute combinaison ⌘ est consommée pendant la saisie : ⌘Q, ⌘W, ⌘H… n'atteignent pas le menu de l'app.
+    /// Sauf ⌘ + flèches / effacement, laissés à NSTextView (début/fin de ligne, suppression jusqu'au début de ligne).
     private func shortcut(_ event: NSEvent) -> Bool {
         let mods = event.modifierFlags.intersection(.deviceIndependentFlagsMask).subtracting([.capsLock, .numericPad, .function])
-        guard mods.contains(.command) else { return false }
+        guard mods.contains(.command), ![51, 117, 123, 124, 125, 126].contains(event.keyCode) else { return false }
         switch (event.charactersIgnoringModifiers?.lowercased(), mods) {
         case ("a", .command): selectAll(nil)
         case ("c", .command): copy(nil)
@@ -339,7 +374,34 @@ final class NoteEditor: NSObject, NSTextViewDelegate {
     func textDidChange(_ notification: Notification) {
         guard let id = noteID, let tv = textView else { return }
         NotesStore.shared.edit(id, text: tv.string)
+        restyle()
     }
 
     func undoManager(for view: NSTextView) -> UndoManager? { undo }
+
+    /// Entrée dans une liste : la puce (ou la case, ou le numéro suivant) continue ; sur une puce vide, la liste s'arrête.
+    func textView(_ tv: NSTextView, doCommandBy selector: Selector) -> Bool {
+        guard selector == #selector(NSResponder.insertNewline(_:)), tv.selectedRange().length == 0 else { return false }
+        let s = tv.string as NSString
+        let caret = tv.selectedRange().location
+        let line = s.lineRange(for: NSRange(location: caret, length: 0))
+        let head = NSRange(location: line.location, length: caret - line.location)
+        switch NoteMarkdown.continuation(forLine: s.substring(with: head)) {
+        case .prefix(let p): tv.insertText("\n" + p, replacementRange: tv.selectedRange())
+        case .endList: tv.insertText("", replacementRange: head)
+        case nil: return false
+        }
+        return true
+    }
+
+    /// Mise en forme sur place : le texte ne change pas, seuls ses attributs (taille, gras, couleur, liens).
+    func restyle() {
+        guard let tv = textView, let ts = tv.textStorage, !tv.hasMarkedText() else { return }   // pas pendant un accent en cours (ê, ï…)
+        ts.beginEditing()
+        ts.setAttributes(NoteStyle.base, range: NSRange(location: 0, length: ts.length))
+        for span in NoteMarkdown.spans(ts.string) { NoteStyle.apply(span, to: ts) }
+        ts.endEditing()
+        tv.typingAttributes = NoteStyle.base
+        tv.needsDisplay = true   // texte d'aide
+    }
 }
