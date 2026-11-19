@@ -18,7 +18,7 @@ protocol NotchModule {
 }
 
 enum NotchModules {
-    static let all: [any NotchModule] = [CalendarModule(), FocusModule(), AgentsModule(), AppVolumeModule(), ClipboardModule()]
+    static let all: [any NotchModule] = [CalendarModule(), FocusModule(), AgentsModule(), AppVolumeModule(), ClipboardModule(), NotesModule()]
 
     static func startAll() { all.forEach { $0.start() } }
 
