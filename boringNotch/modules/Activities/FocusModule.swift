@@ -51,10 +51,10 @@ private struct FocusView: View {
             : quick.failure.flatMap { $0.hasPrefix("Impossible d'éjecter") ? nil : $0 } ?? "Vider la corbeille"
         return VStack(spacing: 8) {
             QuickButton(symbol: "eject", badge: quick.ejectable.count, tint: failed && ejectTip == quick.failure ? .red : nil,
-                        help: ejectTip, enabled: !quick.ejectable.isEmpty) { quick.ejectAll() }
+                        help: ejectTip, enabled: !quick.ejectable.isEmpty && !quick.ejecting) { quick.ejectAll() }
             QuickButton(symbol: "trash", label: armed ? "Confirmer ?" : nil,
                         tint: armed || (failed && trashTip == quick.failure) ? .red : nil,
-                        help: trashTip, enabled: quick.trashHasItems) {
+                        help: trashTip, enabled: quick.trashHasItems && !quick.emptying) {
                 if gate.press(at: Date()) { quick.emptyTrash() }
             }
         }

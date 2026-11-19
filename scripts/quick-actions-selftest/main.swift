@@ -13,4 +13,10 @@ check(g.press(at: t0 + 10) == false, "nouveau premier clic")
 check(g.press(at: t0 + 13.5) == false && g.isArmed(at: t0 + 14), "après 3 s : ré-arme sans confirmer")
 check(!g.isArmed(at: t0 + 17), "désarmé après la fenêtre")
 
+// Double clic réflexe : un second appui trop proche n'est pas une confirmation et laisse armé.
+var h = ConfirmGate(window: 3)
+check(h.press(at: t0) == false, "arme")
+check(h.press(at: t0 + 0.1) == false && h.isArmed(at: t0 + 0.2), "appui à 0,1 s ignoré, reste armé")
+check(h.press(at: t0 + 1) == true && !h.isArmed(at: t0 + 1), "puis confirme à 1 s (armedAt d'origine conservé)")
+
 print("OK")

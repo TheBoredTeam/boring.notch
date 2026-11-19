@@ -18,6 +18,9 @@ final class QuickActions: ObservableObject {
     @Published private(set) var trashHasItems = true
     /// Message d'échec affiché 2 s puis remis à nil.
     @Published private(set) var failure: String?
+    /// Opérations en cours : les boutons sont grisés et un second clic ne relance rien.
+    @Published private(set) var ejecting = false
+    @Published private(set) var emptying = false
     private var failureTask: Task<Void, Never>?
 
     private static let finderDenied = -1743   // errAEEventNotPermitted : autorisation Automatisation refusée
@@ -29,7 +32,6 @@ final class QuickActions: ObservableObject {
                 Task { @MainActor in self?.refresh() }
             }
         }
-        refresh()
     }
 
     func refresh() {
@@ -41,15 +43,27 @@ final class QuickActions: ObservableObject {
                 return (v.volumeIsEjectable == true || v.volumeIsRemovable == true) && v.volumeIsInternal != true
             }
         Task {
+            // Le compte n'est demandé que si l'autorisation est déjà accordée : l'invite macOS doit venir au premier clic.
+            guard await Self.finderAuthorized() else { trashHasItems = true; return }
             let count = try? await AppleScriptHelper.execute("tell application \"Finder\" to count items of trash")?.int32Value
             trashHasItems = count.map { $0 > 0 } ?? true
         }
     }
 
+    /// Autorisation Automatisation → Finder déjà accordée ? Sans jamais ouvrir l'invite ; hors du main thread (peut bloquer).
+    private nonisolated static func finderAuthorized() async -> Bool {
+        await Task.detached {
+            let target = NSAppleEventDescriptor(bundleIdentifier: "com.apple.finder")
+            return AEDeterminePermissionToAutomateTarget(target.aeDesc, typeWildCard, typeWildCard, false) == noErr
+        }.value
+    }
+
     func ejectAll() {
         let volumes = ejectable
-        guard !volumes.isEmpty else { return }
+        guard !volumes.isEmpty, !ejecting else { return }
+        ejecting = true
         Task {
+            defer { ejecting = false }
             var failed: [String] = []
             for url in volumes {
                 let name = (try? url.resourceValues(forKeys: [.volumeNameKey]))?.volumeName ?? url.lastPathComponent
@@ -66,7 +80,10 @@ final class QuickActions: ObservableObject {
 
     /// La confirmation (double clic) est faite par l'appelant.
     func emptyTrash() {
+        guard !emptying else { return }
+        emptying = true
         Task {
+            defer { emptying = false }
             do {
                 try await AppleScriptHelper.executeVoid("tell application \"Finder\" to empty trash")
                 refresh()
