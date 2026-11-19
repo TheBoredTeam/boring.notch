@@ -37,8 +37,9 @@ final class NotesStore: ObservableObject {
         }
     }
 
-    /// Fichier absent : livre neuf. Fichier illisible : renommé en notes.json.bak (jamais écrasé), livre neuf.
-    /// Si le renommage échoue, `loaded` reste faux : aucune écriture, le fichier illisible reste intact.
+    /// Fichier absent : livre neuf. Fichier illisible : renommé en notes.json.bak, livre neuf ; un .bak déjà là est
+    /// d'abord renommé notes-<date>.json.bak (aucune sauvegarde n'est jamais supprimée).
+    /// Si un renommage échoue, `loaded` reste faux : aucune écriture, le fichier illisible reste intact.
     func load() {
         guard !loaded else { return }
         let fm = FileManager.default
@@ -47,8 +48,14 @@ final class NotesStore: ObservableObject {
                 self.book = book
             } else {
                 let bak = Self.url.appendingPathExtension("bak")
-                try? fm.removeItem(at: bak)
-                do { try fm.moveItem(at: Self.url, to: bak) } catch {
+                do {
+                    if fm.fileExists(atPath: bak.path) {
+                        // ponytail: horodatage à la seconde ; deux corruptions dans la même seconde → échec du renommage, donc aucune écriture.
+                        let stamp = ISO8601DateFormatter().string(from: .now).replacingOccurrences(of: ":", with: "-")
+                        try fm.moveItem(at: bak, to: Self.url.deletingLastPathComponent().appendingPathComponent("notes-\(stamp).json.bak"))
+                    }
+                    try fm.moveItem(at: Self.url, to: bak)
+                } catch {
                     NSLog("Notes : notes.json illisible et impossible à mettre de côté, sauvegarde désactivée : \(error)")
                     return
                 }
@@ -147,7 +154,8 @@ private struct NotesView: View {
         }
     }
 
-    /// Confirmation dans l'encoche ; l'encoche reste ouverte tant qu'elle s'affiche (begin/end équilibrés par onAppear/onDisappear).
+    /// Confirmation dans l'encoche. Elle ne bloque pas la fermeture : si l'encoche se ferme, la vue est recréée et la
+    /// suppression est simplement annulée.
     private func confirmBar(_ note: Note) -> some View {
         HStack(spacing: 8) {
             Text("Supprimer « \(note.title) » ?")
@@ -161,8 +169,6 @@ private struct NotesView: View {
         }
         .controlSize(.small)
         .frame(height: 22)
-        .onAppear { SharingStateManager.shared.beginInteraction() }
-        .onDisappear { SharingStateManager.shared.endInteraction() }
     }
 }
 
@@ -174,11 +180,8 @@ private struct NoteTextArea: NSViewRepresentable {
     func makeCoordinator() -> NoteEditor { NoteEditor() }
 
     func makeNSView(context: Context) -> NSScrollView {
-        let scroll = NoteTextView.scrollableTextView()
-        scroll.drawsBackground = false
-        scroll.hasVerticalScroller = true
-        scroll.autohidesScrollers = true
-        let tv = scroll.documentView as! NoteTextView
+        let scroll = makeNoteScrollView()
+        let tv = scroll.documentView as? NoteTextView ?? NoteTextView()   // toujours une NoteTextView (construite ci-dessous)
         tv.editor = context.coordinator
         tv.delegate = context.coordinator
         tv.isRichText = false
@@ -202,7 +205,10 @@ private struct NoteTextArea: NSViewRepresentable {
             editor.noteID = note.id
             editor.undo.removeAllActions()
         }
-        if tv.string != note.text { tv.string = note.text }
+        if tv.string != note.text {
+            tv.string = note.text
+            editor.undo.removeAllActions()   // l'historique ne correspond plus au texte affiché
+        }
     }
 
     static func dismantleNSView(_ scroll: NSScrollView, coordinator: NoteEditor) {
@@ -210,7 +216,24 @@ private struct NoteTextArea: NSViewRepresentable {
     }
 }
 
-/// `NSTextView.scrollableTextView()` crée une instance de la sous-classe sur laquelle on l'appelle.
+/// Vue défilante + NoteTextView construites à la main (montage standard : largeur suivie, hauteur extensible).
+func makeNoteScrollView() -> NSScrollView {
+    let scroll = NSScrollView()
+    scroll.drawsBackground = false
+    scroll.hasVerticalScroller = true
+    scroll.autohidesScrollers = true
+    let tv = NoteTextView(frame: NSRect(origin: .zero, size: scroll.contentSize))
+    tv.minSize = .zero
+    tv.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
+    tv.isVerticallyResizable = true
+    tv.isHorizontallyResizable = false
+    tv.autoresizingMask = [.width]
+    tv.textContainer?.widthTracksTextView = true
+    tv.textContainer?.containerSize = NSSize(width: scroll.contentSize.width, height: .greatestFiniteMagnitude)
+    scroll.documentView = tv
+    return scroll
+}
+
 private final class NoteTextView: NSTextView {
     weak var editor: NoteEditor?
 
@@ -236,17 +259,18 @@ private final class NoteTextView: NSTextView {
         if window == nil { editor?.end() }
     }
 
+    /// Toute combinaison ⌘ est consommée pendant la saisie : ⌘Q, ⌘W, ⌘H… n'atteignent pas le menu de l'app.
     private func shortcut(_ event: NSEvent) -> Bool {
         let mods = event.modifierFlags.intersection(.deviceIndependentFlagsMask).subtracting([.capsLock, .numericPad, .function])
-        guard mods == .command || mods == [.command, .shift] else { return false }
-        switch (event.charactersIgnoringModifiers?.lowercased(), mods.contains(.shift)) {
-        case ("a", false): selectAll(nil)
-        case ("c", false): copy(nil)
-        case ("v", false): paste(nil)
-        case ("x", false): cut(nil)
-        case ("z", false): undoManager?.undo()
-        case ("z", true): undoManager?.redo()
-        default: return false
+        guard mods.contains(.command) else { return false }
+        switch (event.charactersIgnoringModifiers?.lowercased(), mods) {
+        case ("a", .command): selectAll(nil)
+        case ("c", .command): copy(nil)
+        case ("v", .command): paste(nil)
+        case ("x", .command): cut(nil)
+        case ("z", .command): undoManager?.undo()
+        case ("z", [.command, .shift]): undoManager?.redo()
+        default: break
         }
         return true
     }
