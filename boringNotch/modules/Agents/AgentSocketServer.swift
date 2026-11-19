@@ -38,7 +38,11 @@ final class AgentSocketServer {
         let src = DispatchSource.makeReadSource(fileDescriptor: fd, queue: .global(qos: .utility))
         src.setEventHandler { [weak self] in
             let client = accept(fd, nil, nil)
-            if client >= 0 { self?.read(client) }
+            guard client >= 0 else { return }
+            // Un clic tardif écrit sur un hook déjà parti : sans ça, SIGPIPE tue l'app (send() échoue alors en EPIPE, ignoré).
+            var on: Int32 = 1
+            setsockopt(client, SOL_SOCKET, SO_NOSIGPIPE, &on, socklen_t(MemoryLayout<Int32>.size))
+            self?.read(client)
         }
         src.setCancelHandler { close(fd) }
         src.resume()
