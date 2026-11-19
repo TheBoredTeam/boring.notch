@@ -50,6 +50,14 @@ struct DownloadRate: Equatable {
         return "\(size) · \(Self.rateText(rate))"
     }
 
+    /// Plusieurs téléchargements : « n · débit total », « n · en pause » si tous sont en pause, sinon « n » (jamais « 0 o/s »).
+    static func multiLabel(count: Int, rates: [DownloadRate], now: Date) -> String {
+        let total = rates.filter { !$0.isPaused(now: now) }.compactMap(\.perSecond).reduce(0, +)
+        if total > 0 { return "\(count) · \(rateText(total))" }
+        if !rates.isEmpty && rates.allSatisfy({ $0.isPaused(now: now) }) { return "\(count) · en pause" }
+        return "\(count)"
+    }
+
     static func rateText(_ perSecond: Double) -> String { format(Int64(perSecond)) + "/s" }
 
     private static func format(_ bytes: Int64) -> String {

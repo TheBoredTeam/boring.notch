@@ -92,13 +92,6 @@ final class DownloadMonitor: ObservableObject {
         return min(done / total, 1)
     }
 
-    /// Plusieurs téléchargements : nombre + débit total (somme des débits connus) ; sans débit, le nombre seul.
-    private static func multiLabel(count: Int, rates: [String: DownloadRate]) -> String {
-        let speeds = rates.values.compactMap(\.perSecond)
-        guard !speeds.isEmpty else { return "\(count)" }
-        return "\(count) · " + DownloadRate.rateText(speeds.reduce(0, +))
-    }
-
     func activity(height: CGFloat) -> Activity? {
         if !progress.isEmpty {
             let known = progress.values.compactMap { $0 }
@@ -107,7 +100,7 @@ final class DownloadMonitor: ObservableObject {
             return Activity(id: "download", priority: 60, view: AnyView(
                 ActivityPill(height: height, help: help) {
                     DownloadRing(fraction: fraction)
-                    if progress.count > 1 { Text(Self.multiLabel(count: progress.count, rates: rates)).lineLimit(1).frame(maxWidth: 120) }
+                    if progress.count > 1 { Text(DownloadRate.multiLabel(count: progress.count, rates: Array(rates.values), now: Date())).lineLimit(1).frame(maxWidth: 120) }
                     else if let fraction { Text("\(Int(fraction * 100)) %") }
                     else if let rate = rates.values.first { Text(rate.label(now: Date())).lineLimit(1).frame(maxWidth: 120) }
                 }
