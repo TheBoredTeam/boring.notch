@@ -33,6 +33,7 @@
 		<string>com.spotify.client</string>
 		<string>com.apple.Music</string>
 		<string>com.apple.iCal</string>
+		<string>com.apple.finder</string>
 	</array>
 	<key>com.apple.security.temporary-exception.files.home-relative-path.read-only</key>
 	<array>
