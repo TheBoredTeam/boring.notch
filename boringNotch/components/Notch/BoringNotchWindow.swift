@@ -40,9 +40,9 @@ class BoringNotchWindow: NSPanel {
         hasShadow = false
     }
     
-    override var canBecomeKey: Bool {
-        false
-    }
+    /// Autorisation de clavier temporaire (cohérent avec BoringNotchSkyLightWindow).
+    var allowsKey = false
+    override var canBecomeKey: Bool { allowsKey }
     
     override var canBecomeMain: Bool {
         false
