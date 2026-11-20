@@ -471,7 +471,6 @@ extension Defaults.Keys {
     static let sneakPeekStyles = Key<SneakPeekStyle>("sneakPeekStyles", default: .standard)
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
-    static let enableLyrics = Key<Bool>("enableLyrics", default: false)
     static let showRemainingTime = Key<Bool>("showRemainingTime", default: false)
     static let showMediaSourceAppIcon = Key<Bool>("showMediaSourceAppIcon", default: true)
     static let musicControlSlots = Key<[MusicControlButton]>(
