@@ -74,7 +74,7 @@ struct ShelfView: View {
                         .foregroundStyle(.white, .gray)
                         .imageScale(.large)
 
-                    Text("Drop files here")
+                    Text("Drop files here or paste")
                         .foregroundStyle(.gray)
                         .font(.system(.title3, design: .rounded))
                         .fontWeight(.medium)
@@ -112,46 +112,210 @@ private struct ShelfBackgroundInteractionView: NSViewRepresentable {
     func updateNSView(_ nsView: BackgroundView, context: Context) {}
 
     static func dismantleNSView(_ nsView: BackgroundView, coordinator: ()) {
+        nsView.releaseKeyboardFocus()
         nsView.stopMonitoring()
     }
 
     final class BackgroundView: NSView {
-        private var eventMonitor: Any?
+        private var mouseMonitor: Any?
+        private var keyMonitor: Any?
+        private var trackingArea: NSTrackingArea?
+        private var keepsKeyboardFocus = false
+
+        override var acceptsFirstResponder: Bool { true }
+
+        override func viewWillMove(toWindow newWindow: NSWindow?) {
+            if newWindow == nil {
+                releaseKeyboardFocus()
+            }
+            super.viewWillMove(toWindow: newWindow)
+        }
 
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
             stopMonitoring()
 
-            guard window != nil else { return }
-            eventMonitor = NSEvent.addLocalMonitorForEvents(
-                matching: .leftMouseDown
+            guard let window else { return }
+
+            mouseMonitor = NSEvent.addLocalMonitorForEvents(
+                matching: [.leftMouseDown, .rightMouseDown]
             ) { [weak self] event in
-                self?.handle(event)
+                self?.handleMouseDown(event)
                 return event
             }
+
+            keyMonitor = NSEvent.addLocalMonitorForEvents(
+                matching: .keyDown
+            ) { [weak self] event in
+                guard let self else { return event }
+                return self.handleKeyDown(event)
+            }
+
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(windowDidResignKey(_:)),
+                name: NSWindow.didResignKeyNotification,
+                object: window
+            )
+
+            Task { @MainActor [weak self] in
+                self?.requestKeyboardFocusIfPointerInside()
+                try? await Task.sleep(for: .milliseconds(150))
+                self?.requestKeyboardFocusIfPointerInside()
+            }
+        }
+
+        @objc private func windowDidResignKey(_ notification: Notification) {
+            releaseKeyboardFocus()
         }
 
         override func hitTest(_ point: NSPoint) -> NSView? {
             nil
         }
 
-        func stopMonitoring() {
-            guard let eventMonitor else { return }
-            NSEvent.removeMonitor(eventMonitor)
-            self.eventMonitor = nil
+        // The shelf takes keyboard focus on hover, so unhandled keys must not fall through to NSBeep.
+        override func keyDown(with event: NSEvent) {}
+
+        override func updateTrackingAreas() {
+            super.updateTrackingAreas()
+            if let trackingArea {
+                removeTrackingArea(trackingArea)
+            }
+            let trackingArea = NSTrackingArea(
+                rect: .zero,
+                options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+                owner: self,
+                userInfo: nil
+            )
+            addTrackingArea(trackingArea)
+            self.trackingArea = trackingArea
         }
 
-        private func handle(_ event: NSEvent) {
-            guard let window,
-                  event.window === window,
-                  bounds.contains(convert(event.locationInWindow, from: nil)),
-                  let contentView = window.contentView
-            else { return }
+        override func mouseEntered(with event: NSEvent) {
+            requestKeyboardFocus()
+        }
 
-            let hitPoint = contentView.convert(event.locationInWindow, from: nil)
-            guard !isShelfItemInteraction(contentView.hitTest(hitPoint)) else { return }
+        override func mouseExited(with event: NSEvent) {
+            guard !keepsKeyboardFocus else { return }
+            releaseKeyboardFocus()
+        }
+
+        private func requestKeyboardFocusIfPointerInside() {
+            guard let window, window.isVisible else { return }
+            let location = convert(window.mouseLocationOutsideOfEventStream, from: nil)
+            guard bounds.contains(location) else { return }
+            requestKeyboardFocus()
+        }
+
+        func stopMonitoring() {
+            if let mouseMonitor {
+                NSEvent.removeMonitor(mouseMonitor)
+                self.mouseMonitor = nil
+            }
+            if let keyMonitor {
+                NSEvent.removeMonitor(keyMonitor)
+                self.keyMonitor = nil
+            }
+            NotificationCenter.default.removeObserver(
+                self,
+                name: NSWindow.didResignKeyNotification,
+                object: nil
+            )
+        }
+
+        func releaseKeyboardFocus() {
+            keepsKeyboardFocus = false
+            guard let window = window as? BoringNotchSkyLightWindow else { return }
+            if window.firstResponder === self {
+                window.makeFirstResponder(nil)
+            }
+            if window.isKeyWindow {
+                window.resignKey()
+            }
+            window.wantsKeyboardFocus = false
+        }
+
+        private func requestKeyboardFocus() {
+            guard let window = window as? BoringNotchSkyLightWindow else { return }
+            window.wantsKeyboardFocus = true
+            if !window.isKeyWindow {
+                window.makeKey()
+            }
+            if window.firstResponder !== self {
+                window.makeFirstResponder(self)
+            }
+        }
+
+        private func handleMouseDown(_ event: NSEvent) {
+            guard let window, event.window === window else { return }
+
+            guard bounds.contains(convert(event.locationInWindow, from: nil)) else {
+                if event.type == .leftMouseDown {
+                    releaseKeyboardFocus()
+                }
+                return
+            }
+
+            let contentView = window.contentView
+            let isItemClick = contentView.map { view in
+                isShelfItemInteraction(view.hitTest(view.convert(event.locationInWindow, from: nil)))
+            } ?? false
+
+            if event.type == .rightMouseDown {
+                guard !isItemClick else { return }
+                showPasteMenu(with: event)
+                return
+            }
+
+            requestKeyboardFocus()
+            keepsKeyboardFocus = true
+            guard !isItemClick else { return }
 
             ShelfSelectionModel.shared.clear()
+        }
+
+        private func handleKeyDown(_ event: NSEvent) -> NSEvent? {
+            guard let window,
+                  event.window === window,
+                  window.isKeyWindow,
+                  !(window.firstResponder is NSTextView),
+                  Self.isPasteShortcut(event),
+                  ShelfPasteService.canPaste
+            else { return event }
+
+            ShelfPasteService.paste()
+            return nil
+        }
+
+        private static func isPasteShortcut(_ event: NSEvent) -> Bool {
+            let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            return modifiers.contains(.command)
+                && !modifiers.contains(.shift)
+                && !modifiers.contains(.option)
+                && !modifiers.contains(.control)
+                && event.charactersIgnoringModifiers?.lowercased() == "v"
+        }
+
+        private func showPasteMenu(with event: NSEvent) {
+            let menu = NSMenu()
+            let pasteItem = NSMenuItem(
+                title: Strings.paste,
+                action: #selector(paste(_:)),
+                keyEquivalent: ""
+            )
+            pasteItem.target = self
+            pasteItem.isEnabled = ShelfPasteService.canPaste
+            menu.addItem(pasteItem)
+            menu.popUp(
+                positioning: pasteItem,
+                at: convert(event.locationInWindow, from: nil),
+                in: self
+            )
+        }
+
+        @objc func paste(_ sender: Any?) {
+            guard ShelfPasteService.canPaste else { return }
+            ShelfPasteService.paste()
         }
 
         private func isShelfItemInteraction(_ hitView: NSView?) -> Bool {
