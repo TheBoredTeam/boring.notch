@@ -544,6 +544,12 @@ extension Defaults.Keys {
     static let calendarWeekView = Key<Bool>("calendarWeekView", default: false)
     static let weekStartDay = Key<WeekStartDay>("weekStartDay", default: .system)
     static let joinMeetingOnEventTap = Key<Bool>("joinMeetingOnEventTap", default: true)
+    /// What fills the calendar on a day with no events. Defaults to the original message.
+    static let calendarEmptyDayContent = Key<CalendarEmptyDayContent>("calendarEmptyDayContent", default: .noEventsMessage)
+    /// City for the weather and sunrise & sunset options.
+    static let calendarWeatherPlace = Key<CalendarPlace?>("calendarWeatherPlace", default: nil)
+    /// City for the world clock option.
+    static let calendarWorldClockPlace = Key<CalendarPlace?>("calendarWorldClockPlace", default: nil)
 
     // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)

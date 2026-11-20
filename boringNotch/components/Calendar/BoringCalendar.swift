@@ -482,7 +482,7 @@ struct CalendarView: View {
                 events: calendarManager.events
             )
             if filteredEvents.isEmpty {
-                EmptyEventsView(selectedDate: selectedDate)
+                EmptyDayView(selectedDate: selectedDate)
                     .frame(maxHeight: .infinity, alignment: .center)
             } else {
                 EventListView(events: calendarManager.events)
