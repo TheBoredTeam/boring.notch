@@ -21,6 +21,7 @@ struct NotchSettingsView: View {
     @Default(.openNotchOnHover) var openNotchOnHover
     @Default(.enableOpeningAnimation) var enableOpeningAnimation
     @Default(.animationSpeedMultiplier) var animationSpeedMultiplier
+    @Default(.compactMode) var compactMode
 
     var body: some View {
         Form {
@@ -174,6 +175,9 @@ struct NotchSettingsView: View {
             Defaults.Toggle(key: .compactMode) {
                 Text("Compact mode")
             }
+            if !compactMode {
+                defaultTabPicker
+            }
         } header: {
             Text("Behavior")
         } footer: {
@@ -181,6 +185,39 @@ struct NotchSettingsView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    /// Picks the tab the notch opens on. Only tabs enabled elsewhere in
+    /// Settings are offered — the music tab is always available.
+    @ViewBuilder
+    private var defaultTabPicker: some View {
+        let enabled = NotchViews.enabledViews
+        if enabled.count > 1 {
+            Picker(selection: defaultNotchViewBinding) {
+                ForEach(enabled) { view in
+                    Label {
+                        Text(view.localizedTitle)
+                    } icon: {
+                        Image(systemName: view.tabIcon)
+                    }
+                    .tag(view)
+                }
+            } label: {
+                Text("Open notch on")
+            }
+        }
+    }
+
+    /// Keeps the stored default valid: switching a tab off in Settings must not
+    /// leave the notch pointing at a tab that no longer renders.
+    private var defaultNotchViewBinding: Binding<NotchViews> {
+        Binding(
+            get: {
+                let stored = Defaults[.defaultNotchView]
+                return stored.isEnabled ? stored : (NotchViews.enabledViews.first ?? .music)
+            },
+            set: { Defaults[.defaultNotchView] = $0 }
+        )
     }
 
     private var gesturesSection: some View {
