@@ -6,6 +6,7 @@
 //
 
 import Defaults
+import EventKit
 import SwiftUI
 
 struct Config: Equatable {
@@ -562,19 +563,55 @@ struct CalendarView: View {
 }
 
 struct EmptyEventsView: View {
+    @Environment(\.openURL) private var openURL
     let selectedDate: Date
 
     var body: some View {
-        VStack {
-            Image(systemName: "calendar.badge.checkmark")
-                .font(.title)
-                .foregroundColor(Color(white: 0.65))
-            Text(Calendar.current.isDateInToday(selectedDate) ? "No events today" : "No events")
-                .font(.subheadline)
-                .foregroundColor(.white)
-            Text("Enjoy your free time!")
+        let status = EKEventStore.authorizationStatus(for: .event)
+        let noCalendarsSelected = CalendarManager.shared.selectedCalendarIDs.isEmpty
+
+        VStack(spacing: 6) {
+            if status != .fullAccess {
+                Image(systemName: "calendar.badge.exclamationmark")
+                    .font(.title)
+                    .foregroundColor(Color(white: 0.65))
+                Text("Calendar access needed")
+                    .font(.subheadline)
+                    .foregroundColor(.white)
+                Text("Allow calendar access in System Settings.")
+                    .font(.caption)
+                    .foregroundColor(Color(white: 0.65))
+                    .multilineTextAlignment(.center)
+                Button("Open Settings") {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars") {
+                        openURL(url)
+                    }
+                }
+                .buttonStyle(.plain)
                 .font(.caption)
-                .foregroundColor(Color(white: 0.65))
+                .foregroundColor(.effectiveAccent)
+            } else if noCalendarsSelected {
+                Image(systemName: "calendar.badge.plus")
+                    .font(.title)
+                    .foregroundColor(Color(white: 0.65))
+                Text("No calendars selected")
+                    .font(.subheadline)
+                    .foregroundColor(.white)
+                Text("Enable calendars in Boring Notch settings.")
+                    .font(.caption)
+                    .foregroundColor(Color(white: 0.65))
+                    .multilineTextAlignment(.center)
+            } else {
+                Image(systemName: "calendar.badge.checkmark")
+                    .font(.title)
+                    .foregroundColor(Color(white: 0.65))
+                Text(Calendar.current.isDateInToday(selectedDate) ? "No events today" : "No events")
+                    .font(.subheadline)
+                    .foregroundColor(.white)
+                Text("Enjoy your free time!")
+                    .font(.caption)
+                    .foregroundColor(Color(white: 0.65))
+            }
         }
     }
 }

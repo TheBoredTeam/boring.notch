@@ -4741,6 +4741,26 @@
         }
       }
     },
+    "Calendar access needed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar access needed"
+          }
+        }
+      }
+    },
+    "Allow calendar access in System Settings." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow calendar access in System Settings."
+          }
+        }
+      }
+    },
     "Calendars" : {
       "localizations" : {
         "cs" : {
@@ -19527,6 +19547,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無事件"
+          }
+        }
+      }
+    },
+    "No calendars selected" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No calendars selected"
+          }
+        }
+      }
+    },
+    "Enable calendars in Boring Notch settings." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable calendars in Boring Notch settings."
           }
         }
       }
