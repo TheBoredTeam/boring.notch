@@ -16,6 +16,7 @@ import SwiftUIIntrospect
 @MainActor
 struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject private var features = NotchFeatures.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
@@ -433,6 +434,8 @@ struct ContentView: View {
                        let notice = musicManager.nowPlayingNotice {
                         nowPlayingFallbackNotice(notice)
                             .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .top)))
+                    } else if features.banner != nil && vm.notchState == .closed && !features.locked {
+                        FeatureActivity(centerWidth: vm.closedNotchSize.width)
                     } else if coordinator.expandingView.type == .battery && coordinator.expandingView.show
                         && vm.notchState == .closed && Defaults[.showPowerStatusNotifications] {
                         PowerStatusNotice(notchWidth: vm.closedNotchSize.width, height: displayClosedNotchHeight)
@@ -551,6 +554,10 @@ struct ContentView: View {
                                 horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
                                 isHoveringMusicArea: $isHoveringMusicArea
                             )
+                        case .weather:
+                            WeatherView()
+                        case .devices:
+                            DevicesView()
                         case .shelf:
                             ShelfView(
                                 dropInteraction: vm.dropInteraction,
