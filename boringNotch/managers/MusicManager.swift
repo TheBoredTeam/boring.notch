@@ -109,6 +109,10 @@ final class MusicManager: ObservableObject {
     var syncedLyrics: [(time: Double, text: String)] { lyricsService.syncedLyrics }
     @Published var isFavoriteTrack: Bool = false
 
+    // MARK: - Last.fm Scrobbling
+    @Published var lastFMUsername: String? = nil
+    @Published var lastFMIsAuthenticated: Bool = false
+
     private var artworkData: Data?
 
     // Store last values at the time artwork was changed
@@ -127,6 +131,10 @@ final class MusicManager: ObservableObject {
     init() {
         Self.migrateMediaControllerPreferenceIfNeeded()
         preferredMediaController = Defaults[.mediaController]
+        lastFMUsername = Defaults[.lastFmUsername]
+        Task { @MainActor [weak self] in
+            self?.lastFMIsAuthenticated = await LastFMManager.shared.isAuthenticated()
+        }
 
         if preferredMediaController == .nowPlaying {
             activateFallback()
@@ -598,6 +606,23 @@ final class MusicManager: ObservableObject {
         // duration.
         if timeChanged || playbackRateChanged || playingStateChanged {
             self.timestampDate = state.lastUpdated
+        }
+
+        handleLastFMScrobbling(state: state)
+    }
+
+    private func handleLastFMScrobbling(state: PlaybackState) {
+        guard Defaults[.lastFmEnabled] else { return }
+
+        Task {
+            await LastFMManager.shared.handlePlaybackUpdate(
+                isPlaying: state.isPlaying,
+                title: state.title,
+                artist: state.artist,
+                album: state.album,
+                duration: state.duration,
+                currentTime: state.currentTime
+            )
         }
     }
 

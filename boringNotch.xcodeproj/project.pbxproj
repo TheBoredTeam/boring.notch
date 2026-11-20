@@ -103,6 +103,8 @@
 		5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */; };
 		59D8C23C2E589FAA00147B33 /* VolumeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59D8C23B2E589FAA00147B33 /* VolumeManager.swift */; };
 		62A83B43C1AD411097E93D17 /* MediaAppBundleID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F20E44C65E4DA1945BFF5C /* MediaAppBundleID.swift */; };
+		7C5E760B308B57C900A6EE2D /* LastFMModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C5E760A308B57C900A6EE2D /* LastFMModels.swift */; };
+		7C5E760D308B57EE00A6EE2D /* LastFMManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C5E760C308B57EE00A6EE2D /* LastFMManager.swift */; };
 		7EF93DF9889B42E9BCD4634F /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 033B8885979E4EA1A78E8ADC /* Log.swift */; };
 		80EA0C01BBCF4069AC5D133D /* AppleScriptControllerSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0C26F24108F414781F79D4F /* AppleScriptControllerSupport.swift */; };
 		90ED6E81035940418671DCEA /* NotchWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB1C3E8B149445A9E57C6AF /* NotchWindowManager.swift */; };
@@ -113,6 +115,7 @@
 		9AB0C6BD2C73C9CB00F7CD30 /* NotchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */; };
 		A1B2C3D4E5F60718293A4B5D /* NowPlayingStreamSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* NowPlayingStreamSupport.swift */; };
 		A1F000012F00000100000001 /* ShelfItemInteractionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F000022F00000100000001 /* ShelfItemInteractionView.swift */; };
+		A330CD0EA12B4CD187E237FA /* PowerStatusNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8B78717F39D486190A1E34C /* PowerStatusNotice.swift */; };
 		A7F4A06476BC4B029B6BECEA /* NotchUIEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80E354C7D712441284085CEA /* NotchUIEvent.swift */; };
 		AA01NLA12E7A0001 /* NotificationLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01NLA22E7A0001 /* NotificationLiveActivity.swift */; };
 		AA01SNM12E7A0001 /* SystemNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01SNM22E7A0001 /* SystemNotificationManager.swift */; };
@@ -138,7 +141,6 @@
 		C1A6A2B12D00000100000001 /* CameraModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A6A2AE2D00000100000001 /* CameraModel.swift */; };
 		F1F2A0A100000000000000F1 /* AudioCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
-		A330CD0EA12B4CD187E237FA /* PowerStatusNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8B78717F39D486190A1E34C /* PowerStatusNotice.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -275,6 +277,8 @@
 		5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationRelauncher.swift; sourceTree = "<group>"; };
 		59D8C23B2E589FAA00147B33 /* VolumeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeManager.swift; sourceTree = "<group>"; };
 		61F20E44C65E4DA1945BFF5C /* MediaAppBundleID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaAppBundleID.swift; sourceTree = "<group>"; };
+		7C5E760A308B57C900A6EE2D /* LastFMModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMModels.swift; sourceTree = "<group>"; };
+		7C5E760C308B57EE00A6EE2D /* LastFMManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastFMManager.swift; sourceTree = "<group>"; };
 		80E354C7D712441284085CEA /* NotchUIEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchUIEvent.swift; sourceTree = "<group>"; };
 		9A0887312C7A693000C160EA /* TabButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabButton.swift; sourceTree = "<group>"; };
 		9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelectionView.swift; sourceTree = "<group>"; };
@@ -304,11 +308,11 @@
 		C0D300022F60000100000001 /* DropInteractionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropInteractionState.swift; sourceTree = "<group>"; };
 		C1A6A2AE2D00000100000001 /* CameraModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraModel.swift; sourceTree = "<group>"; };
 		C1A6A2AF2D00000100000001 /* CameraSessionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSessionEngine.swift; sourceTree = "<group>"; };
+		D8B78717F39D486190A1E34C /* PowerStatusNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerStatusNotice.swift; sourceTree = "<group>"; };
 		E49B58CAC648403F864E6D78 /* ShelfContextMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfContextMenu.swift; sourceTree = "<group>"; };
 		EAB1C3E8B149445A9E57C6AF /* NotchWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchWindowManager.swift; sourceTree = "<group>"; };
 		F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureManager.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
-		D8B78717F39D486190A1E34C /* PowerStatusNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerStatusNotice.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -582,6 +586,7 @@
 				EAB1C3E8B149445A9E57C6AF /* NotchWindowManager.swift */,
 				AA01SNM22E7A0001 /* SystemNotificationManager.swift */,
 				AA02CAM22E7A0001 /* ContactAvatarManager.swift */,
+				7C5E760C308B57EE00A6EE2D /* LastFMManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
 				AA07ARM22E7A0001 /* AudioRouteManager.swift */,
 				F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */,
@@ -708,6 +713,7 @@
 				C0D300022F60000100000001 /* DropInteractionState.swift */,
 				14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */,
 				80E354C7D712441284085CEA /* NotchUIEvent.swift */,
+				7C5E760A308B57C900A6EE2D /* LastFMModels.swift */,
 				1153BD902D986DB300979FB0 /* PlaybackState.swift */,
 				3CA22021D89A9E4FF88A618D /* MeetingLink.swift */,
 			);
@@ -1026,6 +1032,8 @@
 				AA02CAM12E7A0001 /* ContactAvatarManager.swift in Sources */,
 				AA03OTP12E7A0001 /* OTPDetector.swift in Sources */,
 				1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */,
+				7C5E760D308B57EE00A6EE2D /* LastFMManager.swift in Sources */,
+				7C5E760B308B57C900A6EE2D /* LastFMModels.swift in Sources */,
 				AA07ARM12E7A0001 /* AudioRouteManager.swift in Sources */,
 				F1F2A0A100000000000000F1 /* AudioCaptureManager.swift in Sources */,
 				1132E5162E777C140068732D /* YouTubeMusicAuthentication.swift in Sources */,
