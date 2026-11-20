@@ -29,6 +29,7 @@ final class MediaKeyInterceptor {
     private var runLoopSource: CFRunLoopSource?
     private let step: Float = 1.0 / 16.0
     private var audioPlayer: AVAudioPlayer?
+    private var consumedMediaKeys: Set<Int> = []
 
     private init() {}
 
@@ -116,6 +117,8 @@ final class MediaKeyInterceptor {
     }
 
     func stop() {
+        consumedMediaKeys.removeAll()
+
         if let eventTap {
             CGEvent.tapEnable(tap: eventTap, enable: false)
             CFMachPortInvalidate(eventTap)
@@ -147,7 +150,7 @@ final class MediaKeyInterceptor {
 
     // MARK: - Event Handling
 
-    private func handleEvent(_ cgEvent: CGEvent) -> Unmanaged<CGEvent>? {
+    func handleEvent(_ cgEvent: CGEvent) -> Unmanaged<CGEvent>? {
         // Ensure the CGEvent has a valid type before converting to NSEvent
         guard cgEvent.type != .null else {
             return Unmanaged.passUnretained(cgEvent)
@@ -163,7 +166,13 @@ final class MediaKeyInterceptor {
         let keyCode = (data1 & 0xFFFF_0000) >> 16
         let stateByte = ((data1 & 0xFF00) >> 8)
 
-        // 0xA = key down, 0xB = key up. Only handle key down.
+        // Suppress a release only when this interceptor consumed its key-down.
+        // This also handles modifier/source changes while a key is held.
+        if stateByte == 0xB, consumedMediaKeys.remove(keyCode) != nil {
+            return nil
+        }
+
+        // 0xA = key down, 0xB = key up. Only adjust on key down.
         guard stateByte == 0xA,
               let keyType = NXKeyType(rawValue: keyCode) else {
             return Unmanaged.passUnretained(cgEvent)
@@ -205,6 +214,8 @@ final class MediaKeyInterceptor {
         case .builtin:
             break
         }
+
+        consumedMediaKeys.insert(keyCode)
 
         // Handle option key action (without shift)
         if option && !shift {
