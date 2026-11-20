@@ -625,7 +625,7 @@ final class MusicManager: ObservableObject {
 
     // MARK: - Lyrics
     private func fetchLyricsIfAvailable(bundleIdentifier: String?, title: String, artist: String) {
-        guard Defaults[.enableLyrics], !title.isEmpty else {
+        guard Defaults[.enableLyrics] || Defaults[.showLyricsInClosedNotch], !title.isEmpty else {
             Task { @MainActor in
                 lyricsService.clearLyrics()
             }
