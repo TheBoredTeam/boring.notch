@@ -108,8 +108,10 @@ final class MusicManager: ObservableObject {
     var isFetchingLyrics: Bool { lyricsService.isFetchingLyrics }
     var syncedLyrics: [(time: Double, text: String)] { lyricsService.syncedLyrics }
     @Published var isFavoriteTrack: Bool = false
+    @Published var isExplicit: Bool = false
 
     private var artworkData: Data?
+    private var explicitContentLookupTask: Task<Void, Never>?
 
     // Store last values at the time artwork was changed
     private var lastArtworkTitle: String = ""
@@ -154,6 +156,8 @@ final class MusicManager: ObservableObject {
         runtimeRecoveryTask?.cancel()
         noticeDismissalTask?.cancel()
         controllerCancellables.removeAll()
+        explicitContentLookupTask?.cancel()
+        explicitContentLookupTask = nil
         flipWorkItem?.cancel()
         transitionWorkItem?.cancel()
     }
@@ -172,12 +176,15 @@ final class MusicManager: ObservableObject {
         runtimeRecoveryTask = nil
         noticeDismissalTask = nil
         controllerCancellables.removeAll()
+        explicitContentLookupTask?.cancel()
+        explicitContentLookupTask = nil
         flipWorkItem?.cancel()
         transitionWorkItem?.cancel()
         (activeController as? any NowPlayingRuntimeControlling)?.stopRuntimeStream()
 
         activeController = nil
         effectiveMediaController = nil
+        isExplicit = false
         nowPlayingNotice = nil
     }
 
@@ -532,6 +539,15 @@ final class MusicManager: ObservableObject {
 
             // Fetch lyrics on content change
             self.fetchLyricsIfAvailable(bundleIdentifier: state.bundleIdentifier, title: state.title, artist: state.artist)
+
+            // Resolve explicit tag for Apple Music via iTunes Search
+            self.fetchExplicitnessIfAvailable(
+                bundleIdentifier: state.bundleIdentifier,
+                title: state.title,
+                artist: state.artist,
+                album: state.album,
+                duration: state.duration
+            )
         }
 
         let timeChanged = state.currentTime != self.elapsedTime
@@ -559,6 +575,17 @@ final class MusicManager: ObservableObject {
 
         if durationChanged {
             self.songDuration = state.duration
+            // Duration often arrives after title/artist; re-resolve so we can
+            // discriminate explicit vs cleaned catalog versions.
+            if !state.title.isEmpty {
+                self.fetchExplicitnessIfAvailable(
+                    bundleIdentifier: state.bundleIdentifier,
+                    title: state.title,
+                    artist: state.artist,
+                    album: state.album,
+                    duration: state.duration
+                )
+            }
         }
 
         if playbackRateChanged {
@@ -621,6 +648,42 @@ final class MusicManager: ObservableObject {
     /// Placeholder dislike function
     func dislikeCurrentTrack() {
         setFavorite(false)
+    }
+
+    // MARK: - Explicit content
+    private func fetchExplicitnessIfAvailable(
+        bundleIdentifier: String?,
+        title: String,
+        artist: String,
+        album: String,
+        duration: TimeInterval
+    ) {
+        explicitContentLookupTask?.cancel()
+
+        guard let bundleIdentifier,
+              bundleIdentifier == MediaAppBundleID.appleMusic
+                || bundleIdentifier.contains(MediaAppBundleID.appleMusic),
+              !title.isEmpty
+        else {
+            isExplicit = false
+            return
+        }
+
+        // Clear immediately so the previous track's badge doesn't linger.
+        isExplicit = false
+
+        explicitContentLookupTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            let value = await ExplicitContentService.shared.resolve(
+                bundleIdentifier: bundleIdentifier,
+                title: title,
+                artist: artist,
+                album: album,
+                duration: duration
+            )
+            guard !Task.isCancelled else { return }
+            self.isExplicit = value
+        }
     }
 
     // MARK: - Lyrics
