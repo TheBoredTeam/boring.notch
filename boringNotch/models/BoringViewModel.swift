@@ -178,6 +178,7 @@ final class BoringViewModel: NSObject, ObservableObject {
 
         self.notchSize = openNotchSize
         self.notchState = .open
+        TabShortcutController.setOpen(true, for: self)
 
         // Force music information update when notch is opened
         MusicManager.shared.forceUpdate()
@@ -196,6 +197,7 @@ final class BoringViewModel: NSObject, ObservableObject {
         self.notchSize = getClosedNotchSize(screenUUID: self.screenUUID)
         self.closedNotchSize = self.notchSize
         self.notchState = .closed
+        TabShortcutController.setOpen(false, for: self)
         self.isPopoverActive = false
         if self.coordinator.shouldShowSneakPeek(on: self.screenUUID) {
             self.coordinator.toggleSneakPeek(status: false, type: .music, targetScreenUUID: self.screenUUID)
