@@ -24,7 +24,20 @@ final class ShelfStateViewModel: ObservableObject {
     private let persistenceDelay: Duration = .seconds(1)
 
     private init() {
-        items = ShelfPersistenceService.shared.load()
+        let loadResult = ShelfPersistenceService.shared.load()
+        items = loadResult.items
+
+        guard loadResult.isComplete else { return }
+
+        var referencedURLs: [URL] = []
+        for item in items {
+            guard case .file(let bookmarkData) = item.kind else { continue }
+            guard let url = Bookmark(data: bookmarkData).resolvedURL else { return }
+            referencedURLs.append(url)
+        }
+        TemporaryFileStorageService.shared.cleanupOrphanedTemporaryDropFiles(
+            referencedURLs: referencedURLs
+        )
     }
 
     private func schedulePersistence() {
