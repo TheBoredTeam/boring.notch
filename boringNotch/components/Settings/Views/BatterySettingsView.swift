@@ -12,6 +12,9 @@ struct BatterySettingsView: View {
     var body: some View {
         Form {
             Section {
+                Defaults.Toggle(key: .showBatteriesTab) {
+                    Text("Show Batteries tab")
+                }
                 Defaults.Toggle(key: .showBatteryIndicator) {
                     Text("Show battery indicator")
                 }
