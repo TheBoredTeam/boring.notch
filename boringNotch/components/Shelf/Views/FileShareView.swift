@@ -124,7 +124,7 @@ private struct NSViewHost: NSViewRepresentable {
     @Binding var view: NSView?
 
     func makeNSView(context: Context) -> NSView {
-        let v = NSView(frame: .zero)
+        let v = PointingHandCursorView(frame: .zero)
         DispatchQueue.main.async { self.view = v }
         return v
     }

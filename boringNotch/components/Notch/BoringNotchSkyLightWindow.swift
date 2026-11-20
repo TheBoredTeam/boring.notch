@@ -32,6 +32,10 @@ extension SkyLightOperator {
 }
 
 class BoringNotchSkyLightWindow: NSPanel {
+    /// Above ordinary windows. The floating drop target sits one level higher so a drag
+    /// that overlaps this window still hits the square. Both stay under `.screenSaver`.
+    static let windowLevel: NSWindow.Level = .mainMenu + 3
+
     private var isSkyLightEnabled: Bool = false
 
     override init(
@@ -58,7 +62,7 @@ class BoringNotchSkyLightWindow: NSPanel {
         titlebarAppearsTransparent = true
         backgroundColor = .clear
         isMovable = false
-        level = .mainMenu + 3
+        level = Self.windowLevel
         hasShadow = false
         isReleasedWhenClosed = false
 

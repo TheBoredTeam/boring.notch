@@ -9,6 +9,11 @@ import Defaults
 import Foundation
 import SwiftUI
 
+/// Matches the popovers' dismiss delay; long enough to reach a control
+/// inside the panel without closing under the pointer.
+let hoverExitDelayMilliseconds: Double = 350
+/// Allows SwiftUI's drop callback to record the drop after the global mouse-up monitor fires.
+let dropEventAcknowledgementDelayMilliseconds: Double = 500
 let shadowPadding: CGFloat = 20
 let openNotchSize: CGSize = .init(width: 640, height: 190)
 let windowSize: CGSize = .init(width: openNotchSize.width, height: openNotchSize.height + shadowPadding)

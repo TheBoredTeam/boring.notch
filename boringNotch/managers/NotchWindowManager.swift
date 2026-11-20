@@ -50,6 +50,11 @@ final class NotchWindowManager {
 
     var window: NSWindow? { primaryWindow }
 
+    var isAnyNotchOpen: Bool {
+        primaryViewModel.notchState == .open
+            || contexts.values.contains { $0.viewModel.notchState == .open }
+    }
+
     // MARK: - Screen lock / unlock
 
     func screenLocked() {
