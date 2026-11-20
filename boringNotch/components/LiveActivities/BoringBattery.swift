@@ -107,6 +107,8 @@ struct BatteryMenuView: View {
     var timeToDischarge: Int
     var isInLowPowerMode: Bool
     var maxAdapterWatts: Int = 0
+    var airPodsDevices: [AirPodsBatteryDevice] = []
+    var airPodsStatusMessage: String?
     var onDismiss: () -> Void
 
     @Environment(\.openURL) private var openURL
@@ -206,6 +208,73 @@ struct BatteryMenuView: View {
             }
             .padding(.vertical, 8)
 
+            if Defaults[.showAirPodsBattery] && (!airPodsDevices.isEmpty || airPodsStatusMessage != nil) {
+                Divider().background(Color.white)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        Image(systemName: BatterySymbolHelper.symbol(["airpodspro", "airpods"], fallback: "headphones"))
+                        Text("AirPods")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                    }
+
+                    if airPodsDevices.isEmpty {
+                        HStack(spacing: 6) {
+                            Image(systemName: "exclamationmark.circle")
+                            Text(airPodsStatusMessage ?? "No connected AirPods detected")
+                        }
+                        .font(.subheadline)
+                        .fontWeight(.regular)
+                        .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(airPodsDevices) { device in
+                            VStack(alignment: .leading, spacing: 3) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: BatterySymbolHelper.deviceSymbol(for: device.name))
+                                    Text(device.name)
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                }
+                                if let left = device.leftBattery {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: BatterySymbolHelper.leftSymbol(for: device.name)).frame(width: 14)
+                                        Text("Left \(left)%")
+                                        if device.leftIsCharging == true { Image(systemName: "bolt.fill").foregroundStyle(.green) }
+                                    }
+                                    .font(.caption)
+                                }
+                                if let right = device.rightBattery {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: BatterySymbolHelper.rightSymbol(for: device.name)).frame(width: 14)
+                                        Text("Right \(right)%")
+                                        if device.rightIsCharging == true { Image(systemName: "bolt.fill").foregroundStyle(.green) }
+                                    }
+                                    .font(.caption)
+                                }
+                                if let caseBattery = device.caseBattery {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: BatterySymbolHelper.caseSymbol()).frame(width: 14)
+                                        Text("Case \(caseBattery)%")
+                                        if device.caseIsCharging == true { Image(systemName: "bolt.fill").foregroundStyle(.green) }
+                                    }
+                                    .font(.caption)
+                                }
+                                if !device.hasBatteryData {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "questionmark.circle")
+                                        Text("Battery details unavailable")
+                                    }
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+
             Divider().background(Color.white)
 
             Button(action: openBatteryPreferences) {
@@ -229,7 +298,7 @@ struct BatteryMenuView: View {
     }
 }
 
-/// A view that displays the battery status and allows interaction to show detailed information.
+/// A view that displays the battery status and navigates to the battery page.
 struct BoringBatteryView: View {
     @State var batteryWidth: CGFloat = 26
     var isCharging: Bool = false
@@ -242,17 +311,19 @@ struct BoringBatteryView: View {
     var maxAdapterWatts: Int = 0
     @State var isForNotification: Bool = false
 
-    @State private var showPopupMenu: Bool = false
-    @State private var isHoveringButton: Bool = false
-    @State private var isHoveringPopover: Bool = false
-    @State private var hideTask: Task<Void, Never>?
-
     @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject var batteryModel = BatteryStatusViewModel.shared
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
 
     var body: some View {
         Button(action: {
-            withAnimation {
-                showPopupMenu.toggle()
+            withAnimation(.smooth) {
+                if coordinator.currentView == .battery {
+                    coordinator.currentView = .home
+                } else {
+                    coordinator.currentView = .battery
+                    batteryModel.refreshAirPodsBattery()
+                }
             }
         }) {
             HStack {
@@ -261,7 +332,7 @@ struct BoringBatteryView: View {
                         levelBattery / 100,
                         format: .percent.precision(.fractionLength(0))
                     )
-                        .font(.callout)
+                        .font(.body)
                         .foregroundStyle(.white)
                 }
                 BatteryView(
@@ -275,59 +346,7 @@ struct BoringBatteryView: View {
             }
         }
         .buttonStyle(ScaleButtonStyle())
-        .onHover { hovering in
-            isHoveringButton = hovering
-            if hovering {
-                hideTask?.cancel()
-                hideTask = nil
-            } else {
-                scheduleHideIfNeeded()
-            }
-        }
-        .popover(
-            isPresented: $showPopupMenu,
-            arrowEdge: .bottom) {
-            BatteryMenuView(
-                isPluggedIn: isPluggedIn,
-                isCharging: isCharging,
-                levelBattery: levelBattery,
-                maxCapacity: maxCapacity,
-                timeToFullCharge: timeToFullCharge,
-                timeToDischarge: timeToDischarge,
-                isInLowPowerMode: isInLowPowerMode,
-                maxAdapterWatts: maxAdapterWatts,
-                onDismiss: {
-                    showPopupMenu = false
-                }
-            )
-            .onHover { hovering in
-                isHoveringPopover = hovering
-                if hovering {
-                    hideTask?.cancel()
-                    hideTask = nil
-                } else {
-                    scheduleHideIfNeeded()
-                }
-            }
-        }
-        .onChange(of: showPopupMenu) {
-            vm.isPopoverActive = showPopupMenu
-        }
-        .onDisappear {
-            hideTask?.cancel()
-            hideTask = nil
-            vm.isPopoverActive = false
-        }
-    }
-
-    private func scheduleHideIfNeeded() {
-        if isHoveringButton || isHoveringPopover { return }
-        hideTask?.cancel()
-        hideTask = Task {
-            try? await Task.sleep(for: .milliseconds(350))
-            guard !Task.isCancelled else { return }
-            await MainActor.run { withAnimation { showPopupMenu = false } }
-        }
+        .help("Battery")
     }
 }
 

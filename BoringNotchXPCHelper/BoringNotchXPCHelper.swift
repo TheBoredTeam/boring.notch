@@ -448,6 +448,72 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         reply(ok)
     }
 
+    // MARK: - Bluetooth / AirPods battery
+
+    @objc func bluetoothDevicesBatteryJSON(with reply: @escaping (String?) -> Void) {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/system_profiler")
+        process.arguments = ["SPBluetoothDataType", "-json"]
+        let outputPipe = Pipe()
+        let errorPipe = Pipe()
+        process.standardOutput = outputPipe
+        process.standardError = errorPipe
+        do {
+            try process.run()
+        } catch {
+            reply(nil)
+            return
+        }
+        process.waitUntilExit()
+        guard process.terminationStatus == 0 else {
+            reply(nil)
+            return
+        }
+        let data = outputPipe.fileHandleForReading.readDataToEndOfFile()
+        guard !data.isEmpty else {
+            reply(nil)
+            return
+        }
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let entries = root["SPBluetoothDataType"] as? [[String: Any]] else {
+            reply(nil)
+            return
+        }
+
+        var devices: [[String: Any]] = []
+        for entry in entries {
+            if let connected = entry["device_connected"] as? [[String: Any]] {
+                for wrapper in connected {
+                    for (name, rawInfo) in wrapper {
+                        guard let info = rawInfo as? [String: Any] else { continue }
+                        var item: [String: Any] = [
+                            "name": name,
+                            "address": info["device_address"] as? String ?? name,
+                            "connected": true
+                        ]
+                        if let v = info["device_batteryLevelLeft"] as? String { item["left"] = v }
+                        if let v = info["device_batteryLevelRight"] as? String { item["right"] = v }
+                        if let v = info["device_batteryLevelCase"] as? String { item["case"] = v }
+                        else if let v = info["device_batteryLevelMain"] as? String { item["case"] = v }
+                        if let v = info["device_minorType"] as? String { item["minorType"] = v }
+                        if let v = info["device_vendorID"] as? String { item["vendorID"] = v }
+                        if let v = info["device_productID"] as? String { item["productID"] = v }
+                        if let v = info["device_serialNumberLeft"] { item["serialLeft"] = v }
+                        if let v = info["device_serialNumberRight"] { item["serialRight"] = v }
+                        devices.append(item)
+                    }
+                }
+            }
+        }
+
+        guard let out = try? JSONSerialization.data(withJSONObject: devices, options: []),
+              let json = String(data: out, encoding: .utf8) else {
+            reply(nil)
+            return
+        }
+        reply(json)
+    }
+
     // MARK: - Private helpers for DisplayServices / IOKit access
     private func displayServicesGetBrightness(displayID: CGDirectDisplayID, out: inout Float) -> Bool {
         guard let sym = dlsym(DisplayServicesHandle.handle, "DisplayServicesGetBrightness") else { return false }
