@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Shown in the Automation permission prompt when replying to an
+	     iMessage notification. Required here, on the helper, because the
+	     helper is the process that sends the Apple event — without it macOS
+	     kills the process instead of prompting. -->
+	<key>NSAppleEventsUsageDescription</key>
+	<string>boring.notch sends your replies to iMessage conversations from the notch.</string>
 	<key>XPCService</key>
 	<dict>
 		<key>ServiceType</key>
