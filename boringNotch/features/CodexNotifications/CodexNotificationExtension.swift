@@ -70,7 +70,6 @@ private extension CodexJobStatus {
     var tint: Color {
         switch self {
         case .permissionRequired: .orange
-        case .stopped: Color(red: 0.76, green: 0.64, blue: 1)
         case .responseReady, .update: .cyan
         }
     }

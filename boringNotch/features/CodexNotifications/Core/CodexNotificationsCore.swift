@@ -368,7 +368,6 @@ public enum CodexJobStatus: Equatable, Sendable {
     case permissionRequired
     case responseReady
     case update
-    case stopped
 
     public var priority: Int {
         self == .permissionRequired ? 4 : 2
@@ -381,7 +380,6 @@ public enum CodexJobStatus: Equatable, Sendable {
         case .permissionRequired: "Permission Required"
         case .responseReady: "Response ready"
         case .update: "Codex update"
-        case .stopped: "Stopped"
         }
     }
 
@@ -390,7 +388,6 @@ public enum CodexJobStatus: Equatable, Sendable {
         case .permissionRequired: "lock.shield.fill"
         case .responseReady: "text.bubble.fill"
         case .update: "info.circle.fill"
-        case .stopped: "stop.circle.fill"
         }
     }
 
@@ -711,8 +708,13 @@ public enum CodexHookEventParser {
 public struct CodexNotificationState: Equatable, Sendable {
     public private(set) var notifications: [CodexJobNotification]
 
+    private enum TerminalOutcome {
+        case completed
+        case interrupted
+    }
+
     // Retained after dismissal so duplicate/delayed delivery cannot resurface a turn.
-    private var terminalStatuses: [String: CodexJobStatus] = [:]
+    private var terminalOutcomes: [String: TerminalOutcome] = [:]
     private var recentTerminalIDs: [String] = []
     private var latestJobBySession: [String: JobContext]
     private var recentJobSessionIDs: [String]
@@ -739,8 +741,8 @@ public struct CodexNotificationState: Equatable, Sendable {
                 $0.sessionID == sessionID && !$0.status.isPersistent
             }
             let resumedID = Self.correlationID(sessionID: sessionID, turnID: turnID, requestID: nil)
-            if terminalStatuses[resumedID] != .stopped {
-                terminalStatuses.removeValue(forKey: resumedID)
+            if terminalOutcomes[resumedID] != .interrupted {
+                terminalOutcomes.removeValue(forKey: resumedID)
                 recentTerminalIDs.removeAll { $0 == resumedID }
             }
             let userInstruction = CodexText.userInstruction(from: prompt)
@@ -765,7 +767,7 @@ public struct CodexNotificationState: Equatable, Sendable {
             let projectName
         ):
             let terminalID = Self.correlationID(sessionID: sessionID, turnID: turnID, requestID: nil)
-            guard !details.isAutoReviewed, terminalStatuses[terminalID] == nil else { return }
+            guard !details.isAutoReviewed, terminalOutcomes[terminalID] == nil else { return }
             let notification = makeNotification(
                 sessionID: sessionID,
                 turnID: turnID,
@@ -791,7 +793,7 @@ public struct CodexNotificationState: Equatable, Sendable {
             let projectName
         ):
             let terminalID = Self.correlationID(sessionID: sessionID, turnID: turnID, requestID: nil)
-            guard turnID == nil || terminalStatuses[terminalID] == nil else { return }
+            guard turnID == nil || terminalOutcomes[terminalID] == nil else { return }
             notifications.removeAll { notification in
                 guard notification.status == .permissionRequired,
                       notification.sessionID == sessionID else {
@@ -802,7 +804,7 @@ public struct CodexNotificationState: Equatable, Sendable {
             let message = result?.trimmingCharacters(in: .whitespacesAndNewlines)
             let hasResponse = message?.isEmpty == false
             let status: CodexJobStatus = hasResponse ? .responseReady : .update
-            if turnID != nil { rememberTerminal(status, id: terminalID) }
+            if turnID != nil { rememberTerminal(.completed, id: terminalID) }
             let notification = makeNotification(
                 sessionID: sessionID,
                 turnID: turnID,
@@ -819,40 +821,29 @@ public struct CodexNotificationState: Equatable, Sendable {
             )
             upsert(notification)
 
-        case .interrupt(let sessionID, let turnID, let cwd, let chatTitle, let projectName):
+        case .interrupt(let sessionID, let turnID, _, _, _):
             let terminalID = Self.correlationID(sessionID: sessionID, turnID: turnID, requestID: nil)
-            guard terminalStatuses[terminalID] != .stopped else { return }
-            rememberTerminal(.stopped, id: terminalID)
+            guard terminalOutcomes[terminalID] == nil else { return }
+            rememberTerminal(.interrupted, id: terminalID)
             notifications.removeAll {
                 $0.sessionID == sessionID && $0.turnID == turnID
             }
-            upsert(makeNotification(
-                sessionID: sessionID,
-                turnID: turnID,
-                requestID: nil,
-                cwd: cwd,
-                result: "You interrupted this turn. Open Codex to review.",
-                status: .stopped,
-                chatTitle: chatTitle,
-                projectName: projectName,
-                date: date
-            ))
         }
     }
 
-    private mutating func rememberTerminal(_ status: CodexJobStatus, id: String) {
-        terminalStatuses[id] = status
+    private mutating func rememberTerminal(_ outcome: TerminalOutcome, id: String) {
+        terminalOutcomes[id] = outcome
         recentTerminalIDs.removeAll { $0 == id }
         recentTerminalIDs.append(id)
         while recentTerminalIDs.count > 100 {
-            terminalStatuses.removeValue(forKey: recentTerminalIDs.removeFirst())
+            terminalOutcomes.removeValue(forKey: recentTerminalIDs.removeFirst())
         }
     }
 
     public func hasEndedTurn(sessionID: String, turnID: String?) -> Bool {
         guard let turnID else { return false }
         let id = Self.correlationID(sessionID: sessionID, turnID: turnID, requestID: nil)
-        return terminalStatuses[id] != nil
+        return terminalOutcomes[id] != nil
     }
 
     public func visibleNotification(at date: Date = Date()) -> CodexJobNotification? {

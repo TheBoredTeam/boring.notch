@@ -80,7 +80,7 @@ final class CodexCallbackRoutingTests: XCTestCase {
             .openCodex
         )
         XCTAssertEqual(
-            CodexClosedActivityTapRouting(status: .stopped),
+            CodexClosedActivityTapRouting(status: .update),
             .openCodex
         )
     }
@@ -101,7 +101,7 @@ final class CodexCallbackRoutingTests: XCTestCase {
 
     func testFailedCompactLaunchAccessibilityOffersRetry() {
         let accessibility = CodexClosedActivityAccessibility(
-            status: .stopped,
+            status: .update,
             projectName: "Example",
             launchError: "The official Codex app could not be found."
         )

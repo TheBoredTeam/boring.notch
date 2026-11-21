@@ -176,7 +176,6 @@ final class CodexNotificationsCoreTests: XCTestCase {
 
     func testStatusIconsMatchNotchNotificationGlyphs() {
         XCTAssertEqual(CodexJobStatus.responseReady.icon, "text.bubble.fill")
-        XCTAssertEqual(CodexJobStatus.stopped.icon, "stop.circle.fill")
         XCTAssertEqual(CodexJobStatus.update.icon, "info.circle.fill")
         XCTAssertEqual(CodexJobStatus.permissionRequired.icon, "lock.shield.fill")
     }
@@ -669,12 +668,11 @@ final class CodexNotificationsCoreTests: XCTestCase {
 
     func testOnlyPermissionRemindersPersist() {
         XCTAssertTrue(CodexJobStatus.permissionRequired.isPersistent)
-        for status in [CodexJobStatus.responseReady, .update, .stopped] {
+        for status in [CodexJobStatus.responseReady, .update] {
             XCTAssertFalse(status.isPersistent)
             XCTAssertLessThan(status.priority, CodexJobStatus.permissionRequired.priority)
         }
         XCTAssertEqual(CodexJobStatus.responseReady.title, "Response ready")
-        XCTAssertEqual(CodexJobStatus.stopped.title, "Stopped")
     }
 
     func testStopKeepsFullPromptForExpandedViewAndUsesProjectContext() throws {
@@ -776,21 +774,65 @@ final class CodexNotificationsCoreTests: XCTestCase {
         XCTAssertEqual(try productionStopStatus("   \n"), .update)
     }
 
-    func testInterruptIsExplicitAndCannotBeReplacedByDelayedStop() throws {
+    func testInterruptSilentlyEndsTurnAndSuppressesDelayedStop() throws {
         var state = CodexNotificationState()
         let event = try CodexHookEventParser.parse(
             #"{"hook_event_name":"Interrupt","session_id":"s","turn_id":"t"}"#
         )
         state.reduce(event)
-        XCTAssertEqual(state.visibleNotification()?.status, .stopped)
-        state.reduce(.stop(sessionID: "s", turnID: "t", cwd: nil, result: "All tests passed."))
-        XCTAssertEqual(state.notifications.count, 1)
-        XCTAssertEqual(state.visibleNotification()?.status, .stopped)
-        state.dismiss(try XCTUnwrap(state.visibleNotification()).id)
+        XCTAssertTrue(state.notifications.isEmpty)
         XCTAssertTrue(state.hasEndedTurn(sessionID: "s", turnID: "t"))
         XCTAssertFalse(state.hasEndedTurn(sessionID: "s", turnID: "other"))
+        state.reduce(.stop(sessionID: "s", turnID: "t", cwd: nil, result: "Delayed response"))
         state.reduce(event)
-        state.reduce(.stop(sessionID: "s", turnID: "t", cwd: nil, result: "late delivery"))
+        XCTAssertTrue(state.notifications.isEmpty)
+    }
+
+    func testLateInterruptPreservesResponseAndCannotResurfaceAfterDismissal() throws {
+        for response in ["Final answer", ""] {
+            var state = CodexNotificationState()
+            state.reduce(.stop(sessionID: "s", turnID: "t", cwd: nil, result: response))
+            let notice = try XCTUnwrap(state.visibleNotification())
+            let event = CodexHookEvent.interrupt(sessionID: "s", turnID: "t", cwd: nil)
+            state.reduce(event)
+            XCTAssertEqual(state.notifications, [notice])
+            state.dismiss(notice.id)
+            state.reduce(event)
+            XCTAssertTrue(state.notifications.isEmpty)
+        }
+    }
+
+    func testInterruptPreservesOtherTurnsAndNewTurnCanRespond() throws {
+        var state = CodexNotificationState()
+        state.reduce(.stop(sessionID: "other", turnID: "other", cwd: nil, result: "Other response"))
+        let other = try XCTUnwrap(state.visibleNotification())
+        state.reduce(.interrupt(sessionID: "s", turnID: "t1", cwd: nil))
+        XCTAssertEqual(state.notifications, [other])
+        state.reduce(.userPrompt(sessionID: "s", turnID: "t1", cwd: nil, prompt: "Continue"))
+        state.reduce(.stop(sessionID: "s", turnID: "t1", cwd: nil, result: "Stale response"))
+        XCTAssertEqual(state.notifications, [other])
+        state.reduce(.userPrompt(sessionID: "s", turnID: "t2", cwd: nil, prompt: "New turn"))
+        state.reduce(.stop(sessionID: "s", turnID: "t2", cwd: nil, result: "New response"))
+        XCTAssertEqual(state.visibleNotification()?.resultSummary, "New response")
+        XCTAssertEqual(state.notifications.count, 2)
+    }
+
+    func testBackgroundSampleInterruptPreservesParentResponseAndStaysSilentAfterDismissal() throws {
+        var state = CodexNotificationState()
+        let stop = try CodexHookEventParser.parse(
+            #"{"hook_event_name":"Stop","session_id":"parent-chat","turn_id":"parent-turn","last_assistant_message":"Parent response"}"#
+        )
+        let interrupt = try CodexHookEventParser.parse(
+            #"{"hook_event_name":"Interrupt","session_id":"temporary-sample","turn_id":"sample-turn"}"#
+        )
+        state.reduce(stop)
+        let parent = try XCTUnwrap(state.visibleNotification())
+        state.reduce(interrupt)
+        XCTAssertEqual(state.notifications, [parent])
+        XCTAssertEqual(state.visibleNotification()?.responsePreview?.source, "Parent response")
+        state.dismiss(parent.id)
+        state.reduce(interrupt)
+        state.reduce(.stop(sessionID: "temporary-sample", turnID: "sample-turn", cwd: nil, result: "Delayed sample"))
         XCTAssertTrue(state.notifications.isEmpty)
     }
 
@@ -810,6 +852,7 @@ final class CodexNotificationsCoreTests: XCTestCase {
         state.reduce(.permissionRequest(sessionID: "s", turnID: "t1", requestID: "late",
             cwd: nil, details: CodexPermissionDetails(toolName: "Bash"), callback: permissionCallback))
         XCTAssertEqual(state.notifications.filter { $0.status == .permissionRequired }.map(\.turnID), ["t2"])
+        XCTAssertEqual(state.notifications.count, 1)
         XCTAssertEqual(state.visibleNotification()?.turnID, "t2")
     }
 

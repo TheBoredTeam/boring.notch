@@ -67,19 +67,18 @@ final class CodexResponsePreviewTests: XCTestCase {
         XCTAssertTrue(state.notifications.isEmpty)
     }
 
-    func testInterruptReplacesResponseWithNoStalePreview() throws {
+    func testLateInterruptPreservesCompletedResponsePreview() throws {
         var state = CodexNotificationState()
         state.reduce(try stop("Final reply"))
         state.reduce(.interrupt(sessionID: "fixture", turnID: "turn", cwd: nil))
         state.reduce(try stop("Late reply"))
-        XCTAssertEqual(state.visibleNotification()?.status, .stopped)
-        XCTAssertNil(state.visibleNotification()?.responsePreview)
+        XCTAssertEqual(state.visibleNotification()?.status, .responseReady)
+        XCTAssertEqual(state.visibleNotification()?.responsePreview?.source, "Final reply")
     }
 
     func testResponseActivationExpandsAndOtherPassiveActivationKeepsItsRoute() {
         XCTAssertEqual(CodexClosedActivityTapRouting(status: .responseReady, hasResponsePreview: true), .expandNotch)
         XCTAssertEqual(CodexClosedActivityTapRouting(status: .update), .openCodex)
-        XCTAssertEqual(CodexClosedActivityTapRouting(status: .stopped), .openCodex)
         XCTAssertEqual(CodexClosedActivityTapRouting(status: .permissionRequired), .expandNotch)
         XCTAssertEqual(CodexClosedActivityAccessibility(
             status: .responseReady, projectName: "Fixture", hasResponsePreview: true

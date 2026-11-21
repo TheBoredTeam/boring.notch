@@ -49,11 +49,6 @@ struct CodexNotificationSettings: View {
                     icon: .system(CodexJobStatus.responseReady.icon)
                 )
                 CodexNotificationTypeRow(
-                    title: "Stopped",
-                    detail: "You interrupted the active turn.",
-                    icon: .system(CodexJobStatus.stopped.icon)
-                )
-                CodexNotificationTypeRow(
                     title: "Codex update",
                     detail: "A turn update arrived without response details.",
                     icon: .system(CodexJobStatus.update.icon)
