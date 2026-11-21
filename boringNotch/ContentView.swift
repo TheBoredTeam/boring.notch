@@ -22,6 +22,7 @@ struct ContentView: View {
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
     @ObservedObject var notificationManager = SystemNotificationManager.shared
+    @ObservedObject private var lyricsService = LyricsService.shared
     /// Which entry of the closed-notch activity stack is on top.
     @State private var activityIndex: Int = 0
     @State private var hoverTask: Task<Void, Never>?
@@ -38,6 +39,9 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.showLyricsInClosedNotch) var showLyricsInClosedNotch
+    @Default(.lyricTopSpacing) var lyricTopSpacing
+    @Default(.lyricBottomSpacing) var lyricBottomSpacing
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -186,6 +190,15 @@ struct ContentView: View {
             return .face
         }
         return .idle
+    }
+
+    private var shouldShowClosedNotchLyrics: Bool {
+        showLyricsInClosedNotch && vm.notchState == .closed && !vm.hideOnClosed
+            && selectedActivity == .music && musicManager.isPlaying
+            && !lyricsService.syncedLyrics.isEmpty && !lyricsService.isFetchingLyrics
+            && coordinator.musicLiveActivityEnabled && !coordinator.helloAnimationRunning
+            && !nowPlayingFallbackNoticeActive && !coordinator.expandingView.show
+            && !coordinator.shouldShowSneakPeek(on: vm.screenUUID)
     }
 
     private var computedChinWidth: CGFloat {
@@ -511,12 +524,18 @@ struct ContentView: View {
                                }
                            }
                        }
+                       if shouldShowClosedNotchLyrics {
+                           ClosedNotchLyricRow(musicManager: musicManager)
+                               .padding(.top, CGFloat(lyricTopSpacing))
+                               .padding(.bottom, CGFloat(lyricBottomSpacing))
+                       }
                         }
                       }
                       .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (vm.notchState == .closed))) { view in
                           view
                               .fixedSize()
                       }
+                      .fixedSize(horizontal: shouldShowClosedNotchLyrics, vertical: shouldShowClosedNotchLyrics)
                       .zIndex(1)
             if vm.notchState == .open {
                 VStack {

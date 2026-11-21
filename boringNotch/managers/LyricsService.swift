@@ -15,7 +15,10 @@ final class LyricsService: ObservableObject {
 
     @Published var currentLyrics: String = ""
     @Published var isFetchingLyrics: Bool = false
-    @Published var syncedLyrics: [(time: Double, text: String)] = []
+    @Published var syncedLyrics: [(time: Double, text: String)] = [] {
+        didSet { lineTimings = LyricTiming.lineTimings(for: syncedLyrics) }
+    }
+    @Published private(set) var lineTimings: [LyricLineTiming] = []
 
     // Cache to avoid redundant fetches; NSCache evicts under memory pressure
     // instead of growing for the whole session.
@@ -304,10 +307,8 @@ final class LyricsService: ObservableObject {
 
             let minutes = Double(minStr) ?? 0
             let seconds = Double(secStr) ?? 0
-            // Handle both centiseconds (2 digits) and milliseconds (3 digits)
-            let msValue = Double(msStr) ?? 0
-            let msDivisor = msStr.count == 3 ? 1000.0 : 100.0
-            let time = minutes * 60 + seconds + msValue / msDivisor
+            // Fraction digits: [mm:ss.5] is half a second, not 50 ms.
+            let time = minutes * 60 + seconds + (Double("0." + msStr) ?? 0)
 
             let textStart = match.range.location + match.range.length
             let text = nsLine.substring(from: textStart).trimmingCharacters(in: .whitespaces)
@@ -324,5 +325,195 @@ final class LyricsService: ObservableObject {
             .folding(options: .diacriticInsensitive, locale: .current)
             .replacingOccurrences(of: "\u{FFFD}", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
+// MARK: - Closed-notch lyric timing
+
+struct LyricPhraseTiming {
+    let start: Double
+    let end: Double
+    let endFraction: Double
+}
+
+struct LyricLineTiming {
+    let sungSeconds: Double
+    let phrases: [LyricPhraseTiming]
+}
+
+/// LRC only timestamps whole lines, so how long a line is actually sung is
+/// estimated from its syllable count, with short holds at phrase breaks.
+enum LyricTiming {
+    private struct PhraseSegment {
+        let syllables: Int
+        var widthWeight: Double
+    }
+
+    private static let syllabicScriptRegex = try! NSRegularExpression(
+        pattern: #"[\p{scx=Han}\p{scx=Hiragana}\p{scx=Katakana}\p{scx=Hangul}]"#
+    )
+    private static let latinVowels: Set<Character> = ["a", "e", "i", "o", "u", "y"]
+    private static let phraseSeparators: Set<Character> = [
+        ",", "，", "、", "。", "!", "！", "?", "？", ";", "；", ":", "：", "…", "—", "~", "～"
+    ]
+
+    static func lyricIndex(in lyrics: [(time: Double, text: String)], at elapsed: Double) -> Int? {
+        guard let first = lyrics.first, elapsed >= first.time else { return nil }
+        var low = 0
+        var high = lyrics.count - 1
+        var idx = 0
+        while low <= high {
+            let mid = (low + high) / 2
+            if lyrics[mid].time <= elapsed {
+                idx = mid
+                low = mid + 1
+            } else {
+                high = mid - 1
+            }
+        }
+        return idx
+    }
+
+    static func lineTimings(for lyrics: [(time: Double, text: String)]) -> [LyricLineTiming] {
+        let secondsPerSyllable = 0.25
+        let baseLineLead = 0.35
+        // Tuned by ear: CJK lines swept ~0.15 s ahead of the vocal.
+        let syllabicExtraLead = 0.15
+        let phrasePauseSeconds = 0.35
+        let lastLineLimit = 4.0
+        let minimumSungSeconds = 0.2
+        return lyrics.indices.map { index in
+            let lineLead = lyrics[index].text.contains(where: isSyllabic)
+                ? baseLineLead + syllabicExtraLead : baseLineLead
+            let segments = phraseSegments(lyrics[index].text)
+            let segmentSeconds = segments.map { Double($0.syllables) * secondsPerSyllable }
+            let raw = lineLead + segmentSeconds.reduce(0, +) + Double(max(0, segments.count - 1)) * phrasePauseSeconds
+            let nextIndex = index + 1
+            let limit = nextIndex < lyrics.count
+                ? max(0, lyrics[nextIndex].time - lyrics[index].time) : lastLineLimit
+            let total = max(minimumSungSeconds, min(raw, limit))
+            let scale = raw > 0 ? total / raw : 1
+            let totalWeight = segments.reduce(0) { $0 + $1.widthWeight }
+            guard totalWeight > 0 else { return LyricLineTiming(sungSeconds: total, phrases: []) }
+            var cursor = lineLead * scale
+            var weight = 0.0
+            var phrases: [LyricPhraseTiming] = []
+            phrases.reserveCapacity(segments.count)
+            for (segmentIndex, segment) in segments.enumerated() {
+                let start = cursor
+                cursor += segmentSeconds[segmentIndex] * scale
+                weight += segment.widthWeight
+                phrases.append(LyricPhraseTiming(start: start, end: cursor, endFraction: weight / totalWeight))
+                if segmentIndex + 1 < segments.count { cursor += phrasePauseSeconds * scale }
+            }
+            return LyricLineTiming(sungSeconds: total, phrases: phrases)
+        }
+    }
+
+    private static func isSyllabic(_ character: Character) -> Bool {
+        guard character.isLetter, !character.isASCII else { return false }
+        let value = String(character)
+        return syllabicScriptRegex.firstMatch(
+            in: value,
+            range: NSRange(value.startIndex..<value.endIndex, in: value)
+        ) != nil
+    }
+
+    static func syllableEstimate(_ text: String) -> Int {
+        let chars = Array(text)
+        var total = 0, word = "", inDigitRun = false
+
+        func finishWord() {
+            guard !word.isEmpty else { return }
+            let lower = word.lowercased()
+            var groups = 0, prevVowel = false
+            for ch in lower {
+                let isVowel = latinVowels.contains(ch)
+                if isVowel && !prevVowel { groups += 1 }
+                prevVowel = isVowel
+            }
+            if lower.hasSuffix("e") && groups > 1 { groups -= 1 }
+            total += max(1, groups)
+            word.removeAll(keepingCapacity: true)
+        }
+
+        for (index, ch) in chars.enumerated() {
+            if ch.isLetter {
+                inDigitRun = false
+                if isSyllabic(ch) {
+                    finishWord()
+                    total += 1
+                } else {
+                    word.append(ch)
+                }
+            } else if ch.unicodeScalars.allSatisfy(CharacterSet.decimalDigits.contains) {
+                finishWord()
+                if !inDigitRun {
+                    total += 1
+                    inDigitRun = true
+                }
+            } else {
+                inDigitRun = false
+                if (ch == "'" || ch == "’"), !word.isEmpty, index + 1 < chars.count, chars[index + 1].isLetter {
+                    word.append(ch)
+                } else {
+                    finishWord()
+                }
+            }
+        }
+        finishWord()
+        return max(1, total)
+    }
+
+    private static func phraseSegments(_ text: String) -> [PhraseSegment] {
+        let chars = Array(text)
+        let syllabic = chars.map(isSyllabic)
+        var segments: [PhraseSegment] = []
+        var currentText = "", currentWeight = 0.0, index = 0
+
+        func finishSegment() {
+            let trimmed = currentText.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                segments.append(PhraseSegment(syllables: syllableEstimate(trimmed), widthWeight: currentWeight))
+                currentWeight = 0
+            }
+            currentText.removeAll(keepingCapacity: true)
+        }
+
+        func addSeparatorWeight(_ weight: Double) {
+            if segments.isEmpty {
+                currentWeight += weight
+            } else {
+                segments[segments.count - 1].widthWeight += weight
+            }
+        }
+
+        while index < chars.count {
+            let ch = chars[index]
+            if phraseSeparators.contains(ch) {
+                finishSegment()
+                addSeparatorWeight(1.0)
+                index += 1
+            } else if ch.isWhitespace {
+                let start = index
+                while index < chars.count && chars[index].isWhitespace { index += 1 }
+                let weight = Double(index - start) * 0.5
+                if start > 0 && index < chars.count && syllabic[start - 1] && syllabic[index] {
+                    finishSegment()
+                }
+                if currentText.isEmpty && !segments.isEmpty {
+                    addSeparatorWeight(weight)
+                } else {
+                    currentText += String(chars[start..<index])
+                    currentWeight += weight
+                }
+            } else {
+                currentText.append(ch)
+                currentWeight += syllabic[index] ? 2.0 : 1.0
+                index += 1
+            }
+        }
+        finishSegment()
+        return segments
     }
 }

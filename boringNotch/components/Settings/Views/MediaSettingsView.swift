@@ -17,6 +17,11 @@ struct MediaSettingsView: View {
     @Default(.sliderColor) var sliderColor
 
     @Default(.enableLyrics) var enableLyrics
+    @Default(.showLyricsInClosedNotch) var showLyricsInClosedNotch
+    @Default(.lyricSyncOffset) var lyricSyncOffset
+    @Default(.lyricTopSpacing) var lyricTopSpacing
+    @Default(.lyricBottomSpacing) var lyricBottomSpacing
+    @Default(.lyricFontSize) var lyricFontSize
     @ObservedObject private var musicManager = MusicManager.shared
 
     private var realtimeAudioWaveformSupported: Bool {
@@ -24,6 +29,23 @@ struct MediaSettingsView: View {
             return true
         }
         return false
+    }
+
+    private func lyricSlider(
+        _ title: String,
+        value: Binding<Double>,
+        in range: ClosedRange<Double>,
+        step: Double,
+        valueText: String
+    ) -> some View {
+        Slider(value: value, in: range, step: step) {
+            HStack {
+                Text(title)
+                Spacer()
+                Text(valueText)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 
     var body: some View {
@@ -103,6 +125,46 @@ struct MediaSettingsView: View {
                         customBadge(text: "Beta")
                     }
                 }
+                Defaults.Toggle(key: .showLyricsInClosedNotch) {
+                    HStack {
+                        Text("Show lyrics under closed notch")
+                        customBadge(text: "Beta")
+                    }
+                }
+                Group {
+                    lyricSlider(
+                        "Lyric timing offset",
+                        value: $lyricSyncOffset,
+                        in: -1.0...1.0,
+                        step: 0.05,
+                        valueText: String(format: "%+.2f s", lyricSyncOffset)
+                    )
+                    lyricSlider(
+                        "Space above lyrics",
+                        value: $lyricTopSpacing,
+                        in: -8...8,
+                        step: 1,
+                        valueText: String(format: "%.0f pt", lyricTopSpacing)
+                    )
+                    lyricSlider(
+                        "Space below lyrics",
+                        value: $lyricBottomSpacing,
+                        in: 2...16,
+                        step: 1,
+                        valueText: String(format: "%.0f pt", lyricBottomSpacing)
+                    )
+                    lyricSlider(
+                        "Lyric font size",
+                        value: $lyricFontSize,
+                        in: 9...14,
+                        step: 0.5,
+                        valueText: String(format: "%.1f pt", lyricFontSize)
+                    )
+                    Button("Reset lyric display") {
+                        Defaults.reset(.lyricSyncOffset, .lyricTopSpacing, .lyricBottomSpacing, .lyricFontSize)
+                    }
+                }
+                .disabled(!showLyricsInClosedNotch)
                 Defaults.Toggle(key: .showRemainingTime) {
                     Text("Show remaining time instead of duration")
                 }
