@@ -76,23 +76,24 @@ final class ShelfStateViewModel: ObservableObject {
     }
 
     func cleanupInvalidItems() {
+        let snapshot = items
         Task { [weak self] in
-            guard let self else { return }
-            var keep: [ShelfItem] = []
-            for item in self.items {
-                switch item.kind {
-                case .file(let data):
-                    let bookmark = Bookmark(data: data)
-                    if await bookmark.validate() {
-                        keep.append(item)
-                    } else {
-                        item.cleanupStoredData()
-                    }
-                default:
-                    keep.append(item)
+            var invalid: [ShelfItem] = []
+            for item in snapshot {
+                if case .file(let data) = item.kind, !(await Bookmark(data: data).validate()) {
+                    invalid.append(item)
                 }
             }
-            await MainActor.run { self.items = keep }
+            guard let self, !invalid.isEmpty else { return }
+            // Validation suspends; only remove the same unchanged invalid items.
+            // Preserve files added, removed, or refreshed while validation ran.
+            let stale = self.items.filter { current in
+                invalid.contains { $0.id == current.id && $0.kind == current.kind }
+            }
+            guard !stale.isEmpty else { return }
+            stale.forEach { $0.cleanupStoredData() }
+            let staleIDs = Set(stale.map(\.id))
+            self.items.removeAll { staleIDs.contains($0.id) }
         }
     }
 
