@@ -542,20 +542,24 @@ struct CalendarView: View {
                     .foregroundColor(Color(white: 0.65))
             }
 
-            ZStack(alignment: .top) {
-                WheelPicker(selectedDate: $selectedDate, config: Config())
-                HStack(alignment: .top) {
-                    LinearGradient(
-                        colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
-                    )
-                    .frame(width: 20)
-                    Spacer()
-                    LinearGradient(
-                        colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
-                    )
-                    .frame(width: 20)
+            // Fade the ends of the dial with an alpha mask rather than painting
+            // black over them: a black overlay cannot follow the notch surface's
+            // own gradient, so it reads as a stray bar on the Liquid Glass.
+            WheelPicker(selectedDate: $selectedDate, config: Config())
+                .mask {
+                    HStack(spacing: 0) {
+                        LinearGradient(
+                            colors: [.clear, .black], startPoint: .leading, endPoint: .trailing
+                        )
+                        .frame(width: 20)
+                        Rectangle()
+                            .fill(.black)
+                        LinearGradient(
+                            colors: [.black, .clear], startPoint: .leading, endPoint: .trailing
+                        )
+                        .frame(width: 20)
+                    }
                 }
-            }
         }
         .fixedSize(horizontal: false, vertical: true)
     }

@@ -40,6 +40,10 @@
 		1153BDA72D99B22200979FB0 /* YouTubeMusicController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */; };
 		115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115C12EB2ED3D003009754CA /* OpenNotchOSD.swift */; };
 		1160F8D82DD98230006FBB94 /* NotchShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1160F8D72DD98230006FBB94 /* NotchShape.swift */; };
+		A1F0C0DE0000000000000012 /* LiquidGlassAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F0C0DE0000000000000002 /* LiquidGlassAvailability.swift */; };
+		A1F0C0DE0000000000000013 /* LiquidGlassBackdropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F0C0DE0000000000000003 /* LiquidGlassBackdropView.swift */; };
+		A1F0C0DE0000000000000014 /* LiquidGlassNotchBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F0C0DE0000000000000004 /* LiquidGlassNotchBackground.swift */; };
+		A1F0C0DE0000000000000015 /* NotchScrimCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F0C0DE0000000000000005 /* NotchScrimCalculator.swift */; };
 		1163988D2DF5CAB40052E6AF /* EventModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1163988C2DF5CAB40052E6AF /* EventModel.swift */; };
 		1163988F2DF5CC870052E6AF /* CalendarModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1163988E2DF5CC870052E6AF /* CalendarModel.swift */; };
 		116398962DF5D6C00052E6AF /* CalendarServiceProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116398952DF5D6C00052E6AF /* CalendarServiceProviding.swift */; };
@@ -214,6 +218,10 @@
 		1153BDA62D99B22200979FB0 /* YouTubeMusicController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeMusicController.swift; sourceTree = "<group>"; };
 		115C12EB2ED3D003009754CA /* OpenNotchOSD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenNotchOSD.swift; sourceTree = "<group>"; };
 		1160F8D72DD98230006FBB94 /* NotchShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchShape.swift; sourceTree = "<group>"; };
+		A1F0C0DE0000000000000002 /* LiquidGlassAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassAvailability.swift; sourceTree = "<group>"; };
+		A1F0C0DE0000000000000003 /* LiquidGlassBackdropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassBackdropView.swift; sourceTree = "<group>"; };
+		A1F0C0DE0000000000000004 /* LiquidGlassNotchBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassNotchBackground.swift; sourceTree = "<group>"; };
+		A1F0C0DE0000000000000005 /* NotchScrimCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchScrimCalculator.swift; sourceTree = "<group>"; };
 		1163988C2DF5CAB40052E6AF /* EventModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventModel.swift; sourceTree = "<group>"; };
 		1163988E2DF5CC870052E6AF /* CalendarModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarModel.swift; sourceTree = "<group>"; };
 		116398952DF5D6C00052E6AF /* CalendarServiceProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarServiceProviding.swift; sourceTree = "<group>"; };
@@ -772,11 +780,23 @@
 				AA04LAS22E7A0001 /* LiveActivityStack.swift */,
 				1194E8862EA6DDA7009C82D6 /* BoringNotchSkyLightWindow.swift */,
 				1160F8D72DD98230006FBB94 /* NotchShape.swift */,
+				A1F0C0DE0000000000000001 /* LiquidGlass */,
 				9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */,
 				14D570C52C5F38210011E668 /* BoringHeader.swift */,
 				14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */,
 			);
 			path = Notch;
+			sourceTree = "<group>";
+		};
+		A1F0C0DE0000000000000001 /* LiquidGlass */ = {
+			isa = PBXGroup;
+			children = (
+				A1F0C0DE0000000000000002 /* LiquidGlassAvailability.swift */,
+				A1F0C0DE0000000000000003 /* LiquidGlassBackdropView.swift */,
+				A1F0C0DE0000000000000004 /* LiquidGlassNotchBackground.swift */,
+				A1F0C0DE0000000000000005 /* NotchScrimCalculator.swift */,
+			);
+			path = LiquidGlass;
 			sourceTree = "<group>";
 		};
 		B186543A2C6F49A4000B926A /* Shortcuts */ = {
@@ -1017,6 +1037,10 @@
 				1100292E2E86940F00035A57 /* QuickShareService.swift in Sources */,
 				1113ABCE2E80E27000EC13B2 /* ShelfActionService.swift in Sources */,
 				1160F8D82DD98230006FBB94 /* NotchShape.swift in Sources */,
+				A1F0C0DE0000000000000012 /* LiquidGlassAvailability.swift in Sources */,
+				A1F0C0DE0000000000000013 /* LiquidGlassBackdropView.swift in Sources */,
+				A1F0C0DE0000000000000014 /* LiquidGlassNotchBackground.swift in Sources */,
+				A1F0C0DE0000000000000015 /* NotchScrimCalculator.swift in Sources */,
 				5917FD112E57891600E87F1C /* MediaKeyInterceptor.swift in Sources */,
 				149E0B9A2C737D40006418B1 /* WebcamView.swift in Sources */,
 				AA01SNM12E7A0001 /* SystemNotificationManager.swift in Sources */,
