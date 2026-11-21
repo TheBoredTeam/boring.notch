@@ -10,7 +10,7 @@ import Combine
 import SwiftUI
 
 @MainActor
-final class AppleMusicController: MediaControllerProtocol {
+final class AppleMusicController: TrackRatingControlling {
     // MARK: - Properties
     @Published private var playbackState: PlaybackState = PlaybackState(
         bundleIdentifier: MediaAppBundleID.appleMusic,
@@ -130,6 +130,11 @@ final class AppleMusicController: MediaControllerProtocol {
         await updatePlaybackInfo()
     }
 
+    func setRating(_ rating: MusicTrackRating) async throws {
+        try await AppleMusicRatingAccess.setRating(rating)
+        await updatePlaybackInfo()
+    }
+
     func updatePlaybackInfo() async {
         guard let descriptor = try? await fetchPlaybackInfoAsync() else { return }
         guard descriptor.numberOfItems >= 11 else { return }
@@ -149,6 +154,7 @@ final class AppleMusicController: MediaControllerProtocol {
         updatedState.artwork = Self.imageData(from: descriptor.atIndex(10))
         let lovedState = descriptor.atIndex(11)?.booleanValue ?? false
         updatedState.isFavorite = lovedState
+        updatedState.trackRating = AppleMusicRatingAccess.rating(from: descriptor)
         updatedState.lastUpdated = Date()
         if updatedState.artwork == nil {
             updatedState.artwork = fallbackArtwork(for: updatedState)
@@ -282,7 +288,14 @@ final class AppleMusicController: MediaControllerProtocol {
 
                 set currentVolume to sound volume
                 set favoriteState to favorited of current track
-                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatValue, currentVolume, artData, favoriteState}
+                set trackID to ""
+                set trackRating to -1
+                try
+                    set trackID to persistent ID of current track
+                    set trackRating to rating of current track
+                    if rating kind of current track is computed then set trackRating to 0
+                end try
+                return {playerState, currentTrackName, currentTrackArtist, currentTrackAlbum, trackPosition, trackDuration, shuffleState, repeatValue, currentVolume, artData, favoriteState, trackID, trackRating}
             on error
                 return {false, "Not Playing", "Unknown", "Unknown", 0, 0, false, 0, 50, "", false}
             end try
@@ -290,5 +303,36 @@ final class AppleMusicController: MediaControllerProtocol {
         """
 
         return try await AppleScriptHelper.execute(script)
+    }
+}
+
+enum AppleMusicRatingAccess {
+    enum RatingError: Error {
+        case trackUnavailable
+    }
+
+    static func rating(from descriptor: NSAppleEventDescriptor) -> MusicTrackRating? {
+        guard let trackID = descriptor.atIndex(12)?.stringValue,
+              let value = descriptor.atIndex(13), value.descriptorType == typeSInt32 else { return nil }
+        return MusicTrackRating(trackID: trackID, value: Int(value.int32Value))
+    }
+
+    static func setRating(
+        _ rating: MusicTrackRating,
+        execute: (String) async throws -> NSAppleEventDescriptor? = AppleScriptHelper.execute
+    ) async throws {
+        let script = """
+        if application "Music" is not running then return false
+        tell application "Music"
+            if not (exists current track) then return false
+            if persistent ID of current track is not "\(rating.trackID)" then return false
+            set targetTrack to first track of library playlist 1 whose persistent ID is "\(rating.trackID)"
+            set rating of targetTrack to \(rating.value)
+            return true
+        end tell
+        """
+        guard try await execute(script)?.booleanValue == true else {
+            throw RatingError.trackUnavailable
+        }
     }
 }

@@ -29,6 +29,7 @@ struct PlaybackState {
     var artwork: Data?
     var volume: Double = 0.5
     var isFavorite: Bool = false
+    var trackRating: MusicTrackRating?
 
     var effectiveAudioCaptureBundleIdentifiers: [String] {
         let raw = audioCaptureBundleIdentifiers.isEmpty ? [bundleIdentifier] : audioCaptureBundleIdentifiers
@@ -61,5 +62,21 @@ extension PlaybackState: Equatable {
             && lhs.repeatMode == rhs.repeatMode
             && lhs.artwork == rhs.artwork
             && lhs.isFavorite == rhs.isFavorite
+            && lhs.trackRating == rhs.trackRating
     }
+}
+
+struct MusicTrackRating: Equatable {
+    let trackID: String
+    let value: Int
+
+    init?(trackID: String, value: Int) {
+        guard !trackID.isEmpty,
+              trackID.utf8.allSatisfy({ (48...57).contains($0) || (65...70).contains($0) || (97...102).contains($0) }),
+              (0...100).contains(value) else { return nil }
+        self.trackID = trackID
+        self.value = value
+    }
+
+    var stars: Int { value / 20 }
 }
