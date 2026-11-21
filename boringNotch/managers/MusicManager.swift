@@ -63,6 +63,8 @@ final class MusicManager: ObservableObject {
 
     private var controllerCancellables = Set<AnyCancellable>()
     private var averageColorTask: Task<Void, Never>?
+    /// Position requested by the last seek; players keep reporting the old position for a moment afterwards.
+    private var pendingSeek: (target: TimeInterval, requestedAt: Date)?
     private var debounceIdleTask: Task<Void, Never>?
     private var availabilityTask: Task<Void, Never>?
     private var runtimeFailureTask: Task<Void, Never>?
@@ -534,6 +536,12 @@ final class MusicManager: ObservableObject {
             self.fetchLyricsIfAvailable(bundleIdentifier: state.bundleIdentifier, title: state.title, artist: state.artist)
         }
 
+        if let seek = pendingSeek {
+            let age = Date().timeIntervalSince(seek.requestedAt)
+            let expected = seek.target + (state.isPlaying ? age * state.playbackRate : 0)
+            if abs(state.currentTime - expected) < 1.5 { pendingSeek = nil }
+        }
+
         let timeChanged = state.currentTime != self.elapsedTime
         let durationChanged = state.duration != self.songDuration
         let playbackRateChanged = state.playbackRate != self.playbackRate
@@ -698,6 +706,16 @@ final class MusicManager: ObservableObject {
 
     // MARK: - Playback Position Estimation
     func estimatedPlaybackPosition(at date: Date = Date()) -> TimeInterval {
+        // Right after a seek, stick to the requested position until the player reports it
+        if let seek = pendingSeek {
+            let age = date.timeIntervalSince(seek.requestedAt)
+            if age < 2.0 {
+                let expected = seek.target + (isPlaying ? age * playbackRate : 0)
+                return min(max(0, expected), songDuration)
+            }
+            pendingSeek = nil
+        }
+
         guard isPlaying else { return min(elapsedTime, songDuration) }
 
         let timeDifference = date.timeIntervalSince(timestampDate)
@@ -780,6 +798,7 @@ final class MusicManager: ObservableObject {
     }
 
     func seek(to position: TimeInterval) {
+        pendingSeek = (position, Date())
         Task {
             await activeController?.seek(to: position)
         }
