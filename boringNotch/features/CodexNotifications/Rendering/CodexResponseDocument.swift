@@ -7,12 +7,12 @@ struct CodexResponseDocument {
     let markdown: String
     let equations: [URL: CodexMathEquation]
     private(set) var annotationURLs: Set<URL> = []
-    private(set) var sourceURLs: Set<URL> = []
+    private(set) var fileURLs: Set<URL> = []
 
     init(source: String) {
-        var sources: Set<URL> = []
-        let adapted = Self.renderSourceCitations(in: source, urls: &sources)
-        sourceURLs = sources
+        var files: Set<URL> = []
+        let adapted = Self.renderFileCitations(in: source, urls: &files)
+        fileURLs = files
         let math = CodexMathDocument(source: adapted)
         equations = math.equations
         cmark_gfm_core_extensions_ensure_registered()
@@ -30,13 +30,14 @@ struct CodexResponseDocument {
         }
         defer { cmark_node_free(root) }
         var annotations: Set<URL> = []
-        let changed = Self.rewrite(root, equations: equations, annotations: &annotations)
+        let changed = Self.rewrite(root, equations: equations, annotations: &annotations, files: &files)
         if changed, let rendered = cmark_render_commonmark(root, CMARK_OPT_DEFAULT, 0) {
             markdown = String(cString: rendered)
             free(rendered)
         } else {
             markdown = math.markdown
         }
+        fileURLs = files
         annotationURLs = annotations
     }
 
@@ -44,28 +45,28 @@ struct CodexResponseDocument {
         pattern: #":codex-annotation\{index="([1-9][0-9]{0,8})"(?:[ \t]+id="[^"\r\n]+")?\}"#
     )
 
-    private static let sourceCitation = try! NSRegularExpression(
-        pattern: #":codex-file-citation\{path="([^"\r\n]+)"[ \t]+purpose="source"\}"#
+    private static let fileCitation = try! NSRegularExpression(
+        pattern: #":codex-file-citation\{path="([^"\r\n]+)"[ \t]+purpose="(source|output)"\}"#
     )
 
-    private static func renderSourceCitations(in source: String, urls: inout Set<URL>) -> String {
+    private static func renderFileCitations(in source: String, urls: inout Set<URL>) -> String {
         // Filenames can contain Markdown and math punctuation. Convert the whole
         // directive before either parser interprets the filename as body content.
         let protected = CodexMathDocument.protectedRanges(in: source)
         let text = source as NSString
         var result = source
-        let matches = sourceCitation.matches(in: source, range: NSRange(location: 0, length: text.length))
+        let matches = fileCitation.matches(in: source, range: NSRange(location: 0, length: text.length))
         for (index, match) in matches.enumerated().reversed() {
             guard let range = Range(match.range, in: source) else { continue }
             let bytes = source.utf8.distance(from: source.utf8.startIndex, to: range.lowerBound)..<source.utf8.distance(from: source.utf8.startIndex, to: range.upperBound)
             guard !protected.contains(where: { $0.overlaps(bytes) }) else { continue }
             let filename = (text.substring(with: match.range(at: 1)) as NSString).lastPathComponent
             guard !filename.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { continue }
-            let url = URL(string: "boringnotch-reference://source/\(index + 1)")!
+            let url = URL(string: "boringnotch-reference://\(text.substring(with: match.range(at: 2)))/\(index + 1)")!
             let link = cmark_node_new(CMARK_NODE_LINK)!
             defer { cmark_node_free(link) }
             cmark_node_set_url(link, url.absoluteString)
-            cmark_node_set_title(link, "View source in Codex")
+            cmark_node_set_title(link, "View file in Codex")
             let label = cmark_node_new(CMARK_NODE_TEXT)!
             cmark_node_set_literal(label, filename)
             cmark_node_append_child(link, label)
@@ -79,9 +80,22 @@ struct CodexResponseDocument {
     }
 
     private static func rewrite(
-        _ node: UnsafeMutablePointer<cmark_node>, equations: [URL: CodexMathEquation], annotations: inout Set<URL>
+        _ node: UnsafeMutablePointer<cmark_node>, equations: [URL: CodexMathEquation], annotations: inout Set<URL>,
+        files: inout Set<URL>
     ) -> Bool {
         let type = cmark_node_get_type(node)
+        if type == CMARK_NODE_LINK, let rawURL = cmark_node_get_url(node) {
+            let destination = String(cString: rawURL)
+            if (destination.hasPrefix("/") && !destination.hasPrefix("//")) || URL(string: destination)?.isFileURL == true {
+                // Local files belong to Codex's artifact UI. Keep activation in
+                // the matching chat rather than granting response text file access.
+                let url = URL(string: "boringnotch-reference://file/\(files.count + 1)")!
+                cmark_node_set_url(node, url.absoluteString)
+                cmark_node_set_title(node, "View file in Codex")
+                files.insert(url)
+                return true
+            }
+        }
         // Examples, destinations, alt text and raw HTML are literal content.
         if [CMARK_NODE_CODE, CMARK_NODE_CODE_BLOCK, CMARK_NODE_LINK, CMARK_NODE_IMAGE,
             CMARK_NODE_HTML_BLOCK, CMARK_NODE_HTML_INLINE].contains(type) { return false }
@@ -113,7 +127,7 @@ struct CodexResponseDocument {
         var child = cmark_node_first_child(node)
         while let current = child {
             child = cmark_node_next(current)
-            if rewrite(current, equations: equations, annotations: &annotations) { changed = true }
+            if rewrite(current, equations: equations, annotations: &annotations, files: &files) { changed = true }
         }
         let name = String(cString: cmark_node_get_type_string(node))
         guard type == CMARK_NODE_EMPH || type == CMARK_NODE_STRONG || name == "strikethrough" else { return changed }

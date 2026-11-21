@@ -152,7 +152,7 @@ final class CodexResponseRenderingTests: XCTestCase {
         }
         XCTAssertFalse(html.contains(":codex-file-citation"))
         XCTAssertFalse(html.contains("/tmp/Course Materials"))
-        XCTAssertEqual(response.document.sourceURLs.count, 4)
+        XCTAssertEqual(response.document.fileURLs.count, 4)
         XCTAssertTrue(html.contains("<strong>learning objectives</strong>"))
         _ = response.openLink(try XCTUnwrap(URL(string: "boringnotch-reference://source/1")))
         XCTAssertEqual(opened, 1)
@@ -162,17 +162,74 @@ final class CodexResponseRenderingTests: XCTestCase {
         XCTAssertEqual(opened, 1, "Only parsed references can open the matching chat; local file URLs stay blocked")
     }
 
-    func testSourceCitationFilenamesKeepMarkdownCharactersUnicodeAndMathLiteral() {
-        let document = CodexResponseDocument(source: #"""
-        Source: :codex-file-citation{path="/tmp/课程/笔记_v1_final [draft] $x$.pdf" purpose="source"}
+    func testGeneratedFileLinksAndOutputCitationOpenTheMatchingChat() throws {
+        var opened = 0
+        let response = CodexResponseMarkdown(source: #"""
+        **Text size remains unchanged.**
 
-        Actual math: \(x^2\). :codex-annotation{index="1" id="example-id"}
+        [Detailed audit](</tmp/Generated Files/detailed audit.txt>) · [Updated editable source](</tmp/Generated Files/editable source.zip>)
+
+        :codex-file-citation{path="/tmp/Generated Files/final_document.pdf" purpose="output"}
+        """#, onOpenCodex: { opened += 1 })
+        let html = MarkdownContent(response.document.markdown).renderHTML()
+        for label in ["Detailed audit", "Updated editable source", "final_document.pdf"] {
+            XCTAssertTrue(html.contains(">\(label)</a>"))
+        }
+        XCTAssertFalse(html.contains(":codex-file-citation"))
+        XCTAssertFalse(html.contains("/tmp/"), "File paths must be replaced with response-scoped actions")
+        XCTAssertTrue(html.contains("<strong>Text size remains unchanged.</strong>"))
+        XCTAssertEqual(response.document.fileURLs.count, 3)
+        for url in response.document.fileURLs { _ = response.openLink(url) }
+        XCTAssertEqual(opened, 3)
+        for target in ["file:///tmp/Generated%20Files/final_document.pdf", "/tmp/fixture.pdf", "boringnotch-reference://output/99"] {
+            _ = response.openLink(try XCTUnwrap(URL(string: target)))
+        }
+        XCTAssertEqual(opened, 3, "Only this response's parsed actions may invoke its chat")
+    }
+
+    func testLocalFileLinkLabelsAndExamplesPreserveMarkdownSemantics() {
+        let document = CodexResponseDocument(source: #"""
+        [**Audit** and `source`](file:///tmp/audit%20report.txt)
+        [Unicode 课程](</tmp/课程/notes [draft] $x$.pdf>)
+        [Web](https://example.invalid/report.pdf) [Email](mailto:test@example.invalid)
+        [Relative](notes/report.pdf) [Network](//example.invalid/report.pdf)
+
+        `[Example](/tmp/example.pdf)`
+        ![Image](/tmp/example.png)
+
+        ```text
+        :codex-file-citation{path="/tmp/example.pdf" purpose="output"}
+        ```
+
+        <div>:codex-file-citation{path="/tmp/example.pdf" purpose="output"}</div>
         """#)
-        let content = MarkdownContent(document.markdown)
-        XCTAssertTrue(content.renderPlainText().contains("笔记_v1_final [draft] $x$.pdf"))
-        XCTAssertFalse(content.renderHTML().contains(":codex-file-citation"))
-        XCTAssertEqual(document.equations.values.map(\.latex), ["x^2"], "Math inside a source filename must stay literal")
-        XCTAssertTrue(content.renderHTML().contains(">Annotation 1</a>"))
+        let html = MarkdownContent(document.markdown).renderHTML()
+        XCTAssertEqual(document.fileURLs.count, 2)
+        XCTAssertTrue(html.contains("<strong>Audit</strong> and <code>source</code></a>"))
+        XCTAssertTrue(html.contains(">Unicode 课程</a>"))
+        XCTAssertTrue(html.contains("href=\"https://example.invalid/report.pdf\""))
+        XCTAssertTrue(html.contains("href=\"mailto:test@example.invalid\""))
+        XCTAssertTrue(html.contains("href=\"notes/report.pdf\""))
+        XCTAssertTrue(html.contains("href=\"//example.invalid/report.pdf\""))
+        XCTAssertTrue(html.contains("[Example](/tmp/example.pdf)"))
+        XCTAssertTrue(html.contains("src=\"/tmp/example.png\""))
+        XCTAssertTrue(html.contains(":codex-file-citation"))
+        XCTAssertTrue(document.equations.isEmpty)
+    }
+
+    func testFileCitationFilenamesKeepMarkdownCharactersUnicodeAndMathLiteral() {
+        for purpose in ["source", "output"] {
+            let document = CodexResponseDocument(source: #"""
+            Source: :codex-file-citation{path="/tmp/课程/笔记_v1_final [draft] $x$.pdf" purpose="\#(purpose)"}
+
+            Actual math: \(x^2\). :codex-annotation{index="1" id="example-id"}
+            """#)
+            let content = MarkdownContent(document.markdown)
+            XCTAssertTrue(content.renderPlainText().contains("笔记_v1_final [draft] $x$.pdf"))
+            XCTAssertFalse(content.renderHTML().contains(":codex-file-citation"))
+            XCTAssertEqual(document.equations.values.map(\.latex), ["x^2"], "Math inside a file citation filename must stay literal")
+            XCTAssertTrue(content.renderHTML().contains(">Annotation 1</a>"))
+        }
     }
 
     func testSourceCitationExamplesAndMalformedDirectivesRemainLiteral() {

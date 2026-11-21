@@ -249,7 +249,14 @@ final class CodexResponseMathTests: XCTestCase {
 
         Sources: :codex-file-citation{path="/tmp/Course Materials/tutorial-07.pdf" purpose="source"} :codex-file-citation{path="/tmp/Course Materials/tutorial-08.pdf" purpose="source"} :codex-file-citation{path="/tmp/Course Materials/tutorial-09.pdf" purpose="source"} :codex-file-citation{path="/tmp/Course Materials/tutorial-10.pdf" purpose="source"}
         """#
-        for (name, content) in [("math", source), ("short", "Got it."), ("notation", notation), ("annotation-id", radix), ("sources", sources)] {
+        let outputs = #"""
+        **Text size remains unchanged.**
+
+        [Detailed audit](</tmp/Generated Files/detailed audit.txt>) · [Updated editable source](</tmp/Generated Files/editable source.zip>)
+
+        :codex-file-citation{path="/tmp/Generated Files/final_document.pdf" purpose="output"}
+        """#
+        for (name, content) in [("outputs", outputs), ("math", source), ("short", "Got it."), ("notation", notation), ("annotation-id", radix), ("sources", sources)] {
             let host = NSHostingView(rootView:
                 CodexResponseCard(
                     source: content, isTruncated: false, projectName: "Fixture", chatTitle: "Synthetic math example",
@@ -278,7 +285,7 @@ final class CodexResponseMathTests: XCTestCase {
             }
             let size = host.fittingSize
             XCTAssertLessThanOrEqual(size.height, 310)
-            XCTAssertGreaterThan(size.height, name == "short" ? 100 : name == "sources" ? 140 : 200)
+            XCTAssertGreaterThan(size.height, name == "short" ? 100 : ["sources", "outputs"].contains(name) ? 140 : 200)
             host.setFrameSize(size)
             host.layoutSubtreeIfNeeded()
             let pixels = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
