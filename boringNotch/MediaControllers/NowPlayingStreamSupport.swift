@@ -228,12 +228,12 @@ final class NowPlayingStreamSession {
     }
 }
 
-struct NowPlayingUpdate: Codable, Sendable {
+struct NowPlayingUpdate: Decodable, Sendable {
     let payload: NowPlayingPayload
     let diff: Bool?
 }
 
-struct NowPlayingPayload: Codable, Sendable {
+struct NowPlayingPayload: Decodable, Sendable {
     let title: String?
     let artist: String?
     let album: String?
@@ -248,6 +248,28 @@ struct NowPlayingPayload: Codable, Sendable {
     let parentApplicationBundleIdentifier: String?
     let bundleIdentifier: String?
     let volume: Double?
-    let likeCommandEnabled: Bool?
-    let likeCommandActive: Bool?
+    @FavoriteFlag var likeCommandEnabled: Bool?
+    @FavoriteFlag var likeCommandActive: Bool?
+}
+
+// Adapter diffs omit unchanged keys and send null when a key is removed.
+@propertyWrapper
+struct FavoriteFlag: Decodable, Sendable {
+    let wrappedValue: Bool?
+
+    init(wrappedValue: Bool?) {
+        self.wrappedValue = wrappedValue
+    }
+
+    init(from decoder: Decoder) throws {
+        let value = try decoder.singleValueContainer()
+        wrappedValue = value.decodeNil() ? false : try value.decode(Bool.self)
+    }
+}
+
+private extension KeyedDecodingContainer {
+    func decode(_ type: FavoriteFlag.Type, forKey key: Key) throws -> FavoriteFlag {
+        guard contains(key) else { return FavoriteFlag(wrappedValue: nil) }
+        return try FavoriteFlag(from: superDecoder(forKey: key))
+    }
 }

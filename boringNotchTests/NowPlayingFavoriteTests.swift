@@ -25,6 +25,25 @@ final class NowPlayingFavoriteTests: XCTestCase {
         XCTAssertFalse(unliked.active)
     }
 
+    func testSameTrackAdapterDiffClearsOnlyRemovedFavoriteFields() throws {
+        let previous = NowPlayingFavoriteSnapshot(bundleIdentifier: "test.player", enabled: true, active: true)
+        func apply(_ json: String) throws -> NowPlayingFavoriteSnapshot {
+            let update = try JSONDecoder().decode(NowPlayingUpdate.self, from: Data(json.utf8))
+            return .merging(bundleIdentifier: previous.bundleIdentifier,
+                            enabled: update.payload.likeCommandEnabled, active: update.payload.likeCommandActive,
+                            previous: previous, preserving: update.diff == true)
+        }
+        XCTAssertEqual(try apply(#"{"diff":true,"payload":{"elapsedTime":5}}"#), previous)
+
+        let cleared = try apply(#"{"diff":true,"payload":{"likeCommandActive":null}}"#)
+        XCTAssertTrue(cleared.enabled)
+        XCTAssertFalse(cleared.active)
+
+        let disabled = try apply(#"{"diff":true,"payload":{"likeCommandEnabled":null,"likeCommandActive":null}}"#)
+        XCTAssertFalse(disabled.enabled)
+        XCTAssertFalse(disabled.active)
+    }
+
     func testNewItemOrPlayerDoesNotInheritOldFeedback() {
         let previous = NowPlayingFavoriteSnapshot(bundleIdentifier: "first.player", enabled: true, active: true)
         for (bundle, preserving) in [("first.player", false), ("second.player", true)] {
