@@ -289,7 +289,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "'Зараз грає' був єдиним варіантом на попередніх версіях і працює з усіма медіа застосунками."
           }
         },
@@ -489,7 +489,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "%.0f секунд"
           }
         },
@@ -1089,7 +1089,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "• Виправлення помилок"
           }
         },
@@ -1189,7 +1189,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "• Покращено продуктивність"
           }
         },
@@ -1289,7 +1289,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "• Нова функція 1"
           }
         },
@@ -1389,7 +1389,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Про додаток"
           }
         },
@@ -1489,7 +1489,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Колір відтінку"
           }
         },
@@ -1589,7 +1589,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Доступ заборонено"
           }
         },
@@ -1689,8 +1689,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Accessibility access is required to replace the system HUD."
+            "state" : "translated",
+            "value" : "Для заміни системного HUD потрібен доступ до «Доступності» (Accessibility)."
           }
         },
         "zh-Hans" : {
@@ -1789,7 +1789,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Додати"
           }
         },
@@ -1890,7 +1890,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Додати вручну"
           }
         },
@@ -1990,7 +1990,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Додати новий візуалізатор"
           }
         },
@@ -2090,7 +2090,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Додаткові можливості"
           }
         },
@@ -2190,8 +2190,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Advanced"
+            "state" : "translated",
+            "value" : "Додатково"
           }
         },
         "zh-Hans" : {
@@ -2290,7 +2290,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Увесь день"
           }
         },
@@ -2390,7 +2390,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Надати доступ"
           }
         },
@@ -2490,8 +2490,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Always show full event titles"
+            "state" : "translated",
+            "value" : "Завжди показувати повні назви подій"
           }
         },
         "zh-Hans" : {
@@ -2590,7 +2590,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Завжди показувати вкладки"
           }
         },
@@ -2690,7 +2690,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Значок додатка"
           }
         },
@@ -2790,7 +2790,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Вигляд"
           }
         },
@@ -2890,8 +2890,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Auto-scroll to next event"
+            "state" : "translated",
+            "value" : "Автопрокрутка до наступної події"
           }
         },
         "zh-Hans" : {
@@ -2990,7 +2990,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Автоматично перевіряти наявність оновлень"
           }
         },
@@ -3090,7 +3090,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Автоматично завантажувати оновлення"
           }
         },
@@ -3190,7 +3190,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Автоматично перемикати екрани"
           }
         },
@@ -3290,7 +3290,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Акумулятор"
           }
         },
@@ -3390,7 +3390,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Інформація про акумулятор"
           }
         },
@@ -3490,7 +3490,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Налаштування акумулятора"
           }
         },
@@ -3590,7 +3590,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Стан заряду акумулятора"
           }
         },
@@ -3690,7 +3690,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Підвищіть продуктивність за допомогою менеджера буфера обміну"
           }
         },
@@ -3990,7 +3990,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Календар"
           }
         },
@@ -4090,7 +4090,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Доступ до календаря заборонений. Будь ласка, увімкніть його в Налаштуваннях Системи."
           }
         },
@@ -4190,7 +4190,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Календарі"
           }
         },
@@ -4290,7 +4290,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Скасувати"
           }
         },
@@ -4390,8 +4390,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Change media with horizontal gestures"
+            "state" : "translated",
+            "value" : "Перемикати треки горизонтальними жестами"
           }
         },
         "zh-Hans" : {
@@ -4490,7 +4490,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Заряджається"
           }
         },
@@ -4590,7 +4590,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Заряджання в Режимі очікування: Режим робочого столу"
           }
         },
@@ -4690,7 +4690,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Перевірка наявності оновлень…"
           }
         },
@@ -4790,7 +4790,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Оберіть джерело музики"
           }
         },
@@ -4890,8 +4890,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Choose any color"
+            "state" : "translated",
+            "value" : "Обрати будь-який колір"
           }
         },
         "zh-Hans" : {
@@ -4990,8 +4990,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Choose between your system accent color or customize it with your own selection."
+            "state" : "translated",
+            "value" : "Оберіть системний акцентний колір або налаштуйте власний."
           }
         },
         "zh-Hans" : {
@@ -5090,8 +5090,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Choose which service to use when sharing files from the shelf. Click the shelf button to select files, or drag files onto it to share immediately."
+            "state" : "translated",
+            "value" : "Оберіть сервіс для поширення файлів із полиці. Натисніть кнопку полиці, щоб вибрати файли, або перетягніть їх туди для миттєвого надсилання."
           }
         },
         "zh-Hans" : {
@@ -5190,7 +5190,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Коло"
           }
         },
@@ -5290,8 +5290,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Clear slot"
+            "state" : "translated",
+            "value" : "Очистити слот"
           }
         },
         "zh-Hans" : {
@@ -5390,7 +5390,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Закрити"
           }
         },
@@ -5490,7 +5490,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Жест вимкнення"
           }
         },
@@ -5590,8 +5590,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Closed Notch"
+            "state" : "translated",
+            "value" : "Закритий виріз"
           }
         },
         "zh-Hans" : {
@@ -5690,8 +5690,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Color Presets"
+            "state" : "translated",
+            "value" : "Готові кольори"
           }
         },
         "zh-Hans" : {
@@ -5790,8 +5790,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Colored spectrogram"
+            "state" : "translated",
+            "value" : "Кольорова спектрограма"
           }
         },
         "zh-Hans" : {
@@ -5890,7 +5890,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Незабаром"
           }
         },
@@ -5990,7 +5990,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Далі"
           }
         },
@@ -6090,8 +6090,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Copy items on drag"
+            "state" : "translated",
+            "value" : "Копіювати об'єкти при перетягуванні"
           }
         },
         "zh-Hans" : {
@@ -6190,7 +6190,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Масштабування радіусу кутів"
           }
         },
@@ -6290,8 +6290,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Currently selected: %@"
+            "state" : "translated",
+            "value" : "Зараз обрано: %@"
           }
         },
         "zh-Hans" : {
@@ -6390,8 +6390,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Custom"
+            "state" : "translated",
+            "value" : "Власний"
           }
         },
         "zh-Hans" : {
@@ -6490,7 +6490,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Користувацька висота"
           }
         },
@@ -6590,7 +6590,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Власна анімація музики в реальному часі"
           }
         },
@@ -6690,7 +6690,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Користувацький розмір брові - %.0f"
           }
         },
@@ -6790,7 +6790,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Користувацькі візуалізатори (Лотті)"
           }
         },
@@ -6890,7 +6890,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Змінити в Налаштуваннях"
           }
         },
@@ -6990,8 +6990,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Customize which controls appear in the music player. Volume expands when active."
+            "state" : "translated",
+            "value" : "Налаштуйте, які елементи керування відображаються в плеєрі. Гучність розгортається при активації."
           }
         },
         "zh-Hans" : {
@@ -7090,7 +7090,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Типово"
           }
         },
@@ -7191,7 +7191,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Опис"
           }
         },
@@ -7292,7 +7292,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Вимкнути"
           }
         },
@@ -7393,7 +7393,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Вимкнено"
           }
         },
@@ -7493,7 +7493,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Завантажити"
           }
         },
@@ -7594,7 +7594,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Завантаження"
           }
         },
@@ -7694,8 +7694,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Drag a control onto a slot"
+            "state" : "translated",
+            "value" : "Перетягніть елемент керування на слот"
           }
         },
         "zh-Hans" : {
@@ -7794,8 +7794,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Drag items in the preview to reorder or drop from the palette"
+            "state" : "translated",
+            "value" : "Перетягуйте елементи в прев'ю, щоб змінити порядок, або додавайте з палітри"
           }
         },
         "zh-Hans" : {
@@ -7894,7 +7894,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Перетягніть файл сюди"
           }
         },
@@ -7994,8 +7994,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Easily copy, store, and manage your most-used content. Upgrade now for advanced features like multi-item storage and quick access!"
+            "state" : "translated",
+            "value" : "Зручно копіюйте, зберігайте та керуйте найчастіше використовуваним контентом. Оновіться, щоб отримати розширені можливості!"
           }
         },
         "zh-Hans" : {
@@ -8094,7 +8094,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Редагувати розташування"
           }
         },
@@ -8194,7 +8194,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Увімкнути ефект розмиття позаду обкладинки альбому"
           }
         },
@@ -8294,8 +8294,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable boring mirror"
+            "state" : "translated",
+            "value" : "Увімкнути дзеркало"
           }
         },
         "zh-Hans" : {
@@ -8395,8 +8395,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable colored spectrograms"
+            "state" : "translated",
+            "value" : "Увімкнути кольорові спектрограми"
           }
         },
         "zh-Hans" : {
@@ -8495,7 +8495,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Увімкнути жести"
           }
         },
@@ -8595,8 +8595,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable glowing effect"
+            "state" : "translated",
+            "value" : "Увімкнути ефект світіння"
           }
         },
         "zh-Hans" : {
@@ -8695,8 +8695,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable haptic feedback"
+            "state" : "translated",
+            "value" : "Увімкнути тактильний відгук"
           }
         },
         "zh-Hans" : {
@@ -8795,7 +8795,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Активувати полицю"
           }
         },
@@ -8895,8 +8895,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable window shadow"
+            "state" : "translated",
+            "value" : "Увімкнути тінь вікна"
           }
         },
         "zh-Hans" : {
@@ -8995,8 +8995,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enhance your experience with HUDs"
+            "state" : "translated",
+            "value" : "Покращте взаємодію за допомогою HUD-індикаторів"
           }
         },
         "zh-Hans" : {
@@ -9095,7 +9095,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Насолоджуйтесь своїм вільним часом!"
           }
         },
@@ -9195,8 +9195,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Expanded drag detection area"
+            "state" : "translated",
+            "value" : "Розширена зона виявлення перетягування"
           }
         },
         "zh-Hans" : {
@@ -9295,8 +9295,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Extend hover area"
+            "state" : "translated",
+            "value" : "Розширити зону наведення"
           }
         },
         "zh-Hans" : {
@@ -9396,7 +9396,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Розширення"
           }
         },
@@ -9496,8 +9496,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Files dropped on the shelf will be shared via this service"
+            "state" : "translated",
+            "value" : "Файли, перетягнуті на полицю, надсилатимуться через цей сервіс"
           }
         },
         "zh-Hans" : {
@@ -9596,7 +9596,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Завершити"
           }
         },
@@ -9696,8 +9696,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Full screen behavior"
+            "state" : "translated",
+            "value" : "Поведінка в повноекранному режимі"
           }
         },
         "zh-Hans" : {
@@ -9796,8 +9796,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "General"
+            "state" : "translated",
+            "value" : "Загальні"
           }
         },
         "zh-Hans" : {
@@ -9896,7 +9896,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Керування жестами"
           }
         },
@@ -9996,7 +9996,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Чутливість жестів"
           }
         },
@@ -10096,8 +10096,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Почати"
           }
         },
         "zh-Hans" : {
@@ -10296,8 +10296,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Got it!"
+            "state" : "translated",
+            "value" : "Зрозуміло!"
           }
         },
         "zh-Hans" : {
@@ -10396,7 +10396,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Градієнт"
           }
         },
@@ -10496,8 +10496,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide all-day events"
+            "state" : "translated",
+            "value" : "Приховувати події на весь день"
           }
         },
         "zh-Hans" : {
@@ -10596,7 +10596,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Приховати завершені нагадування"
           }
         },
@@ -10696,8 +10696,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide for all apps"
+            "state" : "translated",
+            "value" : "Приховувати для всіх програм"
           }
         },
         "zh-Hans" : {
@@ -10796,8 +10796,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide for media app only"
+            "state" : "translated",
+            "value" : "Приховувати лише для медіапрограм"
           }
         },
         "zh-Hans" : {
@@ -10896,8 +10896,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide from screen recording"
+            "state" : "translated",
+            "value" : "Приховувати під час запису екрана"
           }
         },
         "zh-Hans" : {
@@ -10996,8 +10996,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide title bar"
+            "state" : "translated",
+            "value" : "Приховати рядок заголовка"
           }
         },
         "zh-Hans" : {
@@ -11096,8 +11096,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hierarchical"
+            "state" : "translated",
+            "value" : "Ієрархічний"
           }
         },
         "zh-Hans" : {
@@ -11196,7 +11196,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Високий"
           }
         },
@@ -11296,8 +11296,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hover delay"
+            "state" : "translated",
+            "value" : "Затримка наведення"
           }
         },
         "zh-Hans" : {
@@ -11496,8 +11496,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "HUD style"
+            "state" : "translated",
+            "value" : "Стиль HUD"
           }
         },
         "zh-Hans" : {
@@ -11596,8 +11596,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "HUDs"
+            "state" : "translated",
+            "value" : "Індикатори (HUD)"
           }
         },
         "zh-Hans" : {
@@ -11696,7 +11696,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "В процесі"
           }
         },
@@ -11796,8 +11796,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Inline"
+            "state" : "translated",
+            "value" : "У рядку"
           }
         },
         "zh-Hans" : {
@@ -11897,7 +11897,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Встановлені розширення"
           }
         },
@@ -11997,8 +11997,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Layout Preview"
+            "state" : "translated",
+            "value" : "Попередній перегляд макета"
           }
         },
         "zh-Hans" : {
@@ -12197,8 +12197,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Low"
+            "state" : "translated",
+            "value" : "Низька"
           }
         },
         "zh-Hans" : {
@@ -12297,7 +12297,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Режим економії енергії"
           }
         },
@@ -12397,8 +12397,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Made with 🫶🏻 by not so boring not.people"
+            "state" : "translated",
+            "value" : "Зроблено з 🫶🏻 командою not so boring not.people"
           }
         },
         "zh-Hans" : {
@@ -12497,7 +12497,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Позначити як виконане"
           }
         },
@@ -12597,7 +12597,7 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Позначити як незавершене"
           }
         },
@@ -12697,8 +12697,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Match menu bar height"
+            "state" : "translated",
+            "value" : "Відповідати висоті рядка меню"
           }
         },
         "zh-Hans" : {
@@ -12797,8 +12797,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Match menubar height"
+            "state" : "translated",
+            "value" : "Відповідати висоті рядка меню"
           }
         },
         "zh-Hans" : {
@@ -12897,8 +12897,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Match real notch height"
+            "state" : "translated",
+            "value" : "Відповідати реальній висоті вирізу"
           }
         },
         "zh-Hans" : {
@@ -12997,8 +12997,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Max Capacity: %lld%%"
+            "state" : "translated",
+            "value" : "Макс. ємність: %lld%%"
           }
         },
         "zh-Hans" : {
@@ -13097,8 +13097,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Media"
+            "state" : "translated",
+            "value" : "Медіа"
           }
         },
         "zh-Hans" : {
@@ -13197,8 +13197,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Media controls"
+            "state" : "translated",
+            "value" : "Керування медіа"
           }
         },
         "zh-Hans" : {
@@ -13297,8 +13297,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Media inactivity timeout"
+            "state" : "translated",
+            "value" : "Таймаут неактивності медіа"
           }
         },
         "zh-Hans" : {
@@ -13397,8 +13397,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Media playback live activity"
+            "state" : "translated",
+            "value" : "Жива активність відтворення медіа"
           }
         },
         "zh-Hans" : {
@@ -13497,8 +13497,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Media Source"
+            "state" : "translated",
+            "value" : "Джерело медіа"
           }
         },
         "zh-Hans" : {
@@ -13597,8 +13597,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Medium"
+            "state" : "translated",
+            "value" : "Середня"
           }
         },
         "zh-Hans" : {
@@ -13697,8 +13697,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Mic %@"
+            "state" : "translated",
+            "value" : "Мікрофон %@"
           }
         },
         "zh-Hans" : {
@@ -13797,8 +13797,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Mirror"
+            "state" : "translated",
+            "value" : "Дзеркало"
           }
         },
         "zh-Hans" : {
@@ -13897,8 +13897,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Mirror shape"
+            "state" : "translated",
+            "value" : "Форма дзеркала"
           }
         },
         "zh-Hans" : {
@@ -13997,8 +13997,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "More"
+            "state" : "translated",
+            "value" : "Більше"
           }
         },
         "zh-Hans" : {
@@ -14097,8 +14097,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Music Source"
+            "state" : "translated",
+            "value" : "Джерело музики"
           }
         },
         "zh-Hans" : {
@@ -14197,8 +14197,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "muted"
+            "state" : "translated",
+            "value" : "без звуку"
           }
         },
         "zh-Hans" : {
@@ -14297,8 +14297,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Muted"
+            "state" : "translated",
+            "value" : "Без звуку"
           }
         },
         "zh-Hans" : {
@@ -14397,8 +14397,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Name"
+            "state" : "translated",
+            "value" : "Назва"
           }
         },
         "zh-Hans" : {
@@ -14497,8 +14497,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Never hide"
+            "state" : "translated",
+            "value" : "Ніколи не приховувати"
           }
         },
         "zh-Hans" : {
@@ -14597,8 +14597,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom animation available"
+            "state" : "translated",
+            "value" : "Немає доступних власних анімацій"
           }
         },
         "zh-Hans" : {
@@ -14697,8 +14697,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No custom visualizer"
+            "state" : "translated",
+            "value" : "Немає власного візуалізатора"
           }
         },
         "zh-Hans" : {
@@ -14797,8 +14797,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No events"
+            "state" : "translated",
+            "value" : "Немає подій"
           }
         },
         "zh-Hans" : {
@@ -14897,8 +14897,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No events today"
+            "state" : "translated",
+            "value" : "Сьогодні подій немає"
           }
         },
         "zh-Hans" : {
@@ -14998,8 +14998,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "No extension installed"
+            "state" : "translated",
+            "value" : "Розширення не встановлено"
           }
         },
         "zh-Hans" : {
@@ -15098,8 +15098,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Not Now"
+            "state" : "translated",
+            "value" : "Не зараз"
           }
         },
         "zh-Hans" : {
@@ -15198,8 +15198,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Notch behavior"
+            "state" : "translated",
+            "value" : "Поведінка вирізу"
           }
         },
         "zh-Hans" : {
@@ -15298,8 +15298,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Notch height on non-notch displays"
+            "state" : "translated",
+            "value" : "Висота вирізу на дисплеях без вирізу"
           }
         },
         "zh-Hans" : {
@@ -15398,8 +15398,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Notch height on notch displays"
+            "state" : "translated",
+            "value" : "Висота вирізу на дисплеях із вирізом"
           }
         },
         "zh-Hans" : {
@@ -15498,8 +15498,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Notch sizing"
+            "state" : "translated",
+            "value" : "Розмір вирізу"
           }
         },
         "zh-Hans" : {
@@ -15598,8 +15598,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Open Calendar Settings"
+            "state" : "translated",
+            "value" : "Відкрити налаштування календаря"
           }
         },
         "zh-Hans" : {
@@ -15698,8 +15698,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Open Notch"
+            "state" : "translated",
+            "value" : "Відкритий виріз"
           }
         },
         "zh-Hans" : {
@@ -15798,8 +15798,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Open notch on hover"
+            "state" : "translated",
+            "value" : "Відкривати виріз при наведенні"
           }
         },
         "zh-Hans" : {
@@ -15898,8 +15898,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Open Reminder Settings"
+            "state" : "translated",
+            "value" : "Відкрити налаштування нагадувань"
           }
         },
         "zh-Hans" : {
@@ -15998,8 +15998,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Open shelf by default if items are present"
+            "state" : "translated",
+            "value" : "Відкривати полицю за замовчуванням, якщо на ній є файли"
           }
         },
         "zh-Hans" : {
@@ -16098,8 +16098,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Option key behaviour"
+            "state" : "translated",
+            "value" : "Поведінка клавіші Option"
           }
         },
         "zh-Hans" : {
@@ -16198,8 +16198,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Pick a Color"
+            "state" : "translated",
+            "value" : "Обрати колір"
           }
         },
         "zh-Hans" : {
@@ -16298,8 +16298,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Plugged In"
+            "state" : "translated",
+            "value" : "Підключено до мережі"
           }
         },
         "zh-Hans" : {
@@ -16398,8 +16398,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Preferred display"
+            "state" : "translated",
+            "value" : "Бажаний дисплей"
           }
         },
         "zh-Hans" : {
@@ -16498,8 +16498,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Progress bar style"
+            "state" : "translated",
+            "value" : "Стиль індикатора прогресу"
           }
         },
         "zh-Hans" : {
@@ -16598,8 +16598,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Quick Share"
+            "state" : "translated",
+            "value" : "Швидкий обмін"
           }
         },
         "zh-Hans" : {
@@ -16698,8 +16698,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Quick Share Service"
+            "state" : "translated",
+            "value" : "Сервіс швидкого обміну"
           }
         },
         "zh-Hans" : {
@@ -16798,8 +16798,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Quit"
+            "state" : "translated",
+            "value" : "Вийти"
           }
         },
         "zh-Hans" : {
@@ -16898,8 +16898,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Quit app"
+            "state" : "translated",
+            "value" : "Вийти з програми"
           }
         },
         "zh-Hans" : {
@@ -16998,8 +16998,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Release name"
+            "state" : "translated",
+            "value" : "Назва релізу"
           }
         },
         "zh-Hans" : {
@@ -17098,8 +17098,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remember last tab"
+            "state" : "translated",
+            "value" : "Запам'ятовувати останню вкладку"
           }
         },
         "zh-Hans" : {
@@ -17198,8 +17198,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Reminder access is denied. Please enable it in System Settings."
+            "state" : "translated",
+            "value" : "Доступ до «Нагадувань» заборонено. Увімкніть його в Системних параметрах."
           }
         },
         "zh-Hans" : {
@@ -17298,8 +17298,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Reminders"
+            "state" : "translated",
+            "value" : "Нагадування"
           }
         },
         "zh-Hans" : {
@@ -17398,8 +17398,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove from shelf after dragging"
+            "state" : "translated",
+            "value" : "Видаляти з полиці після перетягування"
           }
         },
         "zh-Hans" : {
@@ -17498,8 +17498,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Replace system HUD"
+            "state" : "translated",
+            "value" : "Замінити системний HUD"
           }
         },
         "zh-Hans" : {
@@ -17598,8 +17598,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Replaces the standard macOS volume, display brightness, and keyboard brightness HUDs with a custom design."
+            "state" : "translated",
+            "value" : "Замінює стандартні індикатори гучності, яскравості екрана та підсвітки клавіатури macOS на власний дизайн."
           }
         },
         "zh-Hans" : {
@@ -17698,8 +17698,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Request Accessibility"
+            "state" : "translated",
+            "value" : "Запросити доступність"
           }
         },
         "zh-Hans" : {
@@ -17798,8 +17798,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Reset to Defaults"
+            "state" : "translated",
+            "value" : "Скинути до стандартних"
           }
         },
         "zh-Hans" : {
@@ -17899,8 +17899,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Restart"
+            "state" : "translated",
+            "value" : "Перезапустити"
           }
         },
         "zh-Hans" : {
@@ -17999,8 +17999,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Restart Boring Notch"
+            "state" : "translated",
+            "value" : "Перезапустити Boring Notch"
           }
         },
         "zh-Hans" : {
@@ -18100,8 +18100,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Running"
+            "state" : "translated",
+            "value" : "Працює"
           }
         },
         "zh-Hans" : {
@@ -18200,8 +18200,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Select the music source you want to use. You can change this later in the app settings."
+            "state" : "translated",
+            "value" : "Оберіть джерело музики. Ви зможете змінити його пізніше в налаштуваннях."
           }
         },
         "zh-Hans" : {
@@ -18300,8 +18300,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "selected"
+            "state" : "translated",
+            "value" : "обрано"
           }
         },
         "zh-Hans" : {
@@ -18400,8 +18400,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Selected animation"
+            "state" : "translated",
+            "value" : "Обрана анімація"
           }
         },
         "zh-Hans" : {
@@ -18500,8 +18500,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Settings"
+            "state" : "translated",
+            "value" : "Налаштування"
           }
         },
         "zh-Hans" : {
@@ -18600,8 +18600,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Shelf"
+            "state" : "translated",
+            "value" : "Полиця"
           }
         },
         "zh-Hans" : {
@@ -18700,8 +18700,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Shortcuts"
+            "state" : "translated",
+            "value" : "Швидкі клавіші"
           }
         },
         "zh-Hans" : {
@@ -18800,8 +18800,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show battery indicator"
+            "state" : "translated",
+            "value" : "Показувати індикатор батареї"
           }
         },
         "zh-Hans" : {
@@ -18900,8 +18900,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show battery percentage"
+            "state" : "translated",
+            "value" : "Показувати відсоток заряду батареї"
           }
         },
         "zh-Hans" : {
@@ -19000,8 +19000,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show calendar"
+            "state" : "translated",
+            "value" : "Показувати календар"
           }
         },
         "zh-Hans" : {
@@ -19100,8 +19100,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show cool face animation while inactive"
+            "state" : "translated",
+            "value" : "Показувати анімацію обличчя в режимі очікування"
           }
         },
         "zh-Hans" : {
@@ -19200,8 +19200,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show HUD in open notch"
+            "state" : "translated",
+            "value" : "Показувати HUD у відкритому вирізі"
           }
         },
         "zh-Hans" : {
@@ -19300,8 +19300,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show lyrics below artist name"
+            "state" : "translated",
+            "value" : "Показувати текст пісні під іменем виконавця"
           }
         },
         "zh-Hans" : {
@@ -19400,8 +19400,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show menu bar icon"
+            "state" : "translated",
+            "value" : "Показувати іконку в рядку меню"
           }
         },
         "zh-Hans" : {
@@ -19500,8 +19500,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show music live activity"
+            "state" : "translated",
+            "value" : "Показувати живу активність музики"
           }
         },
         "zh-Hans" : {
@@ -19600,8 +19600,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show notch on lock screen"
+            "state" : "translated",
+            "value" : "Показувати виріз на екрані блокування"
           }
         },
         "zh-Hans" : {
@@ -19700,8 +19700,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show on all displays"
+            "state" : "translated",
+            "value" : "Показувати на всіх дисплеях"
           }
         },
         "zh-Hans" : {
@@ -19800,8 +19800,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show percentage"
+            "state" : "translated",
+            "value" : "Показувати відсотки"
           }
         },
         "zh-Hans" : {
@@ -19900,8 +19900,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show power status icons"
+            "state" : "translated",
+            "value" : "Показувати іконки стану живлення"
           }
         },
         "zh-Hans" : {
@@ -20000,8 +20000,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show power status notifications"
+            "state" : "translated",
+            "value" : "Показувати сповіщення про стан живлення"
           }
         },
         "zh-Hans" : {
@@ -20100,8 +20100,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show settings icon in notch"
+            "state" : "translated",
+            "value" : "Показувати іконку налаштувань у вирізі"
           }
         },
         "zh-Hans" : {
@@ -20200,8 +20200,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show sneak peek on playback changes"
+            "state" : "translated",
+            "value" : "Показувати міні-прев'ю при зміні треку"
           }
         },
         "zh-Hans" : {
@@ -20300,8 +20300,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Slider color"
+            "state" : "translated",
+            "value" : "Колір повзунка"
           }
         },
         "zh-Hans" : {
@@ -20400,8 +20400,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sneak Peek shows the media title and artist under the notch for a few seconds."
+            "state" : "translated",
+            "value" : "Міні-прев'ю на кілька секунд показує назву треку та виконавця під вирізом."
           }
         },
         "zh-Hans" : {
@@ -20500,8 +20500,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Sneak Peek Style"
+            "state" : "translated",
+            "value" : "Стиль міні-прев'ю"
           }
         },
         "zh-Hans" : {
@@ -20600,8 +20600,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Software updates"
+            "state" : "translated",
+            "value" : "Оновлення ПЗ"
           }
         },
         "zh-Hans" : {
@@ -20700,8 +20700,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Speed"
+            "state" : "translated",
+            "value" : "Швидкість"
           }
         },
         "zh-Hans" : {
@@ -20800,8 +20800,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Square"
+            "state" : "translated",
+            "value" : "Квадрат"
           }
         },
         "zh-Hans" : {
@@ -20901,8 +20901,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Stopped"
+            "state" : "translated",
+            "value" : "Зупинено"
           }
         },
         "zh-Hans" : {
@@ -21002,8 +21002,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Support Us"
+            "state" : "translated",
+            "value" : "Підтримати нас"
           }
         },
         "zh-Hans" : {
@@ -21102,8 +21102,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "System"
+            "state" : "translated",
+            "value" : "Системний"
           }
         },
         "zh-Hans" : {
@@ -21202,8 +21202,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "System features"
+            "state" : "translated",
+            "value" : "Системні функції"
           }
         },
         "zh-Hans" : {
@@ -21302,8 +21302,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Time to Full Charge: %lld min"
+            "state" : "translated",
+            "value" : "До повного заряду: %lld хв"
           }
         },
         "zh-Hans" : {
@@ -21402,8 +21402,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Tint progress bar with accent color"
+            "state" : "translated",
+            "value" : "Фарбувати індикатор прогресу в акцентний колір"
           }
         },
         "zh-Hans" : {
@@ -21502,8 +21502,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Toggle Notch Open:"
+            "state" : "translated",
+            "value" : "Відкрити/закрити виріз:"
           }
         },
         "zh-Hans" : {
@@ -21602,8 +21602,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Toggle Sneak Peek:"
+            "state" : "translated",
+            "value" : "Показати/сховати міні-прев'ю:"
           }
         },
         "zh-Hans" : {
@@ -21702,8 +21702,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled"
+            "state" : "translated",
+            "value" : "Свайп двома пальцями вгору по вирізу, щоб закрити, або вниз, щоб відкрити, коли вимкнено **Відкривати виріз при наведенні**"
           }
         },
         "zh-Hans" : {
@@ -21803,8 +21803,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Uninstall"
+            "state" : "translated",
+            "value" : "Видалити"
           }
         },
         "zh-Hans" : {
@@ -21903,8 +21903,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Unlock advanced features and improve your experience. Upgrade now for more customizations!"
+            "state" : "translated",
+            "value" : "Розблокуйте розширені функції та покращте роботу з додатком!"
           }
         },
         "zh-Hans" : {
@@ -22003,8 +22003,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "unmuted"
+            "state" : "translated",
+            "value" : "увімкнено звук"
           }
         },
         "zh-Hans" : {
@@ -22103,8 +22103,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Unmuted"
+            "state" : "translated",
+            "value" : "Звук увімкнено"
           }
         },
         "zh-Hans" : {
@@ -22203,8 +22203,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Upgrade to Pro"
+            "state" : "translated",
+            "value" : "Оновитися до Pro"
           }
         },
         "zh-Hans" : {
@@ -22303,8 +22303,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Use music visualizer spectrogram"
+            "state" : "translated",
+            "value" : "Використовувати спектрограму візуалізатора музики"
           }
         },
         "zh-Hans" : {
@@ -22403,8 +22403,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Use your macOS system accent color"
+            "state" : "translated",
+            "value" : "Використовувати системний акцентний колір macOS"
           }
         },
         "zh-Hans" : {
@@ -22503,8 +22503,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Using System Accent"
+            "state" : "translated",
+            "value" : "Використовується системний акцент"
           }
         },
         "zh-Hans" : {
@@ -22603,8 +22603,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Version"
+            "state" : "translated",
+            "value" : "Версія"
           }
         },
         "zh-Hans" : {
@@ -22703,8 +22703,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Version info"
+            "state" : "translated",
+            "value" : "Інформація про версію"
           }
         },
         "zh-Hans" : {
@@ -22803,8 +22803,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "View on GitHub: pear-devs/pear-desktop"
+            "state" : "translated",
+            "value" : "Переглянути на GitHub: pear-devs/pear-desktop"
           }
         },
         "zh-Hans" : {
@@ -22903,8 +22903,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Welcome"
+            "state" : "translated",
+            "value" : "Ласкаво просимо"
           }
         },
         "zh-Hans" : {
@@ -23003,8 +23003,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "What's New"
+            "state" : "translated",
+            "value" : "Що нового"
           }
         },
         "zh-Hans" : {
@@ -23103,8 +23103,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Window Appearance"
+            "state" : "translated",
+            "value" : "Вигляд вікна"
           }
         },
         "zh-Hans" : {
@@ -23203,8 +23203,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Window Behavior"
+            "state" : "translated",
+            "value" : "Поведінка вікна"
           }
         },
         "zh-Hans" : {
@@ -23303,8 +23303,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "You can now enjoy the app. If you want to tweak things further, you can always visit the settings."
+            "state" : "translated",
+            "value" : "Тепер можна користуватися програмою. Якщо захочете змінити параметри, завжди можна відкрити налаштування."
           }
         },
         "zh-Hans" : {
@@ -23403,8 +23403,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "You're All Set!"
+            "state" : "translated",
+            "value" : "Усе готово!"
           }
         },
         "zh-Hans" : {
@@ -23503,8 +23503,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Your macOS system accent color"
+            "state" : "translated",
+            "value" : "Системний акцентний колір macOS"
           }
         },
         "zh-Hans" : {
@@ -23603,8 +23603,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "YouTube Music requires this third-party app to be installed: "
+            "state" : "translated",
+            "value" : "Для YouTube Music потрібно встановити сторонню програму: "
           }
         },
         "zh-Hans" : {
