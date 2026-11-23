@@ -21,7 +21,7 @@ try:
     title = (t.get("title") or "").strip()
     if not title:
         sys.exit(0)
-    msg = {"source": sys.argv[1], "kind": "title", "title": title, "payload": {"session_id": p["session_id"]}}
+    msg = {"source": sys.argv[1], "kind": "title", "topic": title, "payload": {"session_id": p["session_id"]}}
     if os.environ.get("BN_DRY"):
         print(json.dumps(msg, ensure_ascii=False)); sys.exit(0)
     s = socket.socket(socket.AF_UNIX); s.settimeout(1); s.connect(SOCK)

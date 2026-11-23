@@ -8,7 +8,7 @@ import Foundation
 enum AgentState: Equatable {
     case thinking
     case running(tool: String)
-    case waiting          // en attente d'une approbation
+    case waiting          // en attente d'une approbation (une demande de la file lui appartient)
     case done
 }
 
@@ -34,24 +34,29 @@ struct AgentSession: Identifiable, Equatable {
     var source: String          // claude, codex, cursor...
     var cwd: String?
     var title: String?          // premier prompt de la session
+    var topic: String?          // titre du fil Delta (hook), prioritaire sur title
     var app: String?            // bundle id du terminal / IDE, pour rouvrir la conversation
     var link: String?           // t3code://threads/<env>/<fil> quand la session tourne dans T3 Code
-    var ask: PermissionAsk?     // action en attente de validation, déjà mise en français
-    var canAnswer = false       // le hook est bloquant : le notch peut répondre (sinon : au terminal)
-    var questions: [AgentQuestion]?   // AskUserQuestion en attente de réponse
-    var plan: String?                 // ExitPlanMode : plan (Markdown) en attente d'approbation
     var lastMessage: String?    // fin du dernier message de l'agent (extrait affiché au repos)
     var awaitsReply = false     // le dernier message de l'agent appelle une réponse de l'utilisateur
     var state: AgentState = .thinking
     var file: String?
     var steps: [AgentStep] = []
     var diffs: [String: LineDiff] = [:]   // par fichier, cumulé sur la session
+    var turn: TurnActivity?               // tour en cours ou dernier tour
+    var tasks: [AgentTask] = []           // liste de tâches de l'agent
     var startedAt: Date
     var updatedAt: Date
 
-    var project: String {
-        let name = cwd.map { ($0 as NSString).lastPathComponent } ?? ""
-        return name.isEmpty || name == "/" ? "Sans projet" : name
+    var project: String { Self.projectName(cwd) }
+    var subject: String { topic ?? title ?? "Nouvelle session" }
+
+    /// Nom du dépôt : un worktree Claude (`<dépôt>/.claude/worktrees/<nom>`) se rattache à son dépôt.
+    /// Un worktree Delta (`…/worktrees/<id>/<dépôt>`) porte déjà le nom du dépôt en dernier composant.
+    static func projectName(_ cwd: String?) -> String {
+        let parts = (cwd ?? "").split(separator: "/").map(String.init)
+        if let i = parts.firstIndex(of: ".claude"), i > 0, parts.count > i + 1, parts[i + 1] == "worktrees" { return parts[i - 1] }
+        return parts.last ?? "Sans projet"
     }
     /// Sessions techniques de T3 Code (titre du fil, message de commit, nom de branche, texte de PR, visite guidée) :
     /// jamais utiles à l'utilisateur. Débuts des prompts de T3 Code (provider-core, textGenerationPrompts.ts).
@@ -60,7 +65,8 @@ struct AgentSession: Identifiable, Equatable {
                                 "You generate concise git branch names", "You prepare a guided tour of change request"]
     static func isNoise(_ prompt: String?) -> Bool { prompt.map { p in noisePrefixes.contains { p.hasPrefix($0) } } ?? false }
     /// Où le clic ramène : T3 Code (outil privilégié) sauf session lancée depuis un autre terminal.
-    var opensInT3: Bool { link != nil || app == nil || app == AgentStore.t3Code }
+    static let t3Code = "com.t3tools.t3code"
+    var opensInT3: Bool { link != nil || app == nil || app == Self.t3Code }
     var openLabel: String { opensInT3 ? "Ouvrir dans T3 Code" : "Ouvrir le terminal" }
     /// Sans événement depuis 5 min (interruption par Échap, terminal fermé : aucun hook Stop), la session est considérée inactive.
     var isActive: Bool { state != .done && Date().timeIntervalSince(updatedAt) < 300 }
@@ -131,6 +137,13 @@ struct AgentEnvelope: Decodable {
         var edits: [Edit]?
         var questions: [AgentQuestion]?   // AskUserQuestion
         var plan: String?                 // ExitPlanMode
+        var todos: [TaskItem]?            // TodoWrite
+        var items: [TaskItem]?            // mcp__ccd_turn__update_plan
+        var subject: String?              // TaskCreate
+        var taskId: String?               // TaskUpdate
+        var status: String?               // TaskUpdate
+        /// Empreinte de l'appel : PermissionRequest et PostToolUse portent le même tool_input.
+        var fingerprint: String? { command ?? file_path ?? description }
         var scalars: [String: String] = [:]   // tous les paramètres simples (url, query, ids d'un outil MCP…)
 
         private struct Key: CodingKey {
@@ -155,6 +168,13 @@ struct AgentEnvelope: Decodable {
                 case "edits": edits = get(k)
                 case "questions": questions = get(k)
                 case "plan": plan = get(k)
+                case "todos": todos = get(k)
+                case "items": items = get(k)
+                case "subject": subject = get(k)
+                case "status": status = get(k)
+                case "taskId":   // chaîne ou nombre selon l'outil
+                    let s: String? = get(k), n: Int? = get(k)
+                    taskId = s ?? n.map(String.init)
                 default: break
                 }
                 if let v: String = get(k) { scalars[k.stringValue] = v }
@@ -163,6 +183,12 @@ struct AgentEnvelope: Decodable {
                 else if let v: Bool = get(k) { scalars[k.stringValue] = v ? "oui" : "non" }
             }
         }
+    }
+    /// Une tâche d'une liste (TodoWrite : content ; update_plan / TaskCreate : subject).
+    struct TaskItem: Decodable {
+        var content: String?
+        var subject: String?
+        var status: String?
     }
     struct Edit: Decodable {
         var old_string: String?
@@ -195,7 +221,7 @@ struct AgentEnvelope: Decodable {
     var kind: String?
     var app: String?
     var link: String?        // lien profond T3 Code (scripts : T3CODE_THREAD_ID)
-    var title: String?       // kind "title" : titre du fil T3 Code (scripts/t3-thread.sh)
+    var topic: String?       // titre du fil Delta ou T3 Code, ajouté par les hooks (UserPromptSubmit / Stop, scripts/t3-thread.sh)
     var wait: Bool?          // le hook attend une décision (PermissionRequest)
     var payload: Payload
 }

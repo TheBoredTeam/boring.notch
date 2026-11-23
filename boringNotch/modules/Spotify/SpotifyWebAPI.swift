@@ -8,6 +8,7 @@
 //
 
 import AppKit
+import Combine
 import CryptoKit
 import Defaults
 import Network
@@ -26,8 +27,16 @@ final class SpotifyWebAPI: ObservableObject {
     private var accessToken: String?
     private var expiry = Date.distantPast
     private var listener: NWListener?
+    private var cancellables: Set<AnyCancellable> = []
+    private var refreshTask: Task<Void, Never>?
 
-    private init() { isConnected = Keychain.read() != nil }
+    private init() {
+        isConnected = Keychain.read() != nil
+        // La file est lue en tâche de fond à chaque changement de titre : à l'ouverture du notch elle est déjà là.
+        MusicManager.shared.$songTitle.dropFirst().removeDuplicates()
+            .sink { [weak self] _ in self?.refresh(settle: .milliseconds(800)) }
+            .store(in: &cancellables)
+    }
 
     // MARK: - Connexion
 
@@ -103,18 +112,39 @@ final class SpotifyWebAPI: ObservableObject {
     /// Titre précédent et deux suivants ; nil si non connecté, sans lecture active ou scopes manquants
     /// (connexion antérieure à la file d'attente : il faut se reconnecter).
     func upNext() async -> (previous: QueueTrack?, next: [QueueTrack])? {
-        guard let data = await call("GET", "me/player/queue"),
-              let q = try? JSONDecoder().decode(QueueResponse.self, from: data) else { return nil }
+        async let queueData = call("GET", "me/player/queue")
+        async let recentData = call("GET", "me/player/recently-played", query: [.init(name: "limit", value: "5")])
+        let (qd, rd) = await (queueData, recentData)
+        guard let qd, let q = try? JSONDecoder().decode(QueueResponse.self, from: qd) else { return nil }
         let current = q.currently_playing?.uri
         var previous: QueueTrack?
-        if let data = await call("GET", "me/player/recently-played", query: [.init(name: "limit", value: "5")]),
-           let r = try? JSONDecoder().decode(RecentResponse.self, from: data) {
+        if let rd, let r = try? JSONDecoder().decode(RecentResponse.self, from: rd) {
             previous = r.items.map(\.track).first { $0.uri != current }?.queueTrack
         }
         // Spotify répète la file (lecture en boucle, playlist courte) : on dédoublonne, identifiant stable pour l'animation.
         var seen: Set<String> = [current ?? ""]
         let next = q.queue.filter { seen.insert($0.uri).inserted }.prefix(2).map(\.queueTrack)
         return (previous, Array(next))
+    }
+
+    /// Dernière file lue, gardée entre deux ouvertures du notch (affichage immédiat, relecture derrière).
+    @Published private(set) var snapshot: (previous: QueueTrack?, next: [QueueTrack], devices: [SpotifyDevice])?
+
+    /// Relit file, titre précédent et appareils en parallèle (au lieu de trois allers-retours à la suite).
+    /// `settle` laisse à Spotify le temps de faire avancer sa file après un changement de titre.
+    func refresh(settle: Duration = .zero) {
+        refreshTask?.cancel()
+        guard isConnected else { return }
+        refreshTask = Task {
+            if settle > .zero { try? await Task.sleep(for: settle) }
+            // Testé après le délai : le titre change un cran avant le bundle quand on passe d'une app à l'autre.
+            guard MusicManager.shared.bundleIdentifier == "com.spotify.client" else { snapshot = nil; return }
+            async let devs = devices()
+            async let queue = upNext()
+            let (d, q) = await (devs, queue)
+            guard !Task.isCancelled, let q else { return }
+            snapshot = (q.previous, q.next, d ?? snapshot?.devices ?? [])
+        }
     }
 
     /// Morceau ou épisode de podcast (champs optionnels pour décoder les deux).

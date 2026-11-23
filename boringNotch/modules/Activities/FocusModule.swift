@@ -22,18 +22,43 @@ struct FocusModule: NotchModule {
 private let dim = Color.white.opacity(0.6)
 
 private struct FocusView: View {
+    @ObservedObject private var quick = QuickActions.shared
+    @State private var gate = ConfirmGate(window: 3)
+
     var body: some View {
         // Une seconde de résolution pour les temps restants.
         TimelineView(.periodic(from: .now, by: 1)) { ctx in
             HStack(spacing: 8) {
                 TimerTile(now: ctx.date).frame(maxWidth: .infinity)
-                PomodoroTile(now: ctx.date).frame(width: 168)
-                AwakeTile(now: ctx.date).frame(width: 168)
+                PomodoroTile(now: ctx.date).frame(width: 154)
+                AwakeTile(now: ctx.date).frame(width: 154)
+                quickColumn(now: ctx.date)
             }
         }
+        .onAppear { quick.refresh() }
         .padding(.horizontal, 4)
         .padding(.bottom, 4)
         .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    /// Colonne étroite : éjecter les disques externes, vider la corbeille (second clic dans les 3 s).
+    private func quickColumn(now: Date) -> some View {
+        let armed = gate.isArmed(at: now)
+        let failed = quick.failure != nil
+        let ejectTip = quick.failure.flatMap { $0.hasPrefix("Impossible d'éjecter") ? $0 : nil }
+            ?? (quick.ejectable.isEmpty ? "Aucun disque à éjecter" : "Éjecter les disques externes")
+        let trashTip = armed ? "Cliquer à nouveau pour vider la corbeille"
+            : quick.failure.flatMap { $0.hasPrefix("Impossible d'éjecter") ? nil : $0 } ?? "Vider la corbeille"
+        return VStack(spacing: 8) {
+            QuickButton(symbol: "eject", badge: quick.ejectable.count, tint: failed && ejectTip == quick.failure ? .red : nil,
+                        help: ejectTip, enabled: !quick.ejectable.isEmpty && !quick.ejecting) { quick.ejectAll() }
+            QuickButton(symbol: "trash", label: armed ? "Confirmer ?" : nil,
+                        tint: armed || (failed && trashTip == quick.failure) ? .red : nil,
+                        help: trashTip, enabled: quick.trashHasItems && !quick.emptying) {
+                if gate.press(at: Date()) { quick.emptyTrash() }
+            }
+        }
+        .frame(width: 44)
     }
 }
 
@@ -343,6 +368,45 @@ private struct RoundButton: View {
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
         .animation(.easeOut(duration: 0.15), value: hovering)
+        .help(help)
+        .accessibilityLabel(help)
+    }
+}
+
+/// Bouton carré de la colonne d'actions rapides, même surface que les tuiles.
+private struct QuickButton: View {
+    let symbol: String
+    var badge = 0
+    var label: String?
+    var tint: Color?
+    let help: String
+    let enabled: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 2) {
+                Image(systemName: symbol).font(.system(size: 14, weight: .semibold))
+                if let label {
+                    Text(label).font(.system(size: 8.5, weight: .semibold)).lineLimit(2).minimumScaleFactor(0.8)
+                        .multilineTextAlignment(.center)
+                }
+            }
+            .foregroundStyle(tint ?? .white.opacity(0.9))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .overlay(alignment: .topTrailing) {
+                if badge > 0 {
+                    Text("\(badge)").font(.system(size: 9, weight: .bold).monospacedDigit()).foregroundStyle(dim)
+                        .padding(.top, 5).padding(.trailing, 6)
+                }
+            }
+            .agentSurface(selected: tint != nil, tint: tint ?? .effectiveAccent)
+            .contentShape(RoundedRectangle(cornerRadius: 11))
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.4)
+        .animation(.smooth(duration: 0.25), value: tint)
         .help(help)
         .accessibilityLabel(help)
     }

@@ -11,7 +11,7 @@ def run(payload, tid="06496119"):
     return [json.loads(l) for l in r.stdout.splitlines() if l.strip()]
 stop = json.dumps({"session_id": "s1", "hook_event_name": "Stop"})
 out = run(stop)
-assert out == [{"source": "claude", "kind": "title", "title": "Basculer l’agent IA de la notch sur T3 Code", "payload": {"session_id": "s1"}}], out
+assert out == [{"source": "claude", "kind": "title", "topic": "Basculer l’agent IA de la notch sur T3 Code", "payload": {"session_id": "s1"}}], out
 assert run(json.dumps({"session_id": "s1", "hook_event_name": "PreToolUse"})) == []   # pas d appel à chaque outil
 assert run(stop, tid="") == []                                                          # hors T3 Code : rien
 assert run("pas du json") == [] and run("[1]") == []

@@ -30,6 +30,19 @@ extension AgentState {
     }
 }
 
+extension ActivityKind {
+    /// Couleur de la bande de progression ; l'attente reprend le rouge de `tint`.
+    var color: Color {
+        switch self {
+        case .read: .cyan
+        case .edit: .green
+        case .run: .orange
+        case .other: .purple
+        case .wait: .red
+        }
+    }
+}
+
 extension AgentStep {
     var symbol: String {
         switch tool {
@@ -73,11 +86,16 @@ private func accent(_ source: String) -> Color {
 }
 
 extension AgentSession {
+    /// Libellé de la demande en tête de file pour cette session.
+    @MainActor private var waitingText: String {
+        guard let r = AgentStore.shared.queue.items.first(where: { $0.sessionID == id }) else { return "Validation requise" }
+        return r.questions != nil ? "Question pour vous" : r.plan != nil ? "Plan à valider" : "Validation requise"
+    }
     /// Même code couleur que la bulle : rouge = validation, orange = travail, vert = repos.
     var tint: Color { state == .waiting ? .red : isActive ? .orange : awaitsReply ? .blue : .green }
-    var stateText: String {
+    @MainActor var stateText: String {
         switch state {
-        case .waiting: questions != nil ? "Question pour vous" : plan != nil ? "Plan à valider" : "Validation requise"
+        case .waiting: waitingText
         case .thinking where isActive: "Réfléchit…"
         case .running where isActive: "Au travail"
         default: awaitsReply ? "Attend votre réponse" : "Au repos"
@@ -88,6 +106,13 @@ extension AgentSession {
 private let secondary = Color.white.opacity(0.65)
 private let cardFill = Color.white.opacity(0.065)
 private let cardStroke = Color.white.opacity(0.08)
+
+/// « Projet · Sujet » sur une ligne : projet en secondaire, sujet en blanc tronqué au milieu.
+private func sessionName(_ s: AgentSession, size: CGFloat, weight: Font.Weight = .medium) -> some View {
+    (Text(s.project + " · ").foregroundStyle(secondary) + Text(s.subject).foregroundStyle(.white))
+        .font(.system(size: size, weight: weight))
+        .lineLimit(1).truncationMode(.middle)
+}
 
 extension View {
     /// Surface de tuile des onglets du notch (Agents, Focus).
@@ -122,7 +147,7 @@ struct AgentActionStyle: ButtonStyle {
     }
 }
 
-private struct AgentEmptyState: View {
+struct AgentEmptyState: View {
     let symbol: String
     let message: String
 
@@ -145,7 +170,7 @@ private struct AgentEmptyState: View {
 // MARK: - Onglet
 
 struct AgentsView: View {
-    private enum Mode { case progress, usage }
+    private enum Mode { case progress, usage, stats }
 
     @ObservedObject private var store = AgentStore.shared
     @State private var mode = Mode.progress
@@ -158,26 +183,28 @@ struct AgentsView: View {
         store.usage.compactMap { k, v in v.current().map { (k, $0) } }.sorted { $0.0 < $1.0 }.map { ($0.0, $0.1) }
     }
 
-    /// Session qui attend une réponse, un plan ou une autorisation : elle prend tout l'onglet, quelle que soit la sélection.
-    private var prompting: AgentSession? {
-        store.sessions.first { $0.state == .waiting && ($0.questions?.isEmpty == false || $0.plan != nil || $0.ask != nil) }
+    /// Première demande de la file (ordre d'arrivée, donc stable) : elle prend tout l'onglet, quelle que soit la sélection.
+    private var prompting: (session: AgentSession, request: PendingRequest)? {
+        guard let r = store.queue.current, let s = store.sessions.first(where: { $0.id == r.sessionID }) else { return nil }
+        return (s, r)
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Pendant une question ou un plan : ni en-tête « Progression » ni en-tête de session,
             // la carte a besoin de toute la hauteur du notch (190 pt, barre d'onglets comprise).
-            if let s = prompting, let qs = s.questions, !qs.isEmpty {
-                QuestionCard(session: s, questions: qs).id(s.id + qs.map(\.question).joined())
-            } else if let s = prompting, let plan = s.plan {
-                PlanCard(session: s, plan: plan)
-            } else if let s = prompting, let ask = s.ask {
-                PermissionCard(session: s, ask: ask)
+            if let (s, r) = prompting, r.questions?.isEmpty == false {
+                QuestionCard(session: s, request: r).id(r.id)
+            } else if let (s, r) = prompting, r.plan != nil {
+                PlanCard(session: s, request: r).id(r.id)
+            } else if let (s, r) = prompting, r.ask != nil {
+                PermissionCard(session: s, request: r).id(r.id)
             } else {
                 header
                 switch mode {
                 case .progress: progress
                 case .usage: usagePage
+                case .stats: AgentStatsView()
                 }
             }
         }
@@ -202,6 +229,7 @@ struct AgentsView: View {
             HStack(spacing: 3) {
                 modeButton("Progression", icon: "checklist", mode: .progress)
                 modeButton("Forfait", icon: "gauge.with.dots.needle.50percent", mode: .usage)
+                modeButton("Stats", icon: "chart.bar.xaxis", mode: .stats)
             }
         }
         .frame(height: 24)
@@ -226,7 +254,7 @@ struct AgentsView: View {
                 Section(group.title) {
                     ForEach(group.items) { candidate in
                         Button { selected = candidate.id } label: {
-                            Label("\(candidate.project) — \(String((candidate.title ?? candidate.stateText).prefix(52)))",
+                            Label("\(candidate.project) · \(candidate.subject.prefix(52))",
                                   systemImage: candidate.id == s.id ? "checkmark" : agentIcon(candidate.source))
                         }
                     }
@@ -236,7 +264,7 @@ struct AgentsView: View {
         } label: {
             HStack(spacing: 6) {
                 Circle().fill(s.tint).frame(width: 6, height: 6)
-                Text(s.project).lineLimit(1).truncationMode(.middle)
+                sessionName(s, size: 10.5).frame(maxWidth: 260, alignment: .leading)
                 if store.sessions.count > 1 {
                     Image(systemName: "chevron.down").font(.system(size: 8, weight: .semibold))
                 }
@@ -249,7 +277,7 @@ struct AgentsView: View {
         .buttonStyle(AgentActionStyle())
         .fixedSize(horizontal: false, vertical: true)
         .help("Choisir une session")
-        .accessibilityLabel("Session : \(s.project), \(s.source.capitalized)")
+        .accessibilityLabel("Session : \(s.project), \(s.subject), \(s.source.capitalized)")
     }
 
     private func modeButton(_ title: String, icon: String, mode target: Mode) -> some View {
@@ -282,8 +310,8 @@ struct AgentsView: View {
     private func agentHeader(_ s: AgentSession) -> some View {
         Button { AgentStore.shared.openTerminal(s) } label: { agentHeaderContent(s) }
             .buttonStyle(.plain)
-            .help("\(s.title ?? s.project)\n\(s.openLabel)")
-            .accessibilityLabel("\(s.title ?? s.project), \(s.source.capitalized), \(s.stateText)")
+            .help("\(s.project) · \(s.subject)\n\(s.openLabel)")
+            .accessibilityLabel("\(s.project), \(s.subject), \(s.source.capitalized), \(s.stateText)")
             .accessibilityHint(s.openLabel)
     }
 
@@ -299,8 +327,7 @@ struct AgentsView: View {
             }
             .frame(width: 28, height: 28)
             VStack(alignment: .leading, spacing: 2) {
-                Text(s.title ?? s.project)
-                    .font(.system(size: 13, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
+                sessionName(s, size: 13, weight: .semibold)
                 HStack(spacing: 5) {
                     Text(s.source.capitalized).foregroundStyle(secondary)
                     if s.link != nil {
@@ -329,31 +356,84 @@ struct AgentsView: View {
                 }
                 .fixedSize(horizontal: false, vertical: true)
                 .help(msg)
+            } else if let turn = s.turn {
+                turnView(turn, tasks: s.tasks)
             } else if s.steps.isEmpty {
                 Text(s.isActive ? s.state.label : "En attente d'un prompt")
                     .font(.system(size: 11)).foregroundStyle(secondary)
-            }
-            let steps = s.isActive || s.lastMessage == nil ? Array(s.steps.suffix(3)) : []
-            ForEach(Array(steps.enumerated()), id: \.element.id) { i, step in
-                HStack(spacing: 9) {
-                    ZStack {
-                        // fil de la timeline
-                        Rectangle().fill(.white.opacity(0.12)).frame(width: 1)
-                            .padding(.top, i == 0 ? 10 : 0).padding(.bottom, i == steps.count - 1 ? 10 : 0)
-                        Circle().fill(.black).frame(width: 14, height: 14)
-                        Image(systemName: step.done ? step.symbol : "circle.dotted")
-                            .font(.system(size: 8, weight: .bold))
-                            .foregroundStyle(step.done ? secondary : s.tint)
+            } else {
+                // Session sans suivi de tour (ancien hook) : les 3 dernières étapes, comme avant.
+                let steps = Array(s.steps.suffix(3))
+                ForEach(Array(steps.enumerated()), id: \.element.id) { i, step in
+                    HStack(spacing: 9) {
+                        ZStack {
+                            // fil de la timeline
+                            Rectangle().fill(.white.opacity(0.12)).frame(width: 1)
+                                .padding(.top, i == 0 ? 10 : 0).padding(.bottom, i == steps.count - 1 ? 10 : 0)
+                            Circle().fill(.black).frame(width: 14, height: 14)
+                            Image(systemName: step.done ? step.symbol : "circle.dotted")
+                                .font(.system(size: 8, weight: .bold))
+                                .foregroundStyle(step.done ? secondary : s.tint)
+                        }
+                        .frame(width: 14, height: 18)
+                        Text(step.label).font(.system(size: 11))
+                            .foregroundStyle(.white.opacity(step.done ? 0.65 : 1)).lineLimit(1)
+                        Spacer(minLength: 6)
+                        if let d = step.duration {
+                            Text(String(format: "%.1f s", d)).font(.system(size: 9.5).monospacedDigit()).foregroundStyle(secondary)
+                        }
                     }
-                    .frame(width: 14, height: 18)
-                    Text(step.label).font(.system(size: 11))
-                        .foregroundStyle(.white.opacity(step.done ? 0.65 : 1)).lineLimit(1)
-                    Spacer(minLength: 6)
-                    if let d = step.duration {
-                        Text(String(format: "%.1f s", d)).font(.system(size: 9.5).monospacedDigit()).foregroundStyle(secondary)
+                    .help(step.file ?? step.label)
+                }
+            }
+        }
+    }
+
+    /// Tour en cours : chrono et volume modifié, bande d'activité, puis tâches (ou phases à défaut).
+    /// Trois lignes de hauteur fixe : rien ne déborde des 190 pt du notch.
+    private func turnView(_ turn: TurnActivity, tasks: [AgentTask]) -> some View {
+        TimelineView(.periodic(from: .now, by: 1)) { t in
+            let open = tasks.contains { $0.status != .completed }
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 5) {
+                    Image(systemName: "timer").font(.system(size: 9, weight: .semibold))
+                    Text(TurnActivity.clock(turn.elapsed(now: t.date))).monospacedDigit()
+                    if !turn.files.isEmpty {
+                        Text("· \(turn.files.count) fichier\(turn.files.count > 1 ? "s" : "")")
+                    }
+                    if turn.added > 0 || turn.removed > 0 {
+                        Text("+\(turn.added)").foregroundStyle(.green)
+                        Text("−\(turn.removed)").foregroundStyle(.red)
                     }
                 }
-                .help(step.file ?? step.label)
+                .font(.system(size: 10.5, weight: .medium).monospacedDigit()).foregroundStyle(secondary).lineLimit(1)
+                HStack(spacing: 1.5) {
+                    ForEach(Array(turn.buckets(28, now: t.date).enumerated()), id: \.offset) { _, kind in
+                        Capsule().fill(kind?.color ?? .white.opacity(0.12)).frame(maxWidth: .infinity)
+                    }
+                }
+                .frame(height: 8)
+                .accessibilityHidden(true)
+                if open {
+                    let done = tasks.filter { $0.status == .completed }.count
+                    HStack(spacing: 6) {
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(.white.opacity(0.12))
+                            Capsule().fill(Color.effectiveAccent)
+                                .frame(width: 44 * CGFloat(done) / CGFloat(tasks.count))
+                        }
+                        .frame(width: 44, height: 4)
+                        Text("\(done) / \(tasks.count) tâches").foregroundStyle(secondary).fixedSize()
+                        if let current = tasks.first(where: { $0.status == .inProgress }) {
+                            Text("· \(current.title)").foregroundStyle(.white.opacity(0.85))
+                                .lineLimit(1).truncationMode(.tail).help(current.title)
+                        }
+                    }
+                    .font(.system(size: 10.5, weight: .medium)).lineLimit(1)
+                } else {
+                    Text(turn.phases(now: t.date).map(\.label).joined(separator: " → "))
+                        .font(.system(size: 10.5, weight: .medium)).foregroundStyle(secondary).lineLimit(1)
+                }
             }
         }
     }
@@ -452,6 +532,26 @@ private struct ActivityCard: View {
 
 // MARK: - Question (AskUserQuestion) et plan (ExitPlanMode)
 
+/// « 1 / N en attente » quand d'autres demandes suivent celle qui est affichée.
+private struct PendingBadge: View {
+    @ObservedObject private var store = AgentStore.shared
+
+    var body: some View {
+        if store.queue.items.count > 1 {
+            Text("1 / \(store.queue.items.count) en attente")
+                .font(.system(size: 10)).foregroundStyle(secondary).lineLimit(1).fixedSize()
+        }
+    }
+}
+
+/// Boutons de décision désarmés un instant à l'apparition d'une demande : un clic lancé sur la carte précédente ne valide pas la suivante.
+private extension View {
+    func armed(_ on: Bool) -> some View { disabled(!on).opacity(on ? 1 : 0.4) }
+}
+
+/// Délai de désarmement des boutons de décision (voir `armed`).
+private let armDelay = Duration.milliseconds(600)
+
 /// Même action capsule que les contrôles de navigation.
 private func pillButton(_ label: String, tint: Color?, _ action: @escaping () -> Void) -> some View {
     Button(action: action) {
@@ -464,13 +564,15 @@ private func pillButton(_ label: String, tint: Color?, _ action: @escaping () ->
 /// Pas de champ libre (le notch ne prend pas le clavier) : « Autre… » ramène au terminal, où la question est aussi posée.
 private struct QuestionCard: View {
     let session: AgentSession
-    let questions: [AgentQuestion]
+    let request: PendingRequest
+    @State private var armed = false
     @State private var index = 0
     @State private var answers: [String: String] = [:]
     @State private var checked: Set<String> = []
     @State private var hovered: String?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    private var questions: [AgentQuestion] { request.questions ?? [] }
     private var q: AgentQuestion { questions[min(index, questions.count - 1)] }
     private var multi: Bool { q.multiSelect == true }
 
@@ -482,6 +584,7 @@ private struct QuestionCard: View {
                 Text(q.question).font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.white).lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                PendingBadge()
             }
             .help(q.question)
             HStack(alignment: .top, spacing: 6) {
@@ -489,7 +592,7 @@ private struct QuestionCard: View {
             }
             .frame(maxHeight: .infinity)
             HStack(spacing: 6) {
-                Text(session.project).lineLimit(1).truncationMode(.middle)
+                sessionName(session, size: 10).layoutPriority(-1)
                 if let header = q.header, !header.isEmpty {
                     Text("·")
                     Text(header).lineLimit(1)
@@ -501,12 +604,13 @@ private struct QuestionCard: View {
                 pillButton("Autre…", tint: nil) { AgentStore.shared.openTerminal(session) }
                 if multi {
                     pillButton("Valider", tint: .effectiveAccent) { record(checked.sorted().joined(separator: ", ")) }
-                        .disabled(checked.isEmpty)
+                        .disabled(checked.isEmpty).armed(armed)
                 }
             }
             .font(.system(size: 10, weight: .medium)).foregroundStyle(secondary)
         }
         .frame(maxHeight: .infinity, alignment: .top)
+        .task(id: "\(request.id)#\(index)") { armed = false; try? await Task.sleep(for: armDelay); armed = true }
     }
 
     private func option(_ o: AgentQuestion.Option) -> some View {
@@ -535,6 +639,7 @@ private struct QuestionCard: View {
             .contentShape(RoundedRectangle(cornerRadius: 11))
         }
         .buttonStyle(.plain)
+        .armed(armed)
         .onHover { hovered = $0 ? o.label : nil }
         .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: hovered)
         .help([o.label, o.description].compactMap { $0 }.joined(separator: "\n"))
@@ -546,14 +651,17 @@ private struct QuestionCard: View {
     private func record(_ value: String) {
         answers[q.question] = value
         checked = []
-        if index + 1 < questions.count { index += 1 } else { AgentStore.shared.answer(session.id, answers) }
+        if index + 1 < questions.count { index += 1 } else { AgentStore.shared.answer(request.id, answers) }
     }
 }
 
 /// Demande d'autorisation : phrase française en grand, détails en dessous, décision en pied, pleine largeur.
 private struct PermissionCard: View {
     let session: AgentSession
-    let ask: PermissionAsk
+    let request: PendingRequest
+    @State private var armed = false
+
+    private var ask: PermissionAsk { request.ask ?? PermissionAsk(agent: session.source.capitalized, tool: request.tool, input: nil) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -563,8 +671,10 @@ private struct PermissionCard: View {
                     .frame(width: 24, height: 24)
                     .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(session.tint.opacity(0.16)))
                 Text("Validation requise").font(.system(size: 11, weight: .semibold)).foregroundStyle(session.tint)
-                Text("· \(session.project)").font(.system(size: 11, weight: .medium)).foregroundStyle(secondary).lineLimit(1)
+                Text("·").font(.system(size: 11, weight: .medium)).foregroundStyle(secondary)
+                sessionName(session, size: 11)
                 Spacer(minLength: 0)
+                PendingBadge()
             }
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 6) {
@@ -580,10 +690,10 @@ private struct PermissionCard: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .frame(maxHeight: .infinity)
-            if session.canAnswer {
+            if request.canAnswer {
                 HStack(spacing: 8) {
-                    decision("Refuser", tint: nil) { AgentStore.shared.decide(session.id, allow: false) }
-                    decision("Autoriser", tint: .effectiveAccent) { AgentStore.shared.decide(session.id, allow: true) }
+                    decision("Refuser", tint: nil) { AgentStore.shared.decide(request.id, allow: false) }
+                    decision("Autoriser", tint: .effectiveAccent) { AgentStore.shared.decide(request.id, allow: true) }
                 }
             } else {
                 // Hook non bloquant : le notch ne peut pas répondre, la validation se fait dans le terminal.
@@ -593,18 +703,23 @@ private struct PermissionCard: View {
         .padding(10)
         .frame(maxHeight: .infinity, alignment: .topLeading)
         .agentSurface()
+        .task(id: request.id) { armed = false; try? await Task.sleep(for: armDelay); armed = true }
     }
 
     private func decision(_ label: String, tint: Color?, _ action: @escaping () -> Void) -> some View {
         Button(action: action) { Text(label).frame(maxWidth: .infinity, minHeight: 20) }
             .buttonStyle(AgentActionStyle(tint: tint))
+            .armed(armed)
     }
 }
 
 /// Plan Markdown défilant à gauche, décision à droite. Retoucher le plan = au terminal (saisie clavier).
 private struct PlanCard: View {
     let session: AgentSession
-    let plan: String
+    let request: PendingRequest
+    @State private var armed = false
+
+    private var plan: String { request.plan ?? "" }
 
     private var text: AttributedString {
         (try? AttributedString(markdown: plan, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace))) ?? AttributedString(plan)
@@ -621,14 +736,17 @@ private struct PlanCard: View {
             .agentSurface()
             VStack(alignment: .trailing, spacing: 6) {
                 Text("Plan à valider").font(.system(size: 12, weight: .semibold)).foregroundStyle(.white)
-                Text(session.project).font(.system(size: 10, weight: .medium)).foregroundStyle(secondary).lineLimit(1)
+                sessionName(session, size: 10)
+                PendingBadge()
                 Spacer(minLength: 0)
                 pillButton("Retoucher…", tint: nil) { AgentStore.shared.openTerminal(session) }
-                pillButton("Approuver", tint: .effectiveAccent) { AgentStore.shared.decide(session.id, allow: true) }
+                pillButton("Approuver", tint: .effectiveAccent) { AgentStore.shared.decide(request.id, allow: true) }
+                    .armed(armed)
             }
             .frame(width: 122)
         }
         .frame(maxHeight: .infinity)
+        .task(id: request.id) { armed = false; try? await Task.sleep(for: armDelay); armed = true }
     }
 }
 
