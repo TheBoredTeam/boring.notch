@@ -126,6 +126,9 @@ class BoringNotchSkyLightWindow: NSPanel {
     
     private var observers: Set<AnyCancellable> = []
     
-    override var canBecomeKey: Bool { false }
+    /// Autorisation de clavier temporaire : activée uniquement pendant la saisie dans l'encoche
+    /// (la fenêtre est un NSPanel non activant, donc l'app d'avant reste au premier plan).
+    var allowsKey = false
+    override var canBecomeKey: Bool { allowsKey }
     override var canBecomeMain: Bool { false }
 }

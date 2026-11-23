@@ -73,7 +73,7 @@ struct SonosPanelView: View {
                         Button("Supprimer", role: .destructive) { store.deleteFavorite(fav.id) }
                     }
                 }
-                // La fenêtre du notch ne prend jamais le clavier (canBecomeKey = false) : pas de champ de saisie,
+                // La fenêtre du notch ne prend pas le clavier, sauf pendant une saisie de notes (allowsKey) : pas de champ de saisie,
                 // le favori prend le nom des pièces du groupe.
                 if !favorites.contains(where: { Set($0.roomIDs) == Set(members) }) {
                     chip(icon: "plus", title: favorites.isEmpty ? "Favori" : nil) { store.saveFavorite(name: store.label) }
