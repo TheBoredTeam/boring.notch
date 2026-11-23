@@ -215,7 +215,8 @@ final class Dictation: ObservableObject {
             let updates: any AsyncSequence<(String, Bool), any Error> & Sendable // (texte, isFinal), quel que soit le module
             if guided {
                 guard let locale = await DictationTranscriber.supportedLocale(equivalentTo: wanted) else { throw DictationError.unsupported }
-                let t = DictationTranscriber(locale: locale, contentHints: [], transcriptionOptions: [], reportingOptions: [.volatileResults], attributeOptions: [])
+                // .punctuation : contrairement à SpeechTranscriber, ce module ne ponctue pas par défaut.
+                let t = DictationTranscriber(locale: locale, contentHints: [], transcriptionOptions: [.punctuation], reportingOptions: [.volatileResults], attributeOptions: [])
                 module = t; updates = t.results.map { (String($0.text.characters), $0.isFinal) }
             } else {
                 guard let locale = await SpeechTranscriber.supportedLocale(equivalentTo: wanted) else { throw DictationError.unsupported }
@@ -231,7 +232,10 @@ final class Dictation: ObservableObject {
             let analyzer = SpeechAnalyzer(modules: [module], options: .init(priority: .userInitiated, modelRetention: .whileInUse))
             // Vocabulaire perso (dictionnaire + cibles des substitutions) : seul DictationTranscriber en tient compte.
             let vocab = TextCleanup.vocabulary()
-            if !vocab.isEmpty { let ctx = AnalysisContext(); ctx.contextualStrings[.general] = vocab; try? await analyzer.setContext(ctx) }
+            if !vocab.isEmpty {
+                let ctx = AnalysisContext(); ctx.contextualStrings[.general] = vocab
+                do { try await analyzer.setContext(ctx) } catch { log.error("vocabulaire non transmis à la reconnaissance : \(error.localizedDescription, privacy: .public)") }
+            }
             guard let format = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [module]) else { throw DictationError.unsupported }
             try? await analyzer.prepareToAnalyze(in: format) // charge le modèle maintenant, pas au premier mot
             if stale() { return }
