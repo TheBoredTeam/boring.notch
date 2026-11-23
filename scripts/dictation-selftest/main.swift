@@ -1,5 +1,5 @@
-// Auto-test des garde-fous de la dictée (récitation du vocabulaire, ajouts du modèle).
-// swiftc boringNotch/modules/Dictation/DictationGuards.swift scripts/dictation-selftest/main.swift -o "$TMPDIR/dictation-selftest" && "$TMPDIR/dictation-selftest"
+// Auto-test de la logique pure de la dictée (garde-fous, dictionnaire et substitutions).
+// swiftc boringNotch/modules/Dictation/DictationGuards.swift boringNotch/modules/Dictation/DictationWords.swift scripts/dictation-selftest/main.swift -o "$TMPDIR/dictation-selftest" && "$TMPDIR/dictation-selftest"
 
 import Foundation
 
@@ -22,4 +22,21 @@ check(!G.addsVocabulary("Paiement Qonto reçu.", to: "paiement qonto reçu", voc
 check(!G.addsVocabulary(capture, to: said, vocabulary: []), "vocabulaire vide : aucun ajout détecté")
 check(G.retained(said, of: capture) < 0.75, "mesure inverse : la sortie contient trop de mots nouveaux")
 check(G.retained("Les enfants sont arrivés.", of: "les enfant sont arrivé") >= 0.75, "accords corrigés : pas des ajouts")
+
+// Dictionnaire et substitutions perso.
+typealias W = DictationWords
+let r = W.rules("Boring Notch => X\nnotch => N\nboring notch => Y\n=> z\nmal formé")
+check(r.count == 2 && r[0].from == "Boring Notch" && r[0].to == "X" && r[1].from == "notch", "règles : doublon, vide et mal formé écartés, long avant court")
+check(W.substitute("le boring notch et la notch", rules: r) == "le X et la N", "substitution : la règle longue passe avant la courte")
+check(W.substitute("notchbar", rules: [("notch", "N")]) == "notchbar", "substitution : mot entier seulement")
+check(W.substitute("a", rules: [("a", "$1\\")]) == "$1\\", "substitution : cible insérée littéralement")
+check(W.words("Synolia\n\n  synolia \nTailscale\na => b") == ["Synolia", "Tailscale"], "mots : trim, doublons, lignes de règle ignorées")
+check(W.fixCase("chez SYNOLIA et synolia, synoliaX", words: ["Synolia"]) == "chez Synolia et Synolia, synoliaX", "casse : graphie exacte, mot entier")
+check(W.fixCase("boring notch notch", words: ["notch", "Boring Notch"]) == "Boring Notch notch", "casse : expression longue non défaite par le mot court")
+check(W.vocabulary(words: ["Synolia"], rules: [("sinolia", "Synolia"), ("qonto", "Qonto")]) == ["Synolia", "Qonto"], "vocabulaire : mots puis cibles, dédoublonné")
+check(W.vocabulary(words: (0..<150).map { "m\($0)" }, rules: []).count == 100, "vocabulaire : 100 premiers")
+check(W.isCaseOnly("synolia", "Synolia"), "casse seule : vrai")
+check(!W.isCaseOnly("sinolia", "Synolia"), "casse seule : lettres différentes")
+check(!W.isCaseOnly("a", "a"), "casse seule : identiques")
+check(W.isCaseOnly(" synolia.", "Synolia"), "casse seule : ponctuation ignorée")
 print("OK")
