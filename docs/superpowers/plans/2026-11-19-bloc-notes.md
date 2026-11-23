@@ -20,7 +20,7 @@ différée JSON) ; `NotesModule` + vue ; la fenêtre de l'encoche gagne une auto
 - Jamais de perte de texte (sauvegarde différée 1 s + immédiate en fin d'édition et à la fermeture de l'app).
 - Textes en français ; commentaires en français, `ponytail:` pour une simplification assumée.
 - Aucune nouvelle dépendance ; groupes Xcode synchronisés.
-- Auto-test : `swiftc boringNotch/modules/Notes/NotesBook.swift scripts/notes-selftest/main.swift -o "$TMPDIR/notes-selftest" && "$TMPDIR/notes-selftest"` → `OK`.
+- Auto-test : `swiftc boringNotch/modules/Notes/NotesBook.swift boringNotch/modules/Notes/NoteMarkdown.swift scripts/notes-selftest/main.swift -o "$TMPDIR/notes-selftest" && "$TMPDIR/notes-selftest"` → `OK`.
 - Build signé : `xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -configuration Debug -allowProvisioningUpdates DEVELOPMENT_TEAM=4JQGBGCKQM CODE_SIGN_IDENTITY="Apple Development" build` → `** BUILD SUCCEEDED **`.
 - Installer pour vérifier : quitter avec `osascript -e 'tell application "Boring Notch" to quit'`, `ditto` le produit vers `/Applications/Boring Notch.app`, `open` (un build ad hoc perd les permissions).
 - Commits terminés par `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
