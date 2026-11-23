@@ -25,9 +25,10 @@ enum DictationGuards {
         return Double(src.filter(out.contains).count) / Double(src.count)
     }
 
-    /// Retire chaque ligne qui ne fait que réciter le vocabulaire : au moins 3 occurrences de termes,
-    /// couvrant au moins la moitié des mots de la ligne. Une vraie phrase (même courte : « Qonto et Hostinger. ») est gardée.
+    /// Retire chaque ligne qui ne fait que réciter le vocabulaire : au moins 4 occurrences de termes,
+    /// couvrant au moins la moitié des mots de la ligne. Une vraie phrase (même courte : « Synolia, Qonto et Tailscale. ») est gardée.
     // ponytail: par ligne ; une liste récitée sur la même ligne qu'une vraie phrase reste.
+    // ponytail: seuil 4 ; une récitation de 3 termes seulement passe (plafond), une vraie liste de 3 clients aussi.
     static func dropRecitation(_ text: String, vocabulary: [String]) -> String {
         guard !vocabulary.isEmpty else { return text }
         return text.split(separator: "\n", omittingEmptySubsequences: false).filter { line in
@@ -35,7 +36,7 @@ enum DictationGuards {
             let hits = vocabulary.map { (count: occurrences(of: $0, in: String(line)), size: self.words($0).count) }
             let n = hits.reduce(0) { $0 + $1.count }
             let covered = hits.reduce(0) { $0 + $1.count * $1.size }
-            return !(n >= 3 && covered * 2 >= words)
+            return !(n >= 4 && covered * 2 >= words)
         }.joined(separator: "\n")
     }
 

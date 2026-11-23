@@ -14,7 +14,7 @@ enum DictationWords {
     static func rules(_ raw: String) -> [(from: String, to: String)] {
         var seen = Set<String>()
         var out: [(from: String, to: String)] = []
-        for line in raw.split(separator: "\n") {
+        for line in raw.split(whereSeparator: \.isNewline) {
             let parts = line.components(separatedBy: "=>")
             guard parts.count == 2 else { continue }
             let from = parts[0].trimmingCharacters(in: .whitespaces)
@@ -34,7 +34,7 @@ enum DictationWords {
     /// Dictionnaire : un mot ou une expression par ligne (les lignes de règle `=>` n'en font pas partie).
     static func words(_ raw: String) -> [String] {
         var seen = Set<String>()
-        return raw.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
+        return raw.split(whereSeparator: \.isNewline).map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty && !$0.contains("=>") && seen.insert($0.lowercased()).inserted }
     }
 
@@ -67,6 +67,13 @@ enum DictationWords {
         let trim = CharacterSet.whitespacesAndNewlines.union(.punctuationCharacters)
         let x = a.trimmingCharacters(in: trim), y = b.trimmingCharacters(in: trim)
         return x != y && x.lowercased() == y.lowercased()
+    }
+
+    /// Seule la première lettre change, en majuscule (« maison » → « Maison ») : le moteur capitalise le premier mot d'un énoncé isolé.
+    static func isOnlyInitialCapital(_ a: String, _ b: String) -> Bool {
+        let trim = CharacterSet.whitespacesAndNewlines.union(.punctuationCharacters)
+        let x = a.trimmingCharacters(in: trim), y = b.trimmingCharacters(in: trim)
+        return !x.isEmpty && x.prefix(1).uppercased() + x.dropFirst() == y && x != y
     }
 
     private static func replace(_ text: String, _ from: String, with to: String) -> String {

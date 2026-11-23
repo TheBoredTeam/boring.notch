@@ -210,11 +210,12 @@ final class Dictation: ObservableObject {
 
             let wanted = Locale(identifier: Defaults[.dictationLocale])
             // Réglage expérimental : le modèle de dictée tient compte du vocabulaire (SpeechTranscriber l'ignore).
-            let guided = Defaults[.dictationGuidedRecognition]
+            var guided = Defaults[.dictationGuidedRecognition]
+            let guidedLocale = guided ? await DictationTranscriber.supportedLocale(equivalentTo: wanted) : nil
+            if guided, guidedLocale == nil { log.info("langue non gérée par la reconnaissance guidée : repli sur SpeechTranscriber"); guided = false }
             let module: any SpeechModule
             let updates: any AsyncSequence<(String, Bool), any Error> & Sendable // (texte, isFinal), quel que soit le module
-            if guided {
-                guard let locale = await DictationTranscriber.supportedLocale(equivalentTo: wanted) else { throw DictationError.unsupported }
+            if guided, let locale = guidedLocale {
                 // .punctuation : contrairement à SpeechTranscriber, ce module ne ponctue pas par défaut.
                 let t = DictationTranscriber(locale: locale, contentHints: [], transcriptionOptions: [.punctuation], reportingOptions: [.volatileResults], attributeOptions: [])
                 module = t; updates = t.results.map { (String($0.text.characters), $0.isFinal) }

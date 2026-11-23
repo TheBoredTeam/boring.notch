@@ -162,6 +162,7 @@ enum TextCleanup {
             + DictationWords.words(Defaults[.dictationDictionary]).map { $0.lowercased() }
             + Defaults[.dictationSuggestions].map { $0.components(separatedBy: " => ")[0].lowercased() }
         guard !known.contains(key) else { return nil }
+        guard !DictationWords.isOnlyInitialCapital(a, b) else { return nil } // majuscule auto du premier mot, pas une correction
         let caseOnly = DictationWords.isCaseOnly(a, b) && !b.contains(where: \.isWhitespace)
         let rule = caseOnly ? b : a + " => " + b
         Defaults[.dictationSuggestions] = Array(([rule] + Defaults[.dictationSuggestions]).prefix(30))
