@@ -19,7 +19,7 @@ final class AgentStore: ObservableObject {
     /// ouvertes quand l'app redémarre ; elles se remettent à jour à leur prochain événement.
     private struct Saved: Codable {
         var id, source: String
-        var cwd, title, app, lastMessage: String?
+        var cwd, title, app, link, lastMessage: String?
         var awaitsReply: Bool?
         var startedAt, updatedAt: Date
     }
@@ -32,13 +32,13 @@ final class AgentStore: ObservableObject {
         let saved = (UserDefaults.standard.data(forKey: Self.key)).flatMap { try? JSONDecoder().decode([Saved].self, from: $0) } ?? []
         sessions = saved.filter { Date().timeIntervalSince($0.updatedAt) < 24 * 3600 && !AgentSession.isNoise($0.title) }.map {
             var s = AgentSession(id: $0.id, source: $0.source, cwd: $0.cwd, startedAt: $0.startedAt, updatedAt: $0.updatedAt)
-            s.title = $0.title; s.app = $0.app; s.state = .done; s.awaitsReply = $0.awaitsReply ?? false; s.lastMessage = $0.lastMessage
+            s.title = $0.title; s.app = $0.app; s.link = $0.link; s.state = .done; s.awaitsReply = $0.awaitsReply ?? false; s.lastMessage = $0.lastMessage
             return s
         }
     }
 
     private func save() {
-        let saved = sessions.map { Saved(id: $0.id, source: $0.source, cwd: $0.cwd, title: $0.title, app: $0.app, lastMessage: $0.lastMessage, awaitsReply: $0.awaitsReply,
+        let saved = sessions.map { Saved(id: $0.id, source: $0.source, cwd: $0.cwd, title: $0.title, app: $0.app, link: $0.link, lastMessage: $0.lastMessage, awaitsReply: $0.awaitsReply,
                                          startedAt: $0.startedAt, updatedAt: $0.updatedAt) }
         UserDefaults.standard.set(try? JSONEncoder().encode(saved), forKey: Self.key)
     }
@@ -74,11 +74,14 @@ final class AgentStore: ObservableObject {
         sessions.first { $0.state == .waiting } ?? sessions.first { $0.isActive } ?? sessions.first
     }
 
-    /// Ramène au premier plan le terminal / l'IDE qui héberge la conversation.
-    /// ponytail: active l'app seulement ; sélectionner l'onglet exact demanderait AppleScript par terminal.
+    static let t3Code = "com.t3tools.t3code"
+
+    /// Ramène à la conversation : le fil exact dans T3 Code (lien profond), sinon l'app qui l'héberge.
+    /// ponytail: hors T3 Code, active l'app seulement ; sélectionner l'onglet exact demanderait AppleScript par terminal.
     func openTerminal(_ s: AgentSession) {
-        // ponytail: Termix par défaut quand l'app n'est pas connue ; à rendre configurable si besoin.
-        let id = s.app ?? "com.karmaa.termix"
+        if let link = s.link.flatMap(URL.init(string:)), NSWorkspace.shared.open(link) { return }
+        // T3 Code est l'outil privilégié : app par défaut quand celle de la session n'est pas connue.
+        let id = s.app ?? Self.t3Code
         // openApplication active aussi une app déjà lancée ; NSRunningApplication.activate est ignoré depuis une app non active.
         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) else { return }
         let cfg = NSWorkspace.OpenConfiguration()
@@ -125,6 +128,7 @@ final class AgentStore: ObservableObject {
             ?? AgentSession(id: sid, source: env.source, cwd: p.cwd, state: .done, startedAt: .now, updatedAt: .now)
         s.cwd = p.cwd ?? s.cwd
         s.app = env.app.flatMap { $0.isEmpty ? nil : $0 } ?? s.app
+        s.link = env.link.flatMap { $0.isEmpty ? nil : $0 } ?? s.link
         if env.kind == "statusline" { upsert(s); return }
         if let f = p.tool_input?.file_path { s.file = f }
         let wasWaiting = s.state == .waiting

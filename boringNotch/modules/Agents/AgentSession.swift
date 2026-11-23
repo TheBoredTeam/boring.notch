@@ -35,6 +35,7 @@ struct AgentSession: Identifiable, Equatable {
     var cwd: String?
     var title: String?          // premier prompt de la session
     var app: String?            // bundle id du terminal / IDE, pour rouvrir la conversation
+    var link: String?           // t3code://threads/<env>/<fil> quand la session tourne dans T3 Code
     var ask: PermissionAsk?     // action en attente de validation, déjà mise en français
     var canAnswer = false       // le hook est bloquant : le notch peut répondre (sinon : au terminal)
     var questions: [AgentQuestion]?   // AskUserQuestion en attente de réponse
@@ -54,6 +55,9 @@ struct AgentSession: Identifiable, Equatable {
     }
     /// Sessions techniques (génération de titre de T3 Code…) : jamais utiles à l'utilisateur.
     static func isNoise(_ prompt: String?) -> Bool { prompt?.hasPrefix("Generate a title") == true }
+    /// Où le clic ramène : T3 Code (outil privilégié) sauf session lancée depuis un autre terminal.
+    var opensInT3: Bool { link != nil || app == nil || app == AgentStore.t3Code }
+    var openLabel: String { opensInT3 ? "Ouvrir dans T3 Code" : "Ouvrir le terminal" }
     /// Sans événement depuis 5 min (interruption par Échap, terminal fermé : aucun hook Stop), la session est considérée inactive.
     var isActive: Bool { state != .done && Date().timeIntervalSince(updatedAt) < 300 }
 }
@@ -186,6 +190,7 @@ struct AgentEnvelope: Decodable {
     var source: String
     var kind: String?
     var app: String?
+    var link: String?        // lien profond T3 Code (scripts : T3CODE_THREAD_ID)
     var wait: Bool?          // le hook attend une décision (PermissionRequest)
     var payload: Payload
 }

@@ -4,6 +4,12 @@
 exec /usr/bin/python3 -c '
 import json, os, re, socket, subprocess, sys
 SOCK = os.path.expanduser("~/Library/Containers/theboringteam.boringnotch/Data/.bn.sock")
+def t3_link():
+    # Lancé par T3 Code : lien profond vers le fil, ouvert au clic dans le notch.
+    tid = os.environ.get("T3CODE_THREAD_ID")
+    f = os.path.join(os.environ.get("T3CODE_HOME") or os.path.expanduser("~/.t3"), "userdata", "environment-id")
+    try: return "t3code://threads/%s/%s" % (open(f).read().strip(), tid) if tid else ""
+    except OSError: return ""
 try:
     p = json.load(sys.stdin)
 except Exception:
@@ -36,7 +42,7 @@ def normalize(p):
 
 p = normalize(p)
 app = os.environ.get("__CFBundleIdentifier", "")
-send({"source": "codex", "app": app, "payload": p})
+send({"source": "codex", "app": app, "link": t3_link(), "payload": p})
 
 # Forfait : même sonde que Claude (account/rateLimits/read), limitée à une fois / 3 min, détachée.
 if not os.environ.get("BN_DRY"):

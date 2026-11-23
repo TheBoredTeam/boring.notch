@@ -7,7 +7,11 @@ SOCK="$HOME/Library/Containers/theboringteam.boringnotch/Data/.bn.sock"
 "$(dirname "$0")/agent-usage.sh" "$1" </dev/null >/dev/null 2>&1 &
 exit 0; }
 IN=$(cat)
-{ printf '{"source":"%s","app":"%s","payload":' "$1" "$__CFBundleIdentifier"; printf %s "$IN" | tr -d '\n'; printf '}'; } | nc -U -w 1 "$SOCK" >/dev/null 2>&1
+# Lancé par T3 Code : lien profond vers le fil (t3code://threads/<environnement>/<fil>), ouvert au clic dans le notch.
+LINK=""
+ENV_FILE="${T3CODE_HOME:-$HOME/.t3}/userdata/environment-id"
+[ -n "$T3CODE_THREAD_ID" ] && [ -r "$ENV_FILE" ] && LINK="t3code://threads/$(cat "$ENV_FILE")/$T3CODE_THREAD_ID"
+{ printf '{"source":"%s","app":"%s","link":"%s","payload":' "$1" "$__CFBundleIdentifier" "$LINK"; printf %s "$IN" | tr -d '\n'; printf '}'; } | nc -U -w 1 "$SOCK" >/dev/null 2>&1
 # Forfait à jour quel que soit le client (T3 Code, SDK, terminal) : sonde limitée à une fois / 3 min, détachée.
 "$(dirname "$0")/agent-usage.sh" "$1" </dev/null >/dev/null 2>&1 &
 exit 0
