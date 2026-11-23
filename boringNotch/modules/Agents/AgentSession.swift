@@ -36,6 +36,7 @@ struct AgentSession: Identifiable, Equatable {
     var title: String?          // premier prompt de la session
     var topic: String?          // titre du fil Delta (hook), prioritaire sur title
     var app: String?            // bundle id du terminal / IDE, pour rouvrir la conversation
+    var link: String?           // t3code://threads/<env>/<fil> quand la session tourne dans T3 Code
     var lastMessage: String?    // fin du dernier message de l'agent (extrait affiché au repos)
     var awaitsReply = false     // le dernier message de l'agent appelle une réponse de l'utilisateur
     var state: AgentState = .thinking
@@ -57,8 +58,16 @@ struct AgentSession: Identifiable, Equatable {
         if let i = parts.firstIndex(of: ".claude"), i > 0, parts.count > i + 1, parts[i + 1] == "worktrees" { return parts[i - 1] }
         return parts.last ?? "Sans projet"
     }
-    /// Sessions techniques (génération de titre de T3 Code…) : jamais utiles à l'utilisateur.
-    static func isNoise(_ prompt: String?) -> Bool { prompt?.hasPrefix("Generate a title") == true }
+    /// Sessions techniques de T3 Code (titre du fil, message de commit, nom de branche, texte de PR, visite guidée) :
+    /// jamais utiles à l'utilisateur. Débuts des prompts de T3 Code (provider-core, textGenerationPrompts.ts).
+    static let noisePrefixes = ["Generate a title", "Regenerate the title for an existing T3 Code thread",
+                                "You write concise git commit messages", "You write source control change request content",
+                                "You generate concise git branch names", "You prepare a guided tour of change request"]
+    static func isNoise(_ prompt: String?) -> Bool { prompt.map { p in noisePrefixes.contains { p.hasPrefix($0) } } ?? false }
+    /// Où le clic ramène : T3 Code (outil privilégié) sauf session lancée depuis un autre terminal.
+    static let t3Code = "com.t3tools.t3code"
+    var opensInT3: Bool { link != nil || app == nil || app == Self.t3Code }
+    var openLabel: String { opensInT3 ? "Ouvrir dans T3 Code" : "Ouvrir le terminal" }
     /// Sans événement depuis 5 min (interruption par Échap, terminal fermé : aucun hook Stop), la session est considérée inactive.
     var isActive: Bool { state != .done && Date().timeIntervalSince(updatedAt) < 300 }
 }
@@ -211,7 +220,8 @@ struct AgentEnvelope: Decodable {
     var source: String
     var kind: String?
     var app: String?
-    var topic: String?       // titre du fil Delta, ajouté par le hook (UserPromptSubmit / Stop)
+    var link: String?        // lien profond T3 Code (scripts : T3CODE_THREAD_ID)
+    var topic: String?       // titre du fil Delta ou T3 Code, ajouté par les hooks (UserPromptSubmit / Stop, scripts/t3-thread.sh)
     var wait: Bool?          // le hook attend une décision (PermissionRequest)
     var payload: Payload
 }
