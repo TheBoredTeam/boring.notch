@@ -7,11 +7,13 @@ import Defaults
 import KeyboardShortcuts
 import SwiftUI
 
+@available(macOS 26.0, *)
 struct DictationSettings: View {
     @Default(.dictationLocale) private var locale
     @Default(.dictationHold) private var hold
     @Default(.dictationMic) private var mic
     @State private var mics = Microphones.all()
+    @Default(.dictationDictionary) private var dictionary
     @Default(.dictationSubstitutions) private var substitutions
     @Default(.dictationSuggestions) private var suggestions
     @Default(.dictationHistory) private var history
@@ -58,13 +60,24 @@ struct DictationSettings: View {
             }
 
             Section {
+                TextEditor(text: $dictionary)
+                    .font(.system(.body, design: .monospaced))
+                    .frame(minHeight: 110)
+            } header: {
+                Text("Dictionnaire")
+            } footer: {
+                Text("Un mot ou un nom par ligne (ex. : Synolia). La dictée les écrit toujours avec cette orthographe et ces majuscules ; ils guident aussi le modèle de correction. Pour un mot que la reconnaissance entend de travers, ajoute plutôt une substitution.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section {
                 TextEditor(text: $substitutions)
                     .font(.system(.body, design: .monospaced))
                     .frame(minHeight: 110)
             } header: {
                 Text("Substitutions")
             } footer: {
-                Text("Une règle par ligne : « avant => après ». Mot entier, sans tenir compte des majuscules. Ex. : « boring notch => Boring Notch ».")
+                Text("Une règle par ligne : « avant => après ». Mot entier, sans tenir compte des majuscules. Ex. : « boring notch => Boring Notch ». Les règles les plus longues passent en premier.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
@@ -74,10 +87,7 @@ struct DictationSettings: View {
                         HStack {
                             Text(rule).font(.system(.body, design: .monospaced))
                             Spacer()
-                            Button("Accepter") {
-                                substitutions += (substitutions.isEmpty || substitutions.hasSuffix("\n") ? "" : "\n") + rule + "\n"
-                                suggestions.removeAll { $0 == rule }
-                            }
+                            Button("Accepter") { TextCleanup.accept(rule) }
                             Button("Ignorer", role: .destructive) { suggestions.removeAll { $0 == rule } }
                         }
                         .buttonStyle(.borderless)
@@ -85,7 +95,7 @@ struct DictationSettings: View {
                 } header: {
                     Text("Suggestions apprises")
                 } footer: {
-                    Text("Sélectionne un mot mal transcrit, puis redicte-le : la correction apparaît ici. Les mots acceptés guident aussi la reconnaissance.")
+                    Text("Sélectionne un mot mal transcrit, puis redicte-le : la correction apparaît ici (une correction de majuscules seule devient un mot du dictionnaire). Les mots acceptés guident aussi la reconnaissance.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }

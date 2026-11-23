@@ -18,13 +18,10 @@ enum TextCleanup {
     // ponytail: 6 mots par segment.
     static let llmMinWords = 6
 
-    /// Mots que tu as appris (cibles des substitutions) : donnés à la reconnaissance et au modèle.
+    /// Ton dictionnaire puis les cibles des substitutions : donnés à la reconnaissance et au modèle.
     static func vocabulary() -> [String] {
-        let words = Defaults[.dictationSubstitutions].split(separator: "\n").compactMap { l -> String? in
-            let p = l.components(separatedBy: "=>")
-            return p.count == 2 ? p[1].trimmingCharacters(in: .whitespaces) : nil
-        }.filter { !$0.isEmpty }
-        return Array(NSOrderedSet(array: words).array.prefix(100)) as? [String] ?? []
+        DictationWords.vocabulary(words: DictationWords.words(Defaults[.dictationDictionary]),
+                                  rules: DictationWords.rules(Defaults[.dictationSubstitutions]))
     }
 
     static func warmSession() -> LanguageModelSession? {
@@ -55,12 +52,13 @@ enum TextCleanup {
         return text
     }
 
-    /// Assemblage final : segments recollés, espaces corrigés, substitutions perso.
+    /// Assemblage final : segments recollés, espaces corrigés, substitutions perso, puis graphie du dictionnaire.
     static func finish(_ parts: [String]) -> String {
         var t = parts.filter { !$0.isEmpty }.joined(separator: " ")
         t = t.replacingOccurrences(of: "[ \\t]+([,.])", with: "$1", options: .regularExpression)
         t = t.replacingOccurrences(of: " *\\n *", with: "\n", options: .regularExpression)
-        return substitute(t).trimmingCharacters(in: .whitespacesAndNewlines)
+        return DictationWords.fixCase(substitute(t), words: DictationWords.words(Defaults[.dictationDictionary]))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     /// Hésitations évidentes, sans LLM (zéro RAM, zéro latence).
@@ -112,20 +110,9 @@ enum TextCleanup {
         return letters.count > 4 ? letters.prefix(1).uppercased() + letters.dropFirst().lowercased() : letters.uppercased()
     }
 
-    /// Une règle par ligne : `avant => après` (insensible à la casse, mot entier).
+    /// Une règle par ligne : `avant => après` (insensible à la casse, mot entier, les plus longues d'abord).
     static func substitute(_ text: String) -> String {
-        var out = text
-        for line in Defaults[.dictationSubstitutions].split(separator: "\n") {
-            let parts = line.components(separatedBy: "=>")
-            guard parts.count == 2 else { continue }
-            let from = parts[0].trimmingCharacters(in: .whitespaces)
-            let to = parts[1].trimmingCharacters(in: .whitespaces)
-            guard !from.isEmpty else { continue }
-            let pattern = "(?<![\\p{L}\\p{N}])" + NSRegularExpression.escapedPattern(for: from) + "(?![\\p{L}\\p{N}])"
-            out = out.replacingOccurrences(of: pattern, with: NSRegularExpression.escapedTemplate(for: to),
-                                           options: [.regularExpression, .caseInsensitive])
-        }
-        return out
+        DictationWords.substitute(text, rules: DictationWords.rules(Defaults[.dictationSubstitutions]))
     }
 
     // MARK: sélection : commande vocale et apprentissage
@@ -159,7 +146,8 @@ enum TextCleanup {
         return out.flatMap { plausible($0, for: selection, ratio: 0.1...6, keep: 0, fresh: 0) }
     }
 
-    /// Mot(s) sélectionné(s) puis redicté(s), proches l'un de l'autre → règle suggérée « avant => après ».
+    /// Mot(s) sélectionné(s) puis redicté(s), proches l'un de l'autre → règle suggérée « avant => après »,
+    /// ou le mot seul (dictionnaire) si seule la casse change.
     @discardableResult
     static func learn(from old: String, to new: String) -> String? {
         let trim = CharacterSet.whitespacesAndNewlines.union(.punctuationCharacters)
@@ -170,19 +158,22 @@ enum TextCleanup {
         let x = Array(a.lowercased().filter { !$0.isWhitespace }), y = Array(b.lowercased().filter { !$0.isWhitespace })
         guard levenshtein(x, y) * 10 <= max(x.count, y.count) * 6 else { return nil } // trop différent = réécriture, pas correction
         let key = a.lowercased()
-        let known = Defaults[.dictationSubstitutions].split(separator: "\n").map { $0.components(separatedBy: "=>")[0].trimmingCharacters(in: .whitespaces).lowercased() }
+        let known = DictationWords.rules(Defaults[.dictationSubstitutions]).map { $0.from.lowercased() }
+            + DictationWords.words(Defaults[.dictationDictionary]).map { $0.lowercased() }
             + Defaults[.dictationSuggestions].map { $0.components(separatedBy: " => ")[0].lowercased() }
         guard !known.contains(key) else { return nil }
-        let rule = a + " => " + b
+        let caseOnly = DictationWords.isCaseOnly(a, b) && !b.contains(where: \.isWhitespace)
+        let rule = caseOnly ? b : a + " => " + b
         Defaults[.dictationSuggestions] = Array(([rule] + Defaults[.dictationSuggestions]).prefix(30))
         return rule
     }
 
-    /// Valide une règle suggérée : elle rejoint les substitutions.
+    /// Valide une suggestion : une règle rejoint les substitutions, un mot seul le dictionnaire.
     static func accept(_ rule: String) {
-        var subs = Defaults[.dictationSubstitutions]
-        if !subs.isEmpty, !subs.hasSuffix("\n") { subs += "\n" }
-        Defaults[.dictationSubstitutions] = subs + rule + "\n"
+        let key: Defaults.Key<String> = rule.contains("=>") ? .dictationSubstitutions : .dictationDictionary
+        var text = Defaults[key]
+        if !text.isEmpty, !text.hasSuffix("\n") { text += "\n" }
+        Defaults[key] = text + rule + "\n"
         dismiss(rule)
     }
 
