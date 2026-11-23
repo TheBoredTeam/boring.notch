@@ -333,7 +333,7 @@ final class NotchWindowManager {
         guard Defaults[.displayMode] != .allDisplays || contexts[uuid]?.window != nil else { return }
 
         let screenFrame = screen.frame
-        let notchHeight = openNotchSize.height
+        let notchHeight = CGFloat(Defaults[.expandedDragDetectionHeight])
         let notchWidth = openNotchSize.width
 
         // Create notch region at the top-center of the screen where an open notch would occupy

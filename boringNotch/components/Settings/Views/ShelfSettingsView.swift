@@ -12,6 +12,7 @@ struct ShelfSettingsView: View {
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
     @Default(.quickShareProvider) var quickShareProvider
     @Default(.expandedDragDetection) var expandedDragDetection: Bool
+    @Default(.expandedDragDetectionHeight) var expandedDragDetectionHeight: Double
     @StateObject private var quickShareService = QuickShareService.shared
 
     private var selectedProvider: QuickShareProvider? {
@@ -31,10 +32,18 @@ struct ShelfSettingsView: View {
                     Text("Expanded drag detection area")
                 }
                 .onChange(of: expandedDragDetection) {
-                    NotificationCenter.default.post(
-                        name: Notification.Name.expandedDragDetectionChanged,
-                        object: nil
-                    )
+                    notifyDragDetectionChanged()
+                }
+                if expandedDragDetection {
+                    Slider(value: $expandedDragDetectionHeight, in: 40...Double(openNotchSize.height), step: 10) {
+                        Text(
+                            "Drag detection height - \(expandedDragDetectionHeight, format: .number.precision(.fractionLength(0)))",
+                            comment: "Slider label showing how far below the top of the screen a file drag opens the shelf."
+                        )
+                    }
+                    .onChange(of: expandedDragDetectionHeight) {
+                        notifyDragDetectionChanged()
+                    }
                 }
                 Defaults.Toggle(key: .copyOnDrag) {
                     Text("Copy items on drag")
@@ -105,5 +114,12 @@ struct ShelfSettingsView: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Shelf")
+    }
+
+    private func notifyDragDetectionChanged() {
+        NotificationCenter.default.post(
+            name: Notification.Name.expandedDragDetectionChanged,
+            object: nil
+        )
     }
 }
