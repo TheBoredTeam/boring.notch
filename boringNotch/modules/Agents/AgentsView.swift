@@ -303,6 +303,10 @@ struct AgentsView: View {
                     .font(.system(size: 13, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
                 HStack(spacing: 5) {
                     Text(s.source.capitalized).foregroundStyle(secondary)
+                    if s.link != nil {
+                        Text("·").foregroundStyle(secondary)
+                        Text("T3 Code").foregroundStyle(secondary)
+                    }
                     Text("·").foregroundStyle(secondary)
                     Text(s.stateText).foregroundStyle(s.tint)
                 }

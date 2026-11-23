@@ -12,6 +12,8 @@ LINK=""
 ENV_FILE="${T3CODE_HOME:-$HOME/.t3}/userdata/environment-id"
 [ -n "$T3CODE_THREAD_ID" ] && [ -r "$ENV_FILE" ] && LINK="t3code://threads/$(cat "$ENV_FILE")/$T3CODE_THREAD_ID"
 { printf '{"source":"%s","app":"%s","link":"%s","payload":' "$1" "$__CFBundleIdentifier" "$LINK"; printf %s "$IN" | tr -d '\n'; printf '}'; } | nc -U -w 1 "$SOCK" >/dev/null 2>&1
+# Session T3 Code : titre du fil à jour à chaque fin de tour (détaché, n'agit qu'au Stop).
+[ -n "$T3CODE_THREAD_ID" ] && { printf %s "$IN" | "$(dirname "$0")/t3-thread.sh" "$1" >/dev/null 2>&1 & }
 # Forfait à jour quel que soit le client (T3 Code, SDK, terminal) : sonde limitée à une fois / 3 min, détachée.
 "$(dirname "$0")/agent-usage.sh" "$1" </dev/null >/dev/null 2>&1 &
 exit 0

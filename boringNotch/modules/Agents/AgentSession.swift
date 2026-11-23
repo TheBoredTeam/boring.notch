@@ -53,8 +53,12 @@ struct AgentSession: Identifiable, Equatable {
         let name = cwd.map { ($0 as NSString).lastPathComponent } ?? ""
         return name.isEmpty || name == "/" ? "Sans projet" : name
     }
-    /// Sessions techniques (génération de titre de T3 Code…) : jamais utiles à l'utilisateur.
-    static func isNoise(_ prompt: String?) -> Bool { prompt?.hasPrefix("Generate a title") == true }
+    /// Sessions techniques de T3 Code (titre du fil, message de commit, nom de branche, texte de PR, visite guidée) :
+    /// jamais utiles à l'utilisateur. Débuts des prompts de T3 Code (provider-core, textGenerationPrompts.ts).
+    static let noisePrefixes = ["Generate a title", "Regenerate the title for an existing T3 Code thread",
+                                "You write concise git commit messages", "You write source control change request content",
+                                "You generate concise git branch names", "You prepare a guided tour of change request"]
+    static func isNoise(_ prompt: String?) -> Bool { prompt.map { p in noisePrefixes.contains { p.hasPrefix($0) } } ?? false }
     /// Où le clic ramène : T3 Code (outil privilégié) sauf session lancée depuis un autre terminal.
     var opensInT3: Bool { link != nil || app == nil || app == AgentStore.t3Code }
     var openLabel: String { opensInT3 ? "Ouvrir dans T3 Code" : "Ouvrir le terminal" }
@@ -191,6 +195,7 @@ struct AgentEnvelope: Decodable {
     var kind: String?
     var app: String?
     var link: String?        // lien profond T3 Code (scripts : T3CODE_THREAD_ID)
+    var title: String?       // kind "title" : titre du fil T3 Code (scripts/t3-thread.sh)
     var wait: Bool?          // le hook attend une décision (PermissionRequest)
     var payload: Payload
 }

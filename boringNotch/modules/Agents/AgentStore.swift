@@ -123,6 +123,14 @@ final class AgentStore: ObservableObject {
             return
         }
 
+        // Titre du fil T3 Code (généré ou renommé) : remplace le premier prompt, sans réordonner la liste.
+        if env.kind == "title" {
+            guard let t = env.title, !t.isEmpty, let i = sessions.firstIndex(where: { $0.id == sid }), sessions[i].title != t else { return }
+            sessions[i].title = t
+            save()
+            return
+        }
+
         // Une nouvelle session vue via la status line est inactive (état .done) jusqu'à son prochain événement.
         var s = sessions.first { $0.id == sid }
             ?? AgentSession(id: sid, source: env.source, cwd: p.cwd, state: .done, startedAt: .now, updatedAt: .now)
