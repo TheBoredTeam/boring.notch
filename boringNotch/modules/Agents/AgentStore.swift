@@ -19,7 +19,7 @@ final class AgentStore: ObservableObject {
     /// ouvertes quand l'app redémarre ; elles se remettent à jour à leur prochain événement.
     private struct Saved: Codable {
         var id, source: String
-        var cwd, title, topic, app, lastMessage: String?
+        var cwd, title, topic, app, link, lastMessage: String?
         var awaitsReply: Bool?
         var startedAt, updatedAt: Date
     }
@@ -32,13 +32,13 @@ final class AgentStore: ObservableObject {
         let saved = (UserDefaults.standard.data(forKey: Self.key)).flatMap { try? JSONDecoder().decode([Saved].self, from: $0) } ?? []
         sessions = saved.filter { Date().timeIntervalSince($0.updatedAt) < 24 * 3600 && !AgentSession.isNoise($0.title) }.map {
             var s = AgentSession(id: $0.id, source: $0.source, cwd: $0.cwd, startedAt: $0.startedAt, updatedAt: $0.updatedAt)
-            s.title = $0.title; s.topic = $0.topic; s.app = $0.app; s.state = .done; s.awaitsReply = $0.awaitsReply ?? false; s.lastMessage = $0.lastMessage
+            s.title = $0.title; s.topic = $0.topic; s.app = $0.app; s.link = $0.link; s.state = .done; s.awaitsReply = $0.awaitsReply ?? false; s.lastMessage = $0.lastMessage
             return s
         }
     }
 
     private func save() {
-        let saved = sessions.map { Saved(id: $0.id, source: $0.source, cwd: $0.cwd, title: $0.title, topic: $0.topic, app: $0.app, lastMessage: $0.lastMessage, awaitsReply: $0.awaitsReply,
+        let saved = sessions.map { Saved(id: $0.id, source: $0.source, cwd: $0.cwd, title: $0.title, topic: $0.topic, app: $0.app, link: $0.link, lastMessage: $0.lastMessage, awaitsReply: $0.awaitsReply,
                                          startedAt: $0.startedAt, updatedAt: $0.updatedAt) }
         UserDefaults.standard.set(try? JSONEncoder().encode(saved), forKey: Self.key)
     }
@@ -74,11 +74,13 @@ final class AgentStore: ObservableObject {
         sessions.first { $0.state == .waiting } ?? sessions.first { $0.isActive } ?? sessions.first
     }
 
-    /// Ramène au premier plan le terminal / l'IDE qui héberge la conversation.
-    /// ponytail: active l'app seulement ; sélectionner l'onglet exact demanderait AppleScript par terminal.
+
+    /// Ramène à la conversation : le fil exact dans T3 Code (lien profond), sinon l'app qui l'héberge.
+    /// ponytail: hors T3 Code, active l'app seulement ; sélectionner l'onglet exact demanderait AppleScript par terminal.
     func openTerminal(_ s: AgentSession) {
-        // ponytail: Termix par défaut quand l'app n'est pas connue ; à rendre configurable si besoin.
-        let id = s.app ?? "com.karmaa.termix"
+        if let link = s.link.flatMap(URL.init(string:)), NSWorkspace.shared.open(link) { return }
+        // T3 Code est l'outil privilégié : app par défaut quand celle de la session n'est pas connue.
+        let id = s.app ?? AgentSession.t3Code
         // openApplication active aussi une app déjà lancée ; NSRunningApplication.activate est ignoré depuis une app non active.
         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) else { return }
         let cfg = NSWorkspace.OpenConfiguration()
@@ -132,11 +134,20 @@ final class AgentStore: ObservableObject {
             return
         }
 
+        // Titre du fil T3 Code (généré ou renommé, scripts/t3-thread.sh) : même champ que le sujet Delta, sans réordonner la liste.
+        if env.kind == "title" {
+            guard let t = env.topic, !t.isEmpty, let i = sessions.firstIndex(where: { $0.id == sid }), sessions[i].topic != t else { return }
+            sessions[i].topic = t
+            save()
+            return
+        }
+
         // Une nouvelle session vue via la status line est inactive (état .done) jusqu'à son prochain événement.
         var s = sessions.first { $0.id == sid }
             ?? AgentSession(id: sid, source: env.source, cwd: p.cwd, state: .done, startedAt: .now, updatedAt: .now)
         s.cwd = p.cwd ?? s.cwd
         s.app = env.app.flatMap { $0.isEmpty ? nil : $0 } ?? s.app
+        s.link = env.link.flatMap { $0.isEmpty ? nil : $0 } ?? s.link
         if let t = env.topic, !t.isEmpty { s.topic = t }
         if env.kind == "statusline" { upsert(s); return }
         if let f = p.tool_input?.file_path { s.file = f }

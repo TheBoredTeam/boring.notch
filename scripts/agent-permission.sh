@@ -8,10 +8,16 @@
 exec /usr/bin/python3 -c '
 import json, os, socket, sys
 SOCK = os.path.expanduser("~/Library/Containers/theboringteam.boringnotch/Data/.bn.sock")
+def t3_link():
+    # Lancé par T3 Code : lien profond vers le fil, ouvert au clic dans le notch.
+    tid = os.environ.get("T3CODE_THREAD_ID")
+    f = os.path.join(os.environ.get("T3CODE_HOME") or os.path.expanduser("~/.t3"), "userdata", "environment-id")
+    try: return "t3code://threads/%s/%s" % (open(f).read().strip(), tid) if tid else ""
+    except OSError: return ""
 try:
     p = json.load(sys.stdin)
     s = socket.socket(socket.AF_UNIX); s.settimeout(1); s.connect(SOCK)
-    s.sendall(json.dumps({"source": sys.argv[1], "app": os.environ.get("__CFBundleIdentifier", ""), "wait": True, "payload": p}).encode())
+    s.sendall(json.dumps({"source": sys.argv[1], "app": os.environ.get("__CFBundleIdentifier", ""), "link": t3_link(), "wait": True, "payload": p}).encode())
     s.shutdown(socket.SHUT_WR); s.settimeout(590)
     out = b""
     while True:

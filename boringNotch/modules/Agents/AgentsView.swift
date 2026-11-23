@@ -310,9 +310,9 @@ struct AgentsView: View {
     private func agentHeader(_ s: AgentSession) -> some View {
         Button { AgentStore.shared.openTerminal(s) } label: { agentHeaderContent(s) }
             .buttonStyle(.plain)
-            .help("\(s.project) · \(s.subject)\nOuvrir le terminal")
+            .help("\(s.project) · \(s.subject)\n\(s.openLabel)")
             .accessibilityLabel("\(s.project), \(s.subject), \(s.source.capitalized), \(s.stateText)")
-            .accessibilityHint("Ouvrir le terminal")
+            .accessibilityHint(s.openLabel)
     }
 
     private func agentHeaderContent(_ s: AgentSession) -> some View {
@@ -330,6 +330,10 @@ struct AgentsView: View {
                 sessionName(s, size: 13, weight: .semibold)
                 HStack(spacing: 5) {
                     Text(s.source.capitalized).foregroundStyle(secondary)
+                    if s.link != nil {
+                        Text("·").foregroundStyle(secondary)
+                        Text("T3 Code").foregroundStyle(secondary)
+                    }
                     Text("·").foregroundStyle(secondary)
                     Text(s.stateText).foregroundStyle(s.tint)
                 }
@@ -693,7 +697,7 @@ private struct PermissionCard: View {
                 }
             } else {
                 // Hook non bloquant : le notch ne peut pas répondre, la validation se fait dans le terminal.
-                pillButton("Ouvrir le terminal", tint: nil) { AgentStore.shared.openTerminal(session) }
+                pillButton(session.openLabel, tint: nil) { AgentStore.shared.openTerminal(session) }
             }
         }
         .padding(10)

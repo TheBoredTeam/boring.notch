@@ -4,6 +4,12 @@
 exec /usr/bin/python3 -c '
 import json, os, re, socket, subprocess, sys
 SOCK = os.path.expanduser("~/Library/Containers/theboringteam.boringnotch/Data/.bn.sock")
+def t3_link():
+    # Lancé par T3 Code : lien profond vers le fil, ouvert au clic dans le notch.
+    tid = os.environ.get("T3CODE_THREAD_ID")
+    f = os.path.join(os.environ.get("T3CODE_HOME") or os.path.expanduser("~/.t3"), "userdata", "environment-id")
+    try: return "t3code://threads/%s/%s" % (open(f).read().strip(), tid) if tid else ""
+    except OSError: return ""
 try:
     p = json.load(sys.stdin)
 except Exception:
@@ -36,7 +42,13 @@ def normalize(p):
 
 p = normalize(p)
 app = os.environ.get("__CFBundleIdentifier", "")
-send({"source": "codex", "app": app, "payload": p})
+send({"source": "codex", "app": app, "link": t3_link(), "payload": p})
+
+# Session T3 Code : titre du fil à jour à chaque fin de tour (détaché, n’agit qu’au Stop).
+if os.environ.get("T3CODE_THREAD_ID") and p.get("hook_event_name") == "Stop" and not os.environ.get("BN_DRY"):
+    t = subprocess.Popen([os.path.join(sys.argv[1], "t3-thread.sh"), "codex"], stdin=subprocess.PIPE,
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    t.stdin.write(json.dumps(p).encode()); t.stdin.close()
 
 # Forfait : même sonde que Claude (account/rateLimits/read), limitée à une fois / 3 min, détachée.
 if not os.environ.get("BN_DRY"):
