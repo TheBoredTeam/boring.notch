@@ -190,6 +190,7 @@ extension Defaults.Keys {
     static let dictationSubstitutions = Key<String>("dictationSubstitutions", default: "")
     static let dictationDictionary = Key<String>("dictationDictionary", default: "")   // un mot ou un nom par ligne, graphie fixe
     static let dictationSuggestions = Key<[String]>("dictationSuggestions", default: [])   // règles « avant => après » ou mots seuls appris, à valider
+    static let dictationGuidedRecognition = Key<Bool>("dictationGuidedRecognition", default: false)   // expérimental : DictationTranscriber au lieu de SpeechTranscriber
     static let timerShortcutMinutes = Key<Int>("timerShortcutMinutes", default: 25)
     static let pomodoroFocusMinutes = Key<Int>("pomodoroFocusMinutes", default: 25)
     static let pomodoroShortMinutes = Key<Int>("pomodoroShortMinutes", default: 5)

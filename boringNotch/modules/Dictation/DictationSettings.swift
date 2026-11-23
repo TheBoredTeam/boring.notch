@@ -63,10 +63,11 @@ struct DictationSettings: View {
                 TextEditor(text: $dictionary)
                     .font(.system(.body, design: .monospaced))
                     .frame(minHeight: 110)
+                Defaults.Toggle("Reconnaissance guidée par le dictionnaire (expérimental)", key: .dictationGuidedRecognition)
             } header: {
                 Text("Dictionnaire")
             } footer: {
-                Text("Un mot ou un nom par ligne (ex. : Synolia). La dictée les écrit toujours avec cette orthographe et ces majuscules ; ils guident aussi le modèle de correction. Pour un mot que la reconnaissance entend de travers, ajoute plutôt une substitution.")
+                Text("Un mot ou un nom par ligne (ex. : Synolia). La dictée les écrit toujours avec cette orthographe et ces majuscules ; ils guident aussi le modèle de correction. Pour un mot que la reconnaissance entend de travers, ajoute plutôt une substitution.\n\nReconnaissance guidée : utilise le modèle de dictée d'Apple, qui tient compte du dictionnaire et des substitutions pendant l'écoute. Peut être moins précis sur les longues dictées : compare.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 

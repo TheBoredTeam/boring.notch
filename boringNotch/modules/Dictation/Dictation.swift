@@ -209,18 +209,30 @@ final class Dictation: ObservableObject {
             if Defaults[.dictationCleanup] { warm = TextCleanup.warmSession() } // charge le modèle pendant la prise de parole
 
             let wanted = Locale(identifier: Defaults[.dictationLocale])
-            guard let locale = await SpeechTranscriber.supportedLocale(equivalentTo: wanted) else { throw DictationError.unsupported }
-            let transcriber = SpeechTranscriber(locale: locale, transcriptionOptions: [], reportingOptions: [.volatileResults], attributeOptions: [])
+            // Réglage expérimental : le modèle de dictée tient compte du vocabulaire (SpeechTranscriber l'ignore).
+            let guided = Defaults[.dictationGuidedRecognition]
+            let module: any SpeechModule
+            let updates: any AsyncSequence<(String, Bool), any Error> & Sendable // (texte, isFinal), quel que soit le module
+            if guided {
+                guard let locale = await DictationTranscriber.supportedLocale(equivalentTo: wanted) else { throw DictationError.unsupported }
+                let t = DictationTranscriber(locale: locale, contentHints: [], transcriptionOptions: [], reportingOptions: [.volatileResults], attributeOptions: [])
+                module = t; updates = t.results.map { (String($0.text.characters), $0.isFinal) }
+            } else {
+                guard let locale = await SpeechTranscriber.supportedLocale(equivalentTo: wanted) else { throw DictationError.unsupported }
+                let t = SpeechTranscriber(locale: locale, transcriptionOptions: [], reportingOptions: [.volatileResults], attributeOptions: [])
+                module = t; updates = t.results.map { (String($0.text.characters), $0.isFinal) }
+            }
+            log.info("reconnaissance : \(guided ? "DictationTranscriber (guidée)" : "SpeechTranscriber", privacy: .public)")
             // Première utilisation : télécharge le modèle de la langue (géré par le système).
-            if let req = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) { try await req.downloadAndInstall() }
+            if let req = try await AssetInventory.assetInstallationRequest(supporting: [module]) { try await req.downloadAndInstall() }
             if stale() { return }
 
             // whileInUse : le modèle de reconnaissance est libéré dès la fin de la dictée (pas de RAM résiduelle).
-            let analyzer = SpeechAnalyzer(modules: [transcriber], options: .init(priority: .userInitiated, modelRetention: .whileInUse))
-            // Vocabulaire perso (cibles des substitutions) : la reconnaissance les privilégie.
+            let analyzer = SpeechAnalyzer(modules: [module], options: .init(priority: .userInitiated, modelRetention: .whileInUse))
+            // Vocabulaire perso (dictionnaire + cibles des substitutions) : seul DictationTranscriber en tient compte.
             let vocab = TextCleanup.vocabulary()
             if !vocab.isEmpty { let ctx = AnalysisContext(); ctx.contextualStrings[.general] = vocab; try? await analyzer.setContext(ctx) }
-            guard let format = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber]) else { throw DictationError.unsupported }
+            guard let format = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [module]) else { throw DictationError.unsupported }
             try? await analyzer.prepareToAnalyze(in: format) // charge le modèle maintenant, pas au premier mot
             if stale() { return }
             let (stream, continuation) = AsyncStream<AnalyzerInput>.makeStream()
@@ -229,9 +241,8 @@ final class Dictation: ObservableObject {
             results = Task { [weak self, log] in
                 var done = ""
                 do {
-                    for try await r in transcriber.results {
-                        let s = String(r.text.characters)
-                        if r.isFinal { done += s; await self?.finalized(s, partial: done) } else { await self?.setPartial(done + s, tail: s) }
+                    for try await (s, isFinal) in updates {
+                        if isFinal { done += s; await self?.finalized(s, partial: done) } else { await self?.setPartial(done + s, tail: s) }
                     }
                 } catch { log.error("flux de résultats interrompu : \(error.localizedDescription, privacy: .public)"); throw error }
             }
@@ -538,7 +549,7 @@ struct DictationPill: View {
     }
 }
 
-/// Règle apprise : « avant → après » sur une ligne, pastille verte (valider) et rouge (ignorer). Même gabarit que les autres pastilles.
+/// Règle « avant → après » ou mot seul appris, sur une ligne, pastille verte (valider) et rouge (ignorer). Même gabarit que les autres pastilles.
 @available(macOS 26.0, *)
 struct DictationOffer: View {
     let height: CGFloat
@@ -546,7 +557,7 @@ struct DictationOffer: View {
     @State private var pop = false
 
     var body: some View {
-        ActivityPill(height: height, help: "Règle apprise : l'ajouter aux substitutions ?") {
+        ActivityPill(height: height, help: rule.contains("=>") ? "Règle apprise : l'ajouter aux substitutions ?" : "Mot appris : l'ajouter au dictionnaire ?") {
             Image(systemName: "sparkles").foregroundStyle(.yellow).symbolEffect(.pulse)
             Text(rule.replacingOccurrences(of: " => ", with: " → "))
                 .lineLimit(1).truncationMode(.middle).frame(maxWidth: 260)
