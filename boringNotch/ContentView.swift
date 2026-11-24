@@ -464,7 +464,7 @@ struct ContentView: View {
                            // and the header spans the full notch width,
                            // which is what was stretching the whole panel
                            // out around a short message.
-                           BoringHeader()
+                           BoringHeader(albumArtNamespace: albumArtNamespace)
                                .frame(height: max(38, displayClosedNotchHeight))
                                .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
                        }
@@ -745,6 +745,7 @@ struct ContentView: View {
                     : Color.gray
                 )
                 .frame(width: 18, height: 12)
+                .matchedGeometryEffect(id: "spectrum", in: albumArtNamespace)
             }
             .frame(
                 width: max(
