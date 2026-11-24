@@ -5,13 +5,13 @@ import XCTest
 @testable import boringNotch
 
 final class NowPlayingFavoriteTests: XCTestCase {
-    func testAdapterBooleanPayloadsAndMissingCapabilityDecode() throws {
+    func testAdapterCommandListDecodesExplicitActiveState() throws {
         let decoder = JSONDecoder()
-        let liked = try decoder.decode(NowPlayingUpdate.self, from: Data(#"{"diff":false,"payload":{"likeCommandEnabled":true,"likeCommandActive":true}}"#.utf8))
+        let liked = try decoder.decode(NowPlayingUpdate.self, from: Data(#"{"diff":false,"payload":{"supportedCommands":[{"id":21,"enabled":true,"options":{"kMRMediaRemoteCommandInfoIsActiveKey":true}}]}}"#.utf8))
         XCTAssertEqual(liked.payload.likeCommandEnabled, true)
         XCTAssertEqual(liked.payload.likeCommandActive, true)
-        let unliked = try decoder.decode(NowPlayingUpdate.self, from: Data(#"{"diff":true,"payload":{"likeCommandActive":false}}"#.utf8))
-        XCTAssertNil(unliked.payload.likeCommandEnabled)
+        let unliked = try decoder.decode(NowPlayingUpdate.self, from: Data(#"{"diff":true,"payload":{"supportedCommands":[{"id":21,"enabled":true,"options":{"kMRMediaRemoteCommandInfoIsActiveKey":false}}]}}"#.utf8))
+        XCTAssertEqual(unliked.payload.likeCommandEnabled, true)
         XCTAssertEqual(unliked.payload.likeCommandActive, false)
         let unsupported = try decoder.decode(NowPlayingUpdate.self, from: Data(#"{"diff":false,"payload":{"supportsIsLiked":true,"isLiked":true}}"#.utf8))
         XCTAssertNil(unsupported.payload.likeCommandEnabled)
@@ -25,7 +25,7 @@ final class NowPlayingFavoriteTests: XCTestCase {
         XCTAssertFalse(unliked.active)
     }
 
-    func testSameTrackAdapterDiffClearsOnlyRemovedFavoriteFields() throws {
+    func testSameTrackAdapterDiffClearsRemovedCommandState() throws {
         let previous = NowPlayingFavoriteSnapshot(bundleIdentifier: "test.player", enabled: true, active: true)
         func apply(_ json: String) throws -> NowPlayingFavoriteSnapshot {
             let update = try JSONDecoder().decode(NowPlayingUpdate.self, from: Data(json.utf8))
@@ -35,13 +35,18 @@ final class NowPlayingFavoriteTests: XCTestCase {
         }
         XCTAssertEqual(try apply(#"{"diff":true,"payload":{"elapsedTime":5}}"#), previous)
 
-        let cleared = try apply(#"{"diff":true,"payload":{"likeCommandActive":null}}"#)
-        XCTAssertTrue(cleared.enabled)
+        let cleared = try apply(#"{"diff":true,"payload":{"supportedCommands":[{"id":21,"enabled":true,"options":{"other":123}}]}}"#)
+        XCTAssertFalse(cleared.enabled)
         XCTAssertFalse(cleared.active)
 
-        let disabled = try apply(#"{"diff":true,"payload":{"likeCommandEnabled":null,"likeCommandActive":null}}"#)
+        let disabled = try apply(#"{"diff":true,"payload":{"supportedCommands":null}}"#)
         XCTAssertFalse(disabled.enabled)
         XCTAssertFalse(disabled.active)
+
+        let empty = try apply(#"{"diff":true,"payload":{"supportedCommands":[]}}"#)
+        XCTAssertEqual(empty, disabled)
+        let unavailable = try apply(#"{"diff":true,"payload":{"supportedCommands":[{"id":21,"enabled":false,"options":{"kMRMediaRemoteCommandInfoIsActiveKey":true}}]}}"#)
+        XCTAssertFalse(unavailable.enabled)
     }
 
     func testNewItemOrPlayerDoesNotInheritOldFeedback() {

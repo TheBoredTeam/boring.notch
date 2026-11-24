@@ -248,28 +248,58 @@ struct NowPlayingPayload: Decodable, Sendable {
     let parentApplicationBundleIdentifier: String?
     let bundleIdentifier: String?
     let volume: Double?
-    @FavoriteFlag var likeCommandEnabled: Bool?
-    @FavoriteFlag var likeCommandActive: Bool?
+    @SupportedCommands private var supportedCommands: [NowPlayingCommand]?
+
+    private var likeCommand: NowPlayingCommand? {
+        supportedCommands?.first { $0.id == 21 }
+    }
+
+    var likeCommandEnabled: Bool? {
+        supportedCommands.map { _ in likeCommand?.enabled == true && likeCommand?.active != nil }
+    }
+
+    var likeCommandActive: Bool? {
+        supportedCommands.map { _ in likeCommand?.active ?? false }
+    }
 }
 
-// Adapter diffs omit unchanged keys and send null when a key is removed.
-@propertyWrapper
-struct FavoriteFlag: Decodable, Sendable {
-    let wrappedValue: Bool?
+private struct NowPlayingCommand: Decodable, Sendable {
+    let id: Int
+    let enabled: Bool?
+    let active: Bool?
 
-    init(wrappedValue: Bool?) {
+    private enum CodingKeys: String, CodingKey {
+        case id, enabled, options
+        case active = "kMRMediaRemoteCommandInfoIsActiveKey"
+    }
+
+    init(from decoder: Decoder) throws {
+        let command = try decoder.container(keyedBy: CodingKeys.self)
+        id = try command.decode(Int.self, forKey: .id)
+        enabled = try command.decodeIfPresent(Bool.self, forKey: .enabled)
+        let options = try? command.nestedContainer(keyedBy: CodingKeys.self, forKey: .options)
+        active = try? options?.decodeIfPresent(Bool.self, forKey: .active)
+    }
+}
+
+// Stream diffs omit an unchanged list and use null to remove it.
+@propertyWrapper
+private struct SupportedCommands: Decodable, Sendable {
+    let wrappedValue: [NowPlayingCommand]?
+
+    init(wrappedValue: [NowPlayingCommand]?) {
         self.wrappedValue = wrappedValue
     }
 
     init(from decoder: Decoder) throws {
         let value = try decoder.singleValueContainer()
-        wrappedValue = value.decodeNil() ? false : try value.decode(Bool.self)
+        wrappedValue = value.decodeNil() ? [] : try value.decode([NowPlayingCommand].self)
     }
 }
 
 private extension KeyedDecodingContainer {
-    func decode(_ type: FavoriteFlag.Type, forKey key: Key) throws -> FavoriteFlag {
-        guard contains(key) else { return FavoriteFlag(wrappedValue: nil) }
-        return try FavoriteFlag(from: superDecoder(forKey: key))
+    func decode(_ type: SupportedCommands.Type, forKey key: Key) throws -> SupportedCommands {
+        guard contains(key) else { return SupportedCommands(wrappedValue: nil) }
+        return try SupportedCommands(from: superDecoder(forKey: key))
     }
 }

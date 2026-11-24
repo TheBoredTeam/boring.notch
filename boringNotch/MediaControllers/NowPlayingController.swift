@@ -55,7 +55,7 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
                   let pointer = CFBundleGetDataPointerForName(mediaRemoteBundle, "kMRMediaRemoteOptionIsNegative" as CFString)
             else { return }
             let key = pointer.assumingMemoryBound(to: CFString.self).pointee as String
-            // A negative like removes the like; it is not a dislike command.
+            // Pass the negative feedback flag and let the player report the resulting state.
             MRMediaRemoteSendCommandFunction(21, [key: !favorite] as NSDictionary)
             return
         }
