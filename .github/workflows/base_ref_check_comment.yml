@@ -1,0 +1,148 @@
+name: Fork PR target guidance
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited, ready_for_review]
+
+permissions: {}
+
+jobs:
+  comment:
+    name: Sync PR target guidance comment
+    if: ${{ github.event.pull_request.head.repo.fork == true }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Create, update, delete, or skip policy comment
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+
+            const marker = '<!-- fork-pr-target-policy -->';
+
+            const allowedPatterns = [
+              /^README\.md$/,
+              /^CONTRIBUTING\.md$/,
+              /^SECURITY\.md$/,
+              /^LICENSE$/,
+              /^THIRD_PARTY_LICENSES$/,
+              /^\.gitignore$/,
+              /^crowdin\.yml$/,
+              /^\.github\/.+$/
+            ];
+
+            const isAllowedPath = (path) =>
+              allowedPatterns.some((pattern) => pattern.test(path));
+
+            const toSafeLiteral = (value) =>
+              JSON.stringify(String(value))
+                .replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, (c) =>
+                  `\\u${c.codePointAt(0).toString(16).padStart(4, '0')}`
+                )
+                .replace(/</g, '\\u003c')
+                .replace(/>/g, '\\u003e')
+                .replace(/&/g, '\\u0026')
+                .replace(/@/g, '\\u0040')
+                .replace(/#/g, '\\u0023')
+                .replace(/`/g, '\\u0060');
+
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+
+            if (pr.data.head.repo.fork !== true) {
+              core.info('PR does not come from a fork; skipping comment sync.');
+              return;
+            }
+
+            const base = pr.data.base.ref;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              per_page: 100
+            });
+
+            const existing = comments.find((comment) =>
+              comment.user?.login === 'github-actions[bot]' &&
+              comment.body?.includes(marker)
+            );
+
+            let body = null;
+
+            if (base === 'main') {
+              const files = await github.paginate(github.rest.pulls.listFiles, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                per_page: 100
+              });
+
+              const disallowed = files.filter((file) => {
+                const pathsToCheck = [file.filename, file.previous_filename].filter(Boolean);
+                return pathsToCheck.some((path) => !isAllowedPath(path));
+              });
+
+              if (disallowed.length > 0) {
+                body = [
+                  marker,
+                  '⚠️ This PR targets `main`.',
+                  '',
+                  'Fork PRs should normally target `dev`.',
+                  'Targeting `main` is only allowed for repository metadata changes such as docs, licensing, and `.github/**` updates.',
+                  'This PR changes one or more files outside that allowlist, so please retarget it to `dev`.'
+                ].join('\n');
+              }
+            } else if (base === 'dev') {
+              if (existing) {
+                body = [
+                  marker,
+                  '✅ This PR now targets `dev`.',
+                  '',
+                  '`dev` is the expected target branch for fork PRs, so no further action is needed.'
+                ].join('\n');
+              }
+            } else {
+              body = [
+                marker,
+                `❌ This PR targets ${toSafeLiteral(base)}.`,
+                '',
+                'Fork PRs may only target `dev` or `main`.',
+                'Please retarget this PR to one of those branches.'
+              ].join('\n');
+            }
+
+            if (body && existing) {
+              if (existing.body !== body) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existing.id,
+                  body
+                });
+              } else {
+                core.info('Existing policy comment already matches desired body.');
+              }
+            } else if (body && !existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body
+              });
+            } else if (!body && existing) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id
+              });
+              core.info('Deleted stale policy comment because no comment is needed now.');
+            } else {
+              core.info(`No comment action needed for base branch ${toSafeLiteral(base)}.`);
+            }

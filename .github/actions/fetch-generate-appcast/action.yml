@@ -1,0 +1,93 @@
+name: "Fetch Sparkle generate_appcast"
+description: >-
+  Downloads the official Sparkle release tarball for the version pinned in the
+  workspace's Package.resolved, verifies the release tag resolves to the pinned
+  revision, extracts the prebuilt generate_appcast tool, and installs it to
+  $RUNNER_TEMP/generate_appcast.
+
+runs:
+  using: "composite"
+  steps:
+    - name: Fetch Sparkle generate_appcast release
+      shell: bash
+      run: |
+        set -euo pipefail
+        SPARKLE_METADATA_PATH="boringNotch.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+        SPARKLE_EXTRACT_DIR="$RUNNER_TEMP/sparkle-release"
+        SPARKLE_REPO_URL="https://github.com/sparkle-project/Sparkle"
+
+        IFS=$'\t' read -r SPARKLE_VERSION SPARKLE_REVISION <<< "$(python3 - "$SPARKLE_METADATA_PATH" <<'PY'
+        import json
+        import sys
+        from pathlib import Path
+
+        path = Path(sys.argv[1])
+        data = json.loads(path.read_text())
+        pins = data.get("pins", [])
+
+        sparkle = next((pin for pin in pins if pin.get("identity") == "sparkle"), None)
+        if sparkle is None:
+            print(f"::error::No 'sparkle' pin found in {path}", file=sys.stderr)
+            sys.exit(1)
+
+        state = sparkle.get("state", {})
+        version = state.get("version")
+        revision = state.get("revision")
+
+        if not version:
+            print(f"::error::Sparkle pin in {path} is not version-pinned", file=sys.stderr)
+            sys.exit(1)
+
+        if not revision:
+            print(f"::error::Sparkle pin in {path} has no revision", file=sys.stderr)
+            sys.exit(1)
+
+        print(f"{version}\t{revision}")
+        PY
+        )"
+
+        echo "Using Sparkle ${SPARKLE_VERSION} (${SPARKLE_REVISION}) from ${SPARKLE_METADATA_PATH}"
+
+        # The release asset lives at releases/download/<tag>/Sparkle-<tag>.tar.xz;
+        # resolve the tag first so the asset URL is anchored to the pin.
+        SPARKLE_TAG=""
+        for candidate in "$SPARKLE_VERSION" "v$SPARKLE_VERSION"; do
+          if git ls-remote --exit-code --tags "$SPARKLE_REPO_URL" "refs/tags/$candidate" >/dev/null; then
+            SPARKLE_TAG="$candidate"
+            break
+          else
+            ls_remote_exit=$?
+            if [[ "$ls_remote_exit" -ne 2 ]]; then
+              echo "::error::Failed to query Sparkle tags from $SPARKLE_REPO_URL while checking $candidate"
+              exit 1
+            fi
+          fi
+        done
+
+        if [[ -z "$SPARKLE_TAG" ]]; then
+          echo "::error::Could not find Sparkle tag $SPARKLE_VERSION or v$SPARKLE_VERSION"
+          exit 1
+        fi
+
+        # A tag name can be moved; verify it still points at the exact revision
+        # pinned in Package.resolved before trusting the tarball.
+        TAG_SHA="$(git ls-remote --exit-code --tags "$SPARKLE_REPO_URL" "refs/tags/$SPARKLE_TAG" | awk '{print $1}')"
+        if [[ "$TAG_SHA" != "$SPARKLE_REVISION" ]]; then
+          echo "::error::Sparkle tag ${SPARKLE_TAG} resolves to ${TAG_SHA}, expected ${SPARKLE_REVISION}"
+          exit 1
+        fi
+
+        TARBALL_URL="$SPARKLE_REPO_URL/releases/download/$SPARKLE_TAG/Sparkle-$SPARKLE_TAG.tar.xz"
+        TARBALL_PATH="$RUNNER_TEMP/Sparkle-$SPARKLE_TAG.tar.xz"
+        curl -sSL --fail --retry 3 --retry-delay 5 -o "$TARBALL_PATH" "$TARBALL_URL"
+        echo "Downloaded Sparkle $SPARKLE_TAG from $TARBALL_URL"
+        echo "sha256 ($(shasum -a 256 "$TARBALL_PATH" | awk '{print $1}')) recorded for $TARBALL_URL"
+
+        rm -rf "$SPARKLE_EXTRACT_DIR"
+        mkdir -p "$SPARKLE_EXTRACT_DIR"
+        tar -xJf "$TARBALL_PATH" -C "$SPARKLE_EXTRACT_DIR" "./bin/generate_appcast"
+
+        APPCAST_BIN="$SPARKLE_EXTRACT_DIR/bin/generate_appcast"
+        [[ -x "$APPCAST_BIN" ]] || { echo "::error::generate_appcast was not present in the Sparkle release tarball"; exit 1; }
+
+        install -m 0755 "$APPCAST_BIN" "$RUNNER_TEMP/generate_appcast"

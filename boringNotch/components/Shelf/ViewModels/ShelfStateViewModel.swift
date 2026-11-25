@@ -14,7 +14,7 @@ final class ShelfStateViewModel: ObservableObject {
     static let shared = ShelfStateViewModel()
 
     @Published private(set) var items: [ShelfItem] = [] {
-        didSet { ShelfPersistenceService.shared.save(items) }
+        didSet { schedulePersistence() }
     }
     @Published private(set) var linkedItems: [ShelfItem] = []
 
@@ -24,6 +24,10 @@ final class ShelfStateViewModel: ObservableObject {
     private var linkedFolderWatcher: DispatchSourceFileSystemObject?
     private var linkedFolderWatcherURL: URL?
     private var refreshDebounceWorkItem: DispatchWorkItem?
+
+    // Debounced persistence
+    private var persistenceTask: Task<Void, Never>?
+    private let persistenceDelay: Duration = .seconds(1)
 
     var isEmpty: Bool { displayItems.isEmpty }
     var displayItems: [ShelfItem] {
@@ -41,6 +45,14 @@ final class ShelfStateViewModel: ObservableObject {
         refreshLinkedItems()
     }
 
+    private func schedulePersistence() {
+        persistenceTask?.cancel()
+        persistenceTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: self?.persistenceDelay ?? .seconds(1))
+            guard let self = self, !Task.isCancelled else { return }
+            await ShelfPersistenceService.shared.saveAsync(self.items)
+        }
+    }
 
     func add(_ newItems: [ShelfItem]) {
         guard !newItems.isEmpty else { return }
@@ -81,7 +93,6 @@ final class ShelfStateViewModel: ObservableObject {
             )
         }
     }
-
 
     func load(_ providers: [NSItemProvider]) {
         guard !providers.isEmpty else { return }
@@ -137,6 +148,8 @@ final class ShelfStateViewModel: ObservableObject {
         return result.url
     }
 
+    /// Resolves the file URL for an item and updates the bookmark if stale.
+    /// Use this for user-initiated actions where bookmark refresh is desired.
     func resolveAndUpdateBookmark(for item: ShelfItem) -> URL? {
         guard case .file(let bookmarkData) = item.kind else { return nil }
         let bookmark = Bookmark(data: bookmarkData)
@@ -149,11 +162,17 @@ final class ShelfStateViewModel: ObservableObject {
     }
 
     func resolveFileURLs(for items: [ShelfItem]) -> [URL] {
-        var urls: [URL] = []
-        for it in items {
-            if let u = resolveFileURL(for: it) { urls.append(u) }
-        }
-        return urls
+        items.compactMap { $0.fileURL }
+    }
+
+    @MainActor
+    func flushSync() {
+        // Cancel any scheduled persistence task (we'll save synchronously now)
+        persistenceTask?.cancel()
+        persistenceTask = nil
+
+        // Perform a synchronous, atomic save to disk
+        ShelfPersistenceService.shared.save(self.items)
     }
 
     func refreshLinkedItems() {
@@ -180,7 +199,7 @@ final class ShelfStateViewModel: ObservableObject {
 
     private func updateLinkedFolderWatcher(_ bookmarkData: Data) {
         let bookmark = Bookmark(data: bookmarkData)
-        guard let folderURL = bookmark.resolveURL() else {
+        guard let folderURL = bookmark.resolvedURL else {
             stopLinkedFolderWatcher()
             return
         }

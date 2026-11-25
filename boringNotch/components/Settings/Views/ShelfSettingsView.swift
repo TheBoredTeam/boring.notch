@@ -9,8 +9,7 @@ import AppKit
 import Defaults
 import SwiftUI
 
-struct Shelf: View {
-    
+struct ShelfSettingsView: View {
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
     @Default(.quickShareProvider) var quickShareProvider
     @Default(.expandedDragDetection) var expandedDragDetection: Bool
@@ -32,7 +31,7 @@ struct Shelf: View {
 
     private var linkedFolderURL: URL? {
         guard let data = linkedShelfFolderBookmark else { return nil }
-        return Bookmark(data: data).resolveURL()
+        return Bookmark(data: data).resolvedURL
     }
 
     private var linkedFolderLabel: String {
@@ -63,7 +62,7 @@ struct Shelf: View {
         linkedShelfFolderBookmark = nil
         ShelfStateViewModel.shared.refreshLinkedItems()
     }
-    
+
     var body: some View {
         Form {
             Section {
@@ -75,6 +74,9 @@ struct Shelf: View {
                 }
                 Defaults.Toggle(key: .showRecentShelfItemOnHome) {
                     Text("Show most recent shelf item on Home view")
+                }
+                Defaults.Toggle(key: .reverseShelfOrdering) {
+                    Text("Keep newer shelf items in front")
                 }
                 Defaults.Toggle(key: .expandedDragDetection) {
                     Text("Expanded drag detection area")
@@ -144,7 +146,7 @@ struct Shelf: View {
                     Text("Appearance")
                 }
             }
-            
+
             Section {
                 Picker("Quick Share Service", selection: $quickShareProvider) {
                     ForEach(quickShareService.availableProviders, id: \.id) { provider in
@@ -166,7 +168,7 @@ struct Shelf: View {
                     }
                 }
                 .pickerStyle(.menu)
-                
+
                 if let selectedProvider = selectedProvider {
                     HStack {
                         Group {
@@ -191,7 +193,6 @@ struct Shelf: View {
                     }
                     .padding(.vertical, 4)
                 }
-                
             } header: {
                 HStack {
                     Text("Quick Share")

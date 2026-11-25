@@ -21,12 +21,19 @@ extension NSScreen {
         let uuidString = CFUUIDCreateString(nil, uuid.takeRetainedValue()) as String
         return uuidString
     }
-    
+
+    var cgDisplayID: CGDirectDisplayID? {
+        guard let number = deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber else {
+            return nil
+        }
+        return CGDirectDisplayID(number.uint32Value)
+    }
+
     /// Find a screen by its UUID
     @MainActor static func screen(withUUID uuid: String) -> NSScreen? {
         return NSScreenUUIDCache.shared.screen(forUUID: uuid)
     }
-    
+
     /// Get UUID to NSScreen mapping for all screens
     @MainActor static var screensByUUID: [String: NSScreen] {
         return NSScreenUUIDCache.shared.allScreens
@@ -37,21 +44,21 @@ extension NSScreen {
 @MainActor
 final class NSScreenUUIDCache {
     static let shared = NSScreenUUIDCache()
-    
+
     private var cache: [String: NSScreen] = [:]
     private var observer: Any?
-    
+
     private init() {
         rebuildCache()
         setupObserver()
     }
-    
+
     deinit {
         if let observer = observer {
             NotificationCenter.default.removeObserver(observer)
         }
     }
-    
+
     private func setupObserver() {
         observer = NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
@@ -61,23 +68,23 @@ final class NSScreenUUIDCache {
             self?.rebuildCache()
         }
     }
-    
+
     private func rebuildCache() {
         var newCache: [String: NSScreen] = [:]
-        
+
         for screen in NSScreen.screens {
             if let uuid = screen.displayUUID {
                 newCache[uuid] = screen
             }
         }
-        
+
         cache = newCache
     }
-    
+
     func screen(forUUID uuid: String) -> NSScreen? {
         return cache[uuid]
     }
-    
+
     var allScreens: [String: NSScreen] {
         return cache
     }

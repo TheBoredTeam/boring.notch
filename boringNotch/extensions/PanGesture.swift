@@ -7,6 +7,7 @@
 
 import AppKit
 import SwiftUI
+import Defaults
 
 enum PanDirection {
     case left, right, up, down
@@ -47,8 +48,8 @@ private struct ScrollMonitor: NSViewRepresentable {
     func updateNSView(_ nsView: NSView, context: Context) {}
     static func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) { coordinator.removeMonitor() }
 
-    func makeCoordinator() -> Coordinator { 
-        Coordinator(direction: direction, threshold: threshold, action: action) 
+    func makeCoordinator() -> Coordinator {
+        Coordinator(direction: direction, threshold: threshold, action: action)
     }
 
     @MainActor final class Coordinator: NSObject {
@@ -59,7 +60,7 @@ private struct ScrollMonitor: NSViewRepresentable {
         private var globalMonitor: Any?
         private var accumulated: CGFloat = 0
         private var active = false
-            private var endTask: Task<Void, Never>?
+        private var endTask: Task<Void, Never>?
         private let noiseThreshold: CGFloat = 0.2
 
         init(direction: PanDirection, threshold: CGFloat, action: @escaping (CGFloat, NSEvent.Phase) -> Void) {
@@ -128,6 +129,7 @@ private struct ScrollMonitor: NSViewRepresentable {
                 NSEvent.removeMonitor(gm)
                 self.globalMonitor = nil
             }
+
             accumulated = 0
             active = false
             endTask?.cancel()
@@ -154,19 +156,34 @@ private struct ScrollMonitor: NSViewRepresentable {
             let isAxisDominant: Bool = direction.isHorizontal ? (absDX >= axisDominanceFactor * absDY) : (absDY >= axisDominanceFactor * absDX)
             guard isAxisDominant else { return }
 
+            // Determine whether to normalize system deltas to device (physical) direction.
+            let deviceDirectionMultiplier: CGFloat = Defaults[.normalizeGestureDirection] ? (event.isDirectionInvertedFromDevice ? 1 : -1) : 1
+
             // Scale non-precise (mouse wheel) scrolling deltas so they feel similar to
             // trackpad gestures.
-            let raw = direction.signed(deltaX: event.scrollingDeltaX, deltaY: event.scrollingDeltaY)
+            let rawDelta = direction.signed(
+                deltaX: event.scrollingDeltaX * deviceDirectionMultiplier,
+                deltaY: event.scrollingDeltaY * deviceDirectionMultiplier
+            )
             let scale: CGFloat = event.hasPreciseScrollingDeltas ? 1 : 8
-            let s = raw * scale
-            guard s.magnitude > noiseThreshold else { return }
-            accumulated = s > 0 ? accumulated + s : 0
+            let delta = rawDelta * scale
+
+            guard delta.magnitude > noiseThreshold else {
+                scheduleEndTimeout()
+                return
+            }
+
+            if delta > 0 {
+                accumulated += delta
+            } else {
+                accumulated = 0
+            }
 
             if !active && accumulated >= threshold {
                 active = true
-                action(accumulated.magnitude, .began)
+                action(accumulated, .began)
             } else if active {
-                action(accumulated.magnitude, .changed)
+                action(accumulated, .changed)
             }
             // Schedule a timeout to end the gesture if no further scroll events arrive.
             scheduleEndTimeout()

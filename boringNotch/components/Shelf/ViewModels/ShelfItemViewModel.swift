@@ -15,6 +15,7 @@ import ObjectiveC
 @MainActor
 final class ShelfItemViewModel: ObservableObject {
     @Published private(set) var item: ShelfItem
+
     @Published var thumbnail: NSImage?
     @Published var isDropTargeted: Bool = false
     @Published var isRenaming: Bool = false
@@ -29,15 +30,12 @@ final class ShelfItemViewModel: ObservableObject {
     init(item: ShelfItem) {
         self.item = item
         self.draftTitle = item.displayName
-        Task { await loadThumbnail() }
     }
-
-    var isSelected: Bool { selection.isSelected(item.id) }
 
     func loadThumbnail() async {
         guard let url = item.fileURL else { return }
         if let image = await ThumbnailService.shared.thumbnail(for: url, size: CGSize(width: 56, height: 56)) {
-            self.thumbnail = image
+            self.thumbnail = NSImage(cgImage: image, size: CGSize(width: 56, height: 56))
         }
     }
 
@@ -115,7 +113,11 @@ final class ShelfItemViewModel: ObservableObject {
 
     func handleRightClick(event: NSEvent, view: NSView) {
         if !selection.isSelected(item.id) { selection.selectSingle(item) }
-        presentContextMenu(event: event, in: view)
+        ShelfContextMenuBuilder.present(
+            item: item, event: event, in: view,
+            onShare: { [weak self] v in self?.shareItem(from: v) },
+            onQuickLook: { [weak self] urls in self?.onQuickLookRequest?(urls) }
+        )
     }
 
     func openSelection() {
@@ -145,20 +147,20 @@ final class ShelfItemViewModel: ObservableObject {
                     }
                 }
             }
-            
+
             guard !itemsToShare.isEmpty else { return }
-             
+
             stopSharingAccessingURLs()
             // Start security-scoped access for all file URLs and keep it active during sharing
             sharingAccessingURLs = fileURLs.filter { $0.startAccessingSecurityScopedResource() }
-            
+
             // Create and retain lifecycle delegate for the entire share operation
             let lifecycle = SharingStateManager.shared.makeDelegate { [weak self] in
                 self?.sharingLifecycle = nil
                 self?.stopSharingAccessingURLs()
             }
             self.sharingLifecycle = lifecycle
-            
+
             let picker = NSSharingServicePicker(items: itemsToShare)
             picker.delegate = lifecycle
             lifecycle.markPickerBegan()
@@ -167,7 +169,7 @@ final class ShelfItemViewModel: ObservableObject {
             }
         }
     }
-    
+
     private func stopSharingAccessingURLs() {
         for url in sharingAccessingURLs {
             url.stopAccessingSecurityScopedResource()
@@ -758,7 +760,7 @@ final class ShelfItemViewModel: ObservableObject {
             guard case let .file(bookmarkData) = item.kind else { return }
             Task {
                 let bookmark = Bookmark(data: bookmarkData)
-                if let fileURL = bookmark.resolveURL() {
+                if let fileURL = bookmark.resolvedURL {
                     // Start security-scoped access and keep it active until rename completes.
                     let didStart = fileURL.startAccessingSecurityScopedResource()
 

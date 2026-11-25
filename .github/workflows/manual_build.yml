@@ -1,96 +1,118 @@
 name: "Manual Build"
 on:
   workflow_dispatch:
+    inputs:
+      head_ref:
+        description: 'Branch to build'
+        required: false
+        default: main
+      version:
+        description: 'Marketing version (optional)'
+        required: false
+      update_channel:
+        description: 'Update channel stamped into the app'
+        required: false
+        default: stable
+        type: choice
+        options:
+          - stable
+          - beta
+          - dev
 
-env:
-  projname: boringNotch
-  EXPORT_METHOD: "development"
+# Least-privilege: workflow_dispatch build only; no token write access needed.
+permissions:
+  contents: read
+
 
 jobs:
+  authorize:
+    name: Authorize manual build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      is_admin: ${{ steps.permission.outputs.is_admin }}
+      source_sha: ${{ steps.resolve_source.outputs.source_sha }}
+      build_number: ${{ steps.resolve_source.outputs.build_number }}
+    steps:
+      - name: Require admin permission
+        id: permission
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ACTOR: ${{ github.triggering_actor }}
+        run: |
+          set -euo pipefail
+          PERM=$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" --jq '.permission')
+          if [[ "$PERM" != "admin" ]]; then
+            echo "::error::${ACTOR} is not an admin (permission: ${PERM})"
+            echo "is_admin=false" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          echo "is_admin=true" >> "$GITHUB_OUTPUT"
+
+      - name: Check out trusted workflow tools
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Resolve source branch and build number
+        id: resolve_source
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          HEAD_REF: ${{ inputs.head_ref || github.ref_name || 'main' }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          SOURCE_SHA="$(gh api "repos/${REPO}/git/ref/heads/${HEAD_REF}" --jq '.object.sha')"
+          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error::Resolved source SHA is not a 40-character commit SHA"
+            exit 1
+          fi
+          SOURCE_PROJECT="$RUNNER_TEMP/source-project.pbxproj"
+          gh api \
+            -H "Accept: application/vnd.github.raw+json" \
+            "repos/${REPO}/contents/boringNotch.xcodeproj/project.pbxproj?ref=${SOURCE_SHA}" \
+            > "$SOURCE_PROJECT"
+          SOURCE_BUILD="$(python3 .github/scripts/extract_build_number.py \
+            --pbxproj "$SOURCE_PROJECT" \
+            --bundle-identifier theboringteam.boringnotch)"
+          BUILD_NUMBER="${SOURCE_BUILD}.${RUN_NUMBER}.${RUN_ATTEMPT}"
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Summarize manual build
+        env:
+          HEAD_REF: ${{ inputs.head_ref || github.ref_name || 'main' }}
+          SOURCE_SHA: ${{ steps.resolve_source.outputs.source_sha }}
+          VERSION: ${{ inputs.version || '(source version retained)' }}
+          BUILD_NUMBER: ${{ steps.resolve_source.outputs.build_number }}
+          UPDATE_CHANNEL: ${{ inputs.update_channel || 'stable' }}
+        run: |
+          {
+            echo "## Manual build"
+            echo ""
+            echo "- Requested branch: \`$HEAD_REF\`"
+            echo "- Source commit: \`$SOURCE_SHA\`"
+            echo "- Marketing version: \`$VERSION\`"
+            echo "- Bundle build: \`$BUILD_NUMBER\`"
+            echo "- Update channel: \`$UPDATE_CHANNEL\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   build:
     name: Build and sign app
-    runs-on: macos-latest
-    env:
-      DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
-      CODE_SIGN_IDENTITY: "Apple Development"
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Resolve Swift packages
-        run: xcodebuild -resolvePackageDependencies -project ${{ env.projname }}.xcodeproj
-        
-      - name: Install Apple certificate
-        env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-        run: |
-          CERT_PATH=$RUNNER_TEMP/build_certificate.p12
-          KC=$RUNNER_TEMP/app-signing.keychain-db
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
-          security set-keychain-settings -lut 21600 "$KC"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
-          security import "$CERT_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KC"
-          security list-keychain -d user -s "$KC"
-          
-      - name: Switch Xcode version
-        run: |
-          sudo xcode-select -s "/Applications/Xcode_16.4.app"
-          /usr/bin/xcodebuild -version
-          
-      - name: Set build number
-        run: |
-          sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = ${{ github.run_number }}/g" ${{ env.projname }}.xcodeproj/project.pbxproj
-      - name: Build and archive
-        run: |
-          xcodebuild clean archive \
-            -project ${{ env.projname }}.xcodeproj \
-            -scheme ${{ env.projname }} \
-            -archivePath ${{ env.projname }} \
-            -destination "generic/platform=macOS" \
-            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
-            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
-            ONLY_ACTIVE_ARCH=NO \
-            -allowProvisioningUpdates
-            
-      - name: Export app
-        env:
-          DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
-        run: |
-          TEMP_PLIST="$RUNNER_TEMP/export_options.plist"
-          cat > "$TEMP_PLIST" <<EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>${EXPORT_METHOD}</string>
-            <key>signingStyle</key>
-            <string>automatic</string>
-            <key>teamID</key>
-            <string>$DEVELOPMENT_TEAM</string>
-          </dict>
-          </plist>
-          EOF
-          xcodebuild -exportArchive -archivePath "${{ env.projname }}.xcarchive" -exportPath Release -exportOptionsPlist "$TEMP_PLIST"
-          
-      - name: Create DMG
-        run: |
-          cd Release
-          hdiutil create -volname "boringNotch" \
-                          -srcfolder "${{ env.projname }}.app" \
-                          -ov -format UDZO \
-                          "${{ env.projname }}.dmg"
-                          
-      - name: Upload DMG artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.projname }}.dmg
-          path: Release/${{ env.projname }}.dmg
-
-      - name: Upload .app artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.projname }}.app
-          path: Release/${{ env.projname }}.app
+    needs: authorize
+    if: ${{ needs.authorize.outputs.is_admin == 'true' }}
+    uses: ./.github/workflows/build_reusable.yml
+    with:
+      source_sha: ${{ needs.authorize.outputs.source_sha }}
+      version: ${{ inputs.version || '' }}
+      build_number: ${{ needs.authorize.outputs.build_number }}
+      update_channel: ${{ inputs.update_channel || 'stable' }}
+    secrets:
+      BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+      P12_PASSWORD:              ${{ secrets.P12_PASSWORD }}
+      KEYCHAIN_PASSWORD:         ${{ secrets.KEYCHAIN_PASSWORD }}

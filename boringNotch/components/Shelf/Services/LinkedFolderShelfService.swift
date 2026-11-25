@@ -13,7 +13,7 @@ enum LinkedFolderShelfService {
         guard limit > 0 else { return [] }
 
         let bookmark = Bookmark(data: bookmarkData)
-        guard let folderURL = bookmark.resolveURL() else { return [] }
+        guard let folderURL = bookmark.resolvedURL else { return [] }
 
         return await folderURL.accessSecurityScopedResource { accessibleURL in
             let keys: Set<URLResourceKey> = [
@@ -57,7 +57,7 @@ enum LinkedFolderShelfService {
     static func saveItems(from providers: [NSItemProvider], to bookmarkData: Data) async {
         guard !providers.isEmpty else { return }
         let bookmark = Bookmark(data: bookmarkData)
-        guard let folderURL = bookmark.resolveURL() else { return }
+        guard let folderURL = bookmark.resolvedURL else { return }
 
         _ = await folderURL.accessSecurityScopedResource { accessibleURL in
             for provider in providers {
