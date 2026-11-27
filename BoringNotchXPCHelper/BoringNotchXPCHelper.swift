@@ -10,6 +10,7 @@ import ApplicationServices
 import IOKit
 
 class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
+    private let featureHardware = FeatureHardware()
     private weak var connection: NSXPCConnection?
 
     private let lunarStateQueue = DispatchQueue(label: "BoringNotchXPCHelper.lunar.state")
@@ -22,8 +23,17 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     init(connection: NSXPCConnection) {
         self.connection = connection
         super.init()
+        featureHardware.onEvent = { [weak connection] data in
+            let receiver = connection?.remoteObjectProxyWithErrorHandler { _ in } as? BoringNotchXPCAppDelegate
+            receiver?.featureEvent(data)
+        }
     }
 
+    @objc func configureFeatures(_ bluetooth: Bool, notifications: Bool, with reply: @escaping (Data) -> Void) {
+        DispatchQueue.main.async {
+            reply(self.featureHardware.configure(bluetooth: bluetooth, notifications: false))
+        }
+    }
     override init() {
         super.init()
     }

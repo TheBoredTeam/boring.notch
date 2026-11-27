@@ -165,6 +165,6 @@ class BoringNotchSkyLightWindow: NSPanel {
         }
     }
 
-    override var canBecomeKey: Bool { wantsKeyForTextInput }
+    override var canBecomeKey: Bool { wantsKeyForTextInput || BoringViewCoordinator.shared.currentView == .weather }
     override var canBecomeMain: Bool { false }
 }

@@ -194,15 +194,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @MainActor
     func onScreenLocked(_ notification: Notification) {
+        NotchFeatures.shared.locked = true
         windowManager.screenLocked()
     }
 
     @MainActor
     func onScreenUnlocked(_ notification: Notification) {
+        NotchFeatures.shared.locked = false
         windowManager.screenUnlocked()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        NotchFeatures.shared.start { bluetooth, _ in
+            try await XPCHelperClient.shared.configureFeatures(bluetooth: bluetooth, notifications: false)
+        }
         SettingsWindowController.shared.setCamera(camera)
         migrateDisplayModeIfNeeded()
 
