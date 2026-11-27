@@ -13,6 +13,8 @@ struct BoringHeader: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var shelfState = ShelfStateViewModel.shared
+    @ObservedObject var musicManager = MusicManager.shared
+    var albumArtNamespace: Namespace.ID? = nil
     var body: some View {
         HStack(spacing: 0) {
             HStack {
@@ -47,6 +49,20 @@ struct BoringHeader: View {
                         )
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
                     } else {
+                        if musicManager.isPlaying {
+                            MusicVisualizer(
+                                isPlaying: musicManager.isPlaying,
+                                tintColor: Defaults[.coloredSpectrogram]
+                                    ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.5)
+                                    : Color.gray
+                            )
+                            .frame(width: 18, height: 12)
+                            .conditionalModifier(albumArtNamespace != nil) { view in
+                                view.matchedGeometryEffect(id: "spectrum", in: albumArtNamespace!)
+                            }
+                            .frame(width: 24, height: 24, alignment: .center)
+                            .transition(.scale(scale: 0.8).combined(with: .opacity))
+                        }
                         if Defaults[.showMirror] && coordinator.currentView == .home {
                             Button(action: {
                                 vm.toggleCameraPreview()
@@ -100,6 +116,7 @@ struct BoringHeader: View {
             }
             .font(.system(.headline, design: .rounded))
             .frame(maxWidth: .infinity, alignment: .trailing)
+            .animation(.smooth(duration: 0.25), value: musicManager.isPlaying)
             .opacity(vm.notchState == .closed ? 0 : 1)
             .blur(radius: vm.notchState == .closed ? 20 : 0)
             .zIndex(2)
