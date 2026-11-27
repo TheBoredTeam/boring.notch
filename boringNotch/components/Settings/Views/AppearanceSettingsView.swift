@@ -129,6 +129,7 @@ struct AppearanceSettingsView: View {
                 }
             }
             .padding(.vertical, 4)
+            .settingsSearchAnchor(SearchKey.accentColor)
         } header: {
             Text("Accent color")
         } footer: {
@@ -142,9 +143,11 @@ struct AppearanceSettingsView: View {
     private var notchChromeSection: some View {
         Section {
             Toggle("Always show tabs", isOn: $coordinator.alwaysShowTabs)
+                .settingsSearchAnchor(SearchKey.alwaysShowTabs)
             Defaults.Toggle(key: .settingsIconInNotch) {
                 Text("Show settings icon in notch")
             }
+            .settingsSearchAnchor(SearchKey.settingsIcon)
         } header: {
             Text("Notch chrome")
         }
@@ -155,6 +158,7 @@ struct AppearanceSettingsView: View {
             Defaults.Toggle(key: .showNotHumanFace) {
                 Text("Show cool face animation while inactive")
             }
+            .settingsSearchAnchor(SearchKey.idleFace)
         } header: {
             Text("Idle state")
         }
@@ -205,6 +209,26 @@ struct AppearanceSettingsView: View {
             selectedPresetColor = nil // Multicolor is selected when useCustomAccentColor is false
         } else {
             loadCustomColor()
+        }
+    }
+}
+
+extension AppearanceSettingsView {
+    enum SearchKey: String, SettingsSearchKey {
+        case accentColor
+        case alwaysShowTabs
+        case settingsIcon
+        case idleFace
+
+        static let tab = SettingsTab.appearance
+
+        var definition: SettingsSearchDefinition<Self> {
+            switch self {
+            case .accentColor: .init("Accent color", section: "Accent color")
+            case .alwaysShowTabs: .init("Always show tabs", section: "Notch chrome")
+            case .settingsIcon: .init("Show settings icon in notch", section: "Notch chrome")
+            case .idleFace: .init("Show cool face animation while inactive", section: "Idle state")
+            }
         }
     }
 }

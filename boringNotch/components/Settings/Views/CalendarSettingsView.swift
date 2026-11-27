@@ -24,15 +24,18 @@ struct CalendarSettings: View {
                 Defaults.Toggle(key: .showCalendar) {
                     Text("Show calendar")
                 }
+                .settingsSearchAnchor(SearchKey.showCalendar)
                 Defaults.Toggle(key: .calendarWeekView) {
                     Text("Weekly view")
                 }
+                .settingsSearchAnchor(SearchKey.weeklyView)
                 if calendarWeekView {
                     Picker("Week starts on", selection: $weekStartDay) {
                         ForEach(WeekStartDay.allCases) { day in
                             Text(day.localizedString).tag(day)
                         }
                     }
+                    .settingsSearchAnchor(SearchKey.weekStartsOn)
                 }
             } header: {
                 Text("General")
@@ -44,18 +47,23 @@ struct CalendarSettings: View {
                 Defaults.Toggle(key: .hideCompletedReminders) {
                     Text("Hide completed reminders")
                 }
+                .settingsSearchAnchor(SearchKey.hideCompletedReminders)
                 Defaults.Toggle(key: .hideAllDayEvents) {
                     Text("Hide all-day events")
                 }
+                .settingsSearchAnchor(SearchKey.hideAllDayEvents)
                 Defaults.Toggle(key: .autoScrollToNextEvent) {
                     Text("Auto-scroll to next event")
                 }
+                .settingsSearchAnchor(SearchKey.autoScrollToNextEvent)
                 Defaults.Toggle(key: .showFullEventTitles) {
                     Text("Always show full event titles")
                 }
+                .settingsSearchAnchor(SearchKey.fullEventTitles)
                 Defaults.Toggle(key: .joinMeetingOnEventTap) {
                     Text("Join meeting when tapping an event")
                 }
+                .settingsSearchAnchor(SearchKey.joinMeetingOnTap)
             } header: {
                 Text("Events")
             }
@@ -98,6 +106,34 @@ struct CalendarSettings: View {
             Task {
                 await calendarManager.checkCalendarAuthorization()
                 await calendarManager.checkReminderAuthorization()
+            }
+        }
+    }
+}
+
+extension CalendarSettings {
+    enum SearchKey: String, SettingsSearchKey {
+        case showCalendar
+        case weeklyView
+        case weekStartsOn
+        case hideCompletedReminders
+        case hideAllDayEvents
+        case autoScrollToNextEvent
+        case fullEventTitles
+        case joinMeetingOnTap
+
+        static let tab = SettingsTab.calendar
+
+        var definition: SettingsSearchDefinition<Self> {
+            switch self {
+            case .showCalendar: .init("Show calendar", section: "General")
+            case .weeklyView: .init("Weekly view", section: "General")
+            case .weekStartsOn: .init("Week starts on", section: "General", revealedBy: .weeklyView)
+            case .hideCompletedReminders: .init("Hide completed reminders", section: "Events")
+            case .hideAllDayEvents: .init("Hide all-day events", section: "Events")
+            case .autoScrollToNextEvent: .init("Auto-scroll to next event", section: "Events")
+            case .fullEventTitles: .init("Always show full event titles", section: "Events")
+            case .joinMeetingOnTap: .init("Join meeting when tapping an event", section: "Events")
             }
         }
     }

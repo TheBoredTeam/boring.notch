@@ -14827,6 +14827,9 @@
         }
       }
     },
+    "HUD" : {
+      "comment" : "Search keyword for the OSD settings."
+    },
     "Idle state" : {
       "localizations" : {
         "en" : {
@@ -19648,6 +19651,12 @@
           }
         }
       }
+    },
+    "No Results" : {
+      "comment" : "Title shown in the settings sidebar when a search finds nothing."
+    },
+    "No results for “%@”" : {
+      "comment" : "Shown under “No Results” in the settings sidebar. The placeholder is the text the user searched for."
     },
     "Normalize gesture direction" : {
       "localizations" : {
@@ -24882,6 +24891,9 @@
         }
       }
     },
+    "Requires %@" : {
+      "comment" : "Shown under a settings search result. The placeholder is the name of the setting that must be turned on first."
+    },
     "Requires %@. Only visible banners are mirrored." : {
       "comment" : "A note that explains that the notification settings require Accessibility to function.",
       "localizations" : {
@@ -25503,6 +25515,9 @@
           }
         }
       }
+    },
+    "Search" : {
+
     },
     "Select Files for %@" : {
       "localizations" : {

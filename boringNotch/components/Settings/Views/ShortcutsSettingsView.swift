@@ -13,11 +13,13 @@ struct ShortcutsSettingsView: View {
         Form {
             Section {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
+                    .settingsSearchAnchor(SearchKey.toggleNotchOpen)
             } header: {
                 Text("Notch")
             }
             Section {
                 KeyboardShortcuts.Recorder("Toggle Sneak Peek:", name: .toggleSneakPeek)
+                    .settingsSearchAnchor(SearchKey.toggleSneakPeek)
             } header: {
                 Text("Media")
             } footer: {
@@ -31,5 +33,21 @@ struct ShortcutsSettingsView: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Shortcuts")
+    }
+}
+
+extension ShortcutsSettingsView {
+    enum SearchKey: String, SettingsSearchKey {
+        case toggleNotchOpen
+        case toggleSneakPeek
+
+        static let tab = SettingsTab.shortcuts
+
+        var definition: SettingsSearchDefinition<Self> {
+            switch self {
+            case .toggleNotchOpen: .init("Toggle Notch Open:", section: "Notch")
+            case .toggleSneakPeek: .init("Toggle Sneak Peek:", section: "Media")
+            }
+        }
     }
 }

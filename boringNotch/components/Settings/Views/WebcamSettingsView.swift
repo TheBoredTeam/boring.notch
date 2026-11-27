@@ -21,11 +21,13 @@ struct WebcamSettingsView: View {
                     Text("Enable boring mirror")
                 }
                 .disabled(!camera.cameraAvailable)
+                .settingsSearchAnchor(SearchKey.enableMirror)
 
                 Defaults.Toggle(key: .isMirrored) {
                     Text("Flip video")
                 }
                 .disabled(!showMirror || !camera.cameraAvailable)
+                .settingsSearchAnchor(SearchKey.flipVideo)
 
                 Picker("Camera", selection: Binding(
                     get: { camera.selection },
@@ -39,6 +41,7 @@ struct WebcamSettingsView: View {
                     }
                 }
                 .disabled(!showMirror || !camera.cameraAvailable)
+                .settingsSearchAnchor(SearchKey.camera)
 
                 Picker("Frame shape", selection: $mirrorShape) {
                     Text("Circle")
@@ -47,6 +50,7 @@ struct WebcamSettingsView: View {
                         .tag(MirrorShapeEnum.rectangle)
                 }
                 .disabled(!showMirror || !camera.cameraAvailable)
+                .settingsSearchAnchor(SearchKey.frameShape)
             } header: {
                 Text("General")
             }
@@ -57,6 +61,26 @@ struct WebcamSettingsView: View {
         .navigationTitle("Mirror")
         .onAppear {
             camera.refresh()
+        }
+    }
+}
+
+extension WebcamSettingsView {
+    enum SearchKey: String, SettingsSearchKey {
+        case enableMirror
+        case flipVideo
+        case camera
+        case frameShape
+
+        static let tab = SettingsTab.mirror
+
+        var definition: SettingsSearchDefinition<Self> {
+            switch self {
+            case .enableMirror: .init("Enable boring mirror", section: "General")
+            case .flipVideo: .init("Flip video", section: "General")
+            case .camera: .init("Camera", section: "General")
+            case .frameShape: .init("Frame shape", section: "General")
+            }
         }
     }
 }
