@@ -446,6 +446,18 @@ extension Defaults.Keys {
     static let settingsIconInNotch = Key<Bool>("settingsIconInNotch", default: true)
     static let lightingEffect = Key<Bool>("lightingEffect", default: true)
     static let enableShadow = Key<Bool>("enableShadow", default: true)
+    /// Liquid Glass refraction background for the notch surface (macOS 26+ only).
+    /// The closed notch stays black so it keeps blending with the camera housing.
+    static let enableLiquidGlass = Key<Bool>("enableLiquidGlass", default: false)
+    /// Surface parameters behind the Appearance pane's Liquid Glass tuning.
+    static let glassRefraction = Key<Double>("glassRefraction", default: 24)
+    static let glassBlur = Key<Double>("glassBlur", default: 0.5)
+    static let glassDispersion = Key<Double>("glassDispersion", default: 4)
+    static let glassLensHeight = Key<Double>("glassLensHeight", default: 23)
+    /// Height where the solid black band gives way to the glass fade, in points.
+    static let glassFadeStart = Key<Double>("glassFadeStart", default: 20)
+    /// Opacity the fade ends on at the bottom edge of the open panel.
+    static let glassFadeEndOpacity = Key<Double>("glassFadeEndOpacity", default: 0.50)
     static let cornerRadiusScaling = Key<Bool>("cornerRadiusScaling", default: true)
 
     static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)
