@@ -369,6 +369,24 @@ final class XPCHelperClient: NSObject, ObservableObject {
             return false
         }
     }
+
+    // MARK: - Bluetooth / AirPods battery
+
+    nonisolated func bluetoothDevicesBatteryJSON() async -> String? {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            return try await service.withContinuation { service, continuation in
+                service.bluetoothDevicesBatteryJSON { json in
+                    continuation.resume(returning: json)
+                }
+            }
+        } catch {
+            await MainActor.run { self.lastError = .transport(underlying: error) }
+            return nil
+        }
+    }
 }
 
 // MARK: - Notification Center banners

@@ -47,7 +47,11 @@ final class BatteryStatusViewModel: ObservableObject {
         }
     }
 
+    @Published private(set) var airPodsDevices: [AirPodsBatteryDevice] = []
+    @Published private(set) var airPodsStatusMessage: String?
+
     private let managerBattery = BatteryActivityManager.shared
+    private let airPodsBatteryManager = AirPodsBatteryManager.shared
     private var managerBatteryId: Int?
 
     static let shared = BatteryStatusViewModel()
@@ -57,6 +61,7 @@ final class BatteryStatusViewModel: ObservableObject {
     private init() {
         setupPowerStatus()
         setupMonitor()
+        setupAirPodsMonitor()
     }
 
     /// Sets up the initial power status by fetching battery information
@@ -71,6 +76,21 @@ final class BatteryStatusViewModel: ObservableObject {
             guard let self = self else { return }
             self.handleBatteryEvent(event)
         }
+    }
+
+    private func setupAirPodsMonitor() {
+        airPodsBatteryManager.onUpdate = { [weak self] snapshot in
+            guard let self = self else { return }
+            withAnimation {
+                self.airPodsDevices = snapshot.devices
+                self.airPodsStatusMessage = snapshot.statusMessage
+            }
+        }
+        airPodsBatteryManager.startMonitoring()
+    }
+
+    func refreshAirPodsBattery() {
+        airPodsBatteryManager.refresh(force: true)
     }
 
     /// Handles battery events and updates the corresponding properties
@@ -167,6 +187,7 @@ final class BatteryStatusViewModel: ObservableObject {
 
     deinit {
         Log.battery.debug("🔌 Cleaning up battery monitoring...")
+        airPodsBatteryManager.stopMonitoring()
         if let managerBatteryId: Int = managerBatteryId {
             managerBattery.removeObserver(byId: managerBatteryId)
         }

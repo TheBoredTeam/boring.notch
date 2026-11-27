@@ -15,11 +15,34 @@ struct BoringHeader: View {
     @StateObject var shelfState = ShelfStateViewModel.shared
     var body: some View {
         HStack(spacing: 0) {
-            HStack {
+            HStack(spacing: 4) {
                 if (!shelfState.isEmpty || coordinator.alwaysShowTabs) && Defaults[.boringShelf] {
                     TabSelectionView()
                 } else if vm.notchState == .open {
                     EmptyView()
+                }
+                if vm.notchState == .open && Defaults[.showAirPodsBattery] {
+                    Button(action: {
+                        withAnimation(.smooth) {
+                            if coordinator.currentView == .battery {
+                                coordinator.currentView = .home
+                            } else {
+                                coordinator.currentView = .battery
+                                batteryModel.refreshAirPodsBattery()
+                            }
+                        }
+                    }) {
+                        Capsule()
+                            .fill(coordinator.currentView == .battery ? Color(nsColor: .secondarySystemFill) : .black)
+                            .frame(width: 30, height: 26)
+                            .overlay {
+                                Image(systemName: BatterySymbolHelper.symbol(["battery.100percent", "battery.100"], fallback: "battery.100"))
+                                    .foregroundColor(.white)
+                                    .imageScale(.medium)
+                            }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .help("Battery")
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
