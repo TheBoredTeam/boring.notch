@@ -28,6 +28,13 @@ class MusicVisualizerModel: NSView, AudioCaptureLevelsConsumer {
     private let spacing: CGFloat = 1
     private let totalHeight: CGFloat = 14
 
+    /// Bars fill the view's height up to totalHeight, so a view framed shorter
+    /// than that (a small closed notch) keeps them inside instead of letting
+    /// them run past its top edge.
+    private var expandedBarHeight: CGFloat {
+        max(barWidth, min(totalHeight, bounds.height))
+    }
+
     override init(frame frameRect: NSRect) {
         self.lastAppliedLevels = [Float](repeating: 0, count: AudioCaptureManager.barCount)
         super.init(frame: frameRect)
@@ -44,6 +51,17 @@ class MusicVisualizerModel: NSView, AudioCaptureLevelsConsumer {
 
     deinit {
         attachedManager?.clearLevelsConsumer(self)
+    }
+
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        // SwiftUI sizes the view after the bars are set up; refit them.
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        for (index, barLayer) in barLayers.enumerated() {
+            applyFrame(to: barLayer, at: index, height: isPlaying ? expandedBarHeight : barWidth)
+        }
+        CATransaction.commit()
     }
 
     private func setupBars() {
@@ -76,7 +94,7 @@ class MusicVisualizerModel: NSView, AudioCaptureLevelsConsumer {
             CATransaction.setDisableActions(true)
         }
         for (index, barLayer) in barLayers.enumerated() {
-            applyFrame(to: barLayer, at: index, height: totalHeight)
+            applyFrame(to: barLayer, at: index, height: expandedBarHeight)
             barLayer.transform = CATransform3DMakeScale(1.0, Self.idleBarScale, 1.0)
         }
         CATransaction.commit()
@@ -216,7 +234,7 @@ class MusicVisualizerModel: NSView, AudioCaptureLevelsConsumer {
     private func applyFrame(to barLayer: CALayer, at index: Int, height: CGFloat) {
         let x = CGFloat(index) * (barWidth + spacing)
         barLayer.bounds = CGRect(x: 0, y: 0, width: barWidth, height: height)
-        barLayer.position = CGPoint(x: x + barWidth / 2, y: totalHeight / 2)
+        barLayer.position = CGPoint(x: x + barWidth / 2, y: bounds.midY)
     }
 }
 
