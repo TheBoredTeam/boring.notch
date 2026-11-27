@@ -39,6 +39,10 @@ struct ContentView: View {
 
     @Default(.showNotHumanFace) var showNotHumanFace
 
+    // Observed so the view re-lays out when the open notch size changes in Settings.
+    @Default(.openNotchWidth) var openNotchWidthSetting
+    @Default(.openNotchHeight) var openNotchHeightSetting
+
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
 
