@@ -514,6 +514,13 @@ extension Defaults.Keys {
         "notificationAllowedApps",
         default: []
     )
+    /// Opens the notch on its own when a notification arrives, so it can be
+    /// read without hovering. Off by default: the closed-notch indicator stays
+    /// the standard behaviour.
+    static let notificationAutoExpand = Key<Bool>("notificationAutoExpand", default: false)
+    /// Seconds a notification stays before it is dismissed; 0 keeps it until
+    /// the user dismisses it. 8 was the fixed duration before this setting.
+    static let notificationDisplayDuration = Key<Double>("notificationDisplayDuration", default: 8)
     static let enableGradient = Key<Bool>("enableGradient", default: false)
     static let systemEventIndicatorShadow = Key<Bool>("systemEventIndicatorShadow", default: false)
     static let systemEventIndicatorUseAccent = Key<Bool>("systemEventIndicatorUseAccent", default: false)

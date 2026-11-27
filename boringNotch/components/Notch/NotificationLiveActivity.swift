@@ -150,8 +150,20 @@ struct NotificationExpandedView: View {
             }
             .padding(.trailing, 4)
         }
-        .onAppear { manager.holdActive() }
-        .onDisappear { manager.resumeDismiss() }
+        .onAppear {
+            // A notch that opened on its own keeps counting down; hovering
+            // it still pauses the countdown via the hover handler.
+            if !manager.isAutoPresenting {
+                manager.holdActive()
+            }
+        }
+        .onDisappear {
+            // While auto-presenting, a newer notification replaces this view;
+            // resuming here would cut the newcomer's countdown short.
+            if !manager.isAutoPresenting {
+                manager.resumeDismiss()
+            }
+        }
     }
 
     private func openSourceApp() {
