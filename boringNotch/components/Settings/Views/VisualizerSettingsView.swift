@@ -14,6 +14,8 @@ struct VisualizerSettingsView: View {
     @Default(.notchVisualizerStyle) private var style
     @Default(.notchVisualizerSensitivity) private var sensitivity
     @Default(.notchVisualizerAlbumColors) private var albumColors
+    @Default(.notchVisualizerLyrics) private var lyricsEnabled
+    @Default(.notchVisualizerLyricStyle) private var lyricStyle
 
     private var supported: Bool {
         if #available(macOS 14.2, *) { return true }
@@ -117,6 +119,17 @@ struct VisualizerSettingsView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
+                    Group {
+                        Picker("Lyric style", selection: $lyricStyle) {
+                            ForEach(NotchLyricStyle.allCases) { style in
+                                Text(style.localizedName).tag(style)
+                            }
+                        }
+                        Defaults.Toggle(key: .notchVisualizerLyricAlbumColor) {
+                            Text("Album colour text")
+                        }
+                    }
+                    .disabled(!lyricsEnabled)
                 } header: {
                     Text("Lyrics")
                 }

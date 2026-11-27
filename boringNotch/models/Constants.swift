@@ -478,6 +478,8 @@ extension Defaults.Keys {
     static let notchVisualizerAlbumColors = Key<Bool>("notchVisualizerAlbumColors", default: true)
     static let notchVisualizerColorMotion = Key<Bool>("notchVisualizerColorMotion", default: true)
     static let notchVisualizerBreathing = Key<Bool>("notchVisualizerBreathing", default: true)
+    static let notchVisualizerLyricStyle = Key<NotchLyricStyle>("notchVisualizerLyricStyle", default: .karaoke)
+    static let notchVisualizerLyricAlbumColor = Key<Bool>("notchVisualizerLyricAlbumColor", default: false)
     static let enableSneakPeek = Key<Bool>("enableSneakPeek", default: false)
     static let sneakPeekStyles = Key<SneakPeekStyle>("sneakPeekStyles", default: .standard)
     static let waitInterval = Key<Double>("waitInterval", default: 3)

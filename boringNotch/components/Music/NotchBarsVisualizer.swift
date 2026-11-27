@@ -31,6 +31,32 @@ enum NotchVisualizerStyle: String, CaseIterable, Identifiable, Defaults.Serializ
     }
 }
 
+enum NotchLyricStyle: String, CaseIterable, Identifiable, Defaults.Serializable {
+    /// A colour fill sweeps across the line in time with how long it lasts.
+    case karaoke
+    /// Letters type in one by one behind a small cursor.
+    case typewriter
+    /// Old line slides up and out as the new one slides up from below.
+    case carousel
+    /// Lines fade in from a blur and drift up.
+    case fade
+
+    var id: String { rawValue }
+
+    var localizedName: String {
+        switch self {
+        case .karaoke: String(localized: "Karaoke fill")
+        case .typewriter: String(localized: "Typewriter")
+        case .carousel: String(localized: "Slide carousel")
+        case .fade: String(localized: "Fade")
+        }
+    }
+
+    /// Styles that keep a line up until the next one replaces it, rather than fading it
+    /// out just before.
+    var holdsUntilNextLine: Bool { self == .karaoke || self == .carousel }
+}
+
 struct NotchBarsVisualizer: View {
     /// Height of a full-scale bar.
     static let fullHeight: CGFloat = 16
@@ -47,6 +73,8 @@ struct NotchBarsVisualizer: View {
     @Default(.notchVisualizerBeatPulse) var beatPulse
     @Default(.notchVisualizerLyrics) var lyricsInGap
     @Default(.notchVisualizerBreathing) var breathing
+    @Default(.notchVisualizerLyricStyle) var lyricStyle
+    @Default(.notchVisualizerLyricAlbumColor) var lyricAlbumColor
     @ObservedObject private var lyrics = LyricsService.shared
 
     @State private var engine = VisualizerEngine()
@@ -98,6 +126,8 @@ struct NotchBarsVisualizer: View {
                         lyric: lyric,
                         gapWidth: gap,
                         beat: engine.lastBeat,
+                        style: lyricStyle,
+                        albumColorText: lyricAlbumColor,
                         palette: VisualizerPalette(
                             primary: primary, secondary: secondary, hueShift: CGFloat(engine.lastHueShift), beat: 0)
                     )
@@ -375,8 +405,10 @@ struct NotchBreathing<S: Shape>: ViewModifier {
     let shape: S
 
     /// Maximum growth in points at a full-strength beat.
-    static var maxSideGrowth: CGFloat { 3 }
-    static var maxBottomGrowth: CGFloat { 2 }
+    /// Sideways growth only shows on light menu bars (a dark one hides it), so the bottom
+    /// edge dropping carries most of the effect.
+    static var maxSideGrowth: CGFloat { 4 }
+    static var maxBottomGrowth: CGFloat { 4.5 }
 
     func body(content: Content) -> some View {
         content.background(alignment: .top) {
@@ -497,9 +529,11 @@ private final class VisualizerEngine {
         colorPhase += (colorPhaseTarget - colorPhase) * Double(ease(0.08))
         lastHueShift = colorMotion ? Float(0.05 * sin(colorPhase)) : 0
 
-        // Breathing follows the beat with a short attack so the notch swells rather than jumps.
-        let breathTarget = beat * gain
-        breath += (breathTarget - breath) * ease(breathTarget > breath ? 0.45 : 0.12)
+        // Breathing follows the beat with a quick attack so the notch swells rather than
+        // jumps. Volume only softens it a little (muted still means none), otherwise
+        // normal listening levels shrink it to nothing.
+        let breathTarget = beat * powf(gain, 0.35)
+        breath += (breathTarget - breath) * ease(breathTarget > breath ? 0.7 : 0.14)
         NotchPulse.shared.breath = breath
 
         if bars.count != barCount {
@@ -581,6 +615,22 @@ private struct GapLyric {
         return min(1, max(0, (elapsed - start - 0.6) / (duration - 1.4)))
     }
 
+    private var duration: Double { max(0.5, (end ?? start + 4) - start) }
+
+    /// Karaoke: 0…1 fill across the line, finishing just before the next line.
+    var fillProgress: Double {
+        guard !isUpcoming else { return 0 }
+        return min(1, max(0, (elapsed - start) / max(0.4, duration - 0.25)))
+    }
+
+    /// Typewriter: 0…1 of the characters revealed. Types at ~20 chars/s but never takes
+    /// more than 45% of the line's slot, so short lines don't crawl.
+    var revealProgress: Double {
+        guard !isUpcoming else { return 0 }
+        let typingTime = min(duration * 0.45, Double(text.count) * 0.05 + 0.1)
+        return min(1, max(0, (elapsed - start) / max(0.1, typingTime)))
+    }
+
     @MainActor
     static func current(at date: Date, musicManager: MusicManager, lyrics: LyricsService) -> GapLyric? {
         guard !lyrics.isFetchingLyrics, !lyrics.syncedLyrics.isEmpty else { return nil }
@@ -628,40 +678,66 @@ private struct BlurModifier: ViewModifier {
     func body(content: Content) -> some View { content.blur(radius: radius) }
 }
 
-/// The lyric line between the two bar groups. Lines fade in from a blur while drifting up,
-/// fade out drifting up again, pulse slightly on the beat, and scroll if too long.
+/// The lyric line between the two bar groups. Pulses slightly on the beat, scrolls if too
+/// long, and arrives/leaves according to `style`.
 private struct GapLyricView: View {
     let lyric: GapLyric?
     let gapWidth: CGFloat
     let beat: Float
+    let style: NotchLyricStyle
+    let albumColorText: Bool
     let palette: VisualizerPalette
 
-    private static let lineTransition = AnyTransition.asymmetric(
-        insertion: .opacity
-            .combined(with: .offset(y: 5))
-            .combined(with: .scale(scale: 0.9))
-            .combined(with: .modifier(active: BlurModifier(radius: 5), identity: BlurModifier(radius: 0))),
-        removal: .opacity
-            .combined(with: .offset(y: -4))
-            .combined(with: .scale(scale: 0.96))
-            .combined(with: .modifier(active: BlurModifier(radius: 4), identity: BlurModifier(radius: 0)))
-    )
+    private static let blurIn = AnyTransition.modifier(active: BlurModifier(radius: 5), identity: BlurModifier(radius: 0))
+    private static let blurOut = AnyTransition.modifier(active: BlurModifier(radius: 4), identity: BlurModifier(radius: 0))
+    private static let fadeOut = AnyTransition.opacity
+        .combined(with: .offset(y: -4))
+        .combined(with: .scale(scale: 0.96))
+        .combined(with: blurOut)
+
+    private var transition: AnyTransition {
+        switch style {
+        case .fade:
+            .asymmetric(
+                insertion: .opacity.combined(with: .offset(y: 5)).combined(with: .scale(scale: 0.9)).combined(with: Self.blurIn),
+                removal: Self.fadeOut)
+        case .karaoke:
+            .asymmetric(insertion: .opacity.combined(with: Self.blurIn), removal: .opacity.combined(with: Self.blurOut))
+        case .typewriter:
+            .asymmetric(insertion: .opacity, removal: Self.fadeOut)
+        case .carousel:
+            .asymmetric(
+                insertion: .move(edge: .bottom).combined(with: .opacity),
+                removal: .move(edge: .top).combined(with: .opacity))
+        }
+    }
+
+    private var animation: Animation {
+        style == .carousel
+            ? .spring(response: 0.34, dampingFraction: 0.9)
+            : .spring(response: 0.42, dampingFraction: 0.86)
+    }
 
     private var available: CGFloat { max(0, gapWidth - 8) }
+    private var textColor: Color { albumColorText ? palette.primary : palette.text }
 
     var body: some View {
-        let key = lyric.map { "\($0.start)|\($0.showText)|\($0.isUpcoming)" } ?? "none"
+        let holds = style.holdsUntilNextLine
+        let key = lyric.map { "\($0.start)|\(holds || $0.showText)|\($0.isUpcoming)" } ?? "none"
         ZStack {
-            if let lyric, lyric.showText, available > 24 {
+            if let lyric, holds || lyric.showText, available > 24 {
                 line(lyric)
-                    .opacity(lyric.isUpcoming ? 0.45 : 1)
+                    .opacity(lyric.isUpcoming && style != .karaoke ? 0.45 : 1)
                     .id(lyric.start)
-                    .transition(Self.lineTransition)
+                    .transition(transition)
             }
         }
         .frame(width: available, height: NotchBarsVisualizer.fullHeight)
+        // The carousel slides lines through the frame edges, so clip it to the frame; other
+        // styles get a generous clip so glows and drifts aren't cut off.
+        .clipShape(Rectangle().inset(by: style == .carousel ? 0 : -24))
         .scaleEffect(1 + 0.05 * CGFloat(beat))
-        .animation(.spring(response: 0.42, dampingFraction: 0.86), value: key)
+        .animation(animation, value: key)
         .allowsHitTesting(false)
     }
 
@@ -669,12 +745,8 @@ private struct GapLyricView: View {
     private func line(_ lyric: GapLyric) -> some View {
         let textWidth = max(1, LyricMetrics.width(of: lyric.text))
         let fitScale = min(1, available / textWidth)
-        let text = Text(lyric.text)
-            .font(LyricMetrics.font(for: lyric.text))
-            .foregroundStyle(palette.text)
+        let text = styledText(lyric, textWidth: textWidth)
             .shadow(color: palette.glow.opacity(0.6), radius: 3)
-            .lineLimit(1)
-            .fixedSize()
 
         if fitScale >= 0.82 {
             text.scaleEffect(fitScale)
@@ -682,9 +754,10 @@ private struct GapLyricView: View {
             // Too long even when shrunk: scroll across the line's time slot, edges faded.
             let scale: CGFloat = 0.82
             let overflow = textWidth * scale - available
+            let progress = style == .karaoke ? lyric.fillProgress : lyric.progress
             text
                 .scaleEffect(scale)
-                .offset(x: overflow / 2 - overflow * CGFloat(lyric.progress))
+                .offset(x: overflow / 2 - overflow * CGFloat(progress))
                 .frame(width: available)
                 .mask(
                     LinearGradient(
@@ -696,6 +769,58 @@ private struct GapLyricView: View {
                         ],
                         startPoint: .leading, endPoint: .trailing)
                 )
+        }
+    }
+
+    private func plainText(_ string: String, color: Color) -> some View {
+        Text(string)
+            .font(LyricMetrics.font(for: string))
+            .foregroundStyle(color)
+            .lineLimit(1)
+            .fixedSize()
+    }
+
+    @ViewBuilder
+    private func styledText(_ lyric: GapLyric, textWidth: CGFloat) -> some View {
+        let rightToLeft = LyricMetrics.usesArabicScript(lyric.text)
+        switch style {
+        case .karaoke:
+            // Dim copy underneath, full-colour copy on top revealed by a soft-edged sweep.
+            let filled = textWidth * CGFloat(lyric.fillProgress)
+            ZStack {
+                plainText(lyric.text, color: albumColorText ? .white.opacity(0.4) : palette.text.opacity(0.35))
+                plainText(lyric.text, color: albumColorText ? palette.primary : palette.text)
+                    .mask(alignment: rightToLeft ? .trailing : .leading) {
+                        HStack(spacing: 0) {
+                            if rightToLeft {
+                                LinearGradient(colors: [.clear, .black], startPoint: .leading, endPoint: .trailing)
+                                    .frame(width: 6)
+                            }
+                            Rectangle().frame(width: filled)
+                            if !rightToLeft {
+                                LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
+                                    .frame(width: 6)
+                            }
+                        }
+                    }
+            }
+
+        case .typewriter where !rightToLeft:
+            // Untyped letters are laid out but clear, so the line never shifts as it types.
+            let characters = Array(lyric.text)
+            let revealed = Int((Double(characters.count) * lyric.revealProgress).rounded(.down))
+            let typing = revealed < characters.count
+            let blinkOn = Int(lyric.elapsed * 3).isMultiple(of: 2)
+            let showCursor = !lyric.isUpcoming && (typing || (blinkOn && lyric.elapsed - lyric.start < 1.5))
+            (Text(String(characters[..<revealed])).foregroundStyle(textColor)
+                + Text("|").foregroundStyle(showCursor ? palette.secondary : .clear)
+                + Text(String(characters[revealed...])).foregroundStyle(.clear))
+                .font(LyricMetrics.font(for: lyric.text))
+                .lineLimit(1)
+                .fixedSize()
+
+        default:
+            plainText(lyric.text, color: textColor)
         }
     }
 }
