@@ -14827,6 +14827,9 @@
         }
       }
     },
+    "HUD" : {
+      "comment" : "Search keyword for the OSD settings."
+    },
     "Idle state" : {
       "localizations" : {
         "en" : {

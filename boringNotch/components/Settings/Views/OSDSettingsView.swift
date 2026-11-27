@@ -26,10 +26,12 @@ struct OSDSettings: View {
                 Defaults.Toggle(key: .osdReplacement) {
                     Text("Replace System OSD")
                 }
+                .settingsSearchAnchor(SearchKey.replaceSystemOSD)
                 if osdReplacementDefault {
                     Defaults.Toggle(key: .inlineOSD) {
                         Text("Use inline style")
                     }
+                    .settingsSearchAnchor(SearchKey.inlineStyle)
                 }
             }
 
@@ -40,6 +42,7 @@ struct OSDSettings: View {
                             Text(source.localizedString).tag(source)
                         }
                     }
+                    .settingsSearchAnchor(SearchKey.brightnessSource)
                     if osdBrightnessSourceDefault == .builtin {
                         HelpText("Only Apple displays are supported. In multi-display setups, the brightness OSD appears on the active display if supported, or on another supported display otherwise.")
                     }
@@ -56,6 +59,7 @@ struct OSDSettings: View {
                             Text(source.localizedString).tag(source)
                         }
                     }
+                    .settingsSearchAnchor(SearchKey.volumeSource)
                     if osdVolumeSourceDefault == .betterDisplay && !BetterDisplayManager.shared.isBetterDisplayAvailable {
                         HelpText("BetterDisplay is not installed or not running")
                     }
@@ -113,26 +117,32 @@ struct OSDSettings: View {
                     Defaults.Toggle(key: .enableGradient) {
                         Text("Enable gradient")
                     }
+                    .settingsSearchAnchor(SearchKey.gradient)
                     Defaults.Toggle(key: .systemEventIndicatorShadow) {
                         Text("Show shadow")
                     }
+                    .settingsSearchAnchor(SearchKey.shadow)
                     Defaults.Toggle(key: .systemEventIndicatorUseAccent) {
                         Text("Use accent color")
                     }
+                    .settingsSearchAnchor(SearchKey.accentColor)
                 }
 
                 Section(header: Text("Visibility")) {
                     Defaults.Toggle(key: .showOpenNotchOSD) {
                         Text("Show OSD in open notch")
                     }
+                    .settingsSearchAnchor(SearchKey.openNotchOSD)
                     if showOpenNotchOSDDefault {
                         Defaults.Toggle(key: .showOpenNotchOSDPercentage) {
                             Text("Show percentage (open notch)")
                         }
+                        .settingsSearchAnchor(SearchKey.openNotchPercentage)
                     }
                     Defaults.Toggle(key: .showClosedNotchOSDPercentage) {
                         Text("Show percentage (closed notch)")
                     }
+                    .settingsSearchAnchor(SearchKey.closedNotchPercentage)
                 }
 
                 Section(header: Text("Interaction")) {
@@ -141,6 +151,7 @@ struct OSDSettings: View {
                             Text(action.localizedString).tag(action)
                         }
                     }
+                    .settingsSearchAnchor(SearchKey.optionKeyBehavior)
                     HelpText("Define what happens when you hold the Option key while pressing media keys.")
                 }
             }
@@ -166,6 +177,49 @@ struct OSDSettings: View {
                 }
             } else {
                 menuBarBrightnessSupported = true
+            }
+        }
+    }
+}
+
+extension OSDSettings {
+    enum SearchKey: String, SettingsSearchKey {
+        case replaceSystemOSD
+        case inlineStyle
+        case brightnessSource
+        case volumeSource
+        case gradient
+        case shadow
+        case accentColor
+        case openNotchOSD
+        case openNotchPercentage
+        case closedNotchPercentage
+        case optionKeyBehavior
+
+        static let tab = SettingsTab.osd
+
+        var definition: SettingsSearchDefinition<Self> {
+            switch self {
+            case .replaceSystemOSD:
+                .init(
+                    "Replace System OSD", section: "General",
+                    keywords: [.init("HUD", comment: "Search keyword for the OSD settings."), "Volume", "Brightness"])
+            case .inlineStyle: .init("Use inline style", section: "General", revealedBy: .replaceSystemOSD)
+            case .brightnessSource:
+                .init("Brightness Source", section: "Control Sources", revealedBy: .replaceSystemOSD)
+            case .volumeSource:
+                .init("Volume Source", section: "Control Sources", revealedBy: .replaceSystemOSD)
+            case .gradient: .init("Enable gradient", section: "Appearance", revealedBy: .replaceSystemOSD)
+            case .shadow: .init("Show shadow", section: "Appearance", revealedBy: .replaceSystemOSD)
+            case .accentColor: .init("Use accent color", section: "Appearance", revealedBy: .replaceSystemOSD)
+            case .openNotchOSD:
+                .init("Show OSD in open notch", section: "Visibility", revealedBy: .replaceSystemOSD)
+            case .openNotchPercentage:
+                .init("Show percentage (open notch)", section: "Visibility", revealedBy: .openNotchOSD)
+            case .closedNotchPercentage:
+                .init("Show percentage (closed notch)", section: "Visibility", revealedBy: .replaceSystemOSD)
+            case .optionKeyBehavior:
+                .init("Option (⌥) Key Behavior", section: "Interaction", revealedBy: .replaceSystemOSD)
             }
         }
     }

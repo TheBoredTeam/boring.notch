@@ -30,9 +30,11 @@ struct GeneralSettings: View {
                     Text("Show menu bar icon")
                 }
                 .tint(.effectiveAccent)
+                .settingsSearchAnchor(SearchKey.menuBarIcon)
                 LaunchAtLogin.Toggle {
                     Text("Launch at login")
                 }
+                .settingsSearchAnchor(SearchKey.launchAtLogin)
                 Picker("Language", selection: $appLanguage) {
                     ForEach(AppLanguage.allCases) { language in
                         Text(language.displayName).tag(language)
@@ -42,6 +44,7 @@ struct GeneralSettings: View {
                     appLanguage.applyAppleLanguagesOverride()
                     showLanguageRestartAlert = true
                 }
+                .settingsSearchAnchor(SearchKey.language)
             } header: {
                 Text("App")
             }
@@ -52,6 +55,7 @@ struct GeneralSettings: View {
                         Text(mode.title).tag(mode)
                     }
                 }
+                .settingsSearchAnchor(SearchKey.displayBehavior)
 
                 Picker("Preferred display", selection: $coordinator.preferredScreenUUID) {
                     ForEach(screens, id: \.uuid) { screen in
@@ -65,6 +69,7 @@ struct GeneralSettings: View {
                     }
                 }
                 .disabled(displayMode == .activeDisplay || displayMode == .allDisplays)
+                .settingsSearchAnchor(SearchKey.preferredDisplay)
             } header: {
                 Text("Displays")
             }
@@ -84,6 +89,28 @@ struct GeneralSettings: View {
             }
         } message: {
             Text("Changing the app language requires restarting Boring Notch.")
+        }
+    }
+}
+
+extension GeneralSettings {
+    enum SearchKey: String, SettingsSearchKey {
+        case menuBarIcon
+        case launchAtLogin
+        case language
+        case displayBehavior
+        case preferredDisplay
+
+        static let tab = SettingsTab.general
+
+        var definition: SettingsSearchDefinition<Self> {
+            switch self {
+            case .menuBarIcon: .init("Show menu bar icon", section: "App")
+            case .launchAtLogin: .init("Launch at login", section: "App")
+            case .language: .init("Language", section: "App")
+            case .displayBehavior: .init("Display behavior", section: "Displays")
+            case .preferredDisplay: .init("Preferred display", section: "Displays")
+            }
         }
     }
 }

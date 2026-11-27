@@ -65,9 +65,18 @@ extension SettingsTab {
     // The switch lists every tab on purpose: a new tab does not compile until it is decided here.
     var searchEntries: [SettingsSearchEntry] {
         switch self {
-        case .general, .notch, .appearance, .media, .calendar, .shelf, .mirror, .battery, .osd,
-             .notifications, .shortcuts, .about:
-            []
+        case .general: GeneralSettings.SearchKey.entries
+        case .notch: NotchSettingsView.SearchKey.entries
+        case .appearance: AppearanceSettingsView.SearchKey.entries
+        case .media: MediaSettingsView.SearchKey.entries
+        case .calendar: CalendarSettings.SearchKey.entries
+        case .shelf: ShelfSettingsView.SearchKey.entries
+        case .mirror: WebcamSettingsView.SearchKey.entries
+        case .battery: BatterySettingsView.SearchKey.entries
+        case .osd: OSDSettings.SearchKey.entries
+        case .notifications: NotificationSettingsView.SearchKey.entries
+        case .shortcuts: ShortcutsSettingsView.SearchKey.entries
+        case .about: []
         }
     }
 }

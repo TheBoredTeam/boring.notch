@@ -66,6 +66,7 @@ struct NotchSettingsView: View {
                 NotificationCenter.default.post(
                     name: Notification.Name.notchHeightChanged, object: nil)
             }
+            .settingsSearchAnchor(SearchKey.notchHeight)
             if notchHeightMode == .custom {
                 Slider(value: $notchHeight, in: 15...45, step: 1) {
                     Text(
@@ -94,6 +95,7 @@ struct NotchSettingsView: View {
                 NotificationCenter.default.post(
                     name: Notification.Name.notchHeightChanged, object: nil)
             }
+            .settingsSearchAnchor(SearchKey.nonNotchHeight)
             if nonNotchHeightMode == .custom {
                 // Custom binding to skip values 1-14 (jump from 0 to 10)
                 let sliderValue = Binding<Double>(
@@ -127,10 +129,13 @@ struct NotchSettingsView: View {
             Defaults.Toggle(key: .openNotchOnHover) {
                 Text("Open notch on hover")
             }
+            .settingsSearchAnchor(SearchKey.openOnHover)
             Defaults.Toggle(key: .enableHaptics) {
                 Text("Enable haptic feedback")
             }
+            .settingsSearchAnchor(SearchKey.haptics)
             Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
+                .settingsSearchAnchor(SearchKey.rememberLastTab)
             if openNotchOnHover {
                 Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
                     HStack {
@@ -156,8 +161,10 @@ struct NotchSettingsView: View {
                     NotificationCenter.default.post(
                         name: Notification.Name.notchHeightChanged, object: nil)
                 }
+                .settingsSearchAnchor(SearchKey.hoverDelay)
             }
             Toggle("Notch animation", isOn: $enableOpeningAnimation)
+                .settingsSearchAnchor(SearchKey.animation)
             if enableOpeningAnimation {
                 Slider(value: $animationSpeedMultiplier, in: 0.1...2.01, step: 0.1) {
                     HStack {
@@ -170,10 +177,12 @@ struct NotchSettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                .settingsSearchAnchor(SearchKey.animationSpeed)
             }
             Defaults.Toggle(key: .compactMode) {
                 Text("Compact mode")
             }
+            .settingsSearchAnchor(SearchKey.compactMode)
         } header: {
             Text("Behavior")
         } footer: {
@@ -189,13 +198,16 @@ struct NotchSettingsView: View {
                 Text("Enable gestures")
             }
                 .disabled(!openNotchOnHover)
+                .settingsSearchAnchor(SearchKey.gestures)
             if enableGestures {
                 Defaults.Toggle(key: .enableHorizontalMediaGestures) {
                     Text("Change media with horizontal gestures")
                 }
+                .settingsSearchAnchor(SearchKey.horizontalMediaGestures)
                 Defaults.Toggle(key: .closeGestureEnabled) {
                     Text("Close gesture")
                 }
+                .settingsSearchAnchor(SearchKey.closeGesture)
                 Slider(value: $gestureSensitivity, in: 100...300, step: 100) {
                     HStack {
                         Text("Gesture sensitivity")
@@ -207,10 +219,12 @@ struct NotchSettingsView: View {
                         .foregroundStyle(.secondary)
                     }
                 }
+                .settingsSearchAnchor(SearchKey.gestureSensitivity)
             }
             Defaults.Toggle(key: .normalizeGestureDirection) {
                 Text("Normalize gesture direction")
             }
+            .settingsSearchAnchor(SearchKey.normalizeGestureDirection)
         } header: {
             HStack {
                 Text("Gestures")
@@ -231,26 +245,89 @@ struct NotchSettingsView: View {
             Defaults.Toggle(key: .enableShadow) {
                 Text("Enable window shadow")
             }
+            .settingsSearchAnchor(SearchKey.shadow)
             Defaults.Toggle(key: .cornerRadiusScaling) {
                 Text("Scale corner radius for closed notch")
             }
+            .settingsSearchAnchor(SearchKey.cornerRadiusScaling)
             Defaults.Toggle(key: .extendHoverArea) {
                 Text("Extend hover area")
             }
+            .settingsSearchAnchor(SearchKey.extendHoverArea)
             Defaults.Toggle(key: .hideTitleBar) {
                 Text("Hide title bar")
             }
+            .settingsSearchAnchor(SearchKey.hideTitleBar)
             Defaults.Toggle(key: .showOnLockScreen) {
                 Text("Show notch on lock screen")
             }
+            .settingsSearchAnchor(SearchKey.showOnLockScreen)
             Defaults.Toggle(key: .hideFromScreenRecording) {
                 Text("Hide from screen recording")
             }
+            .settingsSearchAnchor(SearchKey.hideFromScreenRecording)
             Defaults.Toggle(key: .hideNonNotchedFromMissionControl) {
                 Text("Hide windows on non-notch displays from Mission Control")
             }
+            .settingsSearchAnchor(SearchKey.hideNonNotchedFromMissionControl)
         } header: {
             Text("Window")
+        }
+    }
+}
+
+extension NotchSettingsView {
+    enum SearchKey: String, SettingsSearchKey {
+        case notchHeight
+        case nonNotchHeight
+        case openOnHover
+        case haptics
+        case rememberLastTab
+        case hoverDelay
+        case animation
+        case animationSpeed
+        case compactMode
+        case gestures
+        case horizontalMediaGestures
+        case closeGesture
+        case gestureSensitivity
+        case normalizeGestureDirection
+        case shadow
+        case cornerRadiusScaling
+        case extendHoverArea
+        case hideTitleBar
+        case showOnLockScreen
+        case hideFromScreenRecording
+        case hideNonNotchedFromMissionControl
+
+        static let tab = SettingsTab.notch
+
+        var definition: SettingsSearchDefinition<Self> {
+            switch self {
+            case .notchHeight: .init("Notch height on notch displays", section: "Sizing")
+            case .nonNotchHeight: .init("Notch height on non-notch displays", section: "Sizing")
+            case .openOnHover: .init("Open notch on hover", section: "Behavior")
+            case .haptics: .init("Enable haptic feedback", section: "Behavior")
+            case .rememberLastTab: .init("Remember last tab", section: "Behavior")
+            case .hoverDelay: .init("Hover delay", section: "Behavior", revealedBy: .openOnHover)
+            case .animation: .init("Notch animation", section: "Behavior")
+            case .animationSpeed: .init("Animation speed", section: "Behavior", revealedBy: .animation)
+            case .compactMode: .init("Compact mode", section: "Behavior")
+            case .gestures: .init("Enable gestures", section: "Gestures")
+            case .horizontalMediaGestures:
+                .init("Change media with horizontal gestures", section: "Gestures", revealedBy: .gestures)
+            case .closeGesture: .init("Close gesture", section: "Gestures", revealedBy: .gestures)
+            case .gestureSensitivity: .init("Gesture sensitivity", section: "Gestures", revealedBy: .gestures)
+            case .normalizeGestureDirection: .init("Normalize gesture direction", section: "Gestures")
+            case .shadow: .init("Enable window shadow", section: "Window")
+            case .cornerRadiusScaling: .init("Scale corner radius for closed notch", section: "Window")
+            case .extendHoverArea: .init("Extend hover area", section: "Window")
+            case .hideTitleBar: .init("Hide title bar", section: "Window")
+            case .showOnLockScreen: .init("Show notch on lock screen", section: "Window")
+            case .hideFromScreenRecording: .init("Hide from screen recording", section: "Window")
+            case .hideNonNotchedFromMissionControl:
+                .init("Hide windows on non-notch displays from Mission Control", section: "Window")
+            }
         }
     }
 }

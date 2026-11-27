@@ -39,6 +39,7 @@ struct MediaSettingsView: View {
                             )
                     }
                 }
+                .settingsSearchAnchor(SearchKey.musicSource)
             } header: {
                 Text("Media Source")
             } footer: {
@@ -50,12 +51,15 @@ struct MediaSettingsView: View {
                     "Show music live activity",
                     isOn: $coordinator.musicLiveActivityEnabled.animation()
                 )
+                .settingsSearchAnchor(SearchKey.musicLiveActivity)
                 Toggle("Show sneak peek on playback changes", isOn: $enableSneakPeek)
+                    .settingsSearchAnchor(SearchKey.sneakPeek)
                 Picker("Sneak Peek Style", selection: $sneakPeekStyles) {
                     ForEach(SneakPeekStyle.allCases) { style in
                         Text(style.localizedString).tag(style)
                     }
                 }
+                .settingsSearchAnchor(SearchKey.sneakPeekStyle)
                 HStack {
                     Stepper(value: $waitInterval, in: 0...10, step: 1) {
                         HStack {
@@ -78,6 +82,7 @@ struct MediaSettingsView: View {
                         }
                     }
                 }
+                .settingsSearchAnchor(SearchKey.inactivityTimeout)
                 Picker(
                     selection: $hideNotchOption,
                     label:
@@ -91,6 +96,7 @@ struct MediaSettingsView: View {
                         HideNotchOption.nowPlayingOnly)
                     Text("Never hide").tag(HideNotchOption.never)
                 }
+                .settingsSearchAnchor(SearchKey.fullScreenBehavior)
             } header: {
                 Text("Media playback live activity")
             }
@@ -103,9 +109,11 @@ struct MediaSettingsView: View {
                         customBadge(text: "Beta")
                     }
                 }
+                .settingsSearchAnchor(SearchKey.lyrics)
                 Defaults.Toggle(key: .showRemainingTime) {
                     Text("Show remaining time instead of duration")
                 }
+                .settingsSearchAnchor(SearchKey.remainingTime)
             } header: {
                 Text("Media controls")
             }  footer: {
@@ -118,6 +126,7 @@ struct MediaSettingsView: View {
                 Defaults.Toggle(key: .coloredSpectrogram) {
                     Text("Colored spectrogram")
                 }
+                .settingsSearchAnchor(SearchKey.coloredSpectrogram)
                 Defaults.Toggle(key: .realtimeAudioWaveform) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Real-time audio waveform")
@@ -133,20 +142,25 @@ struct MediaSettingsView: View {
                     }
                 }
                 .disabled(!realtimeAudioWaveformSupported)
+                .settingsSearchAnchor(SearchKey.realtimeWaveform)
                 Defaults.Toggle(key: .playerColorTinting) {
                     Text("Player tinting")
                 }
+                .settingsSearchAnchor(SearchKey.playerTinting)
                 Defaults.Toggle(key: .lightingEffect) {
                     Text("Enable blur effect behind album art")
                 }
+                .settingsSearchAnchor(SearchKey.albumArtBlur)
                 Defaults.Toggle(key: .showMediaSourceAppIcon) {
                     Text("Show source app icon on album art")
                 }
+                .settingsSearchAnchor(SearchKey.sourceAppIcon)
                 Picker("Slider color", selection: $sliderColor) {
                     ForEach(SliderColorEnum.allCases, id: \.self) { option in
                         Text(option.localizedString)
                     }
                 }
+                .settingsSearchAnchor(SearchKey.sliderColor)
             } header: {
                 Text("Player appearance")
             }
@@ -216,5 +230,48 @@ struct MediaSettingsView: View {
         Text(text)
             .foregroundStyle(.secondary)
             .font(.caption)
+    }
+}
+
+extension MediaSettingsView {
+    enum SearchKey: String, SettingsSearchKey {
+        case musicSource
+        case musicLiveActivity
+        case sneakPeek
+        case sneakPeekStyle
+        case inactivityTimeout
+        case fullScreenBehavior
+        case lyrics
+        case remainingTime
+        case coloredSpectrogram
+        case realtimeWaveform
+        case playerTinting
+        case albumArtBlur
+        case sourceAppIcon
+        case sliderColor
+
+        static let tab = SettingsTab.media
+
+        var definition: SettingsSearchDefinition<Self> {
+            switch self {
+            case .musicSource: .init("Music Source", section: "Media Source")
+            case .musicLiveActivity:
+                .init("Show music live activity", section: "Media playback live activity")
+            case .sneakPeek:
+                .init("Show sneak peek on playback changes", section: "Media playback live activity")
+            case .sneakPeekStyle: .init("Sneak Peek Style", section: "Media playback live activity")
+            case .inactivityTimeout:
+                .init("Media inactivity timeout", section: "Media playback live activity")
+            case .fullScreenBehavior: .init("Full screen behavior", section: "Media playback live activity")
+            case .lyrics: .init("Show lyrics below artist name", section: "Media controls")
+            case .remainingTime: .init("Show remaining time instead of duration", section: "Media controls")
+            case .coloredSpectrogram: .init("Colored spectrogram", section: "Player appearance")
+            case .realtimeWaveform: .init("Real-time audio waveform", section: "Player appearance")
+            case .playerTinting: .init("Player tinting", section: "Player appearance")
+            case .albumArtBlur: .init("Enable blur effect behind album art", section: "Player appearance")
+            case .sourceAppIcon: .init("Show source app icon on album art", section: "Player appearance")
+            case .sliderColor: .init("Slider color", section: "Player appearance")
+            }
+        }
     }
 }

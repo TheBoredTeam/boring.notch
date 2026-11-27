@@ -31,6 +31,7 @@ struct NotificationSettingsView: View {
                 Defaults.Toggle(key: .notificationLiveActivity) {
                     Text("Show notifications in the notch")
                 }
+                .settingsSearchAnchor(SearchKey.showInNotch)
             } footer: {
                 Text("Requires \(AccessibilityPermission.displayName). Only visible banners are mirrored.")
                     .font(.caption)
@@ -67,6 +68,7 @@ struct NotificationSettingsView: View {
                     Text("From all apps")
                 }
                 .disabled(!notificationLiveActivity)
+                .settingsSearchAnchor(SearchKey.fromAllApps)
 
                 if !notificationsFromAllApps {
                     if selectedApps.isEmpty {
@@ -153,5 +155,21 @@ struct NotificationSettingsView: View {
             return bundleID
         }
         return name
+    }
+}
+
+extension NotificationSettingsView {
+    enum SearchKey: String, SettingsSearchKey {
+        case showInNotch
+        case fromAllApps
+
+        static let tab = SettingsTab.notifications
+
+        var definition: SettingsSearchDefinition<Self> {
+            switch self {
+            case .showInNotch: .init("Show notifications in the notch")
+            case .fromAllApps: .init("From all apps", section: "Apps")
+            }
+        }
     }
 }
