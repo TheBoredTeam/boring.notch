@@ -566,34 +566,45 @@ struct NotchHomeView: View {
         Defaults[.showMirror] && vm.camera.cameraAvailable && vm.camera.isSessionRunning
     }
 
+    /// Music and the calendar used to share one "home" tab. They are now
+    /// separate tabs, so the calendar's presence here only reflects the
+    /// mirror sitting next to the player.
     private var mainContent: some View {
-        HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
+        HStack(alignment: .top, spacing: shouldShowCamera ? 10 : 15) {
             MusicPlayerView(
                 albumArtNamespace: albumArtNamespace,
                 horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
                 isHoveringMusicArea: $isHoveringMusicArea
             )
 
-            if Defaults[.showCalendar] {
-                CalendarView()
-                    .frame(width: shouldShowCamera ? 170 : 215)
-                    .onHover { isHovering in
-                        vm.isHoveringCalendar = isHovering
-                    }
-                    .environmentObject(vm)
-                    .transition(.opacity)
-            }
-
             if shouldShowCamera {
                 CameraPreviewView(camera: vm.camera)
                     .scaledToFit()
                     .opacity(vm.notchState == .closed ? 0 : 1)
                     .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
-                
+
             }
         }
         .transition(.opacity)
         .blur(radius: vm.notchState == .closed ? 30 : 0)
+    }
+}
+
+/// The calendar's own tab. It owns its full width so the week/dial header and
+/// the event list get the room the combined home layout never gave them.
+struct NotchCalendarView: View {
+    @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject var coordinator = BoringViewCoordinator.shared
+
+    var body: some View {
+        CalendarView()
+            .frame(width: Defaults[.showMirror] && vm.camera.cameraAvailable && vm.camera.isSessionRunning ? 170 : 215)
+            .onHover { hovering in
+                vm.isHoveringCalendar = hovering
+            }
+            .environmentObject(vm)
+            .transition(.opacity)
+            .blur(radius: vm.notchState == .closed ? 30 : 0)
     }
 }
 

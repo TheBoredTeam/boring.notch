@@ -18,9 +18,71 @@ enum NotchState {
     case open
 }
 
-enum NotchViews {
-    case home
+enum NotchViews: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case music
+    case calendar
     case shelf
+
+    var id: String { self.rawValue }
+
+    /// Legacy value stored by older builds, where the music player and the
+    /// calendar shared a single "home" tab. Persisted preferences holding it
+    /// resolve back to the music tab.
+    init(from rawValue: String) {
+        self = NotchViews(legacyRawValue: rawValue) ?? .music
+    }
+
+    private init?(legacyRawValue: String) {
+        switch legacyRawValue {
+        case "music", "home", "Home":
+            self = .music
+        case "calendar", "Calendar":
+            self = .calendar
+        case "shelf", "Shelf":
+            self = .shelf
+        default:
+            return nil
+        }
+    }
+
+    var localizedTitle: LocalizedStringResource {
+        switch self {
+        case .music:
+            "Music"
+        case .calendar:
+            "Calendar"
+        case .shelf:
+            "Shelf"
+        }
+    }
+
+    var tabIcon: String {
+        switch self {
+        case .music:
+            "music.note"
+        case .calendar:
+            "calendar"
+        case .shelf:
+            "tray.fill"
+        }
+    }
+
+    /// Whether this tab is currently available. Music is always available;
+    /// the calendar and shelf each have their own enable toggle in Settings.
+    var isEnabled: Bool {
+        switch self {
+        case .music:
+            return true
+        case .calendar:
+            return Defaults[.showCalendar]
+        case .shelf:
+            return Defaults[.boringShelf]
+        }
+    }
+
+    static var enabledViews: [NotchViews] {
+        allCases.filter(\.isEnabled)
+    }
 }
 
 enum DownloadIndicatorStyle: String, Defaults.Serializable {
