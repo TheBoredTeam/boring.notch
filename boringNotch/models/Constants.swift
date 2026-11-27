@@ -472,6 +472,11 @@ extension Defaults.Keys {
     static let waitInterval = Key<Double>("waitInterval", default: 3)
     static let showShuffleAndRepeat = Key<Bool>("showShuffleAndRepeat", default: false)
     static let enableLyrics = Key<Bool>("enableLyrics", default: false)
+    static let showLyricsInClosedNotch = Key<Bool>("showLyricsInClosedNotch", default: false)
+    static let lyricSyncOffset = Key<Double>("lyricSyncOffset", default: 0)
+    static let lyricTopSpacing = Key<Double>("lyricTopSpacing", default: -3)
+    static let lyricBottomSpacing = Key<Double>("lyricBottomSpacing", default: 7)
+    static let lyricFontSize = Key<Double>("lyricFontSize", default: 11)
     static let showRemainingTime = Key<Bool>("showRemainingTime", default: false)
     static let showMediaSourceAppIcon = Key<Bool>("showMediaSourceAppIcon", default: true)
     static let musicControlSlots = Key<[MusicControlButton]>(
