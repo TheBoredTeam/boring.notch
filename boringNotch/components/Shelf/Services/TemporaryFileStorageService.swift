@@ -29,28 +29,66 @@ final class TemporaryFileStorageService {
     }
 
     func removeTemporaryFileIfNeeded(at url: URL) {
-        let tempDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
-
-        guard url.path.hasPrefix(tempDirectory.path) else {
+        guard let rootDirectory = managedTemporaryRoot(for: url) else {
             Log.shelf.debug("Attempted to remove temporary file outside temp directory: \(url.path)")
             return
         }
-
-        let folderURL = url.deletingLastPathComponent()
 
         do {
             try FileManager.default.removeItem(at: url)
             Log.shelf.debug("Deleted file: \(url.path)")
 
-            let contents = try FileManager.default.contentsOfDirectory(atPath: folderURL.path)
-            if contents.isEmpty {
+            var folderURL = url.deletingLastPathComponent()
+            while folderURL.standardizedFileURL != rootDirectory.standardizedFileURL {
+                let contents = try FileManager.default.contentsOfDirectory(atPath: folderURL.path)
+                guard contents.isEmpty else {
+                    Log.shelf.debug("Folder not deleted — it still contains \(contents.count) item(s).")
+                    break
+                }
                 try FileManager.default.removeItem(at: folderURL)
                 Log.shelf.debug("Folder was empty, deleted folder: \(folderURL.path)")
-            } else {
-                Log.shelf.debug("Folder not deleted — it still contains \(contents.count) item(s).")
+                folderURL.deleteLastPathComponent()
             }
         } catch {
             Log.shelf.error("Error: \(error.localizedDescription)")
+        }
+    }
+
+    func isTemporaryDropURL(_ url: URL) -> Bool {
+        guard let rootDirectory = temporaryDropDirectoryURL else { return false }
+        return isDescendant(url, of: rootDirectory)
+    }
+
+    func cleanupOrphanedTemporaryDropFiles(referencedURLs: [URL]) {
+        guard let rootDirectory = temporaryDropDirectoryURL else { return }
+
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: rootDirectory.path, isDirectory: &isDirectory),
+              isDirectory.boolValue else {
+            return
+        }
+
+        let referencedEntries = Set(referencedURLs.compactMap {
+            temporaryDropEntry(containing: $0, under: rootDirectory)?.standardizedFileURL.path
+        })
+
+        let entries: [URL]
+        do {
+            entries = try FileManager.default.contentsOfDirectory(
+                at: rootDirectory,
+                includingPropertiesForKeys: nil
+            )
+        } catch {
+            Log.shelf.error("Failed to list temporary drop files: \(error.localizedDescription)")
+            return
+        }
+
+        for entry in entries where !referencedEntries.contains(entry.standardizedFileURL.path) {
+            do {
+                try FileManager.default.removeItem(at: entry)
+            } catch {
+                Log.shelf.error("Failed to remove orphaned temporary drop at \(entry.path): \(error.localizedDescription)")
+            }
         }
     }
 
@@ -114,6 +152,42 @@ final class TemporaryFileStorageService {
                 return nil
             }
         }
+    }
+
+    private var temporaryDropDirectoryURL: URL? {
+        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?
+            .appendingPathComponent("TemporaryDrop", isDirectory: true)
+    }
+
+    private func managedTemporaryRoot(for url: URL) -> URL? {
+        let tempDirectory = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        if isDescendant(url, of: tempDirectory) {
+            return tempDirectory
+        }
+        if let temporaryDropDirectoryURL, isDescendant(url, of: temporaryDropDirectoryURL) {
+            return temporaryDropDirectoryURL
+        }
+        return nil
+    }
+
+    private func isDescendant(_ url: URL, of rootDirectory: URL) -> Bool {
+        let pathComponents = url.standardizedFileURL.pathComponents
+        let rootComponents = rootDirectory.standardizedFileURL.pathComponents
+        return pathComponents.count > rootComponents.count
+            && pathComponents.starts(with: rootComponents)
+    }
+
+    private func temporaryDropEntry(containing url: URL, under rootDirectory: URL) -> URL? {
+        let pathComponents = url.standardizedFileURL.pathComponents
+        let rootComponents = rootDirectory.standardizedFileURL.pathComponents
+        guard pathComponents.count > rootComponents.count,
+              pathComponents.starts(with: rootComponents) else {
+            return nil
+        }
+        return rootDirectory.appendingPathComponent(
+            pathComponents[rootComponents.count],
+            isDirectory: true
+        )
     }
 
     private func createFile(at url: URL, data: Data) -> URL? {
