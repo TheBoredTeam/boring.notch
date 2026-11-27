@@ -12,6 +12,10 @@ struct ShelfSettingsView: View {
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
     @Default(.quickShareProvider) var quickShareProvider
     @Default(.expandedDragDetection) var expandedDragDetection: Bool
+    @Default(.boringShelf) var boringShelf: Bool
+    @Default(.floatingDropTarget) var floatingDropTarget: Bool
+    @Default(.floatingDropTargetShakeTrigger) var floatingDropTargetShakeTrigger: Bool
+    @Default(.floatingDropTargetShakeSensitivity) var floatingDropTargetShakeSensitivity
     @StateObject private var quickShareService = QuickShareService.shared
 
     private var selectedProvider: QuickShareProvider? {
@@ -48,6 +52,34 @@ struct ShelfSettingsView: View {
             } header: {
                 Text("General")
             }
+
+            Section {
+                Defaults.Toggle(key: .floatingDropTarget) {
+                    Text("Enable drop target")
+                }
+                Defaults.Toggle(key: .floatingDropTargetShakeTrigger) {
+                    Text("Open by shaking while dragging")
+                }
+                .disabled(!floatingDropTarget)
+                Picker("Shake sensitivity", selection: $floatingDropTargetShakeSensitivity) {
+                    ForEach(DropTargetShakeSensitivity.allCases) { sensitivity in
+                        Text(sensitivity.localizedString).tag(sensitivity)
+                    }
+                }
+                .disabled(!floatingDropTarget || !floatingDropTargetShakeTrigger)
+                Defaults.Toggle(key: .floatingDropTargetShiftTrigger) {
+                    Text("Open by holding Shift while dragging")
+                }
+                .disabled(!floatingDropTarget)
+            } header: {
+                Text("Drop target")
+            } footer: {
+                Text("Shows a target beside the pointer while dragging files or text. Dropped items are added to the shelf, and the target closes when the pointer leaves.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+            .disabled(!boringShelf)
 
             Section {
                 Picker("Quick Share Service", selection: $quickShareProvider) {
@@ -99,8 +131,9 @@ struct ShelfSettingsView: View {
                 }
             } footer: {
                 Text("Choose which service to use when sharing files from the shelf. Click the shelf button to select files, or drag files onto it to share immediately.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
                     .font(.caption)
-                    .foregroundColor(.secondary)
             }
         }
         .accentColor(.effectiveAccent)

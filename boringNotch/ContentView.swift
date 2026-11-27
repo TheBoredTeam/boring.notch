@@ -45,9 +45,6 @@ struct ContentView: View {
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
     private let nowPlayingFallbackNoticeWidth: CGFloat = 330
-    /// Matches the popovers' dismiss delay; long enough to reach a control
-    /// inside the panel without closing under the pointer.
-    private let hoverExitDelayMilliseconds = 350
 
     // MARK: - Corner Radius Scaling
     private var cornerRadiusScaleFactor: CGFloat? {
@@ -334,6 +331,11 @@ struct ContentView: View {
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
                         scheduleCloseIfNotHovering(overNotch: vm)
                     }
+                    .onChange(of: vm.notchState) { _, state in
+                        if state == .open {
+                            FloatingDropTargetController.shared.notchDidOpen()
+                        }
+                    }
                     // A new notification always takes the front of the stack,
                     // even if the user had swiped away to music.
                     .onChange(of: notificationManager.activeNotification?.id) { _, newID in
@@ -396,7 +398,7 @@ struct ContentView: View {
             }
 
             anyDropDebounceTask = Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(500))
+                try? await Task.sleep(for: .milliseconds(dropEventAcknowledgementDelayMilliseconds))
                 guard !Task.isCancelled else { return }
 
                 if dropInteraction.dropEvent {
@@ -569,7 +571,7 @@ struct ContentView: View {
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
         }
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))
+        .onDrop(of: ShelfDropService.supportedContentTypes, delegate: GeneralDropTargetDelegate(isTargeted: $dropInteraction.generalDropTargeting))
     }
 
     private func nowPlayingFallbackNotice(_ notice: NowPlayingFallbackNotice) -> some View {
@@ -773,7 +775,7 @@ struct ContentView: View {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
+        .onDrop(of: ShelfDropService.supportedContentTypes, isTargeted: $dropInteraction.dragDetectorTargeting) { providers in
             dropInteraction.dropEvent = true
             ShelfStateViewModel.shared.load(providers)
             return true

@@ -15,8 +15,6 @@ final class ShelfStateViewModel: ObservableObject {
         didSet { schedulePersistence() }
     }
 
-    @Published var isLoading: Bool = false
-
     var isEmpty: Bool { items.isEmpty }
 
     // Debounced persistence
@@ -63,14 +61,23 @@ final class ShelfStateViewModel: ObservableObject {
         }
     }
 
-    func load(_ providers: [NSItemProvider]) {
-        guard !providers.isEmpty else { return }
-        isLoading = true
+    /// `completion` receives the shelf items this drop resolved to, including a file that was already shelved.
+    func load(
+        _ providers: [NSItemProvider],
+        completion: (@MainActor ([ShelfItem]) -> Void)? = nil
+    ) {
+        guard !providers.isEmpty else {
+            completion?([])
+            return
+        }
         Task { [weak self] in
             let dropped = await ShelfDropService.items(from: providers)
             await MainActor.run {
-                self?.add(dropped)
-                self?.isLoading = false
+                guard let self else { return }
+                self.add(dropped)
+                let keys = Set(dropped.map(\.identityKey))
+                let matched = self.items.filter { keys.contains($0.identityKey) }
+                completion?(matched)
             }
         }
     }

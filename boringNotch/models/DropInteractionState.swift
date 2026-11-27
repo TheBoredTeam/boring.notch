@@ -15,4 +15,11 @@ final class DropInteractionState {
     var anyDropZoneTargeting: Bool {
         dragDetectorTargeting || generalDropTargeting || dropZoneTargeting
     }
+
+    func reset() {
+        dragDetectorTargeting = false
+        generalDropTargeting = false
+        dropZoneTargeting = false
+        dropEvent = false
+    }
 }
