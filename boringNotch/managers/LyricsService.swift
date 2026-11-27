@@ -35,7 +35,9 @@ final class LyricsService: ObservableObject {
     // MARK: - Public API
 
     /// Fetches lyrics for the given track, preferring native Apple Music lyrics when available.
-    func fetchLyrics(bundleIdentifier: String?, title: String, artist: String) async {
+    /// `duration` (seconds, 0 if unknown) picks the right version of the song: lyric sites
+    /// often list several cuts with different lengths, and the wrong one throws off the timing.
+    func fetchLyrics(bundleIdentifier: String?, title: String, artist: String, duration: Double = 0) async {
         // Cancel any pending fetch
         currentFetchTask?.cancel()
 
@@ -76,7 +78,7 @@ final class LyricsService: ObservableObject {
 
             // Fallback to web
             guard !Task.isCancelled else { return }
-            let webResult = await self.fetchLyricsFromWeb(title: title, artist: artist)
+            let webResult = await self.fetchLyricsFromWeb(title: title, artist: artist, duration: duration)
 
             guard !Task.isCancelled else { return }
             await MainActor.run {
@@ -175,7 +177,7 @@ final class LyricsService: ObservableObject {
         return nil
     }
 
-    private func fetchLyricsFromWeb(title: String, artist: String) async -> (plain: String, synced: [(time: Double, text: String)]) {
+    private func fetchLyricsFromWeb(title: String, artist: String, duration: Double) async -> (plain: String, synced: [(time: Double, text: String)]) {
         let cleanTitle = normalizedQuery(title)
         let cleanArtist = normalizedQuery(artist)
 
@@ -212,7 +214,7 @@ final class LyricsService: ObservableObject {
                 }
 
                 if let jsonArray = try JSONSerialization.jsonObject(with: data) as? [[String: Any]],
-                   let first = findBestMatch(in: jsonArray, title: cleanTitle, artist: cleanArtist) {
+                   let first = findBestMatch(in: jsonArray, title: cleanTitle, artist: cleanArtist, duration: duration) {
                     let plain = (first["plainLyrics"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                     let synced = (first["syncedLyrics"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
@@ -231,7 +233,7 @@ final class LyricsService: ObservableObject {
     }
 
     /// Find the best matching result from the search results based on title similarity
-    private func findBestMatch(in results: [[String: Any]], title: String, artist: String) -> [String: Any]? {
+    private func findBestMatch(in results: [[String: Any]], title: String, artist: String, duration: Double) -> [String: Any]? {
         guard !results.isEmpty else { return nil }
 
         // If only one result, use it
@@ -242,7 +244,8 @@ final class LyricsService: ObservableObject {
 
         // Score each result and pick the best
         var bestResult: [String: Any]?
-        var bestScore = 0
+        var bestScore = Int.min
+        var bestDurationDiff = Double.infinity
 
         for result in results {
             var score = 0
@@ -273,9 +276,24 @@ final class LyricsService: ObservableObject {
                 score += 3
             }
 
-            if score > bestScore {
+            // Matching length beats everything except title/artist: a different cut of the
+            // song (extended, radio edit, live) has its lines at different times.
+            var durationDiff = Double.infinity
+            if duration > 0, let resultDuration = result["duration"] as? Double, resultDuration > 0 {
+                durationDiff = abs(resultDuration - duration)
+                if durationDiff <= 3 {
+                    score += 12
+                } else if durationDiff <= 8 {
+                    score += 6
+                } else if durationDiff > 15 {
+                    score -= 10
+                }
+            }
+
+            if score > bestScore || (score == bestScore && durationDiff < bestDurationDiff) {
                 bestScore = score
                 bestResult = result
+                bestDurationDiff = durationDiff
             }
         }
 

@@ -16,6 +16,9 @@ final class VolumeManager: NSObject, ObservableObject {
     @Published private(set) var rawVolume: Float = 0
     @Published private(set) var isMuted: Bool = false
     @Published private(set) var lastChangeAt: Date = .distantPast
+    /// False when the output device exposes no volume scalar (e.g. some HDMI/USB DACs),
+    /// so `rawVolume` is meaningless and consumers should ignore it.
+    @Published private(set) var hasVolumeControl: Bool = true
 
     let visibleDuration: TimeInterval = 1.2
 
@@ -202,8 +205,10 @@ final class VolumeManager: NSObject, ObservableObject {
         snapshot = snap
 
         let supports = snap.supportsMute
+        let hasVolume = !snap.volumeElements.isEmpty
         DispatchQueue.main.async { [self] in
             deviceSupportsMute = supports
+            hasVolumeControl = hasVolume
         }
 
         guard deviceID != kAudioObjectUnknown else { return }

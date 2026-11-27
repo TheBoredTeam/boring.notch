@@ -63,6 +63,7 @@ final class MusicManager: ObservableObject {
 
     private var controllerCancellables = Set<AnyCancellable>()
     private var averageColorTask: Task<Void, Never>?
+    private var lyricsSettingsCancellables = Set<AnyCancellable>()
     private var debounceIdleTask: Task<Void, Never>?
     private var availabilityTask: Task<Void, Never>?
     private var runtimeFailureTask: Task<Void, Never>?
@@ -89,6 +90,10 @@ final class MusicManager: ObservableObject {
     @Published var isPlayerIdle: Bool = true
     @Published var animations: BoringAnimations = .init()
     @Published var avgColor: NSColor = .white
+    /// Dominant saturated colour of the artwork; nil when the art is essentially monochrome.
+    @Published var vibrantColor: NSColor?
+    /// A second, clearly different artwork colour (nil if the art is basically one colour).
+    @Published var vibrantSecondaryColor: NSColor?
     @Published var bundleIdentifier: String?
     @Published var audioCaptureBundleIdentifiers: [String] = []
     @Published var songDuration: TimeInterval = 0
@@ -134,6 +139,28 @@ final class MusicManager: ObservableObject {
         } else {
             activateControllerIfNeeded(preferredMediaController)
         }
+        observeLyricsSettings()
+    }
+
+    /// Lyrics are needed for the open notch *or* the closed-notch visualizer.
+    static var lyricsWanted: Bool {
+        Defaults[.enableLyrics] || (Defaults[.showNotchVisualizer] && Defaults[.notchVisualizerLyrics])
+    }
+
+    /// Fetch (or clear) lyrics for the current track as soon as a lyrics setting changes,
+    /// instead of waiting for the next track.
+    private func observeLyricsSettings() {
+        let refetch: (Any) -> Void = { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                self.fetchLyricsIfAvailable(
+                    bundleIdentifier: self.bundleIdentifier, title: self.songTitle, artist: self.artistName,
+                    duration: self.songDuration)
+            }
+        }
+        Defaults.publisher(.enableLyrics, options: []).sink(receiveValue: refetch).store(in: &lyricsSettingsCancellables)
+        Defaults.publisher(.showNotchVisualizer, options: []).sink(receiveValue: refetch).store(in: &lyricsSettingsCancellables)
+        Defaults.publisher(.notchVisualizerLyrics, options: []).sink(receiveValue: refetch).store(in: &lyricsSettingsCancellables)
     }
 
     private static func migrateMediaControllerPreferenceIfNeeded() {
@@ -403,6 +430,8 @@ final class MusicManager: ObservableObject {
         isPlaying = false
         isPlayerIdle = true
         avgColor = .white
+        vibrantColor = nil
+        vibrantSecondaryColor = nil
         bundleIdentifier = nil
         audioCaptureBundleIdentifiers = []
         songDuration = 0
@@ -531,7 +560,9 @@ final class MusicManager: ObservableObject {
             }
 
             // Fetch lyrics on content change
-            self.fetchLyricsIfAvailable(bundleIdentifier: state.bundleIdentifier, title: state.title, artist: state.artist)
+            self.fetchLyricsIfAvailable(
+                bundleIdentifier: state.bundleIdentifier, title: state.title, artist: state.artist,
+                duration: state.duration)
         }
 
         let timeChanged = state.currentTime != self.elapsedTime
@@ -624,8 +655,8 @@ final class MusicManager: ObservableObject {
     }
 
     // MARK: - Lyrics
-    private func fetchLyricsIfAvailable(bundleIdentifier: String?, title: String, artist: String) {
-        guard Defaults[.enableLyrics], !title.isEmpty else {
+    private func fetchLyricsIfAvailable(bundleIdentifier: String?, title: String, artist: String, duration: Double) {
+        guard Self.lyricsWanted, !title.isEmpty else {
             Task { @MainActor in
                 lyricsService.clearLyrics()
             }
@@ -633,7 +664,8 @@ final class MusicManager: ObservableObject {
         }
 
         Task { @MainActor in
-            await lyricsService.fetchLyrics(bundleIdentifier: bundleIdentifier, title: title, artist: artist)
+            await lyricsService.fetchLyrics(
+                bundleIdentifier: bundleIdentifier, title: title, artist: artist, duration: duration)
         }
     }
 
@@ -709,6 +741,7 @@ final class MusicManager: ObservableObject {
         let artwork = albumArt
         averageColorTask = Task { [weak self, artwork] in
             let color = await artwork.averageColor()
+            let vibrant = await artwork.vibrantColors()
             guard !Task.isCancelled,
                   let self,
                   self.albumArt === artwork else {
@@ -717,6 +750,8 @@ final class MusicManager: ObservableObject {
 
             withAnimation(.smooth) {
                 self.avgColor = color ?? .white
+                self.vibrantColor = vibrant?.primary
+                self.vibrantSecondaryColor = vibrant?.secondary
             }
         }
     }

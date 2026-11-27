@@ -38,6 +38,10 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.showNotchVisualizer) var showNotchVisualizer
+    @Default(.notchVisualizerBreathing) var notchBreathing
+    @Default(.realtimeAudioWaveform) var realtimeAudioWaveform
+    @ObservedObject var audioCapture = AudioCaptureManager.shared
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -75,6 +79,16 @@ struct ContentView: View {
             return displayClosedNotchHeight > 0 ? baseClosedTop : 0
         }
         return max(0, baseClosedTop * scaleFactor)
+    }
+
+    /// Bars show only for the small notch, while real-time audio capture is running.
+    private var showBarsVisualizer: Bool {
+        showNotchVisualizer && realtimeAudioWaveform && audioCapture.isCapturing
+            && vm.notchState == .closed && !isHovering && musicManager.isPlaying && !vm.hideOnClosed
+    }
+
+    private var barsHorizontalInset: CGFloat {
+        topCornerRadius + cornerRadiusInsets.closed.bottom * (cornerRadiusScaleFactor ?? 1)
     }
 
     private var currentNotchShape: NotchShape {
@@ -301,6 +315,19 @@ struct ContentView: View {
                             // open/close springs below keep precedence.
                             .animation(.smooth(duration: 0.3), value: closedNotchContent)
                     }
+                    .overlay(alignment: .bottom) {
+                        if showBarsVisualizer {
+                            NotchBarsVisualizer()
+                                // Stay within the flat bottom edge, not the rounded corners.
+                                .padding(.horizontal, barsHorizontalInset)
+                                // Top of the frame sits 1pt above the notch's bottom edge.
+                                .offset(y: NotchBarsVisualizer.totalHeight - 1)
+                                .allowsHitTesting(false)
+                                .transition(.opacity)
+                        }
+                    }
+                    .animation(.easeInOut(duration: 0.25), value: showBarsVisualizer)
+                    .modifier(NotchBreathing(active: showBarsVisualizer && notchBreathing, shape: currentNotchShape))
                     .contentShape(Rectangle())
                     .onHover { hovering in
                         handleHover(hovering)
