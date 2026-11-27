@@ -21,8 +21,8 @@ as a stream of JSON lines on stdout.
 
 ## Pinned version
 
-- **Upstream tag: `v0.7.7`**
-  (commit [`e3ff502`](https://github.com/ungive/mediaremote-adapter/commit/e3ff502))
+- **Upstream tag: `v0.9.0`**
+  (commit [`2ef957c`](https://github.com/ungive/mediaremote-adapter/commit/2ef957c))
 - Previously pinned at `v0.7.2` (commit `61487af`, 2025-08-14); artifacts were
   updated to an untagged post-`v0.7.3` build in `1600df61` before this pin was
   corrected.
@@ -31,9 +31,8 @@ as a stream of JSON lines on stdout.
 - The framework binary reports `CFBundleShortVersionString = 0.1`
   (upstream does not sync this with release tags; the script match is the
   authoritative pin).
-- The binaries are built from upstream source with CMake
-  (`cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build`) and
-  ad-hoc signed; see "Signing caveat" below.
+- The binaries are built from upstream tagged source with Apple Clang for
+  arm64 and x86_64 and ad-hoc signed; see "Signing caveat" below.
 
 ## Updating to a new upstream release
 
@@ -57,8 +56,7 @@ as a stream of JSON lines on stdout.
 
 ## Signing caveat
 
-The checked-in binaries were built on a maintainer's machine and are ad-hoc
-signed (`codesign -dv` shows `Signature=adhoc`). They are **not**
+The checked-in binaries are ad-hoc signed (`codesign -dv` shows `Signature=adhoc`). They are **not**
 independently verifiable bit-for-bit against the upstream source. Until the
 build is wired to fetch pinned upstream release artifacts (with SHA-256
 verification) instead of committing binaries, treat this directory as

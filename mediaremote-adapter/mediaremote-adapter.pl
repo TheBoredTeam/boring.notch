@@ -47,6 +47,11 @@ PARAMS:
 
 OPTIONS:
   get
+    --bundle-id=ID: Reads the now playing information of the application
+      with the given bundle identifier or parent application bundle
+      identifier, even when another application is the now playing
+      application. Prints a list with one dictionary for each matching
+      application, which is empty when no application matches.
     --now: Adds an "elapsedTimeNow" key with an estimation of the current
       elapsed playback time. This estimation may be off by up to a second.
       To determine a more accurate time without polling "get" continuously,
@@ -71,6 +76,8 @@ OPTIONS:
     --human-readable, -h: Makes values human-readable. Use only for debugging.
       The JSON output is pretty-printed and the following keys are adapted:
       "artworkData" -> Binary data is truncated to a shorter representation
+  send
+    --force, -f: Skip validation and always try to send the command
 
 Examples (script name and framework path omitted):
   stream --no-diff --debounce=100
@@ -186,6 +193,15 @@ sub set_env_option_value {
 
 my $symbol_name = "adapter_$function_name";
 if ($function_name eq "send") {
+  my $options = parse_options(0);
+  foreach my $key (keys %{$options}) {
+    if ($key eq "force" || $key eq "f") {
+      set_env_option($options, "force");
+    }
+    else {
+      fail "Unrecognized option '$key'";
+    }
+  }
   my $id = shift @ARGV;
   fail "Missing ID for '$function_name' command" unless defined $id;
   set_env_param($symbol_name, 0, "command", "$id");
@@ -238,6 +254,9 @@ elsif ($function_name eq "get") {
     }
     elsif ($key eq "now") {
       set_env_option($options, $key);
+    }
+    elsif ($key eq "bundle-id") {
+      set_env_option_value($options, $key);
     }
     else {
       fail "Unrecognized option '$key'";
