@@ -5,6 +5,12 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
+import AppKit
+import AVFoundation
+import Defaults
+import EventKit
+import KeyboardShortcuts
+import LaunchAtLogin
 import Sparkle
 import SwiftUI
 import SwiftUIIntrospect

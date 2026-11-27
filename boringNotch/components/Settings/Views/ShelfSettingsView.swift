@@ -5,6 +5,7 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
+import AppKit
 import Defaults
 import SwiftUI
 
@@ -12,10 +13,54 @@ struct ShelfSettingsView: View {
     @Default(.shelfTapToOpen) var shelfTapToOpen: Bool
     @Default(.quickShareProvider) var quickShareProvider
     @Default(.expandedDragDetection) var expandedDragDetection: Bool
+    @Default(.linkedShelfFolderBookmark) var linkedShelfFolderBookmark
+    @Default(.linkedShelfRecentItemLimit) var linkedShelfRecentItemLimit
+    @Default(.shelfIconSize) var shelfIconSize
+    @Default(.shelfTextSize) var shelfTextSize
+    @Default(.shelfLabelLineCount) var shelfLabelLineCount
+    @Default(.showRecentShelfItemOnHome) var showRecentShelfItemOnHome
     @StateObject private var quickShareService = QuickShareService.shared
 
     private var selectedProvider: QuickShareProvider? {
         quickShareService.availableProviders.first(where: { $0.id == quickShareProvider })
+    }
+
+    init() {
+        Task { await QuickShareService.shared.discoverAvailableProviders() }
+    }
+
+    private var linkedFolderURL: URL? {
+        guard let data = linkedShelfFolderBookmark else { return nil }
+        return Bookmark(data: data).resolvedURL
+    }
+
+    private var linkedFolderLabel: String {
+        linkedFolderURL?.lastPathComponent ?? "No folder selected"
+    }
+
+    private func chooseLinkedFolder() {
+        let panel = NSOpenPanel()
+        panel.title = "Choose Linked Folder"
+        panel.prompt = "Select"
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.canCreateDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.begin { response in
+            guard response == .OK, let url = panel.url else { return }
+            do {
+                let bookmark = try Bookmark(url: url)
+                linkedShelfFolderBookmark = bookmark.data
+                ShelfStateViewModel.shared.refreshLinkedItems()
+            } catch {
+                print("Failed to create bookmark for linked folder: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    private func clearLinkedFolder() {
+        linkedShelfFolderBookmark = nil
+        ShelfStateViewModel.shared.refreshLinkedItems()
     }
 
     var body: some View {
@@ -26,6 +71,12 @@ struct ShelfSettingsView: View {
                 }
                 Defaults.Toggle(key: .openShelfByDefault) {
                     Text("Open shelf by default if items are present")
+                }
+                Defaults.Toggle(key: .showRecentShelfItemOnHome) {
+                    Text("Show most recent shelf item on Home view")
+                }
+                Defaults.Toggle(key: .reverseShelfOrdering) {
+                    Text("Keep newer shelf items in front")
                 }
                 Defaults.Toggle(key: .expandedDragDetection) {
                     Text("Expanded drag detection area")
@@ -42,11 +93,58 @@ struct ShelfSettingsView: View {
                 Defaults.Toggle(key: .autoRemoveShelfItems) {
                     Text("Remove from shelf after dragging")
                 }
-                Defaults.Toggle(key: .reverseShelfOrdering) {
-                    Text("Keep newer shelf items in front")
+
+            } header: {
+                HStack {
+                    Text("General")
+                }
+            }
+
+            Section {
+                HStack {
+                    Text("Linked folder")
+                    Spacer()
+                    Text(linkedFolderLabel)
+                        .foregroundStyle(.secondary)
+                }
+                HStack {
+                    Button("Choose Folder") {
+                        chooseLinkedFolder()
+                    }
+                    if linkedShelfFolderBookmark != nil {
+                        Button("Clear") {
+                            clearLinkedFolder()
+                        }
+                    }
+                }
+                Stepper(value: $linkedShelfRecentItemLimit, in: 1...50, step: 1) {
+                    Text("Recent items: \(linkedShelfRecentItemLimit)")
+                }
+                .disabled(linkedShelfFolderBookmark == nil)
+            } header: {
+                HStack {
+                    Text("Linked Folder")
+                }
+            } footer: {
+                Text("Shows the most recent items from the selected folder.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            Section {
+                Slider(value: $shelfIconSize, in: 40...96, step: 2) {
+                    Text("Icon size - \(shelfIconSize, specifier: "%.0f")")
+                }
+                Slider(value: $shelfTextSize, in: 10...18, step: 1) {
+                    Text("Label text size - \(shelfTextSize, specifier: "%.0f")")
+                }
+                Stepper(value: $shelfLabelLineCount, in: 1...2, step: 1) {
+                    Text("Label rows: \(shelfLabelLineCount)")
                 }
             } header: {
-                Text("General")
+                HStack {
+                    Text("Appearance")
+                }
             }
 
             Section {
@@ -56,7 +154,8 @@ struct ShelfSettingsView: View {
                             Group {
                                 if let icon = quickShareService.icon(for: provider.id, size: 16) {
                                     Image(nsImage: icon)
-                                        .resizable().scaledToFit()
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
                                 } else {
                                     Image(systemName: "square.and.arrow.up")
                                 }
@@ -75,7 +174,8 @@ struct ShelfSettingsView: View {
                         Group {
                             if let icon = quickShareService.icon(for: selectedProvider.id, size: 16) {
                                 Image(nsImage: icon)
-                                    .resizable().scaledToFit()
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
                             } else {
                                 Image(systemName: "square.and.arrow.up")
                             }
@@ -102,6 +202,12 @@ struct ShelfSettingsView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+        }
+        .onChange(of: linkedShelfFolderBookmark) {
+            ShelfStateViewModel.shared.refreshLinkedItems()
+        }
+        .onChange(of: linkedShelfRecentItemLimit) {
+            ShelfStateViewModel.shared.refreshLinkedItems()
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Shelf")

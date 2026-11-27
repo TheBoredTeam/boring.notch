@@ -24,7 +24,16 @@ actor ThumbnailService {
     }
 
     func thumbnail(for url: URL, size: CGSize) async -> CGImage? {
-        let cacheKey = url.path as NSString
+        return await thumbnail(for: url, size: size, iconMode: true)
+    }
+
+    func previewThumbnail(for url: URL, size: CGSize) async -> CGImage? {
+        return await thumbnail(for: url, size: size, iconMode: false)
+    }
+
+    private func thumbnail(for url: URL, size: CGSize, iconMode: Bool) async -> CGImage? {
+        let modeKey = iconMode ? "icon" : "preview"
+        let cacheKey = "\(url.path)_\(modeKey)_\(size.width)x\(size.height)" as NSString
 
         if let cachedImage = cache.object(forKey: cacheKey) {
             return cachedImage
@@ -37,7 +46,7 @@ actor ThumbnailService {
 
         let task = Task<CGImage?, Never> {
             // Generate image directly
-            let sendableImage = await generateQuickLookThumbnail(for: url, size: size)
+            let sendableImage = await generateQuickLookThumbnail(for: url, size: size, iconMode: iconMode)
 
             if let validImage = sendableImage {
                 cache.setObject(validImage, forKey: cacheKey)
@@ -59,7 +68,7 @@ actor ThumbnailService {
         cache.removeObject(forKey: url.path as NSString)
     }
 
-    private func generateQuickLookThumbnail(for url: URL, size: CGSize) async -> CGImage? {
+    private func generateQuickLookThumbnail(for url: URL, size: CGSize, iconMode: Bool) async -> CGImage? {
         let scale = await MainActor.run { NSScreen.main?.backingScaleFactor ?? 2.0 }
 
         return await url.accessSecurityScopedResource { scopedURL -> CGImage? in
@@ -69,7 +78,7 @@ actor ThumbnailService {
                 scale: scale,
                 representationTypes: .all
             )
-            request.iconMode = true
+            request.iconMode = iconMode
 
             let representation = try? await thumbnailGenerator.generateBestRepresentation(for: request)
             guard let rep = representation else { return nil }

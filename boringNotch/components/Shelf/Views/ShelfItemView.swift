@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Defaults
 
 struct ShelfItemView: View {
     let item: ShelfItem
@@ -14,6 +15,9 @@ struct ShelfItemView: View {
     @StateObject private var viewModel: ShelfItemViewModel
     @State private var selectionState: ShelfItemSelectionState
     @State private var debouncedDropTarget = false
+    @Default(.shelfIconSize) private var shelfIconSize
+    @Default(.shelfTextSize) private var shelfTextSize
+    @Default(.shelfLabelLineCount) private var shelfLabelLineCount
 
     private var isSelected: Bool { selectionState.isSelected }
 
@@ -111,13 +115,32 @@ struct ShelfItemView: View {
     }
 
     private var textView: some View {
-        Text(item.displayName)
-            .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(.primary)
-            .lineLimit(2)
-            .truncationMode(.middle)
-            .multilineTextAlignment(.center)
-            .frame(height: 30, alignment: .top)
+        ShelfLabelText(
+            text: item.displayName,
+            fontSize: shelfTextSize,
+            lineLimit: shelfLabelLineCount,
+            textColor: .labelColor,
+            maxWidth: labelWidth,
+            maxHeight: labelHeight
+        )
+        .frame(width: labelWidth, height: labelHeight, alignment: .top)
+    }
+
+    private var itemWidth: CGFloat {
+        max(84, shelfIconSize + 36)
+    }
+
+    private var labelWidth: CGFloat {
+        itemWidth - 10
+    }
+
+    private var labelHeight: CGFloat {
+        let lineHeight = NSFont.systemFont(ofSize: shelfTextSize, weight: .medium).shelfLineHeight
+        return ceil(lineHeight * CGFloat(max(1, shelfLabelLineCount)) + 6)
+    }
+
+    private var iconCornerRadius: CGFloat {
+        max(8, shelfIconSize * 0.22)
     }
 
     private var backgroundView: some View {
@@ -131,10 +154,10 @@ struct ShelfItemView: View {
                     )
             )
     }
+}
 
-    private struct HighlightPresentation {
-        let fill: Color
-        let stroke: Color
-        let lineWidth: CGFloat
-    }
+private struct HighlightPresentation {
+    let fill: Color
+    let stroke: Color
+    let lineWidth: CGFloat
 }

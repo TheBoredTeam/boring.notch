@@ -13,11 +13,14 @@ struct ShelfView: View {
     let dropInteraction: DropInteractionState
     let animation: Animation?
     @StateObject var shelfState = ShelfStateViewModel.shared
+    @Default(.linkedShelfFolderBookmark) private var linkedShelfFolderBookmark
+    @Default(.linkedShelfRecentItemLimit) private var linkedShelfRecentItemLimit
 
     private let spacing: CGFloat = 8
 
     private var displayedItems: [ShelfItem] {
-        Defaults[.reverseShelfOrdering] ? Array(shelfState.items.reversed()) : shelfState.items
+        let base = shelfState.displayItems
+        return Defaults[.reverseShelfOrdering] ? Array(base.reversed()) : base
     }
 
     var body: some View {
@@ -32,6 +35,13 @@ struct ShelfView: View {
                         handleDrop(providers: providers)
                     }
             }
+        }
+        .onAppear { shelfState.refreshLinkedItems() }
+        .onChange(of: linkedShelfFolderBookmark) { _, _ in
+            shelfState.refreshLinkedItems()
+        }
+        .onChange(of: linkedShelfRecentItemLimit) { _, _ in
+            shelfState.refreshLinkedItems()
         }
     }
 
