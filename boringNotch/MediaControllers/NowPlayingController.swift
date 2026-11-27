@@ -243,12 +243,26 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
         newPlaybackState.album = payload.album ?? (diff ? self.playbackState.album : "")
         newPlaybackState.duration = payload.duration ?? (diff ? self.playbackState.duration : 0)
 
+        // (currentTime, lastUpdated) is a pair: the position and the moment it was true.
+        // Consumers extrapolate from it, so both halves must always change together.
+        let now = Date()
+        let wasPlaying = self.playbackState.isPlaying
+        // A bare play/pause event (no position attached) must rebase the pair to "now",
+        // otherwise resuming pairs the paused position with the pre-pause timestamp and
+        // the estimate jumps ahead by the whole pause.
+        var rebaseToNow = false
         if let elapsedTime = payload.elapsedTime {
             newPlaybackState.currentTime = elapsedTime
         } else if diff {
-            if payload.playing == false {
-                let timeSinceLastUpdate = Date().timeIntervalSince(self.playbackState.lastUpdated)
+            if payload.playing == false && wasPlaying {
+                // Pausing: freeze at where playback actually got to.
+                let timeSinceLastUpdate = now.timeIntervalSince(self.playbackState.lastUpdated)
                 newPlaybackState.currentTime = self.playbackState.currentTime + (self.playbackState.playbackRate * timeSinceLastUpdate)
+                rebaseToNow = true
+            } else if payload.playing == true && !wasPlaying {
+                // Resuming: continue from the frozen position starting now.
+                newPlaybackState.currentTime = self.playbackState.currentTime
+                rebaseToNow = true
             } else {
                 newPlaybackState.currentTime = self.playbackState.currentTime
             }
@@ -281,11 +295,18 @@ final class NowPlayingController: NowPlayingRuntimeControlling {
             newPlaybackState.artwork = self.playbackState.artwork
         }
 
-        if let dateString = payload.timestamp,
+        if rebaseToNow {
+            newPlaybackState.lastUpdated = now
+        } else if let dateString = payload.timestamp,
            let date = ISO8601DateFormatter().date(from: dateString) {
-            newPlaybackState.lastUpdated = date
-        } else if !diff {
-            newPlaybackState.lastUpdated = Date()
+            // The adapter's timestamps are truncated to whole seconds. For an update that
+            // just happened, our receive time is far more precise (up to 1s better sync);
+            // older timestamps (e.g. a replayed initial payload) are kept as-is.
+            let age = now.timeIntervalSince(date)
+            newPlaybackState.lastUpdated = (payload.elapsedTime != nil && age >= 0 && age < 1.25) ? now : date
+        } else if !diff || payload.elapsedTime != nil {
+            // A fresh position with no timestamp is true as of now.
+            newPlaybackState.lastUpdated = now
         } else {
             newPlaybackState.lastUpdated = self.playbackState.lastUpdated
         }
