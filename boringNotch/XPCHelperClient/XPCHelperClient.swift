@@ -78,6 +78,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
                 self.remoteService = nil
                 self.helperAvailable = false
                 self.lastError = .unavailable
+                NotificationCenter.default.post(name: .xpcHelperConnectionLost, object: nil)
             }
         }
 
@@ -88,6 +89,7 @@ final class XPCHelperClient: NSObject, ObservableObject {
                 self.remoteService = nil
                 self.helperAvailable = false
                 self.lastError = .unavailable
+                NotificationCenter.default.post(name: .xpcHelperConnectionLost, object: nil)
             }
         }
 
@@ -455,4 +457,7 @@ extension XPCHelperClient {
 
 extension Notification.Name {
     static let systemNotificationDidAppear = Notification.Name("systemNotificationDidAppear")
+    /// Posted when the helper crashed or was killed. Its state, such as the
+    /// banner watcher, is gone; the next call relaunches a fresh helper.
+    static let xpcHelperConnectionLost = Notification.Name("xpcHelperConnectionLost")
 }
