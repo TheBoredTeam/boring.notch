@@ -3094,6 +3094,9 @@
         }
       }
     },
+    "Bars hang below the closed notch while music plays. Requires real-time audio waveform." : {
+
+    },
     "Battery" : {
       "localizations" : {
         "cs" : {
@@ -26198,6 +26201,9 @@
           }
         }
       }
+    },
+    "Show audio visualizer under the notch" : {
+
     },
     "Show battery indicator" : {
       "localizations" : {

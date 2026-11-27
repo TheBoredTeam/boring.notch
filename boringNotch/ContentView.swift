@@ -39,6 +39,7 @@ struct ContentView: View {
 
     @Default(.showNotHumanFace) var showNotHumanFace
     @Default(.showNotchVisualizer) var showNotchVisualizer
+    @Default(.notchVisualizerBreathing) var notchBreathing
     @Default(.realtimeAudioWaveform) var realtimeAudioWaveform
     @ObservedObject var audioCapture = AudioCaptureManager.shared
 
@@ -319,12 +320,14 @@ struct ContentView: View {
                             NotchBarsVisualizer()
                                 // Stay within the flat bottom edge, not the rounded corners.
                                 .padding(.horizontal, barsHorizontalInset)
-                                .offset(y: 15)
+                                // Top of the frame sits 1pt above the notch's bottom edge.
+                                .offset(y: NotchBarsVisualizer.totalHeight - 1)
                                 .allowsHitTesting(false)
                                 .transition(.opacity)
                         }
                     }
                     .animation(.easeInOut(duration: 0.25), value: showBarsVisualizer)
+                    .modifier(NotchBreathing(active: showBarsVisualizer && notchBreathing, shape: currentNotchShape))
                     .contentShape(Rectangle())
                     .onHover { hovering in
                         handleHover(hovering)

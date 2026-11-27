@@ -133,15 +133,6 @@ struct MediaSettingsView: View {
                     }
                 }
                 .disabled(!realtimeAudioWaveformSupported)
-                Defaults.Toggle(key: .showNotchVisualizer) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Show audio visualizer under the notch")
-                        Text("Bars hang below the closed notch while music plays. Requires real-time audio waveform.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .disabled(!realtimeAudioWaveformSupported)
                 Defaults.Toggle(key: .playerColorTinting) {
                     Text("Player tinting")
                 }

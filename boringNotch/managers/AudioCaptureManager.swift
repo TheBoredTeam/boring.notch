@@ -24,6 +24,8 @@ final class AudioCaptureManager: ObservableObject {
     static let shared = AudioCaptureManager()
 
     static let barCount = 6
+    /// Finer, un-normalised band feed for the notch visualizer (see `latestDetailedBandsDB`).
+    static let detailBandCount = 24
     private static let fftSize = 1024
     private static let log2n: vDSP_Length = 10
     private static let ringCapacity = 4096
@@ -56,6 +58,7 @@ final class AudioCaptureManager: ObservableObject {
     private let levelsConsumerLock = OSAllocatedUnfairLock()
     private let levelsConsumers = NSHashTable<AnyObject>.weakObjects()
     private var latestLevels: [Float]?
+    private var latestDetailDB: [Float]?
 
     /// If setup fails (essentially impossible on real hardware) the FFT path
     /// degrades to flat bars instead of taking down the whole app.
@@ -72,6 +75,9 @@ final class AudioCaptureManager: ObservableObject {
     private var lastPublishedBuf: [Float]
     private var bandRanges: [Range<Int>] = []
     private var pinkCompensationDB: [Float] = []
+    private var detailRanges: [Range<Int>] = []
+    private var detailPinkDB: [Float] = []
+    private var detailBuf: [Float]
 
     private let fftQueue = DispatchQueue(label: "com.boringnotch.audiocapture.fft", qos: .userInitiated)
     private let ioQueue = DispatchQueue(label: "com.boringnotch.audiocapture.io", qos: .userInteractive)
@@ -101,6 +107,7 @@ final class AudioCaptureManager: ObservableObject {
         powBuf = [Float](repeating: 0, count: Self.fftSize / 2)
         smoothed = [Float](repeating: 0, count: Self.barCount)
         barsBuf = [Float](repeating: 0, count: Self.barCount)
+        detailBuf = [Float](repeating: -120, count: Self.detailBandCount)
         // Seed with a sentinel so the first real frame always publishes.
         lastPublishedBuf = [Float](repeating: -1, count: Self.barCount)
 
@@ -136,6 +143,14 @@ final class AudioCaptureManager: ObservableObject {
         levelsConsumerLock.lock()
         defer { levelsConsumerLock.unlock() }
         return latestLevels
+    }
+
+    /// `detailBandCount` log-spaced bands (low → high), in pink-compensated dBFS, with no
+    /// clamping or smoothing — callers do their own gain control. Nil when not capturing.
+    func latestDetailedBandsDB() -> [Float]? {
+        levelsConsumerLock.lock()
+        defer { levelsConsumerLock.unlock() }
+        return latestDetailDB
     }
 
     func requestAudioCapturePermission() async -> Bool {
@@ -240,6 +255,10 @@ final class AudioCaptureManager: ObservableObject {
                 pids.insert(app.processIdentifier)
             }
         }
+
+        // Browsers play audio from helper processes (e.g. com.google.Chrome.helper,
+        // com.apple.WebKit.GPU for Safari), which a bundle-ID lookup of the app misses.
+        pids.formUnion(audioHelperPIDs(forBundleIDs: bundleIDs))
 
         if pids.isEmpty {
             return NSRunningApplication
@@ -575,6 +594,9 @@ final class AudioCaptureManager: ObservableObject {
             barsBuf[i] = 0
             lastPublishedBuf[i] = -1
         }
+        levelsConsumerLock.lock()
+        latestDetailDB = nil
+        levelsConsumerLock.unlock()
     }
 
     private func teardownCapture() {
@@ -719,6 +741,20 @@ final class AudioCaptureManager: ObservableObject {
         }
         vDSP.multiply(windowPowerScalar, powBuf, result: &powBuf)
 
+        powBuf.withUnsafeBufferPointer { pPtr in
+            guard let base = pPtr.baseAddress else { return }
+            for i in 0..<Self.detailBandCount {
+                let range = detailRanges[i]
+                guard !range.isEmpty else { detailBuf[i] = -120; continue }
+                var sum: Float = 0
+                vDSP_sve(base.advanced(by: range.lowerBound), 1, &sum, vDSP_Length(range.count))
+                detailBuf[i] = 10 * log10f(max(sum / Float(range.count), 1e-12)) + detailPinkDB[i]
+            }
+        }
+        levelsConsumerLock.lock()
+        latestDetailDB = detailBuf
+        levelsConsumerLock.unlock()
+
         let floorDB = Self.floorDB
         let ceilDB = Self.ceilDB
         let dbRange = ceilDB - floorDB
@@ -808,6 +844,8 @@ final class AudioCaptureManager: ObservableObject {
         guard maxHz > minHz else {
             bandRanges = Array(repeating: 0..<0, count: Self.barCount)
             pinkCompensationDB = Array(repeating: 0, count: Self.barCount)
+            detailRanges = Array(repeating: 0..<0, count: Self.detailBandCount)
+            detailPinkDB = Array(repeating: 0, count: Self.detailBandCount)
             return
         }
         let logMin = log(minHz)
@@ -825,6 +863,25 @@ final class AudioCaptureManager: ObservableObject {
         }
         bandRanges = ranges
         pinkCompensationDB = pinks
+
+        // Detail bands: log-spaced from ~45 Hz, but each band gets at least one bin of its
+        // own so the low end doesn't repeat the same FFT bin across several bars.
+        let detailMinHz: Double = 45
+        let logDetailMin = log(detailMinHz)
+        var detail: [Range<Int>] = []
+        var detailPinks: [Float] = []
+        var nextBin = 1
+        for i in 0..<Self.detailBandCount {
+            let endHz = exp(logDetailMin + (logMax - logDetailMin) * Double(i + 1) / Double(Self.detailBandCount))
+            let startBin = min(nextBin, halfN - 1)
+            let endBin = max(startBin + 1, min(halfN, Int((endHz / nyquist) * Double(halfN))))
+            detail.append(startBin..<endBin)
+            nextBin = endBin
+            let centerHz = (Double(startBin + endBin) / 2) / Double(halfN) * nyquist
+            detailPinks.append(Float(Self.pinkCompensationSlopePerOctave * log2(max(centerHz, 1) / Self.referenceHz)))
+        }
+        detailRanges = detail
+        detailPinkDB = detailPinks
     }
 
     private func validateTapFormat(_ format: AudioStreamBasicDescription) -> Bool {
@@ -858,6 +915,44 @@ final class AudioCaptureManager: ObservableObject {
         )
         guard status == noErr, processObject != kAudioObjectUnknown else { return nil }
         return processObject
+    }
+
+    /// PIDs of audio processes whose bundle ID is a child of one of `bundleIDs`
+    /// (`<bundleID>.helper…`), plus Safari's WebKit audio processes.
+    private func audioHelperPIDs(forBundleIDs bundleIDs: [String]) -> [pid_t] {
+        var prefixes = bundleIDs.map { $0 + "." }
+        if bundleIDs.contains("com.apple.Safari") {
+            prefixes.append("com.apple.WebKit.")
+        }
+
+        var addr = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyProcessObjectList,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        var size: UInt32 = 0
+        guard AudioObjectGetPropertyDataSize(AudioObjectID(kAudioObjectSystemObject), &addr, 0, nil, &size) == noErr,
+              size > 0 else { return [] }
+        var objects = [AudioObjectID](repeating: 0, count: Int(size) / MemoryLayout<AudioObjectID>.size)
+        guard AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &addr, 0, nil, &size, &objects) == noErr
+        else { return [] }
+
+        var pids: [pid_t] = []
+        for object in objects {
+            guard let bundleID = getAudioObjectStringProperty(objectID: object, selector: kAudioProcessPropertyBundleID),
+                  prefixes.contains(where: { bundleID.hasPrefix($0) }) else { continue }
+            var pid: pid_t = 0
+            var pidSize = UInt32(MemoryLayout<pid_t>.size)
+            var pidAddr = AudioObjectPropertyAddress(
+                mSelector: kAudioProcessPropertyPID,
+                mScope: kAudioObjectPropertyScopeGlobal,
+                mElement: kAudioObjectPropertyElementMain
+            )
+            if AudioObjectGetPropertyData(object, &pidAddr, 0, nil, &pidSize, &pid) == noErr, pid > 0 {
+                pids.append(pid)
+            }
+        }
+        return pids
     }
 
     private func getAudioObjectStringProperty(

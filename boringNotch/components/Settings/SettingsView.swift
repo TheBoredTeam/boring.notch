@@ -14,6 +14,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     case notch
     case appearance
     case media
+    case visualizer
     case calendar
     case shelf
     case mirror
@@ -36,6 +37,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .notch: "Notch"
         case .appearance: "Appearance"
         case .media: "Media"
+        case .visualizer: "Visualizer"
         case .calendar: "Calendar"
         case .shelf: "Shelf"
         case .mirror: "Mirror"
@@ -53,6 +55,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .notch: .custom("notch")
         case .appearance: .system("paintbrush")
         case .media: .system("play.rectangle")
+        case .visualizer: .system("waveform")
         case .calendar: .system("calendar")
         case .shelf: .system("tray.and.arrow.down")
         case .mirror: .system("video")
@@ -99,6 +102,8 @@ struct SettingsView: View {
                     AppearanceSettingsView()
                 case .media:
                     MediaSettingsView()
+                case .visualizer:
+                    VisualizerSettingsView()
                 case .notifications:
                     NotificationSettingsView()
                 case .calendar:

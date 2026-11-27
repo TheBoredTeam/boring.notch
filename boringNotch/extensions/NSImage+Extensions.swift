@@ -136,6 +136,105 @@ extension NSImage {
         return AverageColorComponents(red: rgb.0 + match, green: rgb.1 + match, blue: rgb.2 + match)
     }
 
+    /// The most prominent *colourful* hue in the image (saturated, reasonably bright pixels
+    /// win), unlike `averageColor()` which blends everything toward grey. Returns nil for
+    /// essentially monochrome artwork.
+    /// `secondary` is the next most prominent colour at least ~45° of hue away from the
+    /// primary, if the artwork has one.
+    @MainActor
+    func vibrantColors() async -> (primary: NSColor, secondary: NSColor?)? {
+        guard let cgImage = cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            return nil
+        }
+        let result = await Task.detached(priority: .userInitiated) {
+            Self.dominantVibrantHSB(for: cgImage)
+        }.value
+        guard let result else { return nil }
+        let make = { (hsb: (Double, Double, Double)) in
+            NSColor(hue: hsb.0, saturation: hsb.1, brightness: hsb.2, alpha: 1)
+        }
+        return (make(result.primary), result.secondary.map(make))
+    }
+
+    nonisolated private static func dominantVibrantHSB(
+        for cgImage: CGImage
+    ) -> (primary: (Double, Double, Double), secondary: (Double, Double, Double)?)? {
+        let side = 32
+        let totalPixels = side * side
+        guard let context = CGContext(
+            data: nil, width: side, height: side, bitsPerComponent: 8, bytesPerRow: side * 4,
+            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else { return nil }
+        context.interpolationQuality = .medium
+        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: side, height: side))
+        guard let data = context.data else { return nil }
+        let pointer = data.bindMemory(to: UInt32.self, capacity: totalPixels)
+
+        let bucketCount = 24
+        var weights = [Double](repeating: 0, count: bucketCount)
+        var pixels: [(hue: Double, sat: Double, bri: Double, weight: Double, bucket: Int)] = []
+        pixels.reserveCapacity(totalPixels)
+
+        for i in 0..<totalPixels {
+            let value = pointer[i]
+            let r = Double(value & 0xFF) / 255
+            let g = Double((value >> 8) & 0xFF) / 255
+            let b = Double((value >> 16) & 0xFF) / 255
+            let maxC = max(r, g, b)
+            let minC = min(r, g, b)
+            let delta = maxC - minC
+            let sat = maxC == 0 ? 0 : delta / maxC
+            guard maxC > 0.18, sat > 0.22 else { continue }
+            var hue: Double
+            if maxC == r {
+                hue = ((g - b) / delta).truncatingRemainder(dividingBy: 6)
+            } else if maxC == g {
+                hue = (b - r) / delta + 2
+            } else {
+                hue = (r - g) / delta + 4
+            }
+            hue /= 6
+            if hue < 0 { hue += 1 }
+            // Favour pixels that are both saturated and bright.
+            let weight = sat * sat * maxC
+            let bucket = min(bucketCount - 1, Int(hue * Double(bucketCount)))
+            weights[bucket] += weight
+            pixels.append((hue, sat, maxC, weight, bucket))
+        }
+
+        // Too few colourful pixels: treat the artwork as monochrome.
+        guard pixels.count > totalPixels / 25 else { return nil }
+
+        func distance(_ a: Int, _ b: Int) -> Int { min(abs(a - b), bucketCount - abs(a - b)) }
+        let scores = (0..<bucketCount).map { i in
+            weights[i] + 0.5 * (weights[(i + bucketCount - 1) % bucketCount] + weights[(i + 1) % bucketCount])
+        }
+        guard let best = scores.indices.max(by: { scores[$0] < scores[$1] }) else { return nil }
+
+        // Weighted circular mean over a bucket and its neighbours.
+        func meanColor(around bucket: Int) -> (Double, Double, Double)? {
+            var x = 0.0, y = 0.0, satSum = 0.0, briSum = 0.0, weightSum = 0.0
+            for p in pixels where distance(p.bucket, bucket) <= 1 {
+                x += cos(p.hue * 2 * .pi) * p.weight
+                y += sin(p.hue * 2 * .pi) * p.weight
+                satSum += p.sat * p.weight
+                briSum += p.bri * p.weight
+                weightSum += p.weight
+            }
+            guard weightSum > 0 else { return nil }
+            var hue = atan2(y, x) / (2 * .pi)
+            if hue < 0 { hue += 1 }
+            return (hue, satSum / weightSum, briSum / weightSum)
+        }
+        guard let primary = meanColor(around: best) else { return nil }
+
+        // Second colour: clearly different hue and at least a fifth as prominent.
+        let secondBucket = scores.indices
+            .filter { distance($0, best) >= 3 && scores[$0] >= scores[best] * 0.2 }
+            .max(by: { scores[$0] < scores[$1] })
+        return (primary, secondBucket.flatMap(meanColor(around:)))
+    }
+
     func getBrightness() -> CGFloat {
         guard let cgImage = self.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
             return 0
