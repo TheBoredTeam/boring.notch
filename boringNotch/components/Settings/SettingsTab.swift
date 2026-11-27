@@ -61,6 +61,17 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     }
 }
 
+extension SettingsTab {
+    // The switch lists every tab on purpose: a new tab does not compile until it is decided here.
+    var searchEntries: [SettingsSearchEntry] {
+        switch self {
+        case .general, .notch, .appearance, .media, .calendar, .shelf, .mirror, .battery, .osd,
+             .notifications, .shortcuts, .about:
+            []
+        }
+    }
+}
+
 struct SettingsTabLabel: View {
     let tab: SettingsTab
 
