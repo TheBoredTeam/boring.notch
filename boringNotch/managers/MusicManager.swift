@@ -101,6 +101,11 @@ final class MusicManager: ObservableObject {
     @Published var volumeControlSupported: Bool = true
     @Published var usingAppIconForArtwork: Bool = false
     @Published var canFavoriteTrack: Bool = false
+    @Published private(set) var trackRating: MusicTrackRating?
+
+    var canRateTrack: Bool {
+        activeController is any TrackRatingControlling && trackRating != nil
+    }
 
     // Lyrics are now managed by LyricsService
     var lyricsService: LyricsService { LyricsService.shared }
@@ -414,6 +419,7 @@ final class MusicManager: ObservableObject {
         volume = 0.5
         usingAppIconForArtwork = false
         isFavoriteTrack = false
+        trackRating = nil
 
         artworkData = nil
         lastArtworkTitle = ""
@@ -586,6 +592,9 @@ final class MusicManager: ObservableObject {
         if state.isFavorite != self.isFavoriteTrack {
             self.isFavoriteTrack = state.isFavorite
         }
+        if state.trackRating != self.trackRating {
+            self.trackRating = state.trackRating
+        }
 
         if volumeChanged {
             self.volume = state.volume
@@ -605,6 +614,22 @@ final class MusicManager: ObservableObject {
         guard canFavoriteTrack else { return }
         // Toggle based on current state
         setFavorite(!isFavoriteTrack)
+    }
+
+    func setTrackRating(_ stars: Int, for trackID: String) async throws {
+        guard let controller = activeController as? any TrackRatingControlling,
+              let current = trackRating,
+              current.trackID == trackID,
+              (0...5).contains(stars),
+              let rating = MusicTrackRating(trackID: current.trackID, value: stars * 20) else {
+            throw AppleMusicRatingAccess.RatingError.trackUnavailable
+        }
+        do {
+            try await controller.setRating(rating)
+        } catch {
+            await controller.updatePlaybackInfo()
+            throw error
+        }
     }
 
     func setFavorite(_ favorite: Bool) {
