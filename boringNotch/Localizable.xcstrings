@@ -10199,6 +10199,9 @@
         }
       }
     },
+    "Drag detection height - %@" : {
+      "comment" : "Slider label showing how far below the top of the screen a file drag opens the shelf."
+    },
     "Drag items in the preview to reorder or drop from the palette" : {
       "localizations" : {
         "de" : {
