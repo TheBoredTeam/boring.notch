@@ -530,13 +530,15 @@ final class MusicManager: ObservableObject {
                 self.updateSneakPeek()
             }
 
-            // Fetch lyrics on content change
-            self.fetchLyricsIfAvailable(bundleIdentifier: state.bundleIdentifier, title: state.title, artist: state.artist)
         }
 
         let timeChanged = state.currentTime != self.elapsedTime
         let durationChanged = state.duration != self.songDuration
         let playbackRateChanged = state.playbackRate != self.playbackRate
+        let trackChanged = state.title != self.songTitle
+            || state.artist != self.artistName
+            || state.album != self.album
+            || state.bundleIdentifier != self.bundleIdentifier
         let shuffleChanged = state.isShuffled != self.isShuffled
         let repeatModeChanged = state.repeatMode != self.repeatMode
         let volumeChanged = state.volume != self.volume
@@ -593,10 +595,10 @@ final class MusicManager: ObservableObject {
 
         // The slider extrapolates from (elapsedTime, timestampDate); only
         // republish when an extrapolation input actually changed — otherwise
-        // every no-op stream event invalidates the whole view tree. A pause/
-        // resume must rebase it too, or the estimate overshoots by the pause
-        // duration.
-        if timeChanged || playbackRateChanged || playingStateChanged {
+        // every no-op stream event invalidates the whole view tree. Playback
+        // and track changes must rebase the timestamp, or the estimate can
+        // include time from before a pause or the previous track.
+        if timeChanged || playbackRateChanged || playingStateChanged || trackChanged {
             self.timestampDate = state.lastUpdated
         }
     }
@@ -621,20 +623,6 @@ final class MusicManager: ObservableObject {
     /// Placeholder dislike function
     func dislikeCurrentTrack() {
         setFavorite(false)
-    }
-
-    // MARK: - Lyrics
-    private func fetchLyricsIfAvailable(bundleIdentifier: String?, title: String, artist: String) {
-        guard Defaults[.enableLyrics], !title.isEmpty else {
-            Task { @MainActor in
-                lyricsService.clearLyrics()
-            }
-            return
-        }
-
-        Task { @MainActor in
-            await lyricsService.fetchLyrics(bundleIdentifier: bundleIdentifier, title: title, artist: artist)
-        }
     }
 
     private func triggerFlipAnimation() {

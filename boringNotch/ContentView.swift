@@ -32,6 +32,7 @@ struct ContentView: View {
     @State private var horizontalMediaGestureTriggered = false
     @State private var horizontalMediaGestureFeedback: CGFloat = .zero
     @State private var isHoveringMusicArea = false
+    @State private var isLyricsMode = false
 
     @State private var haptics: Bool = false
 
@@ -470,7 +471,7 @@ struct ContentView: View {
                        }
                         // New case to enable compact notch on external displays
                         else if !vm.hasNotch {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: 11) // idle notch height is halved on non notch display
+                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        } else {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        }
@@ -549,7 +550,8 @@ struct ContentView: View {
                             NotchHomeView(
                                 albumArtNamespace: albumArtNamespace,
                                 horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
-                                isHoveringMusicArea: $isHoveringMusicArea
+                                isHoveringMusicArea: $isHoveringMusicArea,
+                                isLyricsMode: $isLyricsMode
                             )
                         case .shelf:
                             ShelfView(

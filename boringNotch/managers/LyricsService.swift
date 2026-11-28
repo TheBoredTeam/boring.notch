@@ -107,6 +107,31 @@ final class LyricsService: ObservableObject {
         lyricLineContext(at: elapsed).text
     }
 
+    /// Returns the index of the line whose timestamp is at or before playback.
+    /// Before the first timestamp, no line is considered active.
+    static func activeLyricIndex(
+        in lyrics: [(time: Double, text: String)],
+        at elapsed: Double
+    ) -> Int? {
+        guard let first = lyrics.first, elapsed >= first.time else { return nil }
+
+        var low = 0
+        var high = lyrics.count - 1
+        var activeIndex = 0
+
+        while low <= high {
+            let middle = (low + high) / 2
+            if lyrics[middle].time <= elapsed {
+                activeIndex = middle
+                low = middle + 1
+            } else {
+                high = middle - 1
+            }
+        }
+
+        return activeIndex
+    }
+
     /// Returns the active synced lyric line and its timing window.
     func lyricLineContext(at elapsed: Double) -> (text: String, startTime: Double, endTime: Double?) {
         guard !syncedLyrics.isEmpty else { return (currentLyrics, 0, nil) }
@@ -284,7 +309,7 @@ final class LyricsService: ObservableObject {
 
     // MARK: - Synced lyrics helpers
 
-    private func parseLRC(_ lrc: String) -> [(time: Double, text: String)] {
+    func parseLRC(_ lrc: String) -> [(time: Double, text: String)] {
         var result: [(Double, String)] = []
         let pattern = #"\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]"#
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
@@ -304,9 +329,13 @@ final class LyricsService: ObservableObject {
 
             let minutes = Double(minStr) ?? 0
             let seconds = Double(secStr) ?? 0
-            // Handle both centiseconds (2 digits) and milliseconds (3 digits)
             let msValue = Double(msStr) ?? 0
-            let msDivisor = msStr.count == 3 ? 1000.0 : 100.0
+            let msDivisor: Double
+            switch msStr.count {
+            case 1: msDivisor = 10.0
+            case 3: msDivisor = 1000.0
+            default: msDivisor = 100.0
+            }
             let time = minutes * 60 + seconds + msValue / msDivisor
 
             let textStart = match.range.location + match.range.length

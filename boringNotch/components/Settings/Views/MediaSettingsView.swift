@@ -16,7 +16,6 @@ struct MediaSettingsView: View {
     @Default(.sneakPeekStyles) var sneakPeekStyles
     @Default(.sliderColor) var sliderColor
 
-    @Default(.enableLyrics) var enableLyrics
     @ObservedObject private var musicManager = MusicManager.shared
 
     private var realtimeAudioWaveformSupported: Bool {
@@ -97,12 +96,6 @@ struct MediaSettingsView: View {
 
             Section {
                 MusicSlotConfigurationView()
-                Defaults.Toggle(key: .enableLyrics) {
-                    HStack {
-                        Text("Show lyrics below artist name")
-                        customBadge(text: "Beta")
-                    }
-                }
                 Defaults.Toggle(key: .showRemainingTime) {
                     Text("Show remaining time instead of duration")
                 }
