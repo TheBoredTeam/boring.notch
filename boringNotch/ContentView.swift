@@ -18,6 +18,7 @@ struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
+    @ObservedObject var codexActivityManager = CodexActivityManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
@@ -107,6 +108,10 @@ struct ContentView: View {
             items.append(.notification(notification))
         }
 
+        if codexActivityManager.isEnabled && codexActivityManager.activeActivityCount > 0 {
+            items.append(.codex)
+        }
+
         let musicIsShowing = (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled
@@ -133,6 +138,7 @@ struct ContentView: View {
     /// lever anyway.
     private var openNotchHeight: CGFloat? {
         if notificationManager.activeNotification != nil { return 132 }
+        if codexActivityManager.isShowingDetails && coordinator.currentView == .home { return codexOpenNotchSize.height }
         return Defaults[.compactMode] ? nil : vm.notchSize.height
     }
 
@@ -143,7 +149,7 @@ struct ContentView: View {
     private var showsHeader: Bool {
         vm.notchState == .open
             && notificationManager.activeNotification == nil
-            && !Defaults[.compactMode]
+            && (!Defaults[.compactMode] || codexActivityManager.isShowingDetails)
     }
 
     /// The activity currently on top of the stack — what the chin has to be
@@ -202,7 +208,7 @@ struct ContentView: View {
             // notification is still in the stack leaves the chin at the
             // notification's width.
             switch activity {
-            case .notification:
+            case .notification, .codex:
                 chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
             case .music:
                 chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
@@ -383,6 +389,22 @@ struct ContentView: View {
         .background(dragDetector)
         .preferredColorScheme(.dark)
         .environmentObject(vm)
+        .onChange(of: codexActivityManager.canShowDetails) { _, available in
+            if !available { codexActivityManager.isShowingDetails = false }
+        }
+        .onChange(of: codexActivityManager.isShowingDetails) { _, showing in
+            if vm.notchState == .open {
+                vm.notchSize = showing && coordinator.currentView == .home ? codexOpenNotchSize : openNotchSize
+            }
+        }
+        .onChange(of: coordinator.currentView) { _, view in
+            if vm.notchState == .open {
+                vm.notchSize = codexActivityManager.isShowingDetails && view == .home ? codexOpenNotchSize : openNotchSize
+            }
+        }
+        .onChange(of: codexActivityManager.activeActivityCount) { _, count in
+            if count > 0 { activityIndex = 0 }
+        }
         .onChange(of: dropInteraction.anyDropZoneTargeting) { _, isTargeted in
             anyDropDebounceTask?.cancel()
 
@@ -451,6 +473,8 @@ struct ContentView: View {
                               switch item {
                               case .notification(let notification):
                                   NotificationLiveActivity(notification: notification)
+                              case .codex:
+                                  CodexLiveActivityView()
                               case .music:
                                   MusicLiveActivity()
                                       .frame(alignment: .center)
@@ -525,6 +549,8 @@ struct ContentView: View {
                     if let notification = notificationManager.activeNotification {
                         NotificationExpandedView(notification: notification)
                             .id(notification.id)
+                    } else if codexActivityManager.isShowingDetails && coordinator.currentView == .home {
+                        CodexActivityDetailsView()
                     } else if Defaults[.compactMode] {
                         // Player only — no tab switching, so currentView is
                         // ignored here rather than offering a shelf the
