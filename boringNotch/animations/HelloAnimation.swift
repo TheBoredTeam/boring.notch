@@ -59,21 +59,20 @@ extension ShapeStyle where Self == AngularGradient {
 struct GlowingSnake<
     Content: Shape,
     Fill: ShapeStyle
->: View, Animatable {
-    
+>: View, @MainActor Animatable {
     var progress: Double
     var delay: Double = 1.0
     var fill: Fill
     var lineWidth = 4.0
     var blurRadius = 8.0
-    
+
     @ViewBuilder var shape: Content
-    
+
     var animatableData: Double {
         get { progress }
         set { progress = newValue }
     }
-    
+
     var body: some View {
         shape
             .trim(
@@ -98,9 +97,9 @@ struct GlowingSnake<
 
 struct HelloAnimation: View {
     @State private var progress: Double = 0.0
-    
+
     var onFinish: () -> Void
-    
+
     var body: some View {
         GlowingSnake(
             progress: progress,
@@ -112,16 +111,16 @@ struct HelloAnimation: View {
         .task {
             // Wait for the "opening" animation (notch expansion) to complete before starting the snake
             try? await Task.sleep(for: .seconds(0.6))
-            
+
             withAnimation(
                 .easeInOut(duration: 4.0)
             ) {
                 progress = 1.0
             }
-            
+
             // Wait for the animation to complete
             try? await Task.sleep(for: .seconds(4.0))
-            
+
             onFinish()
         }
     }

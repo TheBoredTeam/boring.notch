@@ -1,0 +1,31 @@
+name: SwiftLint
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - 'stack/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# Least-privilege: only needs to read code for linting.
+permissions:
+  contents: read
+
+jobs:
+  swiftlint:
+    name: SwiftLint
+    runs-on: macos-26
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install SwiftLint
+        run: which swiftlint || brew install swiftlint
+
+      - name: Run SwiftLint
+        run: swiftlint --config .swiftlint.yml

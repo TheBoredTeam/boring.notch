@@ -12,14 +12,13 @@ struct BoringLargeButtons: View {
     var icon: Image
     var title: String
     var body: some View {
-        Button (
-            action:action,
+        Button(
+            action: action,
             label: {
                 ZStack {
                     RoundedRectangle(cornerRadius: 12.0).fill(.black).frame(width: 70, height: 70)
                     VStack(spacing: 8) {
-                        icon.resizable()
-                            .aspectRatio(contentMode: .fit).frame(width:20)
+                        icon.resizable().scaledToFit().frame(width: 20)
                         Text(title).font(.body)
                     }
                 }
@@ -27,19 +26,19 @@ struct BoringLargeButtons: View {
     }
 }
 
-struct BoringExtrasMenu : View {
+struct BoringExtrasMenu: View {
     @ObservedObject var vm: BoringViewModel
-    
+
     var body: some View {
-        VStack{
-            HStack(spacing: 20)  {
+        VStack {
+            HStack(spacing: 20) {
                 hide
                 settings
                 close
             }
         }
     }
-    
+
     var github: some View {
         BoringLargeButtons(
             action: {
@@ -51,7 +50,7 @@ struct BoringExtrasMenu : View {
             title: "Checkout"
         )
     }
-    
+
     var settings: some View {
         Button(action: {
             DispatchQueue.main.async {
@@ -61,27 +60,26 @@ struct BoringExtrasMenu : View {
             ZStack {
                 RoundedRectangle(cornerRadius: 12.0).fill(.black).frame(width: 70, height: 70)
                 VStack(spacing: 8) {
-                    Image(systemName: "gear").resizable()
-                        .aspectRatio(contentMode: .fit).frame(width:20)
+                    Image(systemName: "gear").resizable().scaledToFit().frame(width: 20)
                     Text("Settings").font(.body)
                 }
             }
         }
         .buttonStyle(PlainButtonStyle()).shadow(color: .black.opacity(0.5), radius: 10)
     }
-    
+
     var hide: some View {
         BoringLargeButtons(
             action: {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                    //vm.openMusic()
+                    // vm.openMusic()
                 }
             },
             icon: Image(systemName: "arrow.down.forward.and.arrow.up.backward"),
             title: "Hide"
         )
     }
-    
+
     var close: some View {
         BoringLargeButtons(
             action: {
@@ -97,7 +95,6 @@ struct BoringExtrasMenu : View {
     }
 }
 
-
 #Preview {
-    BoringExtrasMenu(vm: .init())
+    BoringExtrasMenu(vm: .init(camera: CameraModel()))
 }
