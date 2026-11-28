@@ -124,6 +124,9 @@ final class KeyboardBacklightManager: ObservableObject {
 	/// Deltas accumulate while a read or set call is in flight so key repeats
 	/// are coalesced into the next adjustment.
 	private var pendingDelta: Float = 0
+	/// Size of one key press in the pending batch, used to keep the level on
+	/// the same grid as the system brightness keys.
+	private var pendingStep: Float = 0
 	private var flushTask: Task<Void, Never>?
 
 	private init() { refresh() }
@@ -138,20 +141,25 @@ final class KeyboardBacklightManager: ObservableObject {
 		}
 	}
 
+	/// Moves the backlight by `delta`, where each call is one key press.
 	@MainActor func setRelative(delta: Float) {
 		pendingDelta += delta
+		let step = abs(delta)
+		if step > 0 { pendingStep = pendingStep > 0 ? min(pendingStep, step) : step }
 		guard flushTask == nil else { return }
 		flushTask = Task { @MainActor in
 			defer { flushTask = nil }
 			while pendingDelta != 0 {
 				let delta = pendingDelta
+				let step = pendingStep
 				pendingDelta = 0
+				pendingStep = 0
 				// Include changes made outside the app in every adjustment.
 				guard let current = await client.currentKeyboardBrightness() else {
 					refresh()
 					return
 				}
-				let target = max(0, min(1, current + delta))
+				let target = BrightnessStepping.target(from: current, delta: delta, step: step)
 				let ok = await client.setKeyboardBrightness(target)
 				if ok {
 					publish(brightness: target, touchDate: true)
@@ -181,5 +189,32 @@ final class KeyboardBacklightManager: ObservableObject {
 			if touchDate { lastChangeAt = Date() }
 			rawBrightness = brightness
 		}
+	}
+}
+
+// MARK: - Stepping
+
+enum BrightnessStepping {
+	/// Returns the level after moving `current` by `delta` in steps of `step`.
+	///
+	/// Like the system brightness keys, the result stays on the grid of `step`:
+	/// a level that is off the grid (set by ambient light, a slider or another
+	/// app) first moves to the nearest grid point in the direction of the key,
+	/// so presses always land on values such as 50% instead of drifting to 51%.
+	static func target(from current: Float, delta: Float, step: Float) -> Float {
+		guard delta != 0, step > 0 else { return clamp(current + delta) }
+		let steps = max(1, (abs(delta) / step).rounded())
+		// Read-back values can be a hair off the grid (0.49999 for 0.5);
+		// treat anything within 1% of a step as being on it.
+		let tolerance: Float = 0.01
+		let position = clamp(current) / step
+		let grid = delta > 0
+			? (position + tolerance).rounded(.down) + steps
+			: (position - tolerance).rounded(.up) - steps
+		return clamp(grid * step)
+	}
+
+	private static func clamp(_ value: Float) -> Float {
+		max(0, min(1, value))
 	}
 }
